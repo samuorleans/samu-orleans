@@ -100,7 +100,7 @@
 
     .grid-container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 20px;
       margin-bottom: 40px;
     }
@@ -258,21 +258,31 @@
   <!-- Cabeçalho Principal -->
   <div class="hero">
     <h1>Painel Integrado de Gestão & Operação</h1>
-    <p>Central de links e formulários de rotina operacional</p>
+    <p>Central de links e sistemas de rotina operacional</p>
   </div>
 
   <div class="container">
 
-    <!-- SEÇÃO 1: FORMULÁRIOS PÚBLICOS OPERACIONAIS -->
+    <!-- SEÇÃO 1: FORMULÁRIOS E SISTEMAS PÚBLICOS OPERACIONAIS -->
     <h2 class="section-title">📋 Registros e Controles Diários</h2>
     <div class="grid-container">
+
+      <!-- Card Novo: Escala SAMU -->
+      <a href="https://escala-samu.vercel.app/" target="_blank" class="card">
+        <div>
+          <div class="card-icon">📅</div>
+          <div class="card-title">Escalas Operacionais</div>
+          <div class="card-desc">Módulo integrado de consulta e gestão de escalas de plantão.</div>
+        </div>
+        <span class="badge">Acessar Sistema</span>
+      </a>
 
       <!-- Card 1: Checklist e Abastecimento -->
       <a href="https://forms.gle/gXemDf2wYJioEvrD7" target="_blank" class="card">
         <div>
           <div class="card-icon">🚑</div>
           <div class="card-title">Checklist & Abastecimento</div>
-          <div class="card-desc">Conferência diária de materiais, viaturas e registros de abastecimento.</div>
+          <div class="card-desc">Conferência diária de materiais, viaturas e abastecimento.</div>
         </div>
         <span class="badge">Acessar Formulário</span>
       </a>
@@ -292,7 +302,7 @@
         <div>
           <div class="card-icon">🎓</div>
           <div class="card-title">Controle de Cursos</div>
-          <div class="card-desc">Registro e acompanhamento de capacitações e treinamentos da equipe.</div>
+          <div class="card-desc">Registro e acompanhamento de capacitações e treinamentos.</div>
         </div>
         <span class="badge">Acessar Formulário</span>
       </a>
