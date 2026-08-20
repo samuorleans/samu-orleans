@@ -3,239 +3,316 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAMU 192 - Portal do Servidor</title>
+  <title>SAMU 192 - Portal de Gestão do Servidor</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --primary-red: #cc0000;
       --dark-red: #990000;
       --navy-blue: #002b49;
+      --navy-dark: #001a2d;
       --bg-gray: #f4f6f9;
+      --border-color: #e2e8f0;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-    body { background-color: var(--bg-gray); color: #333; min-height: 100vh; padding: 15px; }
+    body { background-color: var(--bg-gray); color: #333; min-height: 100vh; display: flex; flex-direction: column; }
 
-    /* LOGIN */
+    /* TELAS DE LOGIN */
+    .login-wrapper { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
     .login-container {
+      width: 100%;
       max-width: 400px;
-      margin: 50px auto;
       background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      padding: 35px 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
       border-top: 6px solid var(--primary-red);
       text-align: center;
     }
     .login-logo { width: 90px; margin-bottom: 15px; }
-    .login-title { font-size: 1.2rem; color: var(--navy-blue); font-weight: bold; }
-    .login-subtitle { font-size: 0.85rem; color: #666; margin-bottom: 20px; }
+    .login-title { font-size: 1.25rem; color: var(--navy-blue); font-weight: 800; letter-spacing: -0.5px; }
+    .login-subtitle { font-size: 0.85rem; color: #64748b; margin-bottom: 25px; }
 
-    .form-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 12px; }
-    .form-group label { font-size: 0.82rem; font-weight: bold; color: var(--navy-blue); margin-bottom: 4px; }
-    .form-group input, .form-group select { padding: 9px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.88rem; outline: none; }
+    .form-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 15px; }
+    .form-group label { font-size: 0.82rem; font-weight: 700; color: var(--navy-blue); margin-bottom: 6px; }
+    .form-group input, .form-group select { padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; outline: none; transition: 0.2s; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--navy-blue); box-shadow: 0 0 0 3px rgba(0, 43, 73, 0.1); }
 
-    .btn-login { width: 100%; padding: 12px; background: var(--primary-red); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    .btn-login { width: 100%; padding: 12px; background: var(--primary-red); color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
     .btn-login:hover { background: var(--dark-red); }
 
-    /* DASHBOARD */
-    .dashboard-container { display: none; max-width: 1150px; margin: 0 auto; }
-    .header-bar { background: white; padding: 15px 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-left: 5px solid var(--primary-red); }
-    .user-info { display: flex; align-items: center; gap: 10px; }
-    .user-avatar { width: 40px; height: 40px; background: var(--navy-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-    .btn-logout { background: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+    /* LAYOUT DO PAINEL PROFISSIONAL */
+    .app-layout { display: none; min-height: 100vh; flex-direction: row; width: 100%; }
 
-    .tabs-nav { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-    .tab-btn { padding: 10px 18px; border: none; background: white; border-radius: 8px; font-weight: bold; color: var(--navy-blue); cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .tab-btn.active { background: var(--navy-blue); color: white; }
+    /* SIDEBAR NAV */
+    .sidebar { width: 260px; background: var(--navy-blue); color: white; padding: 25px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+    .brand-header { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .brand-header img { width: 42px; height: auto; }
+    .brand-title { font-size: 1rem; font-weight: 800; line-height: 1.2; }
+    .brand-subtitle { font-size: 0.72rem; opacity: 0.7; }
 
-    .tab-content { display: none; background: white; padding: 22px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-    .tab-content.active { display: block; }
+    .nav-menu { display: flex; flex-direction: column; gap: 8px; flex-grow: 1; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #cbd5e1; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
+    .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.12); color: white; }
 
-    .section-title { font-size: 1rem; color: var(--navy-blue); border-bottom: 2px solid #eef2f7; padding-bottom: 6px; margin: 18px 0 12px 0; font-weight: bold; }
-    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    .user-card-sidebar { background: var(--navy-dark); padding: 15px; border-radius: 10px; margin-top: auto; display: flex; align-items: center; gap: 12px; }
+    .avatar-circle { width: 38px; height: 38px; background: var(--primary-red); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; }
+    .btn-logout-icon { background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 1.1rem; margin-left: auto; }
+    .btn-logout-icon:hover { color: white; }
 
-    .btn-save { background: #166534; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 0.9rem; }
-    .btn-save:hover { background: #14532d; }
+    /* CONTEÚDO PRINCIPAL */
+    .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+    .page-title { font-size: 1.4rem; color: var(--navy-blue); font-weight: 800; }
 
-    .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; }
+    /* CARDS DE ESTATÍSTICA */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .stat-card { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--border-color); }
+    .stat-number { font-size: 1.5rem; font-weight: 800; color: var(--navy-blue); }
+    .stat-label { font-size: 0.8rem; color: #64748b; font-weight: 600; }
+
+    /* TABELAS E AÇÕES */
+    .card-panel { background: white; padding: 22px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--border-color); }
+    .action-bar { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+    .search-input { padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; width: 100%; max-width: 320px; font-size: 0.88rem; outline: none; }
+    .btn-primary { background: var(--navy-blue); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.88rem; display: flex; align-items: center; gap: 6px; }
+    .btn-primary:hover { background: var(--navy-dark); }
+
+    .table-wrapper { overflow-x: auto; width: 100%; }
     .data-table { width: 100%; border-collapse: collapse; min-width: 900px; }
-    .data-table th, .data-table td { border: 1px solid #e2e8f0; padding: 8px 10px; font-size: 0.82rem; text-align: left; white-space: nowrap; }
-    .data-table th { background: #f8fafc; color: var(--navy-blue); font-weight: bold; }
+    .data-table th, .data-table td { border-bottom: 1px solid var(--border-color); padding: 12px 14px; font-size: 0.85rem; text-align: left; white-space: nowrap; }
+    .data-table th { background: #f8fafc; color: var(--navy-blue); font-weight: 700; }
 
-    .btn-edit-admin { background: var(--navy-blue); color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.78rem; }
-    .btn-edit-admin:hover { background: #001a2d; }
+    .badge-role { padding: 4px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+    .role-admin { background: #fee2e2; color: #991b1b; }
+    .role-user { background: #e0f2fe; color: #0369a1; }
 
-    /* MODAL DE EDIÇÃO ADMIN */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
-    .modal-card { background: white; padding: 25px; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
-    .modal-title { font-size: 1.1rem; color: var(--navy-blue); font-weight: bold; margin-bottom: 15px; }
-    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+    .btn-action-sm { background: #f1f5f9; color: var(--navy-blue); border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.78rem; }
+    .btn-action-sm:hover { background: var(--navy-blue); color: white; }
 
-    .log-item { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.82rem; display: flex; justify-content: space-between; }
-    .log-time { color: #888; font-size: 0.75rem; }
+    /* MODAL */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
+    .modal-card { background: white; padding: 25px; border-radius: 16px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+    .modal-title { font-size: 1.1rem; color: var(--navy-blue); font-weight: 800; }
+
+    /* RESPONSIVO */
+    @media (max-width: 850px) {
+      .app-layout { flex-direction: column; }
+      .sidebar { width: 100%; padding: 15px; }
+      .brand-header { margin-bottom: 10px; padding-bottom: 10px; }
+      .nav-menu { flex-direction: row; overflow-x: auto; }
+      .nav-item { padding: 8px 12px; white-space: nowrap; font-size: 0.82rem; }
+      .user-card-sidebar { display: none; }
+      .main-content { padding: 15px; }
+    }
   </style>
 </head>
 <body>
 
   <!-- LOGIN -->
-  <div id="loginScreen" class="login-container">
-    <img src="logo.png" alt="SAMU Orleans" class="login-logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
-    <div class="login-title">PORTAL DO SERVIDOR</div>
-    <div class="login-subtitle">SAMU 192 – USB 11 ORLEANS</div>
+  <div id="loginScreen" class="login-wrapper">
+    <div class="login-container">
+      <img src="logo.png" alt="SAMU Orleans" class="login-logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
+      <div class="login-title">PORTAL DO SERVIDOR</div>
+      <div class="login-subtitle">SAMU 192 – USB 11 ORLEANS</div>
 
-    <form onsubmit="realizarLogin(event)">
-      <div class="form-group">
-        <label>CPF / Usuário:</label>
-        <input type="text" id="loginCPF" placeholder="Digite seu CPF ou admin" required>
-      </div>
-      <div class="form-group">
-        <label>Senha:</label>
-        <input type="password" id="loginSenha" placeholder="Digite sua senha" required>
-      </div>
-      <button type="submit" class="btn-login">Entrar no Portal</button>
-    </form>
-    <div id="loginError" style="color:red; font-size:0.8rem; margin-top:10px; display:none;">Usuário ou Senha incorretos!</div>
-  </div>
-
-  <!-- DASHBOARD -->
-  <div id="dashboardScreen" class="dashboard-container">
-    
-    <div class="header-bar">
-      <div class="user-info">
-        <div class="user-avatar" id="userInitial">U</div>
-        <div>
-          <strong id="userName" style="color:var(--navy-blue);">Nome do Servidor</strong><br>
-          <small id="userRole" style="color:#666;">Função / Perfil</small>
-        </div>
-      </div>
-      <button class="btn-logout" onclick="logout()">Sair</button>
-    </div>
-
-    <div class="tabs-nav">
-      <button class="tab-btn active" onclick="switchTab('tabMeuPerfil')">👤 Meus Dados & Uniformes</button>
-      <button class="tab-btn" id="btnAdminTab" style="display:none;" onclick="switchTab('tabAdmin')">⚙️ Gestão de Servidores</button>
-      <button class="tab-btn" id="btnLogsTab" style="display:none;" onclick="switchTab('tabLogs')">📋 Logs de Auditoria</button>
-    </div>
-
-    <!-- ABA 1: MEUS DADOS E UNIFORMES -->
-    <div id="tabMeuPerfil" class="tab-content active">
-      
-      <div class="section-title">📋 1. Dados Pessoais e de Contato</div>
-      <div class="grid-3">
-        <div class="form-group"><label>Nome Completo:</label><input type="text" id="perfilNome" disabled></div>
-        <div class="form-group"><label>CPF:</label><input type="text" id="perfilCPF" disabled></div>
-        <div class="form-group"><label>Função:</label><input type="text" id="perfilFuncao" disabled></div>
-        <div class="form-group"><label>Registro (COREN/CNH):</label><input type="text" id="perfilRegistro"></div>
-        <div class="form-group"><label>Telefone / WhatsApp:</label><input type="text" id="perfilTelefone"></div>
-        <div class="form-group"><label>E-mail:</label><input type="email" id="perfilEmail"></div>
-        <div class="form-group"><label>Alterar Senha:</label><input type="password" id="perfilNovaSenha" placeholder="Digite para alterar"></div>
-      </div>
-
-      <div class="section-title">👕 2. Tamanhos de Uniformes e Insumos</div>
-      <div class="grid-3">
+      <form onsubmit="realizarLogin(event)">
         <div class="form-group">
-          <label>Tipo Sanguíneo:</label>
-          <select id="uTipoSangue">
-            <option value="">Selecione...</option>
-            <option value="A+">A+</option><option value="A-">A-</option>
-            <option value="B+">B+</option><option value="B-">B-</option>
-            <option value="AB+">AB+</option><option value="AB-">AB-</option>
-            <option value="O+">O+</option><option value="O-">O-</option>
-          </select>
+          <label>CPF / Usuário:</label>
+          <input type="text" id="loginCPF" placeholder="Digite seu CPF ou admin" required>
         </div>
-        <div class="form-group"><label>Nome de Guerra (Bíriba):</label><input type="text" id="uNomeGuerra" placeholder="Ex: FERNANDES A+"></div>
-        <div class="form-group"><label>Macacão:</label><input type="text" id="uMacacao" placeholder="Ex: P, M, G, GG"></div>
-        <div class="form-group"><label>Camiseta:</label><input type="text" id="uCamiseta" placeholder="Ex: M, G"></div>
-        <div class="form-group"><label>Jaqueta:</label><input type="text" id="uJaqueta" placeholder="Ex: G, GG"></div>
-        <div class="form-group"><label>Coturno (Número):</label><input type="text" id="uCoturno" placeholder="Ex: 40, 41"></div>
-        <div class="form-group"><label>Capa de Chuva:</label><input type="text" id="uCapaChuva" placeholder="Ex: G, TAM. ÚNICO"></div>
-      </div>
-
-      <div class="section-title">🏦 3. Dados Bancários (Repasses)</div>
-      <div class="grid-3">
-        <div class="form-group"><label>Banco:</label><input type="text" id="bBanco" placeholder="Ex: Banco do Brasil"></div>
-        <div class="form-group"><label>Agência:</label><input type="text" id="bAgencia"></div>
-        <div class="form-group"><label>Conta:</label><input type="text" id="bConta"></div>
-        <div class="form-group"><label>Chave PIX:</label><input type="text" id="bPix"></div>
-      </div>
-
-      <button class="btn-save" onclick="salvarTudoPerfil()">💾 Salvar Todas as Alterações</button>
+        <div class="form-group">
+          <label>Senha:</label>
+          <input type="password" id="loginSenha" placeholder="Digite sua senha" required>
+        </div>
+        <button type="submit" class="btn-login">Acessar Sistema</button>
+      </form>
+      <div id="loginError" style="color:#dc2626; font-size:0.8rem; margin-top:12px; font-weight:600; display:none;">Usuário ou Senha incorretos!</div>
     </div>
-
-    <!-- ABA 2: QUADRO DE SERVIDORES COMPLETO COM TODOS OS UNIFORMES -->
-    <div id="tabAdmin" class="tab-content">
-      <h3 style="color:var(--navy-blue); margin-bottom:15px;">Quadro Geral de Colaboradores e Uniformes</h3>
-      
-      <div class="table-responsive">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>CPF</th>
-              <th>Função</th>
-              <th>Registro</th>
-              <th>Tipo Sang.</th>
-              <th>Nome Guerra</th>
-              <th>Macacão</th>
-              <th>Camiseta</th>
-              <th>Jaqueta</th>
-              <th>Coturno</th>
-              <th>C. Chuva</th>
-              <th>Perfil</th>
-              <th>Ação</th>
-            </tr>
-          </thead>
-          <tbody id="adminServidoresTable"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ABA 3: LOGS DE AUDITORIA -->
-    <div id="tabLogs" class="tab-content">
-      <h3 style="color:var(--navy-blue); margin-bottom:15px;">Registro de Auditoria (Logs)</h3>
-      <div id="logsContainer"></div>
-    </div>
-
   </div>
 
-  <!-- MODAL PARA EDIÇÃO ADMIN -->
+  <!-- DASHBOARD / APPLAYOUT -->
+  <div id="dashboardScreen" class="app-layout">
+    
+    <!-- SIDEBAR DE NAVEGAÇÃO -->
+    <aside class="sidebar">
+      <div class="brand-header">
+        <img src="logo.png" alt="Logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
+        <div>
+          <div class="brand-title">SAMU 192</div>
+          <div class="brand-subtitle">USB 11 ORLEANS</div>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <div class="nav-item active" onclick="switchTab('tabMeuPerfil', this)">👤 Meus Dados & Uniformes</div>
+        <div class="nav-item" id="btnAdminTab" style="display:none;" onclick="switchTab('tabAdmin', this)">⚙️ Gestão de Servidores</div>
+        <div class="nav-item" id="btnLogsTab" style="display:none;" onclick="switchTab('tabLogs', this)">📋 Logs de Auditoria</div>
+      </nav>
+
+      <div class="user-card-sidebar">
+        <div class="avatar-circle" id="userInitial">U</div>
+        <div style="overflow:hidden;">
+          <div id="userName" style="font-size:0.85rem; font-weight:700; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">Nome</div>
+          <div id="userRole" style="font-size:0.72rem; color:#94a3b8;">Função</div>
+        </div>
+        <button class="btn-logout-icon" onclick="logout()" title="Sair">🚪</button>
+      </div>
+    </aside>
+
+    <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
+    <main class="main-content">
+      
+      <!-- ABA 1: MEUS DADOS -->
+      <div id="tabMeuPerfil" class="tab-pane">
+        <div class="page-header">
+          <div class="page-title">Meu Perfil e Cadastro de Insumos</div>
+        </div>
+
+        <div class="card-panel" style="margin-bottom:20px;">
+          <h3 style="color:var(--navy-blue); margin-bottom:15px; font-size:0.95rem;">📋 Dados Pessoais & Contato</h3>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+            <div class="form-group"><label>Nome Completo:</label><input type="text" id="perfilNome" disabled></div>
+            <div class="form-group"><label>CPF:</label><input type="text" id="perfilCPF" disabled></div>
+            <div class="form-group"><label>Função:</label><input type="text" id="perfilFuncao" disabled></div>
+            <div class="form-group"><label>Registro (COREN/CNH):</label><input type="text" id="perfilRegistro"></div>
+            <div class="form-group"><label>Telefone / WhatsApp:</label><input type="text" id="perfilTelefone"></div>
+            <div class="form-group"><label>E-mail:</label><input type="email" id="perfilEmail"></div>
+            <div class="form-group"><label>Alterar Senha:</label><input type="password" id="perfilNovaSenha" placeholder="Deixe em branco para manter"></div>
+          </div>
+        </div>
+
+        <div class="card-panel" style="margin-bottom:20px;">
+          <h3 style="color:var(--navy-blue); margin-bottom:15px; font-size:0.95rem;">👕 Tamanhos de Uniformes e Equipamentos</h3>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+            <div class="form-group">
+              <label>Tipo Sanguíneo:</label>
+              <select id="uTipoSangue">
+                <option value="">Selecione...</option>
+                <option value="A+">A+</option><option value="A-">A-</option>
+                <option value="B+">B+</option><option value="B-">B-</option>
+                <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                <option value="O+">O+</option><option value="O-">O-</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Nome de Guerra (Bíriba):</label><input type="text" id="uNomeGuerra"></div>
+            <div class="form-group"><label>Macacão:</label><input type="text" id="uMacacao"></div>
+            <div class="form-group"><label>Camiseta:</label><input type="text" id="uCamiseta"></div>
+            <div class="form-group"><label>Jaqueta:</label><input type="text" id="uJaqueta"></div>
+            <div class="form-group"><label>Coturno (Número):</label><input type="text" id="uCoturno"></div>
+            <div class="form-group"><label>Capa de Chuva:</label><input type="text" id="uCapaChuva"></div>
+          </div>
+        </div>
+
+        <div class="card-panel">
+          <h3 style="color:var(--navy-blue); margin-bottom:15px; font-size:0.95rem;">🏦 Dados Bancários para Repasses</h3>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+            <div class="form-group"><label>Banco:</label><input type="text" id="bBanco"></div>
+            <div class="form-group"><label>Agência:</label><input type="text" id="bAgencia"></div>
+            <div class="form-group"><label>Conta:</label><input type="text" id="bConta"></div>
+            <div class="form-group"><label>Chave PIX:</label><input type="text" id="bPix"></div>
+          </div>
+          <button class="btn-primary" style="margin-top:15px; background:#166534;" onclick="salvarTudoPerfil()">💾 Salvar Alterações</button>
+        </div>
+      </div>
+
+      <!-- ABA 2: QUADRO DE SERVIDORES (ADMIN) -->
+      <div id="tabAdmin" class="tab-pane" style="display:none;">
+        <div class="page-header">
+          <div class="page-title">Painel de Gestão de Colaboradores</div>
+          <button class="btn-primary" onclick="abrirModalNovoServidor()">➕ Novo Colaborador</button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number" id="statTotal">0</div>
+            <div class="stat-label">Total de Servidores Cadastrados</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="statCondutores">0</div>
+            <div class="stat-label">Condutores Socorristas</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="statTecnicos">0</div>
+            <div class="stat-label">Técnicos de Enfermagem / Coord.</div>
+          </div>
+        </div>
+
+        <div class="card-panel">
+          <div class="action-bar">
+            <input type="text" class="search-input" id="searchServidores" placeholder="🔍 Buscar por Nome ou CPF..." onkeyup="filtrarTabelaServidores()">
+          </div>
+
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>CPF</th>
+                  <th>Função</th>
+                  <th>Registro</th>
+                  <th>Tipo Sang.</th>
+                  <th>Nome Guerra</th>
+                  <th>Coturno</th>
+                  <th>Macacão</th>
+                  <th>Perfil</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="adminServidoresTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA 3: LOGS DE AUDITORIA -->
+      <div id="tabLogs" class="tab-pane" style="display:none;">
+        <div class="page-header">
+          <div class="page-title">Histórico e Logs de Auditoria</div>
+        </div>
+        <div class="card-panel">
+          <div id="logsContainer"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MODAL PARA CADASTRAR OU EDITAR COLABORADOR -->
   <div id="editModal" class="modal-overlay">
     <div class="modal-card">
-      <div class="modal-title">✏️ Editar Colaborador (Admin)</div>
+      <div class="modal-header">
+        <div class="modal-title" id="modalFormTitle">👤 Gestão de Colaborador</div>
+        <button style="background:none; border:none; font-size:1.2rem; cursor:pointer;" onclick="fecharModal()">✕</button>
+      </div>
+      
       <input type="hidden" id="modalServidorId">
       
-      <div class="form-group">
-        <label>Nome Completo:</label>
-        <input type="text" id="modalNome">
-      </div>
-      <div class="form-group">
-        <label>CPF:</label>
-        <input type="text" id="modalCPF">
-      </div>
+      <div class="form-group"><label>Nome Completo:</label><input type="text" id="modalNome" required></div>
+      <div class="form-group"><label>CPF:</label><input type="text" id="modalCPF" required></div>
       <div class="form-group">
         <label>Função:</label>
-        <input type="text" id="modalFuncao">
+        <select id="modalFuncao">
+          <option value="Condutor Socorrista">Condutor Socorrista</option>
+          <option value="Técnico(a) de Enfermagem Socorrista">Técnico(a) de Enfermagem Socorrista</option>
+          <option value="Enfermeira Coordenadora">Enfermeira Coordenadora</option>
+        </select>
       </div>
+      <div class="form-group"><label>Registro (COREN ou CNH):</label><input type="text" id="modalRegistro"></div>
       <div class="form-group">
-        <label>COREN / CNH:</label>
-        <input type="text" id="modalRegistro">
-      </div>
-      <div class="form-group">
-        <label>Perfil de Acesso:</label>
+        <label>Perfil de Acesso ao Sistema:</label>
         <select id="modalPerfil">
           <option value="servidor">Servidor</option>
           <option value="admin">Administrador (Admin)</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Redefinir Senha do Servidor:</label>
-        <input type="text" id="modalNovaSenha" placeholder="Deixe em branco para manter a atual">
-      </div>
+      <div class="form-group"><label>Senha de Acesso:</label><input type="text" id="modalNovaSenha" placeholder="Digite uma senha ou 'samu192'"></div>
 
-      <div class="modal-actions">
-        <button class="btn-logout" onclick="fecharModal()">Cancelar</button>
-        <button class="btn-save" style="margin:0;" onclick="salvarEdicaoAdmin()">💾 Salvar Alterações</button>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button class="btn-action-sm" onclick="fecharModal()">Cancelar</button>
+        <button class="btn-primary" style="background:#166534;" onclick="salvarEdicaoAdmin()">💾 Salvar Dados</button>
       </div>
     </div>
   </div>
@@ -247,6 +324,7 @@
 
     let usuarioLogado = null;
     let listaColaboradores = [];
+    let listaUniformes = [];
 
     async function realizarLogin(e) {
       e.preventDefault();
@@ -277,13 +355,12 @@
 
     async function carregarDashboard() {
       document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('dashboardScreen').style.display = 'block';
+      document.getElementById('dashboardScreen').style.display = 'flex';
 
       document.getElementById('userName').innerText = usuarioLogado.nome;
-      document.getElementById('userRole').innerText = `${usuarioLogado.funcao} (${usuarioLogado.perfil || 'Servidor'})`;
+      document.getElementById('userRole').innerText = `${usuarioLogado.funcao}`;
       document.getElementById('userInitial').innerText = usuarioLogado.nome.charAt(0);
 
-      // Dados pessoais
       document.getElementById('perfilNome').value = usuarioLogado.nome;
       document.getElementById('perfilCPF').value = usuarioLogado.cpf;
       document.getElementById('perfilFuncao').value = usuarioLogado.funcao;
@@ -291,7 +368,6 @@
       document.getElementById('perfilTelefone').value = usuarioLogado.telefone || '';
       document.getElementById('perfilEmail').value = usuarioLogado.email || '';
 
-      // Uniformes
       const { data: uni } = await supabaseClient.from('uniformes').select('*').eq('colaborador_id', usuarioLogado.id).single();
       if (uni) {
         document.getElementById('uTipoSangue').value = uni.tipo_sangue || '';
@@ -303,7 +379,6 @@
         document.getElementById('uCapaChuva').value = uni.capa_chuva || '';
       }
 
-      // Banco
       const { data: banco } = await supabaseClient.from('dados_bancarios').select('*').eq('colaborador_id', usuarioLogado.id).single();
       if (banco) {
         document.getElementById('bBanco').value = banco.banco || '';
@@ -313,10 +388,131 @@
       }
 
       if (usuarioLogado.perfil === 'admin' || usuarioLogado.funcao.includes('Coordenadora')) {
-        document.getElementById('btnAdminTab').style.display = 'inline-block';
-        document.getElementById('btnLogsTab').style.display = 'inline-block';
+        document.getElementById('btnAdminTab').style.display = 'flex';
+        document.getElementById('btnLogsTab').style.display = 'flex';
         carregarServidoresAdmin();
         carregarLogs();
+      }
+    }
+
+    async function carregarServidoresAdmin() {
+      const { data: colabs } = await supabaseClient.from('colaboradores').select('*').order('nome');
+      const { data: unis } = await supabaseClient.from('uniformes').select('*');
+
+      listaColaboradores = colabs || [];
+      listaUniformes = unis || [];
+
+      // Atualizar Cards de Estatísticas
+      document.getElementById('statTotal').innerText = listaColaboradores.length;
+      document.getElementById('statCondutores').innerText = listaColaboradores.filter(c => c.funcao.includes('Condutor')).length;
+      document.getElementById('statTecnicos').innerText = listaColaboradores.filter(c => !c.funcao.includes('Condutor')).length;
+
+      renderTabelaServidores(listaColaboradores);
+    }
+
+    function renderTabelaServidores(dados) {
+      const tbody = document.getElementById('adminServidoresTable');
+      tbody.innerHTML = '';
+
+      dados.forEach(s => {
+        const u = listaUniformes.find(item => item.colaborador_id === s.id) || {};
+        const isRoleAdmin = s.perfil === 'admin';
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${s.nome}</strong></td>
+          <td>${s.cpf}</td>
+          <td>${s.funcao}</td>
+          <td>${s.coren !== 'N/A' ? s.coren : s.cnh}</td>
+          <td>${u.tipo_sangue || '-'}</td>
+          <td>${u.nome_guerra || '-'}</td>
+          <td>${u.coturno || '-'}</td>
+          <td>${u.macacao || '-'}</td>
+          <td><span class="badge-role ${isRoleAdmin ? 'role-admin' : 'role-user'}">${s.perfil || 'servidor'}</span></td>
+          <td><button class="btn-action-sm" onclick="abrirModalEdicao(${s.id})">✏️ Editar</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filtrarTabelaServidores() {
+      const query = document.getElementById('searchServidores').value.toLowerCase();
+      const filtrados = listaColaboradores.filter(s => 
+        s.nome.toLowerCase().includes(query) || s.cpf.includes(query)
+      );
+      renderTabelaServidores(filtrados);
+    }
+
+    function abrirModalNovoServidor() {
+      document.getElementById('modalFormTitle').innerText = '➕ Cadastrar Novo Colaborador';
+      document.getElementById('modalServidorId').value = '';
+      document.getElementById('modalNome').value = '';
+      document.getElementById('modalCPF').value = '';
+      document.getElementById('modalFuncao').value = 'Condutor Socorrista';
+      document.getElementById('modalRegistro').value = '';
+      document.getElementById('modalPerfil').value = 'servidor';
+      document.getElementById('modalNovaSenha').value = 'samu192';
+
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function abrirModalEdicao(id) {
+      const s = listaColaboradores.find(item => item.id === id);
+      if (!s) return;
+
+      document.getElementById('modalFormTitle').innerText = '✏️ Editar Dados do Colaborador';
+      document.getElementById('modalServidorId').value = s.id;
+      document.getElementById('modalNome').value = s.nome;
+      document.getElementById('modalCPF').value = s.cpf;
+      document.getElementById('modalFuncao').value = s.funcao;
+      document.getElementById('modalRegistro').value = s.coren !== 'N/A' ? s.coren : s.cnh;
+      document.getElementById('modalPerfil').value = s.perfil || 'servidor';
+      document.getElementById('modalNovaSenha').value = '';
+
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function fecharModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    async function salvarEdicaoAdmin() {
+      const id = document.getElementById('modalServidorId').value;
+      const nome = document.getElementById('modalNome').value;
+      const cpf = document.getElementById('modalCPF').value;
+      const funcao = document.getElementById('modalFuncao').value;
+      const reg = document.getElementById('modalRegistro').value;
+      const perfil = document.getElementById('modalPerfil').value;
+      const novaSenha = document.getElementById('modalNovaSenha').value;
+
+      let payload = { nome, cpf, funcao, perfil };
+
+      if (funcao.toLowerCase().includes('condutor')) {
+        payload.cnh = reg;
+        payload.coren = 'N/A';
+      } else {
+        payload.coren = reg;
+        payload.cnh = 'N/A';
+      }
+
+      if (novaSenha.trim() !== '') {
+        payload.senha = novaSenha.trim();
+      }
+
+      let res;
+      if (id) {
+        res = await supabaseClient.from('colaboradores').update(payload).eq('id', id);
+      } else {
+        res = await supabaseClient.from('colaboradores').insert([payload]);
+      }
+
+      if (!res.error) {
+        await registrarLog("Gestão Admin", `Administrador cadastrou/alterou o servidor ${nome}.`);
+        alert('Dados salvos com sucesso!');
+        fecharModal();
+        carregarServidoresAdmin();
+      } else {
+        alert('Erro ao salvar colaborador.');
       }
     }
 
@@ -353,95 +549,8 @@
       };
       await supabaseClient.from('dados_bancarios').upsert(upBanco, { onConflict: 'colaborador_id' });
 
-      await registrarLog("Atualização Cadastral", "Servidor atualizou seus dados pessoais e tamanhos de uniformes.");
+      await registrarLog("Atualização Cadastral", "Servidor atualizou seus dados pessoais e uniformes.");
       alert('Informações salvas com sucesso!');
-    }
-
-    async function carregarServidoresAdmin() {
-      const { data: colabs } = await supabaseClient.from('colaboradores').select('*').order('nome');
-      const { data: unis } = await supabaseClient.from('uniformes').select('*');
-
-      listaColaboradores = colabs || [];
-      const tbody = document.getElementById('adminServidoresTable');
-      tbody.innerHTML = '';
-
-      listaColaboradores.forEach(s => {
-        const u = (unis || []).find(item => item.colaborador_id === s.id) || {};
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${s.nome}</td>
-          <td>${s.cpf}</td>
-          <td>${s.funcao}</td>
-          <td>${s.coren !== 'N/A' ? s.coren : s.cnh}</td>
-          <td>${u.tipo_sangue || '-'}</td>
-          <td>${u.nome_guerra || '-'}</td>
-          <td>${u.macacao || '-'}</td>
-          <td>${u.camiseta || '-'}</td>
-          <td>${u.jaqueta || '-'}</td>
-          <td>${u.coturno || '-'}</td>
-          <td>${u.capa_chuva || '-'}</td>
-          <td><strong>${s.perfil || 'servidor'}</strong></td>
-          <td><button class="btn-edit-admin" onclick="abrirModalEdicao(${s.id})">Editar</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function abrirModalEdicao(id) {
-      const s = listaColaboradores.find(item => item.id === id);
-      if (!s) return;
-
-      document.getElementById('modalServidorId').value = s.id;
-      document.getElementById('modalNome').value = s.nome;
-      document.getElementById('modalCPF').value = s.cpf;
-      document.getElementById('modalFuncao').value = s.funcao;
-      document.getElementById('modalRegistro').value = s.coren !== 'N/A' ? s.coren : s.cnh;
-      document.getElementById('modalPerfil').value = s.perfil || 'servidor';
-      document.getElementById('modalNovaSenha').value = '';
-
-      document.getElementById('editModal').style.display = 'flex';
-    }
-
-    function fecharModal() {
-      document.getElementById('editModal').style.display = 'none';
-    }
-
-    async function salvarEdicaoAdmin() {
-      const id = document.getElementById('modalServidorId').value;
-      const nome = document.getElementById('modalNome').value;
-      const cpf = document.getElementById('modalCPF').value;
-      const funcao = document.getElementById('modalFuncao').value;
-      const reg = document.getElementById('modalRegistro').value;
-      const perfil = document.getElementById('modalPerfil').value;
-      const novaSenha = document.getElementById('modalNovaSenha').value;
-
-      let payload = {
-        nome: nome,
-        cpf: cpf,
-        funcao: funcao,
-        perfil: perfil
-      };
-
-      if (funcao.toLowerCase().includes('condutor')) {
-        payload.cnh = reg;
-      } else {
-        payload.coren = reg;
-      }
-
-      if (novaSenha.trim() !== '') {
-        payload.senha = novaSenha.trim();
-      }
-
-      const { error } = await supabaseClient.from('colaboradores').update(payload).eq('id', id);
-
-      if (!error) {
-        await registrarLog("Edição Admin", `Administrador alterou os dados do servidor ${nome}.`);
-        alert('Cadastro do servidor atualizado com sucesso!');
-        fecharModal();
-        carregarServidoresAdmin();
-      } else {
-        alert('Erro ao atualizar servidor.');
-      }
     }
 
     async function carregarLogs() {
@@ -451,10 +560,12 @@
 
       (data || []).forEach(l => {
         const div = document.createElement('div');
-        div.className = 'log-item';
+        div.style.padding = '10px 0';
+        div.style.borderBottom = '1px solid var(--border-color)';
+        div.style.fontSize = '0.82rem';
         div.innerHTML = `
-          <div><strong>${l.usuario_nome || 'Sistema'}</strong> (${l.acao}): ${l.detalhes}</div>
-          <div class="log-time">${new Date(l.data_hora).toLocaleString('pt-BR')}</div>
+          <strong>${l.usuario_nome || 'Sistema'}</strong> (${l.acao}): ${l.detalhes}
+          <div style="color:#94a3b8; font-size:0.75rem;">${new Date(l.data_hora).toLocaleString('pt-BR')}</div>
         `;
         container.appendChild(div);
       });
@@ -469,17 +580,17 @@
       }]);
     }
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      event.target.classList.add('active');
+    function switchTab(tabId, element) {
+      document.querySelectorAll('.tab-pane').forEach(t => t.style.display = 'none');
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).style.display = 'block';
+      element.classList.add('active');
     }
 
     function logout() {
       usuarioLogado = null;
       document.getElementById('dashboardScreen').style.display = 'none';
-      document.getElementById('loginScreen').style.display = 'block';
+      document.getElementById('loginScreen').style.display = 'flex';
     }
   </script>
 </body>
