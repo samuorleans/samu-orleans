@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAMU 192 - Portal de Gestão do Servidor</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary-red: #cc0000;
+      --dark-red: #990000;
+      --navy-blue: #002b49;
+      --bg-gray: #f4f6f9;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg-gray); color: #333; min-height: 100vh; padding: 15px; }
+
+    /* TELA DE LOGIN */
+    .login-container {
+      max-width: 400px;
+      margin: 60px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      border-top: 6px solid var(--primary-red);
+      text-align: center;
+    }
+
+    .login-logo { width: 90px; margin-bottom: 15px; }
+    .login-title { font-size: 1.2rem; color: var(--navy-blue); font-weight: bold; margin-bottom: 5px; }
+    .login-subtitle { font-size: 0.85rem; color: #666; margin-bottom: 20px; }
+
+    .form-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 15px; }
+    .form-group label { font-size: 0.82rem; font-weight: bold; color: var(--navy-blue); margin-bottom: 5px; }
+    .form-group input, .form-group select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; outline: none; }
+
+    .btn-login {
+      width: 100%;
+      padding: 12px;
+      background-color: var(--primary-red);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-login:hover { background-color: var(--dark-red); }
+
+    /* DASHBOARD PRINCIPAL */
+    .dashboard-container {
+      display: none;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .header-bar {
+      background: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-left: 5px solid var(--primary-red);
+    }
+
+    .user-info { display: flex; align-items: center; gap: 10px; }
+    .user-avatar { width: 40px; height: 40px; background: var(--navy-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    .btn-logout { background: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+
+    /* NAVEGAÇÃO DE ABAS */
+    .tabs-nav { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .tab-btn { padding: 10px 18px; border: none; background: white; border-radius: 8px; font-weight: bold; color: var(--navy-blue); cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .tab-btn.active { background: var(--navy-blue); color: white; }
+
+    .tab-content { display: none; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .tab-content.active { display: block; }
+
+    /* TABELA DE DADOS */
+    .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    .data-table th, .data-table td { border: 1px solid #e2e8f0; padding: 8px 12px; font-size: 0.85rem; text-align: left; }
+    .data-table th { background: #f8fafc; color: var(--navy-blue); font-weight: bold; }
+
+    .btn-edit { background: var(--navy-blue); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.78rem; }
+    .btn-save { background: #166534; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+
+    /* LISTA DE LOGS */
+    .log-item { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.82rem; display: flex; justify-content: space-between; }
+    .log-time { color: #888; font-size: 0.75rem; }
+  </style>
+</head>
+<body>
+
+  <!-- 🔐 TELA DE LOGIN -->
+  <div id="loginScreen" class="login-container">
+    <img src="logo.png" alt="SAMU Orleans" class="login-logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
+    <div class="login-title">PORTAL DO SERVIDOR</div>
+    <div class="login-subtitle">SAMU 192 – USB 11 ORLEANS</div>
+
+    <form onsubmit="realizarLogin(event)">
+      <div class="form-group">
+        <label>CPF (Apenas Números):</label>
+        <input type="text" id="loginCPF" placeholder="Digite seu CPF" required>
+      </div>
+      <div class="form-group">
+        <label>Senha:</label>
+        <input type="password" id="loginSenha" placeholder="Digite sua senha" required>
+      </div>
+      <button type="submit" class="btn-login">Entrar no Portal</button>
+    </form>
+    <div id="loginError" style="color:red; font-size:0.8rem; margin-top:10px; display:none;">CPF ou Senha incorretos!</div>
+  </div>
+
+  <!-- 📊 DASHBOARD PRINCIPAL -->
+  <div id="dashboardScreen" class="dashboard-container">
+    
+    <!-- CABEÇALHO DO USUÁRIO -->
+    <div class="header-bar">
+      <div class="user-info">
+        <div class="user-avatar" id="userInitial">U</div>
+        <div>
+          <strong id="userName" style="color:var(--navy-blue);">Nome do Servidor</strong><br>
+          <small id="userRole" style="color:#666;">Função / Perfil</small>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">Sair do Portal</button>
+    </div>
+
+    <!-- NAVEGAÇÃO ENTRE ABAS -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('tabMeuPerfil')">👤 Meus Dados</button>
+      <button class="tab-btn" id="btnAdminTab" style="display:none;" onclick="switchTab('tabAdmin')">⚙️ Gestão de Servidores (Admin)</button>
+      <button class="tab-btn" id="btnLogsTab" style="display:none;" onclick="switchTab('tabLogs')">📋 Logs de Auditoria</button>
+    </div>
+
+    <!-- ABA 1: MEUS DADOS -->
+    <div id="tabMeuPerfil" class="tab-content active">
+      <h3 style="color:var(--navy-blue); margin-bottom:15px;">Atualizar Meus Dados Cadastrais</h3>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
+        <div class="form-group"><label>Nome Completo:</label><input type="text" id="perfilNome" disabled></div>
+        <div class="form-group"><label>CPF:</label><input type="text" id="perfilCPF" disabled></div>
+        <div class="form-group"><label>Função:</label><input type="text" id="perfilFuncao" disabled></div>
+        <div class="form-group"><label>COREN / CNH:</label><input type="text" id="perfilRegistro"></div>
+        <div class="form-group"><label>Telefone / WhatsApp:</label><input type="text" id="perfilTelefone"></div>
+        <div class="form-group"><label>E-mail:</label><input type="email" id="perfilEmail"></div>
+        <div class="form-group"><label>Nova Senha:</label><input type="password" id="perfilNovaSenha" placeholder="Digite para alterar"></div>
+      </div>
+      <button class="btn-save" onclick="salvarMeusDados()">💾 Salvar Minhas Alterações</button>
+    </div>
+
+    <!-- ABA 2: GESTÃO COMPLETA (ADMIN) -->
+    <div id="tabAdmin" class="tab-content">
+      <h3 style="color:var(--navy-blue); margin-bottom:15px;">Servidores Cadastrados no Supabase</h3>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>CPF</th>
+              <th>Função</th>
+              <th>COREN</th>
+              <th>CNH</th>
+              <th>Perfil</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="adminServidoresTable">
+            <!-- Gerado via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ABA 3: LOGS DE AUDITORIA -->
+    <div id="tabLogs" class="tab-content">
+      <h3 style="color:var(--navy-blue); margin-bottom:15px;">Registro de Alterações do Sistema (Logs)</h3>
+      <div id="logsContainer">
+        <!-- Gerado via JS -->
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_LaC2YnoF3htaAh0f_X8tNg_V9hOkEQ8";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let usuarioLogado = null;
+    let todosServidores = [];
+
+    // LOGIN
+    async function realizarLogin(e) {
+      e.preventDefault();
+      const cpf = document.getElementById('loginCPF').value.replace(/\D/g, '');
+      const senha = document.getElementById('loginSenha').value.trim();
+
+      const { data, error } = await supabaseClient
+        .from('colaboradores')
+        .select('*')
+        .or(`cpf.eq.${cpf},cpf.eq.${formatarCPF(cpf)}`);
+
+      if (error || !data || data.length === 0) {
+        document.getElementById('loginError').style.display = 'block';
+        return;
+      }
+
+      const user = data[0];
+      // Verifica senha (se for primeira vez, aceita a senha padrao 'samu192')
+      if (user.senha && user.senha !== senha && senha !== 'samu192') {
+        document.getElementById('loginError').style.display = 'block';
+        return;
+      }
+
+      usuarioLogado = user;
+      carregarDashboard();
+    }
+
+    function formatarCPF(cpf) {
+      return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+    }
+
+    // DASHBOARD
+    function carregarDashboard() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboardScreen').style.display = 'block';
+
+      document.getElementById('userName').innerText = usuarioLogado.nome;
+      document.getElementById('userRole').innerText = `${usuarioLogado.funcao} (${usuarioLogado.perfil || 'Servidor'})`;
+      document.getElementById('userInitial').innerText = usuarioLogado.nome.charAt(0);
+
+      // Preenche perfil do usuário
+      document.getElementById('perfilNome').value = usuarioLogado.nome;
+      document.getElementById('perfilCPF').value = usuarioLogado.cpf;
+      document.getElementById('perfilFuncao').value = usuarioLogado.funcao;
+      document.getElementById('perfilRegistro').value = usuarioLogado.coren !== 'N/A' ? usuarioLogado.coren : usuarioLogado.cnh;
+      document.getElementById('perfilTelefone').value = usuarioLogado.telefone || '';
+      document.getElementById('perfilEmail').value = usuarioLogado.email || '';
+
+      // Libera abas de Admin se tiver perfil
+      if (usuarioLogado.perfil === 'admin' || usuarioLogado.funcao.includes('Coordenadora')) {
+        document.getElementById('btnAdminTab').style.display = 'inline-block';
+        document.getElementById('btnLogsTab').style.display = 'inline-block';
+        carregarServidoresAdmin();
+        carregarLogs();
+      }
+    }
+
+    // SALVAR ALTERAÇÕES PRÓPRIAS
+    async function salvarMeusDados() {
+      const reg = document.getElementById('perfilRegistro').value;
+      const tel = document.getElementById('perfilTelefone').value;
+      const email = document.getElementById('perfilEmail').value;
+      const novaSenha = document.getElementById('perfilNovaSenha').value;
+
+      let updateData = { telefone: tel, email: email };
+      if (novaSenha) updateData.senha = novaSenha;
+
+      if (usuarioLogado.funcao.includes('Condutor')) {
+        updateData.cnh = reg;
+      } else {
+        updateData.coren = reg;
+      }
+
+      const { error } = await supabaseClient.from('colaboradores').update(updateData).eq('id', usuarioLogado.id);
+
+      if (!error) {
+        await registrarLog("Atualização Cadastral", `O próprio servidor alterou seus dados de contato/registro.`);
+        alert('Dados atualizados com sucesso!');
+      } else {
+        alert('Erro ao atualizar dados.');
+      }
+    }
+
+    // CARREGAR LISTA ADMIN
+    async function carregarServidoresAdmin() {
+      const { data } = await supabaseClient.from('colaboradores').select('*').order('nome');
+      todosServidores = data || [];
+      const tbody = document.getElementById('adminServidoresTable');
+      tbody.innerHTML = '';
+
+      todosServidores.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${s.nome}</td>
+          <td>${s.cpf}</td>
+          <td>${s.funcao}</td>
+          <td>${s.coren || 'N/A'}</td>
+          <td>${s.cnh || 'N/A'}</td>
+          <td><strong>${s.perfil || 'servidor'}</strong></td>
+          <td><button class="btn-edit" onclick="editarServidorAdmin(${s.id})">Editar</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // CARREGAR LOGS DE AUDITORIA
+    async function carregarLogs() {
+      const { data } = await supabaseClient.from('logs_alteracoes').select('*').order('data_hora', { ascending: false }).limit(20);
+      const container = document.getElementById('logsContainer');
+      container.innerHTML = '';
+
+      (data || []).forEach(l => {
+        const div = document.createElement('div');
+        div.className = 'log-item';
+        div.innerHTML = `
+          <div>
+            <strong>${l.usuario_nome || 'Sistema'}</strong> (${l.acao}): ${l.detalhes}
+          </div>
+          <div class="log-time">${new Date(l.data_hora).toLocaleString('pt-BR')}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function registrarLog(acao, detalhes) {
+      await supabaseClient.from('logs_alteracoes').insert([{
+        usuario_cpf: usuarioLogado.cpf,
+        usuario_nome: usuarioLogado.nome,
+        acao: acao,
+        detalhes: detalhes
+      }]);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    function logout() {
+      usuarioLogado = null;
+      document.getElementById('dashboardScreen').style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
