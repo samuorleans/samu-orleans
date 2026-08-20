@@ -281,9 +281,9 @@
   </div>
 
   <script>
-    // CREDENCIAIS CORRIGIDAS DO SUPABASE
+    // CREDENCIAIS ATUALIZADAS COM A NOVA PUBLISHABLE KEY
     const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
+    const SUPABASE_KEY = "sb_publishable_LaC2YnoF3htaAh0f_X8tNg_V9hOkEQ8";
     
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -364,7 +364,7 @@
           throw new Error("Tabela sem dados");
         }
       } catch (err) {
-        console.warn("Erro no Supabase, ativando lista reserva:", err);
+        console.warn("Conexão Supabase:", err);
         profissionais = profissionaisEmergencia;
         statusBadge.innerText = "🟡 Modo Offline (Lista Interna Ativa)";
         statusBadge.className = "status-badge status-loading";
