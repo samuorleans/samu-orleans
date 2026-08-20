@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SAMU 192 - Gerador de Lista de Presença</title>
-  <!-- SDK Nativo do Supabase via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -49,7 +48,6 @@
     .status-online { background: #dcfce7; color: #166534; }
     .status-offline { background: #fee2e2; color: #991b1b; }
 
-    /* Caixa de Consulta CNPJ */
     .cnpj-box {
       background-color: #eef2f7;
       border: 1px solid #cbd5e1;
@@ -66,19 +64,8 @@
       margin-bottom: 6px;
     }
 
-    .cnpj-input-group {
-      display: flex;
-      gap: 8px;
-    }
-
-    .cnpj-input-group input {
-      flex: 1;
-      padding: 9px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      outline: none;
-    }
+    .cnpj-input-group { display: flex; gap: 8px; }
+    .cnpj-input-group input { flex: 1; padding: 9px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; outline: none; }
 
     .btn-search-cnpj {
       background-color: var(--navy-blue);
@@ -101,13 +88,7 @@
 
     .form-group { display: flex; flex-direction: column; }
     .form-group label { font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: var(--navy-blue); }
-    .form-group input, .form-group select { 
-      padding: 10px; 
-      border: 1px solid #ccc; 
-      border-radius: 6px; 
-      font-size: 0.9rem; 
-      outline: none;
-    }
+    .form-group input, .form-group select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; outline: none; }
 
     .instrutores-box {
       background-color: #f8fafc;
@@ -117,18 +98,8 @@
       margin-bottom: 15px;
     }
 
-    .instrutores-title {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--navy-blue);
-      margin-bottom: 10px;
-    }
-
-    .instrutores-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
-    }
+    .instrutores-title { font-size: 0.9rem; font-weight: 700; color: var(--navy-blue); margin-bottom: 10px; }
+    .instrutores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
 
     .btn-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
     .btn { padding: 11px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; }
@@ -197,7 +168,6 @@
       <span id="dbStatus" class="status-badge status-loading">⏳ Conectando ao Supabase...</span>
     </div>
 
-    <!-- CAIXA DE BUSCA POR CNPJ -->
     <div class="cnpj-box" style="margin-top:15px;">
       <label>🏢 Busca Automática por CNPJ da Empresa Contratante / Local (Opcional):</label>
       <div class="cnpj-input-group">
@@ -238,9 +208,8 @@
       </div>
     </div>
 
-    <!-- SELEÇÃO DE INSTRUTORES BUSCADOS DO SUPABASE -->
     <div class="instrutores-box">
-      <div class="instrutores-title">👨‍🏫 Seleção de Instrutores Responsáveis (Dados do Supabase)</div>
+      <div class="instrutores-title">👨‍🏫 Seleção de Instrutores Responsáveis</div>
       <div class="instrutores-grid" id="instrutoresContainer">
         <!-- Renderizado via JS -->
       </div>
@@ -312,11 +281,26 @@
   </div>
 
   <script>
-    // CREDENCIAIS DA SUA API DO SUPABASE
+    // CREDENCIAIS CORRIGIDAS DO SUPABASE
     const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreml1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
     
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Lista oficial de emergência
+    const profissionaisEmergencia = [
+      { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", cnh: "5031057705" },
+      { nome: "Luis Eduardo Formanski Vitório", funcao: "Técnico(a) de Enfermagem Socorrista", coren: "1551746" },
+      { nome: "Edimara Tochetto Suaya Netto", funcao: "Enfermeira Coordenadora", coren: "110151" },
+      { nome: "Clênio Borges", funcao: "Técnico(a) de Enfermagem Socorrista", coren: "862518" },
+      { nome: "Gicerléia Trindade da Rosa", funcao: "Técnico(a) de Enfermagem Socorrista", coren: "870568" },
+      { nome: "Lucas Vieira Mendes", funcao: "Condutor Socorrista", cnh: "3419217070" },
+      { nome: "Márcio Becker", funcao: "Condutor Socorrista", cnh: "17232945" },
+      { nome: "Renato Cândido", funcao: "Condutor Socorrista", cnh: "2157610821" },
+      { nome: "Rinaldo Calegario", funcao: "Técnico(a) de Enfermagem Socorrista", coren: "331871" },
+      { nome: "Suandre Adão Machado", funcao: "Técnico de Enfermagem Socorrista", coren: "99894" },
+      { nome: "Vanderlei José Tasca", funcao: "Condutor Socorrista", cnh: "940076430" }
+    ];
 
     let profissionais = [];
 
@@ -329,7 +313,6 @@
       await fetchColaboradoresSupabase();
     });
 
-    // CONSULTA AUTOMÁTICA DE CNPJ VIA BRASILAPI (RECEITA FEDERAL)
     async function buscarCNPJ() {
       const cnpjInput = document.getElementById('inputCNPJ').value.replace(/\D/g, '');
       if (cnpjInput.length !== 14) {
@@ -343,7 +326,7 @@
 
       try {
         const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjInput}`);
-        if (!response.ok) throw new Error('CNPJ não encontrado ou indisponível.');
+        if (!response.ok) throw new Error('CNPJ não encontrado.');
 
         const data = await response.json();
         const nomeEmpresa = data.nome_fantasia || data.razao_social;
@@ -351,7 +334,6 @@
 
         document.getElementById('inputLocal').value = `${nomeEmpresa} (${endereco})`;
         updateDoc();
-        alert(`Empresa encontrada:\n${nomeEmpresa}\n${endereco}`);
       } catch (err) {
         alert('Não foi possível buscar o CNPJ automaticamente. Preencha o local manualmente.');
       } finally {
@@ -379,13 +361,13 @@
           statusBadge.innerText = "🟢 Conectado ao Supabase";
           statusBadge.className = "status-badge status-online";
         } else {
-          statusBadge.innerText = "🟡 Tabela sem registros";
-          statusBadge.className = "status-badge status-loading";
+          throw new Error("Tabela sem dados");
         }
       } catch (err) {
-        console.warn("Erro ao conectar no Supabase:", err);
-        statusBadge.innerText = "🔴 Erro na conexão Supabase";
-        statusBadge.className = "status-badge status-offline";
+        console.warn("Erro no Supabase, ativando lista reserva:", err);
+        profissionais = profissionaisEmergencia;
+        statusBadge.innerText = "🟡 Modo Offline (Lista Interna Ativa)";
+        statusBadge.className = "status-badge status-loading";
       }
 
       renderInstrutoresInputs();
@@ -499,4 +481,3 @@
   </script>
 </body>
 </html>
-
