@@ -62,6 +62,15 @@
     .data-table th, .data-table td { border: 1px solid #e2e8f0; padding: 8px 10px; font-size: 0.82rem; text-align: left; }
     .data-table th { background: #f8fafc; color: var(--navy-blue); }
 
+    .btn-edit-admin { background: var(--navy-blue); color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.78rem; }
+    .btn-edit-admin:hover { background: #001a2d; }
+
+    /* MODAL DE EDIÇÃO ADMIN */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+    .modal-card { background: white; padding: 25px; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+    .modal-title { font-size: 1.1rem; color: var(--navy-blue); font-weight: bold; margin-bottom: 15px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+
     .log-item { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.82rem; display: flex; justify-content: space-between; }
     .log-time { color: #888; font-size: 0.75rem; }
   </style>
@@ -76,8 +85,8 @@
 
     <form onsubmit="realizarLogin(event)">
       <div class="form-group">
-        <label>CPF:</label>
-        <input type="text" id="loginCPF" placeholder="Digite seu CPF" required>
+        <label>CPF / Usuário:</label>
+        <input type="text" id="loginCPF" placeholder="Digite seu CPF ou admin" required>
       </div>
       <div class="form-group">
         <label>Senha:</label>
@@ -85,7 +94,7 @@
       </div>
       <button type="submit" class="btn-login">Entrar no Portal</button>
     </form>
-    <div id="loginError" style="color:red; font-size:0.8rem; margin-top:10px; display:none;">CPF ou Senha incorretos!</div>
+    <div id="loginError" style="color:red; font-size:0.8rem; margin-top:10px; display:none;">Usuário ou Senha incorretos!</div>
   </div>
 
   <!-- DASHBOARD -->
@@ -153,7 +162,7 @@
       <button class="btn-save" onclick="salvarTudoPerfil()">💾 Salvar Todas as Alterações</button>
     </div>
 
-    <!-- ABA 2: GESTÃO ADMIN -->
+    <!-- ABA 2: GESTÃO ADMIN COM BOTAO DE EDIÇÃO -->
     <div id="tabAdmin" class="tab-content">
       <h3 style="color:var(--navy-blue); margin-bottom:15px;">Quadro Geral de Colaboradores</h3>
       <div style="overflow-x:auto;">
@@ -168,6 +177,7 @@
               <th>Coturno</th>
               <th>Macacão</th>
               <th>Perfil</th>
+              <th>Ação</th>
             </tr>
           </thead>
           <tbody id="adminServidoresTable"></tbody>
@@ -183,42 +193,81 @@
 
   </div>
 
+  <!-- MODAL PARA EDIÇÃO ADMIN -->
+  <div id="editModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-title">✏️ Editar Colaborador (Admin)</div>
+      <input type="hidden" id="modalServidorId">
+      
+      <div class="form-group">
+        <label>Nome Completo:</label>
+        <input type="text" id="modalNome">
+      </div>
+      <div class="form-group">
+        <label>CPF:</label>
+        <input type="text" id="modalCPF">
+      </div>
+      <div class="form-group">
+        <label>Função:</label>
+        <input type="text" id="modalFuncao">
+      </div>
+      <div class="form-group">
+        <label>COREN / CNH:</label>
+        <input type="text" id="modalRegistro">
+      </div>
+      <div class="form-group">
+        <label>Perfil de Acesso:</label>
+        <select id="modalPerfil">
+          <option value="servidor">Servidor</option>
+          <option value="admin">Administrador (Admin)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Redefinir Senha do Servidor:</label>
+        <input type="text" id="modalNovaSenha" placeholder="Deixe em branco para manter a atual">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-logout" onclick="fecharModal()">Cancelar</button>
+        <button class="btn-save" style="margin:0;" onclick="salvarEdicaoAdmin()">💾 Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
     const SUPABASE_KEY = "sb_publishable_LaC2YnoF3htaAh0f_X8tNg_V9hOkEQ8";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let usuarioLogado = null;
+    let listaColaboradores = [];
 
-   async function realizarLogin(e) {
-  e.preventDefault();
-  const rawInput = document.getElementById('loginCPF').value.trim();
-  const cpfClean = rawInput.replace(/\D/g, '');
-  const senhaInput = document.getElementById('loginSenha').value.trim();
+    async function realizarLogin(e) {
+      e.preventDefault();
+      const rawInput = document.getElementById('loginCPF').value.trim();
+      const cpfClean = rawInput.replace(/\D/g, '');
+      const senhaInput = document.getElementById('loginSenha').value.trim();
 
-  const { data, error } = await supabaseClient
-    .from('colaboradores')
-    .select('*');
+      const { data, error } = await supabaseClient.from('colaboradores').select('*');
 
-  if (error || !data) {
-    document.getElementById('loginError').style.display = 'block';
-    return;
-  }
+      if (error || !data) {
+        document.getElementById('loginError').style.display = 'block';
+        return;
+      }
 
-  // Busca tanto pelo CPF numérico quanto pelo login 'admin'
-  const user = data.find(u => {
-    const userCpfClean = u.cpf ? u.cpf.replace(/\D/g, '') : '';
-    return u.cpf === rawInput || (cpfClean !== '' && userCpfClean === cpfClean);
-  });
+      const user = data.find(u => {
+        const userCpfClean = u.cpf ? u.cpf.replace(/\D/g, '') : '';
+        return u.cpf === rawInput || (cpfClean !== '' && userCpfClean === cpfClean);
+      });
 
-  if (!user || (user.senha && user.senha !== senhaInput && senhaInput !== 'samu192')) {
-    document.getElementById('loginError').style.display = 'block';
-    return;
-  }
+      if (!user || (user.senha && user.senha !== senhaInput && senhaInput !== 'samu192')) {
+        document.getElementById('loginError').style.display = 'block';
+        return;
+      }
 
-  usuarioLogado = user;
-  carregarDashboard();
-}
+      usuarioLogado = user;
+      carregarDashboard();
+    }
 
     async function carregarDashboard() {
       document.getElementById('loginScreen').style.display = 'none';
@@ -236,7 +285,7 @@
       document.getElementById('perfilTelefone').value = usuarioLogado.telefone || '';
       document.getElementById('perfilEmail').value = usuarioLogado.email || '';
 
-      // Carregar Uniformes do Supabase
+      // Uniformes
       const { data: uni } = await supabaseClient.from('uniformes').select('*').eq('colaborador_id', usuarioLogado.id).single();
       if (uni) {
         document.getElementById('uTipoSangue').value = uni.tipo_sangue || '';
@@ -248,7 +297,7 @@
         document.getElementById('uCapaChuva').value = uni.capa_chuva || '';
       }
 
-      // Carregar Dados Bancarios
+      // Banco
       const { data: banco } = await supabaseClient.from('dados_bancarios').select('*').eq('colaborador_id', usuarioLogado.id).single();
       if (banco) {
         document.getElementById('bBanco').value = banco.banco || '';
@@ -266,7 +315,6 @@
     }
 
     async function salvarTudoPerfil() {
-      // 1. Atualizar Colaborador
       const reg = document.getElementById('perfilRegistro').value;
       const tel = document.getElementById('perfilTelefone').value;
       const email = document.getElementById('perfilEmail').value;
@@ -278,7 +326,6 @@
 
       await supabaseClient.from('colaboradores').update(upColab).eq('id', usuarioLogado.id);
 
-      // 2. Upsert Uniformes
       const upUni = {
         colaborador_id: usuarioLogado.id,
         tipo_sangue: document.getElementById('uTipoSangue').value,
@@ -291,7 +338,6 @@
       };
       await supabaseClient.from('uniformes').upsert(upUni, { onConflict: 'colaborador_id' });
 
-      // 3. Upsert Banco
       const upBanco = {
         colaborador_id: usuarioLogado.id,
         banco: document.getElementById('bBanco').value,
@@ -301,18 +347,19 @@
       };
       await supabaseClient.from('dados_bancarios').upsert(upBanco, { onConflict: 'colaborador_id' });
 
-      await registrarLog("Atualização Cadastral", "Servidor atualizou dados pessoais, tamanhos de uniforme e conta bancária.");
-      alert('Todas as informações foram salvas com sucesso!');
+      await registrarLog("Atualização Cadastral", "Servidor atualizou seus dados pessoais e uniformes.");
+      alert('Informações salvas com sucesso!');
     }
 
     async function carregarServidoresAdmin() {
       const { data: colabs } = await supabaseClient.from('colaboradores').select('*').order('nome');
       const { data: unis } = await supabaseClient.from('uniformes').select('*');
 
+      listaColaboradores = colabs || [];
       const tbody = document.getElementById('adminServidoresTable');
       tbody.innerHTML = '';
 
-      (colabs || []).forEach(s => {
+      listaColaboradores.forEach(s => {
         const u = (unis || []).find(item => item.colaborador_id === s.id) || {};
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -324,9 +371,67 @@
           <td>${u.coturno || '-'}</td>
           <td>${u.macacao || '-'}</td>
           <td><strong>${s.perfil || 'servidor'}</strong></td>
+          <td><button class="btn-edit-admin" onclick="abrirModalEdicao(${s.id})">Editar</button></td>
         `;
         tbody.appendChild(tr);
       });
+    }
+
+    function abrirModalEdicao(id) {
+      const s = listaColaboradores.find(item => item.id === id);
+      if (!s) return;
+
+      document.getElementById('modalServidorId').value = s.id;
+      document.getElementById('modalNome').value = s.nome;
+      document.getElementById('modalCPF').value = s.cpf;
+      document.getElementById('modalFuncao').value = s.funcao;
+      document.getElementById('modalRegistro').value = s.coren !== 'N/A' ? s.coren : s.cnh;
+      document.getElementById('modalPerfil').value = s.perfil || 'servidor';
+      document.getElementById('modalNovaSenha').value = '';
+
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function fecharModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    async function salvarEdicaoAdmin() {
+      const id = document.getElementById('modalServidorId').value;
+      const nome = document.getElementById('modalNome').value;
+      const cpf = document.getElementById('modalCPF').value;
+      const funcao = document.getElementById('modalFuncao').value;
+      const reg = document.getElementById('modalRegistro').value;
+      const perfil = document.getElementById('modalPerfil').value;
+      const novaSenha = document.getElementById('modalNovaSenha').value;
+
+      let payload = {
+        nome: nome,
+        cpf: cpf,
+        funcao: funcao,
+        perfil: perfil
+      };
+
+      if (funcao.toLowerCase().includes('condutor')) {
+        payload.cnh = reg;
+      } else {
+        payload.coren = reg;
+      }
+
+      if (novaSenha.trim() !== '') {
+        payload.senha = novaSenha.trim();
+      }
+
+      const { error } = await supabaseClient.from('colaboradores').update(payload).eq('id', id);
+
+      if (!error) {
+        await registrarLog("Edição Admin", `Administrador alterou os dados do servidor ${nome}.`);
+        alert('Cadastro do servidor atualizado com sucesso!');
+        fecharModal();
+        carregarServidoresAdmin();
+      } else {
+        alert('Erro ao atualizar servidor.');
+      }
     }
 
     async function carregarLogs() {
