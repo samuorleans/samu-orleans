@@ -39,7 +39,7 @@
     .btn-login:hover { background: var(--dark-red); }
 
     /* DASHBOARD */
-    .dashboard-container { display: none; max-width: 1100px; margin: 0 auto; }
+    .dashboard-container { display: none; max-width: 1150px; margin: 0 auto; }
     .header-bar { background: white; padding: 15px 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-left: 5px solid var(--primary-red); }
     .user-info { display: flex; align-items: center; gap: 10px; }
     .user-avatar { width: 40px; height: 40px; background: var(--navy-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
@@ -58,9 +58,10 @@
     .btn-save { background: #166534; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 0.9rem; }
     .btn-save:hover { background: #14532d; }
 
-    .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    .data-table th, .data-table td { border: 1px solid #e2e8f0; padding: 8px 10px; font-size: 0.82rem; text-align: left; }
-    .data-table th { background: #f8fafc; color: var(--navy-blue); }
+    .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; }
+    .data-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    .data-table th, .data-table td { border: 1px solid #e2e8f0; padding: 8px 10px; font-size: 0.82rem; text-align: left; white-space: nowrap; }
+    .data-table th { background: #f8fafc; color: var(--navy-blue); font-weight: bold; }
 
     .btn-edit-admin { background: var(--navy-blue); color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.78rem; }
     .btn-edit-admin:hover { background: #001a2d; }
@@ -162,10 +163,11 @@
       <button class="btn-save" onclick="salvarTudoPerfil()">💾 Salvar Todas as Alterações</button>
     </div>
 
-    <!-- ABA 2: GESTÃO ADMIN COM BOTAO DE EDIÇÃO -->
+    <!-- ABA 2: QUADRO DE SERVIDORES COMPLETO COM TODOS OS UNIFORMES -->
     <div id="tabAdmin" class="tab-content">
-      <h3 style="color:var(--navy-blue); margin-bottom:15px;">Quadro Geral de Colaboradores</h3>
-      <div style="overflow-x:auto;">
+      <h3 style="color:var(--navy-blue); margin-bottom:15px;">Quadro Geral de Colaboradores e Uniformes</h3>
+      
+      <div class="table-responsive">
         <table class="data-table">
           <thead>
             <tr>
@@ -174,8 +176,12 @@
               <th>Função</th>
               <th>Registro</th>
               <th>Tipo Sang.</th>
-              <th>Coturno</th>
+              <th>Nome Guerra</th>
               <th>Macacão</th>
+              <th>Camiseta</th>
+              <th>Jaqueta</th>
+              <th>Coturno</th>
+              <th>C. Chuva</th>
               <th>Perfil</th>
               <th>Ação</th>
             </tr>
@@ -347,7 +353,7 @@
       };
       await supabaseClient.from('dados_bancarios').upsert(upBanco, { onConflict: 'colaborador_id' });
 
-      await registrarLog("Atualização Cadastral", "Servidor atualizou seus dados pessoais e uniformes.");
+      await registrarLog("Atualização Cadastral", "Servidor atualizou seus dados pessoais e tamanhos de uniformes.");
       alert('Informações salvas com sucesso!');
     }
 
@@ -368,8 +374,12 @@
           <td>${s.funcao}</td>
           <td>${s.coren !== 'N/A' ? s.coren : s.cnh}</td>
           <td>${u.tipo_sangue || '-'}</td>
-          <td>${u.coturno || '-'}</td>
+          <td>${u.nome_guerra || '-'}</td>
           <td>${u.macacao || '-'}</td>
+          <td>${u.camiseta || '-'}</td>
+          <td>${u.jaqueta || '-'}</td>
+          <td>${u.coturno || '-'}</td>
+          <td>${u.capa_chuva || '-'}</td>
           <td><strong>${s.perfil || 'servidor'}</strong></td>
           <td><button class="btn-edit-admin" onclick="abrirModalEdicao(${s.id})">Editar</button></td>
         `;
