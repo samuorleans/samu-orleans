@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SAMU 192 - Gerador de Lista de Presença</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -15,22 +15,30 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-    body { background-color: var(--bg-gray); color: #333; padding: 20px; }
+    body { background-color: var(--bg-gray); color: #333; padding: 15px; }
 
+    /* Painel de Controle Responsivo */
     .control-panel {
       max-width: 900px;
-      margin: 0 auto 25px auto;
+      margin: 0 auto 20px auto;
       background: white;
-      padding: 22px;
+      padding: 18px;
       border-radius: 12px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.08);
       border-top: 5px solid var(--primary-red);
     }
 
+    .panel-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
     .control-panel h2 { 
       color: var(--navy-blue); 
-      font-size: 1.25rem; 
-      margin-bottom: 18px; 
+      font-size: 1.15rem; 
       display: flex; 
       align-items: center; 
       gap: 8px; 
@@ -38,7 +46,7 @@
 
     .status-badge {
       font-size: 0.75rem;
-      padding: 4px 8px;
+      padding: 4px 10px;
       border-radius: 12px;
       font-weight: 600;
       display: inline-block;
@@ -51,13 +59,13 @@
     .cnpj-box {
       background-color: #eef2f7;
       border: 1px solid #cbd5e1;
-      padding: 14px;
+      padding: 12px;
       border-radius: 8px;
-      margin-bottom: 18px;
+      margin-bottom: 15px;
     }
 
     .cnpj-box label {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 700;
       color: var(--navy-blue);
       display: block;
@@ -65,113 +73,149 @@
     }
 
     .cnpj-input-group { display: flex; gap: 8px; }
-    .cnpj-input-group input { flex: 1; padding: 9px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; outline: none; }
+    .cnpj-input-group input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; outline: none; }
 
     .btn-search-cnpj {
       background-color: var(--navy-blue);
       color: white;
       border: none;
-      padding: 9px 16px;
+      padding: 10px 14px;
       border-radius: 6px;
       font-weight: 600;
       cursor: pointer;
       font-size: 0.85rem;
+      white-space: nowrap;
     }
-    .btn-search-cnpj:hover { background-color: #001a2d; }
 
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 15px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
       margin-bottom: 15px;
     }
 
     .form-group { display: flex; flex-direction: column; }
-    .form-group label { font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: var(--navy-blue); }
-    .form-group input, .form-group select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; outline: none; }
+    .form-group label { font-size: 0.82rem; font-weight: 700; margin-bottom: 5px; color: var(--navy-blue); }
+    .form-group input, .form-group select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; outline: none; width: 100%; }
 
     .instrutores-box {
       background-color: #f8fafc;
       border: 1px solid #e2e8f0;
-      padding: 15px;
+      padding: 12px;
       border-radius: 8px;
       margin-bottom: 15px;
     }
 
-    .instrutores-title { font-size: 0.9rem; font-weight: 700; color: var(--navy-blue); margin-bottom: 10px; }
+    .instrutores-title { font-size: 0.85rem; font-weight: 700; color: var(--navy-blue); margin-bottom: 8px; }
     .instrutores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
 
-    .btn-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
-    .btn { padding: 11px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; }
+    .btn-actions { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+    .btn { padding: 12px 18px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; min-width: 160px; }
     .btn-print { background-color: var(--primary-red); color: white; }
-    .btn-print:hover { background-color: var(--dark-red); }
     .btn-add { background-color: var(--navy-blue); color: white; }
 
-    /* IMPRESSÃO A4 */
+    /* CONTAINER DA FOLHA COM SCROLL RESPONSIVO NO CELULAR */
+    .a4-container {
+      width: 100%;
+      overflow-x: auto;
+      display: flex;
+      justify-content: center;
+      padding-bottom: 20px;
+    }
+
+    /* FOLHA A4 OTIMIZADA PARA PAGINA ÚNICA */
     .a4-page {
       width: 210mm;
-      min-height: 297mm;
-      padding: 15mm;
-      margin: 0 auto;
+      height: 297mm;
+      max-height: 297mm;
+      padding: 10mm 12mm;
       background: white;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       border: 1px solid #ddd;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
     }
 
-    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-    .header-table td { border: 1px solid var(--border-black); padding: 8px; text-align: center; vertical-align: middle; }
-    .header-logo { width: 120px; }
-    .header-logo img { max-width: 110px; max-height: 85px; height: auto; }
-    .header-title { font-size: 1.1rem; font-weight: bold; color: #000; text-transform: uppercase; }
-    .header-subtitle { font-size: 0.9rem; font-weight: bold; color: #333; margin-top: 4px; }
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+    .header-table td { border: 1px solid var(--border-black); padding: 6px; text-align: center; vertical-align: middle; }
+    .header-logo { width: 100px; }
+    .header-logo img { max-width: 90px; max-height: 65px; height: auto; }
+    .header-title { font-size: 1rem; font-weight: bold; color: #000; text-transform: uppercase; }
+    .header-subtitle { font-size: 0.85rem; font-weight: bold; color: #333; margin-top: 3px; }
 
-    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-    .info-table td { border: 1px solid var(--border-black); padding: 6px 10px; font-size: 0.85rem; vertical-align: middle; }
+    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+    .info-table td { border: 1px solid var(--border-black); padding: 5px 8px; font-size: 0.8rem; vertical-align: middle; }
     .label-cell { font-weight: bold; background-color: #f0f0f0; width: 15%; text-transform: uppercase; }
     .content-cell { font-weight: 500; }
 
     .declaration-box {
       border: 1px solid var(--border-black);
       border-top: none;
-      padding: 6px 10px;
-      font-size: 0.75rem;
+      padding: 5px 8px;
+      font-size: 0.72rem;
       text-align: center;
-      margin-top: -10px;
-      margin-bottom: 12px;
+      margin-top: -8px;
+      margin-bottom: 8px;
       background-color: #fafafa;
     }
 
-    .attendance-table { width: 100%; border-collapse: collapse; }
-    .attendance-table th, .attendance-table td { border: 1px solid var(--border-black); padding: 5px 8px; font-size: 0.82rem; text-align: left; }
-    .attendance-table th { background-color: #f0f0f0; font-weight: bold; text-transform: uppercase; text-align: center; }
+    .attendance-table { width: 100%; border-collapse: collapse; flex-grow: 1; }
+    .attendance-table th, .attendance-table td { border: 1px solid var(--border-black); padding: 3px 6px; font-size: 0.78rem; text-align: left; }
+    .attendance-table th { background-color: #f0f0f0; font-weight: bold; text-transform: uppercase; text-align: center; height: 24px; }
+    .attendance-table td { height: 22px; }
 
-    .col-num { width: 35px; text-align: center !important; }
-    .col-cpf { width: 140px; text-align: center !important; }
-    .col-sign { width: 220px; }
+    .col-num { width: 32px; text-align: center !important; }
+    .col-cpf { width: 130px; text-align: center !important; }
+    .col-sign { width: 200px; }
 
-    .footer-note { font-size: 0.7rem; text-align: center; margin-top: 15px; color: #555; }
+    .footer-note { font-size: 0.68rem; text-align: center; margin-top: 6px; color: #555; }
 
+    /* REGRAS DE IMPRESSÃO (FORÇA 1 PÁGINA) */
     @media print {
-      body { background: white; padding: 0; }
+      html, body { height: 100%; margin: 0 !important; padding: 0 !important; background: white; overflow: hidden; }
       .control-panel { display: none !important; }
-      .a4-page { box-shadow: none; border: none; width: 100%; margin: 0; padding: 0; }
-      @page { size: A4; margin: 10mm; }
+      .a4-container { padding: 0; margin: 0; overflow: visible; display: block; }
+      .a4-page {
+        box-shadow: none;
+        border: none;
+        width: 100vw;
+        height: 100vh;
+        max-height: 100vh;
+        padding: 8mm 10mm;
+        margin: 0;
+        page-break-after: avoid;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      @page { size: A4 portrait; margin: 0; }
+    }
+
+    /* AJUSTES PARA CELULAR E TABLET */
+    @media (max-width: 768px) {
+      body { padding: 8px; }
+      .control-panel { padding: 14px; }
+      .cnpj-input-group { flex-direction: column; }
+      .btn-search-cnpj { width: 100%; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group style { grid-column: span 1 !important; }
     }
   </style>
 </head>
 <body>
 
-  <!-- PAINEL DE CONFIGURAÇÃO -->
+  <!-- PAINEL DE CONFIGURAÇÃO INTERATIVO -->
   <div class="control-panel">
-    <div style="display:flex; align-items:center; width:100%;">
-      <h2>⚙️ Gerador de Lista de Presença - SAMU 192 Orleans</h2>
-      <span id="dbStatus" class="status-badge status-loading">⏳ Conectando ao Supabase...</span>
+    <div class="panel-header">
+      <h2>⚙️ Gerador de Lista de Presença</h2>
+      <span id="dbStatus" class="status-badge status-loading">⏳ Conectando...</span>
     </div>
 
-    <div class="cnpj-box" style="margin-top:15px;">
-      <label>🏢 Busca Automática por CNPJ da Empresa Contratante / Local (Opcional):</label>
+    <div class="cnpj-box">
+      <label>🏢 Busca por CNPJ da Empresa (Opcional):</label>
       <div class="cnpj-input-group">
-        <input type="text" id="inputCNPJ" placeholder="Digite o CNPJ da empresa (ex: 12.345.678/0001-90)" onkeyup="checkCNPJEnter(event)">
+        <input type="text" id="inputCNPJ" placeholder="Digite o CNPJ (ex: 12.345.678/0001-90)" onkeyup="checkCNPJEnter(event)">
         <button class="btn-search-cnpj" onclick="buscarCNPJ()">🔍 Buscar CNPJ</button>
       </div>
     </div>
@@ -183,7 +227,7 @@
       </div>
 
       <div class="form-group" style="grid-column: span 2;">
-        <label>Local / Empresa (Preenchimento Automático ou Manual):</label>
+        <label>Local / Empresa:</label>
         <input type="text" id="inputLocal" value="Empresa Plaszon - Unidade 03" oninput="updateDoc()">
       </div>
 
@@ -193,12 +237,12 @@
       </div>
 
       <div class="form-group">
-        <label>Data (Selecione no Calendário):</label>
+        <label>Data:</label>
         <input type="date" id="inputData" onchange="updateDataExtenso()">
       </div>
 
       <div class="form-group">
-        <label>Qtd. de Instrutores / Palestrantes:</label>
+        <label>Qtd. de Palestrantes:</label>
         <select id="selectQtdInstrutores" onchange="renderInstrutoresInputs()">
           <option value="1">1 Instrutor</option>
           <option value="2" selected>2 Instrutores</option>
@@ -209,7 +253,7 @@
     </div>
 
     <div class="instrutores-box">
-      <div class="instrutores-title">👨‍🏫 Seleção de Instrutores Responsáveis</div>
+      <div class="instrutores-title">👨‍🏫 Seleção de Palestrantes Responsáveis</div>
       <div class="instrutores-grid" id="instrutoresContainer">
         <!-- Renderizado via JS -->
       </div>
@@ -222,61 +266,66 @@
     </div>
   </div>
 
-  <!-- FOLHA A4 OFICIAL -->
-  <div class="a4-page">
-    <table class="header-table">
-      <tr>
-        <td class="header-logo">
-          <img src="logo.png" alt="SAMU Orleans">
-        </td>
-        <td>
-          <div class="header-title">LISTA DE PRESENÇA</div>
-          <div class="header-subtitle">SAMU 192 – USB 11 ORLEANS</div>
-        </td>
-      </tr>
-    </table>
+  <!-- CONTAINER DE VISUALIZAÇÃO COM SCROLL RESPONSIVO -->
+  <div class="a4-container">
+    <div class="a4-page">
+      <div>
+        <table class="header-table">
+          <tr>
+            <td class="header-logo">
+              <img src="logo.png" alt="SAMU Orleans">
+            </td>
+            <td>
+              <div class="header-title">LISTA DE PRESENÇA</div>
+              <div class="header-subtitle">SAMU 192 – USB 11 ORLEANS</div>
+            </td>
+          </tr>
+        </table>
 
-    <table class="info-table">
-      <tr>
-        <td class="label-cell">ASSUNTO:</td>
-        <td class="content-cell" colspan="3" id="docAssunto">CAPACITAÇÃO EM PRIMEIROS SOCORROS E APH</td>
-      </tr>
-      <tr>
-        <td class="label-cell">PALESTRANTES:</td>
-        <td class="content-cell" colspan="3" id="docPalestrantes">Carregando palestrantes...</td>
-      </tr>
-      <tr>
-        <td class="label-cell">LOCAL:</td>
-        <td class="content-cell" id="docLocal">Empresa Plaszon - Unidade 03</td>
-        <td class="label-cell" style="width:12%;">HORÁRIO:</td>
-        <td class="content-cell" id="docHorario">08:00h às 12:00h (04h/Aula)</td>
-      </tr>
-      <tr>
-        <td class="label-cell">DATA:</td>
-        <td class="content-cell" colspan="3" id="docDataExtenso" style="font-weight:bold; color:var(--navy-blue);">Selecione a data no painel...</td>
-      </tr>
-    </table>
+        <table class="info-table">
+          <tr>
+            <td class="label-cell">ASSUNTO:</td>
+            <td class="content-cell" colspan="3" id="docAssunto">CAPACITAÇÃO EM PRIMEIROS SOCORROS E APH</td>
+          </tr>
+          <tr>
+            <td class="label-cell">PALESTRANTES:</td>
+            <td class="content-cell" colspan="3" id="docPalestrantes">Carregando palestrantes...</td>
+          </tr>
+          <tr>
+            <td class="label-cell">LOCAL:</td>
+            <td class="content-cell" id="docLocal">Empresa Plaszon - Unidade 03</td>
+            <td class="label-cell" style="width:12%;">HORÁRIO:</td>
+            <td class="content-cell" id="docHorario">08:00h às 12:00h (04h/Aula)</td>
+          </tr>
+          <tr>
+            <td class="label-cell">DATA:</td>
+            <td class="content-cell" colspan="3" id="docDataExtenso" style="font-weight:bold; color:var(--navy-blue);">Selecione a data no painel...</td>
+          </tr>
+        </table>
 
-    <div class="declaration-box">
-      Declaramos para os devidos fins que os abaixo assinados participaram integralmente do treinamento supramencionado, cumprindo a carga horária estabelecida.
-    </div>
+        <div class="declaration-box">
+          Declaramos para os devidos fins que os abaixo assinados participaram integralmente do treinamento supramencionado, cumprindo a carga horária estabelecida.
+        </div>
+      </div>
 
-    <table class="attendance-table">
-      <thead>
-        <tr>
-          <th class="col-num">Nº</th>
-          <th>NOME DO PARTICIPANTE</th>
-          <th class="col-cpf">CPF / MATRÍCULA</th>
-          <th class="col-sign">ASSINATURA</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        <!-- Linhas geradas via JS -->
-      </tbody>
-    </table>
+      <!-- TABELA DE ASSINATURAS AJUSTADA PARA FICAR DENTRO DA PÁGINA -->
+      <table class="attendance-table">
+        <thead>
+          <tr>
+            <th class="col-num">Nº</th>
+            <th>NOME DO PARTICIPANTE</th>
+            <th class="col-cpf">CPF / MATRÍCULA</th>
+            <th class="col-sign">ASSINATURA</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Linhas geradas via JS -->
+        </tbody>
+      </table>
 
-    <div class="footer-note">
-      SAMU 192 - Orleans / SC • Favor preencher as informações de forma legível.
+      <div class="footer-note">
+        SAMU 192 - Orleans / SC • Favor preencher as informações de forma legível.
+      </div>
     </div>
   </div>
 
@@ -286,7 +335,6 @@
     
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Lista oficial de emergência
     const profissionaisEmergencia = [
       { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", cnh: "5031057705" },
       { nome: "Luis Eduardo Formanski Vitório", funcao: "Técnico(a) de Enfermagem Socorrista", coren: "1551746" },
@@ -307,7 +355,7 @@
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('inputData').value = today;
       updateDataExtenso();
-      generateInitialRows(25);
+      generateInitialRows(25); // 25 linhas garantem encaixe perfeito em 1 página A4
       
       await fetchColaboradoresSupabase();
     });
@@ -357,7 +405,7 @@
 
         if (data && data.length > 0) {
           profissionais = data;
-          statusBadge.innerText = "🟢 Conectado ao Supabase";
+          statusBadge.innerText = "🟢 Conectado";
           statusBadge.className = "status-badge status-online";
         } else {
           throw new Error("Tabela sem dados");
@@ -365,7 +413,7 @@
       } catch (err) {
         console.warn("Conexão Supabase:", err);
         profissionais = profissionaisEmergencia;
-        statusBadge.innerText = "🟡 Modo Offline (Lista Interna Ativa)";
+        statusBadge.innerText = "🟡 Modo Offline";
         statusBadge.className = "status-badge status-loading";
       }
 
