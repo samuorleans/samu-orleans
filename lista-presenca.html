@@ -1,1 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAMU 192 - Gerador de Lista de Presença</title>
+  <!-- SDK Nativo do Supabase via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary-red: #cc0000;
+      --dark-red: #990000;
+      --navy-blue: #002b49;
+      --bg-gray: #f4f6f9;
+      --border-black: #000000;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg-gray); color: #333; padding: 20px; }
+
+    .control-panel {
+      max-width: 900px;
+      margin: 0 auto 25px auto;
+      background: white;
+      padding: 22px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      border-top: 5px solid var(--primary-red);
+    }
+
+    .control-panel h2 { 
+      color: var(--navy-blue); 
+      font-size: 1.25rem; 
+      margin-bottom: 18px; 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
+    }
+
+    .status-badge {
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      display: inline-block;
+      margin-left: auto;
+    }
+    .status-loading { background: #e2e8f0; color: #475569; }
+    .status-online { background: #dcfce7; color: #166534; }
+    .status-offline { background: #fee2e2; color: #991b1b; }
+
+    /* Caixa de Consulta CNPJ */
+    .cnpj-box {
+      background-color: #eef2f7;
+      border: 1px solid #cbd5e1;
+      padding: 14px;
+      border-radius: 8px;
+      margin-bottom: 18px;
+    }
+
+    .cnpj-box label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--navy-blue);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .cnpj-input-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .cnpj-input-group input {
+      flex: 1;
+      padding: 9px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .btn-search-cnpj {
+      background-color: var(--navy-blue);
+      color: white;
+      border: none;
+      padding: 9px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .btn-search-cnpj:hover { background-color: #001a2d; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label { font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: var(--navy-blue); }
+    .form-group input, .form-group select { 
+      padding: 10px; 
+      border: 1px solid #ccc; 
+      border-radius: 6px; 
+      font-size: 0.9rem; 
+      outline: none;
+    }
+
+    .instrutores-box {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .instrutores-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--navy-blue);
+      margin-bottom: 10px;
+    }
+
+    .instrutores-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+
+    .btn-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+    .btn { padding: 11px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; }
+    .btn-print { background-color: var(--primary-red); color: white; }
+    .btn-print:hover { background-color: var(--dark-red); }
+    .btn-add { background-color: var(--navy-blue); color: white; }
+
+    /* IMPRESSÃO A4 */
+    .a4-page {
+      width: 210mm;
+      min-height: 297mm;
+      padding: 15mm;
+      margin: 0 auto;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border: 1px solid #ddd;
+    }
+
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    .header-table td { border: 1px solid var(--border-black); padding: 8px; text-align: center; vertical-align: middle; }
+    .header-logo { width: 120px; }
+    .header-logo img { width: 100px; height: auto; }
+    .header-title { font-size: 1.1rem; font-weight: bold; color: #000; text-transform: uppercase; }
+    .header-subtitle { font-size: 0.9rem; font-weight: bold; color: #333; margin-top: 4px; }
+
+    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    .info-table td { border: 1px solid var(--border-black); padding: 6px 10px; font-size: 0.85rem; vertical-align: middle; }
+    .label-cell { font-weight: bold; background-color: #f0f0f0; width: 15%; text-transform: uppercase; }
+    .content-cell { font-weight: 500; }
+
+    .declaration-box {
+      border: 1px solid var(--border-black);
+      border-top: none;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      text-align: center;
+      margin-top: -10px;
+      margin-bottom: 12px;
+      background-color: #fafafa;
+    }
+
+    .attendance-table { width: 100%; border-collapse: collapse; }
+    .attendance-table th, .attendance-table td { border: 1px solid var(--border-black); padding: 5px 8px; font-size: 0.82rem; text-align: left; }
+    .attendance-table th { background-color: #f0f0f0; font-weight: bold; text-transform: uppercase; text-align: center; }
+
+    .col-num { width: 35px; text-align: center !important; }
+    .col-cpf { width: 140px; text-align: center !important; }
+    .col-sign { width: 220px; }
+
+    .footer-note { font-size: 0.7rem; text-align: center; margin-top: 15px; color: #555; }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .control-panel { display: none !important; }
+      .a4-page { box-shadow: none; border: none; width: 100%; margin: 0; padding: 0; }
+      @page { size: A4; margin: 10mm; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PAINEL DE CONFIGURAÇÃO -->
+  <div class="control-panel">
+    <div style="display:flex; align-items:center; width:100%;">
+      <h2>⚙️ Gerador de Lista de Presença - SAMU 192 Orleans</h2>
+      <span id="dbStatus" class="status-badge status-loading">⏳ Conectando ao Supabase...</span>
+    </div>
+
+    <!-- CAIXA DE BUSCA POR CNPJ -->
+    <div class="cnpj-box" style="margin-top:15px;">
+      <label>🏢 Busca Automática por CNPJ da Empresa Contratante / Local (Opcional):</label>
+      <div class="cnpj-input-group">
+        <input type="text" id="inputCNPJ" placeholder="Digite o CNPJ da empresa (ex: 12.345.678/0001-90)" onkeyup="checkCNPJEnter(event)">
+        <button class="btn-search-cnpj" onclick="buscarCNPJ()">🔍 Buscar CNPJ</button>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group" style="grid-column: span 2;">
+        <label>Assunto / Treinamento:</label>
+        <input type="text" id="inputAssunto" value="CAPACITAÇÃO EM PRIMEIROS SOCORROS E APH" oninput="updateDoc()">
+      </div>
+
+      <div class="form-group" style="grid-column: span 2;">
+        <label>Local / Empresa (Preenchimento Automático ou Manual):</label>
+        <input type="text" id="inputLocal" value="Empresa Plaszon - Unidade 03" oninput="updateDoc()">
+      </div>
+
+      <div class="form-group">
+        <label>Horário / Carga Horária:</label>
+        <input type="text" id="inputHorario" value="08:00h às 12:00h (04h/Aula)" oninput="updateDoc()">
+      </div>
+
+      <div class="form-group">
+        <label>Data (Selecione no Calendário):</label>
+        <input type="date" id="inputData" onchange="updateDataExtenso()">
+      </div>
+
+      <div class="form-group">
+        <label>Qtd. de Instrutores / Palestrantes:</label>
+        <select id="selectQtdInstrutores" onchange="renderInstrutoresInputs()">
+          <option value="1">1 Instrutor</option>
+          <option value="2" selected>2 Instrutores</option>
+          <option value="3">3 Instrutores</option>
+          <option value="4">4 Instrutores</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- SELEÇÃO DE INSTRUTORES BUSCADOS DO SUPABASE -->
+    <div class="instrutores-box">
+      <div class="instrutores-title">👨‍🏫 Seleção de Instrutores Responsáveis (Dados do Supabase)</div>
+      <div class="instrutores-grid" id="instrutoresContainer">
+        <!-- Renderizado via JS -->
+      </div>
+    </div>
+
+    <div class="btn-actions">
+      <button class="btn btn-print" onclick="window.print()">🖨️ Gerar PDF / Imprimir</button>
+      <button class="btn btn-add" onclick="addBlankRows(5)">➕ Adicionar 5 Linhas</button>
+      <button class="btn btn-add" style="background:#666;" onclick="clearRows()">🗑️ Limpar Tabela</button>
+    </div>
+  </div>
+
+  <!-- FOLHA A4 OFICIAL -->
+  <div class="a4-page">
+    <table class="header-table">
+      <tr>
+        <td class="header-logo">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg" alt="SAMU 192">
+        </td>
+        <td>
+          <div class="header-title">LISTA DE PRESENÇA</div>
+          <div class="header-subtitle">CAPACITAÇÃO EQUIPE SAMU 11 ORLEANS</div>
+        </td>
+      </tr>
+    </table>
+
+    <table class="info-table">
+      <tr>
+        <td class="label-cell">ASSUNTO:</td>
+        <td class="content-cell" colspan="3" id="docAssunto">CAPACITAÇÃO EM PRIMEIROS SOCORROS E APH</td>
+      </tr>
+      <tr>
+        <td class="label-cell">PALESTRANTES:</td>
+        <td class="content-cell" colspan="3" id="docPalestrantes">Carregando palestrantes...</td>
+      </tr>
+      <tr>
+        <td class="label-cell">LOCAL:</td>
+        <td class="content-cell" id="docLocal">Empresa Plaszon - Unidade 03</td>
+        <td class="label-cell" style="width:12%;">HORÁRIO:</td>
+        <td class="content-cell" id="docHorario">08:00h às 12:00h (04h/Aula)</td>
+      </tr>
+      <tr>
+        <td class="label-cell">DATA:</td>
+        <td class="content-cell" colspan="3" id="docDataExtenso" style="font-weight:bold; color:var(--navy-blue);">Selecione a data no painel...</td>
+      </tr>
+    </table>
+
+    <div class="declaration-box">
+      Declaramos para os devidos fins que os abaixo assinados participaram integralmente do treinamento supramencionado, cumprindo a carga horária estabelecida.
+    </div>
+
+    <table class="attendance-table">
+      <thead>
+        <tr>
+          <th class="col-num">Nº</th>
+          <th>NOME DO PARTICIPANTE</th>
+          <th class="col-cpf">CPF / MATRÍCULA</th>
+          <th class="col-sign">ASSINATURA</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <!-- Linhas geradas via JS -->
+      </tbody>
+    </table>
+
+    <div class="footer-note">
+      SAMU 192 - Orleans / SC • Favor preencher as informações de forma legível.
+    </div>
+  </div>
+
+  <script>
+    // CREDENCIAIS DA SUA API DO SUPABASE
+    const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreml1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
+    
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let profissionais = [];
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('inputData').value = today;
+      updateDataExtenso();
+      generateInitialRows(25);
+      
+      await fetchColaboradoresSupabase();
+    });
+
+    // CONSULTA AUTOMÁTICA DE CNPJ VIA BRASILAPI (RECEITA FEDERAL)
+    async function buscarCNPJ() {
+      const cnpjInput = document.getElementById('inputCNPJ').value.replace(/\D/g, '');
+      if (cnpjInput.length !== 14) {
+        alert('Por favor, digite um CNPJ válido com 14 dígitos.');
+        return;
+      }
+
+      const btn = document.querySelector('.btn-search-cnpj');
+      btn.innerText = "⏳ Consultando...";
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjInput}`);
+        if (!response.ok) throw new Error('CNPJ não encontrado ou indisponível.');
+
+        const data = await response.json();
+        const nomeEmpresa = data.nome_fantasia || data.razao_social;
+        const endereco = `${data.logradouro}, ${data.numero} - ${data.bairro}, ${data.municipio}/${data.uf}`;
+
+        document.getElementById('inputLocal').value = `${nomeEmpresa} (${endereco})`;
+        updateDoc();
+        alert(`Empresa encontrada:\n${nomeEmpresa}\n${endereco}`);
+      } catch (err) {
+        alert('Não foi possível buscar o CNPJ automaticamente. Preencha o local manualmente.');
+      } finally {
+        btn.innerText = "🔍 Buscar CNPJ";
+        btn.disabled = false;
+      }
+    }
+
+    function checkCNPJEnter(e) {
+      if (e.key === 'Enter') buscarCNPJ();
+    }
+
+    async function fetchColaboradoresSupabase() {
+      const statusBadge = document.getElementById('dbStatus');
+      try {
+        const { data, error } = await supabaseClient
+          .from('colaboradores')
+          .select('nome, funcao, coren, cnh')
+          .order('nome', { ascending: true });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          profissionais = data;
+          statusBadge.innerText = "🟢 Conectado ao Supabase";
+          statusBadge.className = "status-badge status-online";
+        } else {
+          statusBadge.innerText = "🟡 Tabela sem registros";
+          statusBadge.className = "status-badge status-loading";
+        }
+      } catch (err) {
+        console.warn("Erro ao conectar no Supabase:", err);
+        statusBadge.innerText = "🔴 Erro na conexão Supabase";
+        statusBadge.className = "status-badge status-offline";
+      }
+
+      renderInstrutoresInputs();
+    }
+
+    function renderInstrutoresInputs() {
+      const qtd = parseInt(document.getElementById('selectQtdInstrutores').value);
+      const container = document.getElementById('instrutoresContainer');
+      container.innerHTML = '';
+
+      for (let i = 1; i <= qtd; i++) {
+        const group = document.createElement('div');
+        group.className = 'form-group';
+        
+        let optionsHtml = profissionais.map(p => {
+          let reg = "";
+          if (p.coren && p.coren !== "N/A") {
+            reg = ` [COREN: ${p.coren}]`;
+          } else if (p.cnh && p.cnh !== "N/A") {
+            reg = ` [CNH: ${p.cnh}]`;
+          }
+
+          const rotuloExibicao = `${p.nome} - ${p.funcao}${reg}`;
+          return `<option value="${rotuloExibicao}">${rotuloExibicao}</option>`;
+        }).join('');
+        
+        group.innerHTML = `
+          <label>Instrutor ${i}:</label>
+          <select id="selectInstrutor_${i}" onchange="updateDoc()">
+            ${optionsHtml}
+          </select>
+        `;
+        container.appendChild(group);
+      }
+
+      if (qtd >= 2 && document.getElementById('selectInstrutor_2') && profissionais.length > 1) {
+        document.getElementById('selectInstrutor_2').selectedIndex = 1;
+      }
+
+      updateDoc();
+    }
+
+    function updateDoc() {
+      document.getElementById('docAssunto').innerText = document.getElementById('inputAssunto').value.toUpperCase();
+      document.getElementById('docLocal').innerText = document.getElementById('inputLocal').value;
+      document.getElementById('docHorario').innerText = document.getElementById('inputHorario').value;
+
+      const qtd = parseInt(document.getElementById('selectQtdInstrutores').value);
+      let instrutoresSelecionados = [];
+
+      for (let i = 1; i <= qtd; i++) {
+        const el = document.getElementById(`selectInstrutor_${i}`);
+        if (el && el.value) {
+          instrutoresSelecionados.push(el.value);
+        }
+      }
+
+      if (instrutoresSelecionados.length === 1) {
+        document.getElementById('docPalestrantes').innerText = instrutoresSelecionados[0];
+      } else if (instrutoresSelecionados.length > 1) {
+        const ultimo = instrutoresSelecionados.pop();
+        document.getElementById('docPalestrantes').innerText = `${instrutoresSelecionados.join(', ')} e ${ultimo}`;
+      }
+    }
+
+    function updateDataExtenso() {
+      const inputVal = document.getElementById('inputData').value;
+      if (!inputVal) return;
+
+      const [year, month, day] = inputVal.split('-');
+      const dateObj = new Date(year, month - 1, day);
+
+      const opcoes = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      let dataFormatada = dateObj.toLocaleDateString('pt-BR', opcoes);
+      
+      dataFormatada = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
+      document.getElementById('docDataExtenso').innerText = dataFormatada;
+    }
+
+    function generateInitialRows(count) {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+      for (let i = 1; i <= count; i++) {
+        addRow(i);
+      }
+    }
+
+    function addRow(num) {
+      const tbody = document.getElementById('tableBody');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="col-num">${num}</td>
+        <td></td>
+        <td class="col-cpf"></td>
+        <td class="col-sign"></td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    function addBlankRows(extraCount) {
+      const tbody = document.getElementById('tableBody');
+      const currentCount = tbody.children.length;
+      for (let i = 1; i <= extraCount; i++) {
+        addRow(currentCount + i);
+      }
+    }
+
+    function clearRows() {
+      document.getElementById('tableBody').innerHTML = '';
+    }
+  </script>
+</body>
+</html>
 
