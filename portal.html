@@ -190,30 +190,35 @@
 
     let usuarioLogado = null;
 
-    async function realizarLogin(e) {
-      e.preventDefault();
-      const cpfInput = document.getElementById('loginCPF').value.replace(/\D/g, '');
-      const senhaInput = document.getElementById('loginSenha').value.trim();
+   async function realizarLogin(e) {
+  e.preventDefault();
+  const rawInput = document.getElementById('loginCPF').value.trim();
+  const cpfClean = rawInput.replace(/\D/g, '');
+  const senhaInput = document.getElementById('loginSenha').value.trim();
 
-      const { data, error } = await supabaseClient
-        .from('colaboradores')
-        .select('*');
+  const { data, error } = await supabaseClient
+    .from('colaboradores')
+    .select('*');
 
-      if (error || !data) {
-        document.getElementById('loginError').style.display = 'block';
-        return;
-      }
+  if (error || !data) {
+    document.getElementById('loginError').style.display = 'block';
+    return;
+  }
 
-      const user = data.find(u => u.cpf.replace(/\D/g, '') === cpfInput);
+  // Busca tanto pelo CPF numérico quanto pelo login 'admin'
+  const user = data.find(u => {
+    const userCpfClean = u.cpf ? u.cpf.replace(/\D/g, '') : '';
+    return u.cpf === rawInput || (cpfClean !== '' && userCpfClean === cpfClean);
+  });
 
-      if (!user || (user.senha && user.senha !== senhaInput && senhaInput !== 'samu192')) {
-        document.getElementById('loginError').style.display = 'block';
-        return;
-      }
+  if (!user || (user.senha && user.senha !== senhaInput && senhaInput !== 'samu192')) {
+    document.getElementById('loginError').style.display = 'block';
+    return;
+  }
 
-      usuarioLogado = user;
-      carregarDashboard();
-    }
+  usuarioLogado = user;
+  carregarDashboard();
+}
 
     async function carregarDashboard() {
       document.getElementById('loginScreen').style.display = 'none';
