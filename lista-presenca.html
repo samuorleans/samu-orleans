@@ -121,7 +121,7 @@
     .header-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
     .header-table td { border: 1px solid var(--border-black); padding: 8px; text-align: center; vertical-align: middle; }
     .header-logo { width: 120px; }
-    .header-logo img { width: 100px; height: auto; }
+    .header-logo img { max-width: 110px; max-height: 85px; height: auto; }
     .header-title { font-size: 1.1rem; font-weight: bold; color: #000; text-transform: uppercase; }
     .header-subtitle { font-size: 0.9rem; font-weight: bold; color: #333; margin-top: 4px; }
 
@@ -227,7 +227,7 @@
     <table class="header-table">
       <tr>
         <td class="header-logo">
-          <img src="logo.png" alt="SAMU Orleans" style="max-width: 110px; max-height: 85px; height: auto;">
+          <img src="logo.png" alt="SAMU Orleans">
         </td>
         <td>
           <div class="header-title">LISTA DE PRESENÇA</div>
@@ -281,7 +281,6 @@
   </div>
 
   <script>
-    // CREDENCIAIS ATUALIZADAS COM A NOVA PUBLISHABLE KEY
     const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
     const SUPABASE_KEY = "sb_publishable_LaC2YnoF3htaAh0f_X8tNg_V9hOkEQ8";
     
@@ -383,14 +382,15 @@
         group.className = 'form-group';
         
         let optionsHtml = profissionais.map(p => {
-          let reg = "";
+          let regNum = "";
           if (p.coren && p.coren !== "N/A") {
-            reg = ` [COREN: ${p.coren}]`;
+            regNum = p.coren;
           } else if (p.cnh && p.cnh !== "N/A") {
-            reg = ` [CNH: ${p.cnh}]`;
+            regNum = p.cnh;
           }
 
-          const rotuloExibicao = `${p.nome} - ${p.funcao}${reg}`;
+          const sufixoReg = regNum ? ` [Reg.: ${regNum}]` : "";
+          const rotuloExibicao = `${p.nome} - ${p.funcao}${sufixoReg}`;
           return `<option value="${rotuloExibicao}">${rotuloExibicao}</option>`;
         }).join('');
         
