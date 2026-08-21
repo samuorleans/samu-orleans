@@ -251,13 +251,7 @@
           <h3 style="color:var(--navy-blue); margin-bottom:10px; font-size:0.9rem;">📊 RESUMO DE CARGA HORÁRIA (PORTARIA 2048/2002)</h3>
           
           <table class="table-resumo">
-            <tbody>
-              <tr><td class="label">Cargo / Função Identificada:</td><td id="resCargo">—</td></tr>
-              <tr><td class="label">Meta Anual Exigida:</td><td id="resMeta">—</td></tr>
-              <tr><td class="label">Carga Horária Cumprida (Ano Atual):</td><td id="resCumprida" style="font-weight:bold;">0 hrs</td></tr>
-              <tr><td class="label">Saldo Faltante para a Meta:</td><td id="resSaldo" style="font-weight:bold;">0 hrs</td></tr>
-              <tr><td class="label">Status do Cumprimento:</td><td id="resStatus" class="status-andamento">—</td></tr>
-            </tbody>
+            <tbody></tbody>
           </table>
         </div>
 
@@ -352,13 +346,7 @@
         <div class="card-panel">
           <h3 style="color:var(--navy-blue); margin-bottom:10px; font-size:0.9rem;">📊 RESUMO DE AUDITORIA DE CARGA HORÁRIA</h3>
           <table class="table-resumo">
-            <tbody>
-              <tr><td class="label">Profissional / Função:</td><td id="admResCargo">—</td></tr>
-              <tr><td class="label">Meta Anual Exigida:</td><td id="admResMeta">—</td></tr>
-              <tr><td class="label">Carga Horária Cumprida no Período:</td><td id="admResCumprida" style="font-weight:bold;">0 hrs</td></tr>
-              <tr><td class="label">Saldo Faltante para Meta:</td><td id="admResSaldo" style="font-weight:bold;">0 hrs</td></tr>
-              <tr><td class="label">Status do Cumprimento:</td><td id="admResStatus" class="status-andamento">—</td></tr>
-            </tbody>
+            <tbody></tbody>
           </table>
         </div>
 
@@ -509,7 +497,6 @@
         return idBate || cpfBate || nomeBate;
       });
 
-      // Ordena por data
       meus.sort((a, b) => {
         const dtA = new Date(a.data_certificado || a.certificado_de_dados || '1970-01-01');
         const dtB = new Date(b.data_certificado || b.certificado_de_dados || '1970-01-01');
@@ -520,19 +507,21 @@
       tbMeus.innerHTML = "";
       
       const anoAtual = new Date().getFullYear();
-      let somaHorasAnoAtual = 0;
+      const horasPorAno = {};
 
       meus.forEach(c => {
         const dataBruta = c.data_certificado || c.certificado_de_dados || '';
         const dtObj = dataBruta ? new Date(dataBruta + 'T00:00:00') : null;
         
-        if (dtObj && dtObj.getFullYear() === anoAtual) {
-          somaHorasAnoAtual += Number(c.carga_horaria) || 0;
+        if (dtObj) {
+          const ano = dtObj.getFullYear();
+          if (!horasPorAno[ano]) horasPorAno[ano] = 0;
+          horasPorAno[ano] += Number(c.carga_horaria) || 0;
         }
 
         const dataFmt = dtObj ? `${String(dtObj.getDate()).padStart(2,'0')}/${String(dtObj.getMonth()+1).padStart(2,'0')}/${dtObj.getFullYear()}` : '-';
         const modExibida = c.disciplina || c.modalidade || 'Presencial/EAD';
-        const descCurso = c.nome_curso + (c.instituicao ? ` (${c.instituicao})` : '');
+        const descCurso = (c.nome_curso || '-') + (c.instituicao ? ` (${c.instituicao})` : '');
 
         tbMeus.innerHTML += `
           <tr>
@@ -544,29 +533,43 @@
         `;
       });
 
-      // Cálculo Portaria 2048
+      if (!horasPorAno[anoAtual]) horasPorAno[anoAtual] = 0;
+
       const ehCondutor = usuarioLogado.funcao.toLowerCase().includes("condutor");
       const metaAnual = ehCondutor ? 200 : 154;
       const cargoNome = ehCondutor ? "Condutor Socorrista" : "Técnico de Enfermagem Socorrista";
 
-      let saldoFaltante = metaAnual - somaHorasAnoAtual;
+      let htmlResumo = `
+        <tr><td class="label">Cargo / Função:</td><td><b>${usuarioLogado.nome}</b> (${cargoNome})</td></tr>
+        <tr><td class="label">Meta Anual Exigida:</td><td><b>${metaAnual} horas/ano</b></td></tr>
+      `;
+
+      const anosOrdenados = Object.keys(horasPorAno).map(Number).sort((a, b) => a - b);
+      anosOrdenados.forEach(anoKey => {
+        htmlResumo += `<tr><td class="label">Carga Horária Cumprida em ${anoKey}:</td><td><b>${horasPorAno[anoKey]} hrs</b></td></tr>`;
+      });
+
+      const horasAnoAtual = horasPorAno[anoAtual] || 0;
+      let saldoFaltante = metaAnual - horasAnoAtual;
       let statusTexto = "";
-      let elStatus = document.getElementById("resStatus");
+      let classStatus = "";
 
       if (saldoFaltante <= 0) {
         saldoFaltante = 0;
         statusTexto = "COMPLETO (Meta Atingida)";
-        elStatus.className = "status-atingido";
+        classStatus = "status-atingido";
       } else {
         statusTexto = "EM ANDAMENTO";
-        elStatus.className = "status-andamento";
+        classStatus = "status-andamento";
       }
 
-      document.getElementById("resCargo").innerText = `${usuarioLogado.nome} (${cargoNome})`;
-      document.getElementById("resMeta").innerText = `${metaAnual} horas/ano`;
-      document.getElementById("resCumprida").innerText = `${somaHorasAnoAtual} hrs`;
-      document.getElementById("resSaldo").innerText = `${saldoFaltante} hrs`;
-      elStatus.innerText = statusTexto;
+      htmlResumo += `
+        <tr><td class="label">Saldo Faltante para Meta ${anoAtual}:</td><td><b>${saldoFaltante} hrs</b></td></tr>
+        <tr><td class="label">Status do Cumprimento (${anoAtual}):</td><td class="${classStatus}">${statusTexto}</td></tr>
+      `;
+
+      const tabelaResumoBody = document.querySelector("#tabMeusCursos .table-resumo tbody");
+      if (tabelaResumoBody) tabelaResumoBody.innerHTML = htmlResumo;
 
       preencherFiltrosAdmin();
     }
@@ -611,6 +614,9 @@
       const dtIniFilter = dtIniStr ? new Date(dtIniStr + 'T00:00:00') : null;
       const dtFimFilter = dtFimStr ? new Date(dtFimStr + 'T23:59:59') : null;
 
+      const anoAtual = new Date().getFullYear();
+      const horasPorAno = {};
+
       let cursosFiltrados = todosCursos.filter(c => {
         if (profSel !== "TODOS" && (!c.servidor_nome || !c.servidor_nome.toLowerCase().includes(profSel.toLowerCase()))) {
           return false;
@@ -633,19 +639,23 @@
       });
 
       tbAdmin.innerHTML = "";
-      let somaCargaHoraria = 0;
       let cargoIdentificado = "Profissional da Unidade";
 
       cursosFiltrados.forEach(c => {
-        somaCargaHoraria += Number(c.carga_horaria) || 0;
+        const dataBruta = c.data_certificado || c.certificado_de_dados || '';
+        const dtObj = dataBruta ? new Date(dataBruta + 'T00:00:00') : null;
         
+        if (dtObj) {
+          const ano = dtObj.getFullYear();
+          if (!horasPorAno[ano]) horasPorAno[ano] = 0;
+          horasPorAno[ano] += Number(c.carga_horaria) || 0;
+        }
+
         if (c.servidor_nome) {
           if (c.servidor_nome.toLowerCase().includes("condutor")) cargoIdentificado = "Condutor Socorrista";
           else if (c.servidor_nome.toLowerCase().includes("técnico") || c.servidor_nome.toLowerCase().includes("enferm")) cargoIdentificado = "Técnico de Enfermagem Socorrista";
         }
 
-        const dataBruta = c.data_certificado || c.certificado_de_dados || '';
-        const dtObj = dataBruta ? new Date(dataBruta + 'T00:00:00') : null;
         const dataFmt = dtObj ? `${String(dtObj.getDate()).padStart(2,'0')}/${String(dtObj.getMonth()+1).padStart(2,'0')}/${dtObj.getFullYear()}` : '-';
         const descCurso = (c.nome_curso || '-') + (c.instituicao ? ` (${c.instituicao})` : '');
         const modExibida = c.disciplina || c.modalidade || 'Presencial/EAD';
@@ -662,23 +672,45 @@
         `;
       });
 
+      if (!horasPorAno[anoAtual]) horasPorAno[anoAtual] = 0;
+
       const metaAnual = (cargoIdentificado === "Condutor Socorrista") ? 200 : 154;
-      let saldo = metaAnual - somaCargaHoraria;
-      let elAdmStatus = document.getElementById("admResStatus");
+
+      let htmlResumoAdmin = `
+        <tr><td class="label">Profissional / Função:</td><td><b>${profSel !== "TODOS" ? profSel : "Todos os Servidores"}</b> (${cargoIdentificado})</td></tr>
+        <tr><td class="label">Meta Anual Exigida:</td><td><b>${metaAnual} horas/ano</b></td></tr>
+      `;
+
+      if (anoSel === "TODOS") {
+        const anosOrdenados = Object.keys(horasPorAno).map(Number).sort((a, b) => a - b);
+        anosOrdenados.forEach(anoKey => {
+          htmlResumoAdmin += `<tr><td class="label">Carga Horária Cumprida em ${anoKey}:</td><td><b>${horasPorAno[anoKey]} hrs</b></td></tr>`;
+        });
+      } else {
+        htmlResumoAdmin += `<tr><td class="label">Carga Horária Cumprida em ${anoSel}:</td><td><b>${horasPorAno[anoSel] || 0} hrs</b></td></tr>`;
+      }
+
+      const horasAnoVigente = horasPorAno[anoAtual] || 0;
+      let saldo = metaAnual - horasAnoVigente;
+      let statusTexto = "";
+      let classStatus = "";
 
       if (saldo <= 0) {
         saldo = 0;
-        elAdmStatus.innerText = "COMPLETO (Meta Atingida)";
-        elAdmStatus.className = "status-atingido";
+        statusTexto = "COMPLETO (Meta Atingida)";
+        classStatus = "status-atingido";
       } else {
-        elAdmStatus.innerText = "EM ANDAMENTO";
-        elAdmStatus.className = "status-andamento";
+        statusTexto = "EM ANDAMENTO";
+        classStatus = "status-andamento";
       }
 
-      document.getElementById("admResCargo").innerText = (profSel !== "TODOS") ? `${profSel} (${cargoIdentificado})` : "Todos os Servidores";
-      document.getElementById("admResMeta").innerText = `${metaAnual} horas/ano`;
-      document.getElementById("admResCumprida").innerText = `${somaCargaHoraria} hrs`;
-      document.getElementById("admResSaldo").innerText = `${saldo} hrs`;
+      htmlResumoAdmin += `
+        <tr><td class="label">Saldo Faltante para Meta ${anoAtual}:</td><td><b>${saldo} hrs</b></td></tr>
+        <tr><td class="label">Status do Cumprimento (${anoAtual}):</td><td class="${classStatus}">${statusTexto}</td></tr>
+      `;
+
+      const tabelaResumoAdminBody = document.querySelector("#tabAdminCursos .table-resumo tbody");
+      if (tabelaResumoAdminBody) tabelaResumoAdminBody.innerHTML = htmlResumoAdmin;
     }
 
     async function excluirCurso(id) {
