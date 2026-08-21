@@ -83,7 +83,7 @@
     .btn-primary:hover { background: var(--navy-dark); }
 
     .table-wrapper { overflow-x: auto; width: 100%; }
-    .data-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    .data-table { width: 100%; border-collapse: collapse; min-width: 1100px; }
     .data-table th, .data-table td { border-bottom: 1px solid var(--border-color); padding: 12px 14px; font-size: 0.85rem; text-align: left; white-space: nowrap; }
     .data-table th { background: #f8fafc; color: var(--navy-blue); font-weight: 700; }
 
@@ -263,6 +263,9 @@
                   <th>Nome Guerra</th>
                   <th>Coturno</th>
                   <th>Macacão</th>
+                  <th>Camiseta</th>
+                  <th>Jaqueta</th>
+                  <th>Capa Chuva</th>
                   <th>Perfil</th>
                   <th>Ações</th>
                 </tr>
@@ -357,9 +360,8 @@
     let listaColaboradores = [];
     let listaUniformes = [];
 
-    // VALIDADOR DE SENHA FORTE
     function validarSenhaForte(senha) {
-      if (!senha) return true; // Permite manter a atual caso em branco
+      if (!senha) return true;
       const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
       return regex.test(senha);
     }
@@ -465,6 +467,9 @@
           <td>${u.nome_guerra || '-'}</td>
           <td>${u.coturno || '-'}</td>
           <td>${u.macacao || '-'}</td>
+          <td>${u.camiseta || '-'}</td>
+          <td>${u.jaqueta || '-'}</td>
+          <td>${u.capa_chuva || '-'}</td>
           <td><span class="badge-role ${isRoleAdmin ? 'role-admin' : 'role-user'}">${s.perfil || 'servidor'}</span></td>
           <td><button class="btn-action-sm" onclick="abrirModalEdicao(${s.id})">✏️ Editar</button></td>
         `;
@@ -547,7 +552,7 @@
       });
 
       if (!user) {
-        alert('Os dados informados não coincidem com nenhum cadastro ativo. Verifique se o CPF, o Registro e o E-mail estão corretos.');
+        alert('Os dados informados não coincidem com nenhum cadastro ativo.');
         return;
       }
 
@@ -558,7 +563,7 @@
 
       if (!upError) {
         await registrarLog("Recuperação de Senha", `O servidor ${user.nome} redefiniu sua senha via validação de dados pessoais.`);
-        alert('Senha redefinida com sucesso! Você já pode acessar o portal com a nova senha.');
+        alert('Senha redefinida com sucesso!');
         fecharModalRecuperacao();
       } else {
         alert('Erro ao atualizar a senha no sistema.');
