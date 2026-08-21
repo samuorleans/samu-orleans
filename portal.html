@@ -420,47 +420,50 @@
       await carregarMeusCursos();
     }
 
-    async function carregarMeusCursos() {
-      const { data } = await dbNuvem.from('cursos_certificados').select('*');
-      todosCursos = data || [];
+async function carregarMeusCursos() {
+  const { data } = await dbNuvem.from('cursos_certificados').select('*');
+  todosCursos = data || [];
 
-      // Filtro flexível para localizar o servidor logado
-      const meus = todosCursos.filter(c => {
-        const idBate = c.colaborador_id && Number(c.colaborador_id) === Number(usuarioLogado.id);
-        const cpfBate = c.cpf && usuarioLogado.cpf && c.cpf.replace(/\D/g, '') === usuarioLogado.cpf.replace(/\D/g, '');
-        const nomeBate = c.servidor_nome && c.servidor_nome.toLowerCase().includes(usuarioLogado.nome.toLowerCase());
-        return idBate || cpfBate || nomeBate;
-      });
+  // Pega o primeiro nome do usuário logado (ex: "Daniel") para busca parcial
+  const primeiroNomeLogado = usuarioLogado.nome.split(' ')[0].toLowerCase();
 
-      const tbMeus = document.getElementById("tbMeusCursos");
-      if (tbMeus) {
-        tbMeus.innerHTML = "";
-        let somaHoras = 0;
+  // Filtra os cursos que pertencem ao usuário logado
+  const meus = todosCursos.filter(c => {
+    const idBate = c.colaborador_id && Number(c.colaborador_id) === Number(usuarioLogado.id);
+    const cpfBate = c.cpf && usuarioLogado.cpf && c.cpf.replace(/\D/g, '') === usuarioLogado.cpf.replace(/\D/g, '');
+    const nomeBate = c.servidor_nome && c.servidor_nome.toLowerCase().includes(primeiroNomeLogado);
+    return idBate || cpfBate || nomeBate;
+  });
 
-        meus.forEach(c => {
-          somaHoras += Number(c.carga_horaria) || 0;
-          
-          const modExibida = c.disciplina || c.modalidade || '-';
-          const dataBruta = c.data_certificado || c.certificado_de_dados || '';
-          const dataFmt = dataBruta ? dataBruta.split('-').reverse().join('/') : '-';
+  const tbMeus = document.getElementById("tbMeusCursos");
+  if (tbMeus) {
+    tbMeus.innerHTML = "";
+    let somaHoras = 0;
 
-          tbMeus.innerHTML += `
-            <tr>
-              <td><b>${c.nome_curso || '-'}</b></td>
-              <td>${c.instituicao || '-'}</td>
-              <td>${modExibida}</td>
-              <td>${dataFmt}</td>
-              <td><span class="badge-ch">${c.carga_horaria || 0}h</span></td>
-            </tr>
-          `;
-        });
+    meus.forEach(c => {
+      somaHoras += Number(c.carga_horaria) || 0;
+      
+      const modExibida = c.disciplina || c.modalidade || '-';
+      const dataBruta = c.data_certificado || c.certificado_de_dados || '';
+      const dataFmt = dataBruta ? dataBruta.split('-').reverse().join('/') : '-';
 
-        const elTotal = document.getElementById("myTotalHours");
-        if (elTotal) elTotal.innerText = `${somaHoras}h`;
-      }
+      tbMeus.innerHTML += `
+        <tr>
+          <td><b>${c.nome_curso || '-'}</b></td>
+          <td>${c.instituicao || '-'}</td>
+          <td>${modExibida}</td>
+          <td>${dataFmt}</td>
+          <td><span class="badge-ch">${c.carga_horaria || 0}h</span></td>
+        </tr>
+      `;
+    });
 
-      carregarRelatorioAdminCursos();
-    }
+    const elTotal = document.getElementById("myTotalHours");
+    if (elTotal) elTotal.innerText = `${somaHoras}h`;
+  }
+
+  carregarRelatorioAdminCursos();
+}
 
     function preencherSelectFiltro() {
       const sel = document.getElementById("selectFiltroServidor");
