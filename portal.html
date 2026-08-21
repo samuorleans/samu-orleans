@@ -42,6 +42,9 @@
     .btn-login { width: 100%; padding: 12px; background: var(--primary-red); color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
     .btn-login:hover { background: var(--dark-red); }
 
+    .link-forgot { font-size: 0.8rem; color: var(--navy-blue); font-weight: 600; text-decoration: none; cursor: pointer; display: inline-block; margin-top: 10px; }
+    .link-forgot:hover { text-decoration: underline; }
+
     /* LAYOUT DO PAINEL PROFISSIONAL */
     .app-layout { display: none; min-height: 100vh; flex-direction: row; width: 100%; }
 
@@ -129,6 +132,9 @@
         </div>
         <button type="submit" class="btn-login">Acessar Sistema</button>
       </form>
+
+      <a class="link-forgot" onclick="abrirModalRecuperacao()">Esqueceu sua senha?</a>
+
       <div id="loginError" style="color:#dc2626; font-size:0.8rem; margin-top:12px; font-weight:600; display:none;">Usuário ou Senha incorretos!</div>
     </div>
   </div>
@@ -180,7 +186,7 @@
             <div class="form-group"><label>Registro (COREN/CNH):</label><input type="text" id="perfilRegistro"></div>
             <div class="form-group"><label>Telefone / WhatsApp:</label><input type="text" id="perfilTelefone"></div>
             <div class="form-group"><label>E-mail:</label><input type="email" id="perfilEmail"></div>
-            <div class="form-group"><label>Alterar Senha:</label><input type="password" id="perfilNovaSenha" placeholder="Deixe em branco para manter"></div>
+            <div class="form-group"><label>Alterar Senha:</label><input type="password" id="perfilNovaSenha" placeholder="Min. 8 chars (Maiúscula, Número, Especial)"></div>
           </div>
         </div>
 
@@ -308,11 +314,36 @@
           <option value="admin">Administrador (Admin)</option>
         </select>
       </div>
-      <div class="form-group"><label>Senha de Acesso:</label><input type="text" id="modalNovaSenha" placeholder="Digite uma senha ou 'samu192'"></div>
+      <div class="form-group"><label>Senha de Acesso:</label><input type="text" id="modalNovaSenha" placeholder="Min. 8 chars (Maiúscula, Número, Especial)"></div>
 
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
         <button class="btn-action-sm" onclick="fecharModal()">Cancelar</button>
         <button class="btn-primary" style="background:#166534;" onclick="salvarEdicaoAdmin()">💾 Salvar Dados</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE RECUPERAÇÃO DE SENHA POR CONFIRMAÇÃO DE DADOS -->
+  <div id="modalRecuperacao" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">🔑 Recuperar Acesso ao Portal</div>
+        <button style="background:none; border:none; font-size:1.2rem; cursor:pointer;" onclick="fecharModalRecuperacao()">✕</button>
+      </div>
+      
+      <p style="font-size:0.82rem; color:#64748b; margin-bottom:15px;">Informe seus dados cadastrais para confirmar sua identidade e redefinir a senha:</p>
+
+      <div class="form-group"><label>CPF (Apenas números):</label><input type="text" id="recCPF" placeholder="Digite seu CPF"></div>
+      <div class="form-group"><label>Registro Profissional (COREN ou CNH):</label><input type="text" id="recRegistro" placeholder="Digite apenas os números do registro"></div>
+      <div class="form-group"><label>E-mail Cadastrado:</label><input type="email" id="recEmail" placeholder="Digite seu e-mail"></div>
+
+      <hr style="border:none; border-top:1px solid #e2e8f0; margin:15px 0;">
+
+      <div class="form-group"><label>Nova Senha Forte:</label><input type="password" id="recNovaSenha" placeholder="Min. 8 chars (Maiúscula, Número, Especial)"></div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button class="btn-action-sm" onclick="fecharModalRecuperacao()">Cancelar</button>
+        <button class="btn-primary" onclick="processarRecuperacaoSenha()">Validar e Redefinir</button>
       </div>
     </div>
   </div>
@@ -325,6 +356,13 @@
     let usuarioLogado = null;
     let listaColaboradores = [];
     let listaUniformes = [];
+
+    // VALIDADOR DE SENHA FORTE
+    function validarSenhaForte(senha) {
+      if (!senha) return true; // Permite manter a atual caso em branco
+      const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+      return regex.test(senha);
+    }
 
     async function realizarLogin(e) {
       e.preventDefault();
@@ -402,7 +440,6 @@
       listaColaboradores = colabs || [];
       listaUniformes = unis || [];
 
-      // Atualizar Cards de Estatísticas
       document.getElementById('statTotal').innerText = listaColaboradores.length;
       document.getElementById('statCondutores').innerText = listaColaboradores.filter(c => c.funcao.includes('Condutor')).length;
       document.getElementById('statTecnicos').innerText = listaColaboradores.filter(c => !c.funcao.includes('Condutor')).length;
@@ -451,7 +488,7 @@
       document.getElementById('modalFuncao').value = 'Condutor Socorrista';
       document.getElementById('modalRegistro').value = '';
       document.getElementById('modalPerfil').value = 'servidor';
-      document.getElementById('modalNovaSenha').value = 'samu192';
+      document.getElementById('modalNovaSenha').value = '';
 
       document.getElementById('editModal').style.display = 'flex';
     }
@@ -476,6 +513,58 @@
       document.getElementById('editModal').style.display = 'none';
     }
 
+    function abrirModalRecuperacao() {
+      document.getElementById('modalRecuperacao').style.display = 'flex';
+    }
+
+    function fecharModalRecuperacao() {
+      document.getElementById('modalRecuperacao').style.display = 'none';
+    }
+
+    async function processarRecuperacaoSenha() {
+      const cpfInput = document.getElementById('recCPF').value.trim().replace(/\D/g, '');
+      const regInput = document.getElementById('recRegistro').value.trim();
+      const emailInput = document.getElementById('recEmail').value.trim().toLowerCase();
+      const novaSenha = document.getElementById('recNovaSenha').value.trim();
+
+      if (!validarSenhaForte(novaSenha)) {
+        alert('A nova senha deve ter no mínimo 8 caracteres, contendo pelo menos uma letra maiúscula, um número e um caractere especial (@, #, $, !).');
+        return;
+      }
+
+      const { data: servidores, error } = await supabaseClient.from('colaboradores').select('*');
+
+      if (error || !servidores) {
+        alert('Erro ao conectar com o banco de dados.');
+        return;
+      }
+
+      const user = servidores.find(s => {
+        const cpfClean = s.cpf ? s.cpf.replace(/\D/g, '') : '';
+        const regMatch = (s.coren && s.coren === regInput) || (s.cnh && s.cnh === regInput);
+        const emailMatch = s.email && s.email.toLowerCase() === emailInput;
+        return cpfClean === cpfInput && regMatch && emailMatch;
+      });
+
+      if (!user) {
+        alert('Os dados informados não coincidem com nenhum cadastro ativo. Verifique se o CPF, o Registro e o E-mail estão corretos.');
+        return;
+      }
+
+      const { error: upError } = await supabaseClient
+        .from('colaboradores')
+        .update({ senha: novaSenha })
+        .eq('id', user.id);
+
+      if (!upError) {
+        await registrarLog("Recuperação de Senha", `O servidor ${user.nome} redefiniu sua senha via validação de dados pessoais.`);
+        alert('Senha redefinida com sucesso! Você já pode acessar o portal com a nova senha.');
+        fecharModalRecuperacao();
+      } else {
+        alert('Erro ao atualizar a senha no sistema.');
+      }
+    }
+
     async function salvarEdicaoAdmin() {
       const id = document.getElementById('modalServidorId').value;
       const nome = document.getElementById('modalNome').value;
@@ -484,6 +573,11 @@
       const reg = document.getElementById('modalRegistro').value;
       const perfil = document.getElementById('modalPerfil').value;
       const novaSenha = document.getElementById('modalNovaSenha').value;
+
+      if (novaSenha && !validarSenhaForte(novaSenha)) {
+        alert('A senha informada deve ter no mínimo 8 caracteres, com letra maiúscula, número e caractere especial.');
+        return;
+      }
 
       let payload = { nome, cpf, funcao, perfil };
 
@@ -503,6 +597,7 @@
       if (id) {
         res = await supabaseClient.from('colaboradores').update(payload).eq('id', id);
       } else {
+        if (!payload.senha) payload.senha = 'Samu192@Orleans';
         res = await supabaseClient.from('colaboradores').insert([payload]);
       }
 
@@ -521,6 +616,11 @@
       const tel = document.getElementById('perfilTelefone').value;
       const email = document.getElementById('perfilEmail').value;
       const novaSenha = document.getElementById('perfilNovaSenha').value;
+
+      if (novaSenha && !validarSenhaForte(novaSenha)) {
+        alert('A nova senha deve conter no mínimo 8 caracteres, incluindo pelo menos uma letra maiúscula, um número e um caractere especial (@, #, $, !).');
+        return;
+      }
 
       let upColab = { telefone: tel, email: email };
       if (novaSenha) upColab.senha = novaSenha;
