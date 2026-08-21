@@ -182,7 +182,6 @@
   <div class="nav-tabs no-print">
     <button class="tab-btn active" id="btnTabEscalas" onclick="trocarAba('escalas')">📅 Consulta de Escalas Pública</button>
     <button class="tab-btn" id="btnTabTrocas" style="display:none;" onclick="trocarAba('trocas')">🔄 Minhas Trocas de Plantão</button>
-    <button class="tab-btn" id="btnTabColaboradores" style="display:none;" onclick="trocarAba('colaboradores')">👥 Colaboradores</button>
     <button class="tab-btn" id="btnTabAfastamentos" style="display:none;" onclick="trocarAba('afastamentos')">🏥 Licenças e Escala Temporária</button>
     <button class="tab-btn" id="btnTabAdmin" style="display:none; background: #334155; color: #fff;" onclick="trocarAba('admin')">⚙️ Gestão / Auditoria Admin</button>
   </div>
@@ -343,71 +342,6 @@
     </div>
   </div>
 
-  <!-- ABA 3: CADASTRO DE COLABORADORES -->
-  <div id="abaColaboradores" class="card" style="display:none;">
-    <h3 id="tituloFormColaborador">Cadastrar / Editar Colaborador</h3>
-    <form id="formColaborador" onsubmit="salvarColaborador(event)">
-      <input type="hidden" id="cadId">
-      <div class="grid-form">
-        <div class="form-group">
-          <label>Nome Completo</label>
-          <input type="text" id="cadNome" required placeholder="Ex: Nome Completo">
-        </div>
-        <div class="form-group">
-          <label>CPF (Login)</label>
-          <input type="text" id="cadCPF" required placeholder="000.000.000-00">
-        </div>
-        <div class="form-group">
-          <label>Função / Perfil</label>
-          <select id="cadFuncao" required>
-            <option value="Condutor Socorrista">Condutor Socorrista</option>
-            <option value="Técnico(a) de Enfermagem Socorrista">Técnico(a) de Enfermagem Socorrista</option>
-            <option value="Enfermeira Coordenadora">Enfermeira Coordenadora (Acesso Total)</option>
-            <option value="Administrativo / Master">Administrativo / Master (Acesso Total)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>COREN</label>
-          <input type="text" id="cadCoren" placeholder="Nº COREN">
-        </div>
-        <div class="form-group">
-          <label>CNH</label>
-          <input type="text" id="cadCnh" placeholder="Nº CNH">
-        </div>
-        <div class="form-group">
-          <label>Telefone</label>
-          <input type="text" id="cadFone" placeholder="(48) 99999-9999">
-        </div>
-        <div class="form-group">
-          <label>E-mail</label>
-          <input type="email" id="cadEmail" placeholder="email@dominio.com">
-        </div>
-        <button class="btn btn-success" type="submit" id="btnSalvarColaborador">💾 Salvar Servidor na Nuvem</button>
-        <button class="btn btn-warning" type="button" onclick="cancelarEdicao()">❌ Cancelar Edição</button>
-        <button class="btn btn-danger" type="button" onclick="restaurarPadraoColaboradores()">🔄 Resetar Tabela Oficial</button>
-      </div>
-    </form>
-
-    <h3 style="margin-top:25px;">Servidores Cadastrados</h3>
-    <div class="table-responsive">
-      <table>
-        <thead>
-          <tr>
-            <th>NOME COMPLETO</th>
-            <th>CPF</th>
-            <th>FUNÇÃO</th>
-            <th>COREN</th>
-            <th>CNH</th>
-            <th>TELEFONE</th>
-            <th>E-MAIL</th>
-            <th>AÇÕES</th>
-          </tr>
-        </thead>
-        <tbody id="tbColaboradores"></tbody>
-      </table>
-    </div>
-  </div>
-
   <!-- ABA 4: LICENÇAS E COBERTURA DIÁRIA -->
   <div id="abaAfastamentos" class="card" style="display:none;">
     <h3 id="tituloFormAfastamento">Registrar Licença e Cobertura Diária por Função</h3>
@@ -525,7 +459,6 @@
 </div>
 
   <script>
-    // INICIALIZAÇÃO DO EMAILJS COM A SUA PUBLIC KEY
     (function() {
       if (typeof emailjs !== 'undefined') {
         emailjs.init("g3X1Q4SXuGXbXqHuB");
@@ -553,20 +486,6 @@
       "2026-11-15", "2026-12-25"
     ];
 
-    const colaboradoresOficiais = [
-      { id: 1, nome: "Edimara Tochetto Suaya Netto", cpf: "029.488.379-79", funcao: "Enfermeira Coordenadora", coren: "110151", cnh: "N/A", fone: "(48) 99204-7060", email: "edimarota@hotmail.com", senha: "", idDupla: 4 },
-      { id: 2, nome: "Clênio Borges", cpf: "004.078.689-76", funcao: "Técnico(a) de Enfermagem Socorrista", coren: "862518", cnh: "N/A", fone: "(48) 99698-4838", email: "clenio.farmacia@gmail.com", senha: "", idDupla: 2 },
-      { id: 3, nome: "Daniel Alexandre Fernandes", cpf: "075.486.369-70", funcao: "Condutor Socorrista", coren: "N/A", cnh: "5031057705", fone: "(48) 98848-1903", email: "danieltbsc@gmail.com", senha: "", idDupla: 4 },
-      { id: 4, nome: "Gicerléia Trindade da Rosa", cpf: "828.896.000-68", funcao: "Técnico(a) de Enfermagem Socorrista", coren: "870568", cnh: "N/A", fone: "(48) 99993-5340", email: "gyrosa_bn@hotmail.com", senha: "", idDupla: 4 },
-      { id: 5, nome: "Lucas Vieira Mendes", cpf: "049.042.089-35", funcao: "Condutor Socorrista", coren: "N/A", cnh: "3419217070", fone: "(48) 99808-2658", email: "lucasvmconstrucoes@gmail.com", senha: "", idDupla: 2 },
-      { id: 6, nome: "Luis Eduardo Formanski Vitório", cpf: "091.311.529-02", funcao: "Técnico(a) de Enfermagem Socorrista", coren: "1551746", cnh: "N/A", fone: "(48) 99991-1598", email: "eduardo.fvitorio@hotmail.com", senha: "", idDupla: 3 },
-      { id: 7, nome: "Márcio Becker", cpf: "000.172.329-45", funcao: "Condutor Socorrista", coren: "N/A", cnh: "17232945", fone: "(48) 99956-3192", email: "beckermarcio916@gmail.com", senha: "", idDupla: 1 },
-      { id: 8, nome: "Renato Cândido", cpf: "035.784.239-12", funcao: "Condutor Socorrista", coren: "N/A", cnh: "2157610821", fone: "(48) 99177-0565", email: "candidorenato1@gmail.com", senha: "", idDupla: 3 },
-      { id: 9, nome: "Rinaldo Calegario", cpf: "019.739.469-80", funcao: "Técnico(a) de Enfermagem Socorrista", coren: "331871", cnh: "N/A", fone: "(48) 98819-8058", email: "rinaldocalegario192@gmail.com", senha: "", idDupla: 1 },
-      { id: 10, nome: "Suandre Adão Machado", cpf: "027.333.709-28", funcao: "Técnico(a) de Enfermagem Socorrista", coren: "99894", cnh: "N/A", fone: "(48) 99602-8693", email: "suandremachado@gmail.com", senha: "", idDupla: 0 },
-      { id: 11, nome: "Vanderlei José Tasca", cpf: "803.699.019-91", funcao: "Condutor Socorrista", coren: "N/A", cnh: "940076430", fone: "(48) 99192-6750", email: "vandotasca22@gmail.com", senha: "", idDupla: 0 }
-    ];
-
     const duplasPadrao = [
       { cond: "Vanderlei José Tasca", tec: "Suandre Adão Machado" },
       { cond: "Márcio Becker", tec: "Rinaldo Calegario" },
@@ -579,12 +498,11 @@
     let trocas = [];
     let afastamentos = [];
 
-    // FUNÇÃO PARA ENVIAR ALERTAS POR E-MAIL
     function enviarAlertaEmailTroca(trocaObj) {
       const destinatario = colaboradores.find(c => c.nome.trim().toLowerCase() === trocaObj.substituto.trim().toLowerCase());
       
       if (!destinatario || !destinatario.email || destinatario.email === "-" || !destinatario.email.includes("@")) {
-        console.warn(`O servidor substituto '${trocaObj.substituto}' não possui e-mail válido cadastrado na aba Colaboradores.`);
+        console.warn(`O servidor substituto '${trocaObj.substituto}' não possui e-mail válido cadastrado.`);
         return;
       }
 
@@ -604,16 +522,16 @@
 
       emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
         .then(function(response) {
-           console.log('Notificação de troca enviada por e-mail com sucesso!', response.status, response.text);
+           console.log('Notificação enviada por e-mail!', response.status, response.text);
         }, function(error) {
-           console.error('Erro ao enviar notificação de troca via EmailJS:', error);
+           console.error('Erro ao enviar e-mail via EmailJS:', error);
         });
     }
 
     function ordenarAlfabeticamente() {
       colaboradores.sort((a, b) => {
-        if (a.funcao.includes("Coordenadora")) return -1;
-        if (b.funcao.includes("Coordenadora")) return 1;
+        if (a.funcao && a.funcao.includes("Coordenadora")) return -1;
+        if (b.funcao && b.funcao.includes("Coordenadora")) return 1;
         return a.nome.localeCompare(b.nome, 'pt-BR');
       });
     }
@@ -679,7 +597,7 @@
       const docDig = document.getElementById("recupDoc").value.trim();
       const novaSenha = document.getElementById("recupNovaSenha").value.trim();
 
-      const usuario = colaboradores.find(c => c.cpf.replace(/\D/g, '') === cpfDig);
+      const usuario = colaboradores.find(c => c.cpf && c.cpf.replace(/\D/g, '') === cpfDig);
 
       if (!usuario) {
         alert("CPF não localizado!");
@@ -694,22 +612,22 @@
       }
 
       usuario.senha = novaSenha;
-      await salvarColaboradoresStorage();
-      alert("Senha redefinida com sucesso! Você já pode fazer login com sua nova senha.");
+      if (dbNuvem) await dbNuvem.from('colaboradores').upsert([usuario]);
+      alert("Senha redefinida com sucesso!");
       fecharModalEsqueciSenha();
       abrirModalLogin();
     }
 
     function enviarLinkPorEmail() {
       const cpfDig = document.getElementById("recupCPF").value.trim().replace(/\D/g, '');
-      const usuario = colaboradores.find(c => c.cpf.replace(/\D/g, '') === cpfDig);
+      const usuario = colaboradores.find(c => c.cpf && c.cpf.replace(/\D/g, '') === cpfDig);
 
       if (!usuario || !usuario.email || usuario.email === "-") {
         alert("Servidor ou e-mail cadastrado não encontrado!");
         return;
       }
 
-      alert(`Link de redefinição enviado com sucesso para o e-mail: ${usuario.email}`);
+      alert(`Link enviado com sucesso para: ${usuario.email}`);
     }
 
     function autenticarUsuario(e) {
@@ -717,10 +635,10 @@
       const cpfDig = document.getElementById("loginCPF").value.trim().replace(/\D/g, '');
       const senhaDig = document.getElementById("loginSenha").value.trim();
 
-      const usuarioEncontrado = colaboradores.find(c => c.cpf.replace(/\D/g, '') === cpfDig);
+      const usuarioEncontrado = colaboradores.find(c => c.cpf && c.cpf.replace(/\D/g, '') === cpfDig);
 
       if (!usuarioEncontrado) {
-        alert("CPF não localizado na lista oficial do SAMU Orleans!");
+        alert("CPF não localizado no banco de dados!");
         return;
       }
 
@@ -745,7 +663,6 @@
         document.getElementById("btnAbrirLogin").style.display = "inline-flex";
         document.getElementById("btnSair").style.display = "none";
         document.getElementById("btnTabTrocas").style.display = "none";
-        document.getElementById("btnTabColaboradores").style.display = "none";
         document.getElementById("btnTabAfastamentos").style.display = "none";
         document.getElementById("btnTabAdmin").style.display = "none";
 
@@ -754,7 +671,7 @@
         return;
       }
 
-      const f = usuarioLogado.funcao.toLowerCase();
+      const f = usuarioLogado.funcao ? usuarioLogado.funcao.toLowerCase() : "";
       const ehGestor = f.includes("coordenadora") || f.includes("administrativo") || f.includes("master") || usuarioLogado.cpf.replace(/\D/g, '') === "07548636970";
 
       document.getElementById("labelUsuarioConectado").innerText = `Usuário: ${usuarioLogado.nome} (${usuarioLogado.funcao})`;
@@ -762,7 +679,6 @@
       document.getElementById("btnSair").style.display = "inline-flex";
 
       document.getElementById("btnTabTrocas").style.display = "inline-block";
-      document.getElementById("btnTabColaboradores").style.display = ehGestor ? "inline-block" : "none";
       document.getElementById("btnTabAfastamentos").style.display = ehGestor ? "inline-block" : "none";
       document.getElementById("btnTabAdmin").style.display = ehGestor ? "inline-block" : "none";
 
@@ -786,7 +702,6 @@
 
     async function carregarDados() {
       if (!dbNuvem) {
-        alert("Erro crítico: Banco de Dados Supabase não inicializado.");
         document.getElementById("stNuvem").innerText = "❌ Nuvem Desconectada";
         document.getElementById("stNuvem").style.background = "#fee2e2";
         document.getElementById("stNuvem").style.color = "#b91c1c";
@@ -796,14 +711,9 @@
       try {
         const { data: cData, error: cErr } = await dbNuvem.from('colaboradores').select('*');
         if (cErr) throw cErr;
+        colaboradores = cData || [];
 
-        if (cData && cData.length > 0) {
-          colaboradores = cData;
-        } else {
-          colaboradores = JSON.parse(JSON.stringify(colaboradoresOficiais));
-        }
-
-        const me = colaboradores.find(c => c.cpf.replace(/\D/g, '') === "07548636970");
+        const me = colaboradores.find(c => c.cpf && c.cpf.replace(/\D/g, '') === "07548636970");
         if (me) me.funcao = "Condutor Socorrista";
 
         const { data: tData, error: tErr } = await dbNuvem.from('trocas').select('*');
@@ -825,7 +735,7 @@
         document.getElementById("stNuvem").style.color = "#15803d";
       } catch(e) {
         console.error("Erro ao carregar do Supabase:", e);
-        document.getElementById("stNuvem").innerText = "⚠️ Falha ao Sincronizar Nuvem";
+        document.getElementById("stNuvem").innerText = "⚠️ Falha ao Sincronizar";
         document.getElementById("stNuvem").style.background = "#fef3c7";
         document.getElementById("stNuvem").style.color = "#b45309";
       }
@@ -836,30 +746,7 @@
       renderizarTudo();
     }
 
-    async function salvarColaboradoresStorage() {
-      ordenarAlfabeticamente();
-      if (!dbNuvem) return;
-      await dbNuvem.from('colaboradores').upsert(colaboradores);
-    }
-
-    async function salvarTrocasStorage() {
-      if (!dbNuvem) return;
-      await dbNuvem.from('trocas').upsert(trocas);
-    }
-
-    async function salvarAfastamentosStorage() {
-      if (!dbNuvem) return;
-      const afastamentosParaNuvem = afastamentos.map(a => ({
-        ...a,
-        substitutosDiarios: typeof a.substitutosDiarios === 'object' 
-          ? JSON.stringify(a.substitutosDiarios) 
-          : a.substitutosDiarios
-      }));
-      await dbNuvem.from('afastamentos').upsert(afastamentosParaNuvem);
-    }
-
     function renderizarTudo() {
-      renderizarTabelaColaboradores();
       preencherSelects();
       renderizarTabelaAfastamentos();
       renderizarTabelaTrocas();
@@ -873,7 +760,7 @@
     }
 
     function trocarAba(aba) {
-      const f = usuarioLogado ? usuarioLogado.funcao.toLowerCase() : "";
+      const f = usuarioLogado && usuarioLogado.funcao ? usuarioLogado.funcao.toLowerCase() : "";
       const ehGestor = f.includes("coordenadora") || f.includes("administrativo") || f.includes("master") || (usuarioLogado && usuarioLogado.cpf.replace(/\D/g, '') === "07548636970");
 
       if (!usuarioLogado && aba !== 'escalas') {
@@ -881,20 +768,18 @@
         return;
       }
 
-      if (!ehGestor && (aba === 'colaboradores' || aba === 'afastamentos' || aba === 'admin')) {
+      if (!ehGestor && (aba === 'afastamentos' || aba === 'admin')) {
         alert("Acesso restrito à Coordenação e Administração.");
         return;
       }
 
       document.getElementById("abaEscalas").style.display = (aba === 'escalas') ? "block" : "none";
       document.getElementById("abaTrocas").style.display = (aba === 'trocas') ? "block" : "none";
-      document.getElementById("abaColaboradores").style.display = (aba === 'colaboradores') ? "block" : "none";
       document.getElementById("abaAfastamentos").style.display = (aba === 'afastamentos') ? "block" : "none";
       document.getElementById("abaAdmin").style.display = (aba === 'admin') ? "block" : "none";
 
       document.getElementById("btnTabEscalas").classList.toggle("active", aba === 'escalas');
       document.getElementById("btnTabTrocas").classList.toggle("active", aba === 'trocas');
-      document.getElementById("btnTabColaboradores").classList.toggle("active", aba === 'colaboradores');
       document.getElementById("btnTabAfastamentos").classList.toggle("active", aba === 'afastamentos');
       document.getElementById("btnTabAdmin").classList.toggle("active", aba === 'admin');
 
@@ -1025,116 +910,6 @@
       });
     }
 
-    async function salvarColaborador(e) {
-      e.preventDefault();
-      const idEdit = document.getElementById("cadId").value;
-      
-      if (idEdit) {
-        const idx = colaboradores.findIndex(c => c.id == idEdit);
-        if (idx !== -1) {
-          colaboradores[idx].nome = document.getElementById("cadNome").value.trim();
-          colaboradores[idx].cpf = document.getElementById("cadCPF").value.trim();
-          colaboradores[idx].funcao = document.getElementById("cadFuncao").value;
-          colaboradores[idx].coren = document.getElementById("cadCoren").value.trim() || "N/A";
-          colaboradores[idx].cnh = document.getElementById("cadCnh").value.trim() || "N/A";
-          colaboradores[idx].fone = document.getElementById("cadFone").value.trim() || "-";
-          colaboradores[idx].email = document.getElementById("cadEmail").value.trim() || "-";
-        }
-        alert("Dados do servidor atualizados!");
-      } else {
-        const novo = {
-          id: Date.now(),
-          nome: document.getElementById("cadNome").value.trim(),
-          cpf: document.getElementById("cadCPF").value.trim(),
-          funcao: document.getElementById("cadFuncao").value,
-          coren: document.getElementById("cadCoren").value.trim() || "N/A",
-          cnh: document.getElementById("cadCnh").value.trim() || "N/A",
-          fone: document.getElementById("cadFone").value.trim() || "-",
-          email: document.getElementById("cadEmail").value.trim() || "-",
-          senha: ""
-        };
-        colaboradores.push(novo);
-        alert("Servidor cadastrado!");
-      }
-
-      await salvarColaboradoresStorage();
-      cancelarEdicao();
-      renderizarTabelaColaboradores();
-      preencherSelects();
-      renderizarEscalas();
-    }
-
-    function editarColaborador(id) {
-      const c = colaboradores.find(item => item.id == id);
-      if (c) {
-        document.getElementById("cadId").value = c.id;
-        document.getElementById("cadNome").value = c.nome;
-        document.getElementById("cadCPF").value = c.cpf;
-        document.getElementById("cadFuncao").value = c.funcao;
-        document.getElementById("cadCoren").value = c.coren !== "N/A" ? c.coren : "";
-        document.getElementById("cadCnh").value = c.cnh !== "N/A" ? c.cnh : "";
-        document.getElementById("cadFone").value = c.fone;
-        document.getElementById("cadEmail").value = c.email;
-
-        document.getElementById("tituloFormColaborador").innerText = `Editando Servidor: ${c.nome}`;
-        document.getElementById("btnSalvarColaborador").innerText = "💾 Salvar Alterações na Nuvem";
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }
-
-    function cancelarEdicao() {
-      document.getElementById("cadId").value = "";
-      document.getElementById("formColaborador").reset();
-      document.getElementById("tituloFormColaborador").innerText = "Cadastrar / Editar Colaborador";
-      document.getElementById("btnSalvarColaborador").innerText = "💾 Salvar Servidor na Nuvem";
-    }
-
-    async function restaurarPadraoColaboradores() {
-      if (confirm("Deseja restaurar a lista oficial de colaboradores do SAMU Orleans?")) {
-        colaboradores = JSON.parse(JSON.stringify(colaboradoresOficiais));
-        await salvarColaboradoresStorage();
-        cancelarEdicao();
-        renderizarTabelaColaboradores();
-        preencherSelects();
-        renderizarEscalas();
-      }
-    }
-
-    function renderizarTabelaColaboradores() {
-      ordenarAlfabeticamente();
-      const tb = document.getElementById("tbColaboradores");
-      if (!tb) return;
-      tb.innerHTML = "";
-      colaboradores.forEach(c => {
-        tb.innerHTML += `
-          <tr>
-            <td style="text-align:left;"><b>${c.nome}</b></td>
-            <td>${c.cpf}</td>
-            <td><b>${c.funcao}</b></td>
-            <td>${c.coren}</td>
-            <td>${c.cnh}</td>
-            <td>${c.fone}</td>
-            <td style="text-align:left;">${c.email}</td>
-            <td>
-              <button class="btn btn-info" onclick="editarColaborador(${c.id})">✏️ Editar</button>
-              <button class="btn btn-danger" onclick="excluirColaborador(${c.id})">Excluir</button>
-            </td>
-          </tr>
-        `;
-      });
-    }
-
-    async function excluirColaborador(id) {
-      if (confirm("Confirma a exclusão deste colaborador?")) {
-        colaboradores = colaboradores.filter(c => c.id !== id);
-        if (dbNuvem) await dbNuvem.from('colaboradores').delete().eq('id', id);
-        await salvarColaboradoresStorage();
-        renderizarTabelaColaboradores();
-        preencherSelects();
-        renderizarEscalas();
-      }
-    }
-
     function preencherSelects() {
       ordenarAlfabeticamente();
       preencherSelectsSubstitutosTroca();
@@ -1159,12 +934,12 @@
         return;
       }
 
-      const fUser = usuarioLogado.funcao.toLowerCase();
+      const fUser = usuarioLogado.funcao ? usuarioLogado.funcao.toLowerCase() : "";
       const ehCondutor = fUser.includes("condutor");
 
       const colegasMesmaCategoria = colaboradores.filter(c => {
         if (c.nome.trim().toLowerCase() === usuarioLogado.nome.trim().toLowerCase()) return false;
-        const fCol = c.funcao.toLowerCase();
+        const fCol = c.funcao ? c.funcao.toLowerCase() : "";
 
         if (ehCondutor) {
           return fCol.includes("condutor");
@@ -1530,7 +1305,7 @@
           }
           
           enviarAlertaEmailTroca(trocas[idx]);
-          alert("Solicitação de troca atualizada com sucesso e e-mail enviado ao substituto!");
+          alert("Solicitação de troca atualizada com sucesso!");
         }
       } else {
         const novaTrocaObj = {
@@ -1553,7 +1328,7 @@
         const trocaSalva = (insertedData && insertedData.length > 0) ? insertedData[0] : novaTrocaObj;
         enviarAlertaEmailTroca(trocaSalva);
 
-        alert(`Solicitação enviada com sucesso! Um e-mail de notificação foi disparado para ${substitutoEscolhido}.`);
+        alert(`Solicitação enviada com sucesso! Notificação enviada para ${substitutoEscolhido}.`);
       }
 
       cancelarEdicaoTroca();
@@ -1608,7 +1383,7 @@
       }
 
       enviarAlertaEmailTroca(t);
-      alert("Data de devolução sugerida com sucesso! Notificação enviada por e-mail.");
+      alert("Data de devolução sugerida com sucesso!");
       await carregarDados();
     }
 
@@ -1681,7 +1456,7 @@
       }
 
       const nomeLogadoNorm = usuarioLogado.nome.trim().toLowerCase();
-      const f = usuarioLogado.funcao.toLowerCase();
+      const f = usuarioLogado.funcao ? usuarioLogado.funcao.toLowerCase() : "";
       const ehGestor = f.includes("coordenadora") || f.includes("administrativo") || f.includes("master") || usuarioLogado.cpf.replace(/\D/g, '') === "07548636970";
 
       const trocasFiltradas = ehGestor ? trocas : trocas.filter(t => {
@@ -1851,8 +1626,8 @@
         obs = `Simulação / Transição (${regimePadrao.toUpperCase()})`;
       }
 
-      const afCond = afastamentos.find(a => a.funcao.includes("Condutor") && a.regime.includes("Categoria") && dtIso >= a.inicio && dtIso <= a.fim);
-      const afTec = afastamentos.find(a => (a.funcao.includes("Técnic") || a.funcao.includes("Enfermeir")) && !a.funcao.includes("Coordenadora") && a.regime.includes("Categoria") && dtIso >= a.inicio && dtIso <= a.fim);
+      const afCond = afastamentos.find(a => a.funcao && a.funcao.includes("Condutor") && a.regime && a.regime.includes("Categoria") && dtIso >= a.inicio && dtIso <= a.fim);
+      const afTec = afastamentos.find(a => a.funcao && (a.funcao.includes("Técnic") || a.funcao.includes("Enfermeir")) && !a.funcao.includes("Coordenadora") && a.regime && a.regime.includes("Categoria") && dtIso >= a.inicio && dtIso <= a.fim);
 
       if (afCond) {
         const condutoresOficiais = ["Vanderlei José Tasca", "Márcio Becker", "Lucas Vieira Mendes", "Renato Cândido", "Daniel Alexandre Fernandes"];
@@ -1885,7 +1660,7 @@
             if (substDia && substDia !== "A DEFINIR") {
               cond = `${substDia} (Subst.)`;
               obs = `Cobertura: ${atestado.servidor} (${labelMotivo})`;
-            } else if (!atestado.regime.includes("Categoria")) {
+            } else if (atestado.regime && !atestado.regime.includes("Categoria")) {
               cond = `<span style="color:#dc2626; font-weight:bold;">SUBSTITUTO A DEFINIR</span>`;
               obs = `${labelMotivo}: ${atestado.servidor}`;
             }
@@ -1895,7 +1670,7 @@
             if (substDia && substDia !== "A DEFINIR") {
               tec = `${substDia} (Subst.)`;
               obs = `Cobertura: ${atestado.servidor} (${labelMotivo})`;
-            } else if (!atestado.regime.includes("Categoria")) {
+            } else if (atestado.regime && !atestado.regime.includes("Categoria")) {
               tec = `<span style="color:#dc2626; font-weight:bold;">SUBSTITUTO A DEFINIR</span>`;
               obs = `${labelMotivo}: ${atestado.servidor}`;
             }
@@ -1997,7 +1772,7 @@
         head.innerHTML = `<tr><th>DIA</th><th>SEMANA</th><th>HORÁRIO EXPEDIENTE</th><th>RESPONSÁVEL TÉCNICA / ENFERMAGEM</th><th>OBSERVAÇÕES / SITUAÇÃO</th></tr>`;
         
         ordenarAlfabeticamente();
-        const coord = colaboradores.find(c => c.funcao.includes("Coordenadora")) || { nome: "Edimara Tochetto Suaya Netto" };
+        const coord = colaboradores.find(c => c.funcao && c.funcao.includes("Coordenadora")) || { nome: "Edimara Tochetto Suaya Netto" };
 
         for (let d = 1; d <= diasNoMes; d++) {
           const dt = new Date(ano, mes - 1, d);
@@ -2045,7 +1820,7 @@
         colaboradores.forEach(c => {
           let regExibido = c.coren !== "N/A" ? c.coren : c.cnh;
           let line = `<tr><td style="text-align:left;"><b>${c.nome}</b></td><td>${regExibido}</td><td>${c.funcao}</td>`;
-          const eh40h = c.funcao.includes("Coordenadora");
+          const eh40h = c.funcao && c.funcao.includes("Coordenadora");
 
           for (let d = 1; d <= diasNoMes; d++) {
             const dtAtual = new Date(ano, mes - 1, d);
