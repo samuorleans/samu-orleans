@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cursos e Capacitações — USB 11 Orleans SC</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary-red: #cc0000;
+      --navy-blue: #002b49;
+      --navy-dark: #001a2d;
+      --bg-gray: #f4f6f9;
+      --border-color: #e2e8f0;
+      --slate-muted: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, Arial, sans-serif; }
+    body { background-color: var(--bg-gray); color: #333; padding: 15px; }
+
+    .container { max-width: 1280px; margin: 0 auto; }
+
+    /* MODAL DE LOGIN */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
+    .box-modal { background: #fff; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; border-top: 5px solid var(--primary-red); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .box-modal input { width: 100%; margin-bottom: 12px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; }
+
+    header { background: linear-gradient(135deg, var(--navy-blue) 0%, var(--navy-dark) 100%); color: #fff; padding: 16px 20px; border-radius: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+    .header-brand img { max-height: 45px; }
+    header h1 { font-size: 18px; text-transform: uppercase; font-weight: 700; }
+    header small { font-size: 12px; opacity: 0.8; }
+    .user-info { font-size: 12px; background: rgba(255,255,255,0.12); padding: 6px 12px; border-radius: 6px; display: flex; align-items: center; gap: 10px; }
+
+    .portaria-box { background: #fff; border-left: 4px solid var(--primary-red); padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 12px; color: #334155; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .portaria-box h4 { color: var(--primary-red); margin-bottom: 4px; font-size: 13px; }
+
+    .nav-tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; }
+    .tab-btn { padding: 10px 16px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; background: #e2e8f0; color: #334155; font-size: 13px; transition: 0.2s; }
+    .tab-btn.active { background: var(--navy-blue); color: #fff; }
+
+    .card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 20px; }
+    .card h3 { margin-top: 0; color: var(--navy-blue); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; font-size: 15px; }
+
+    .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: flex-end; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    label { font-size: 11px; font-weight: 700; color: var(--slate-muted); text-transform: uppercase; }
+    input, select { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none; }
+
+    .btn { padding: 9px 16px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; color: #fff; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; }
+    .btn-primary { background: var(--navy-blue); }
+    .btn-success { background: #16a34a; }
+    .btn-danger { background: #dc2626; }
+
+    .table-responsive { overflow-x: auto; background: #fff; border-radius: 8px; border: 1px solid var(--border-color); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+    th { background: var(--navy-blue); color: #fff; padding: 10px; font-weight: 600; text-transform: uppercase; font-size: 11px; }
+    td { padding: 10px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+    tr:nth-child(even) { background-color: #f8fafc; }
+
+    .badge-ch { background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 12px; font-weight: bold; }
+
+    @media print {
+      header, .nav-tabs, .grid-form, .btn-print, .no-print, .portaria-box { display: none !important; }
+      body { background: #fff; padding: 0; }
+      .card { border: none; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- MODAL DE LOGIN -->
+  <div id="modalLogin" class="modal-overlay">
+    <div class="box-modal">
+      <h2 style="color:var(--navy-blue); font-size:16px; margin-bottom:12px;">🎓 Cursos e Capacitações — USB 11</h2>
+      <form onsubmit="autenticarUsuario(event)">
+        <input type="text" id="loginCPF" placeholder="CPF do Servidor" required>
+        <input type="password" id="loginSenha" placeholder="Senha" required>
+        <button class="btn btn-primary" style="width:100%; padding:10px;" type="submit">🔑 Entrar no Sistema</button>
+      </form>
+    </div>
+  </div>
+
+  <header class="no-print">
+    <div class="header-brand">
+      <img src="logo.png" alt="SAMU Logo" onerror="this.style.display='none'">
+      <div>
+        <h1>CURSOS E CAPACITAÇÕES — USB 11</h1>
+        <small>SAMU 192 — ORLEANS SC</small>
+      </div>
+    </div>
+    <div class="user-info">
+      <span id="labelUsuario" style="font-weight:bold;">Visualização Pública</span>
+      <button class="btn btn-primary" id="btnAbrirLogin" onclick="abrirModalLogin()">🔑 Entrar</button>
+      <button class="btn btn-danger" id="btnSair" style="display:none;" onclick="logout()">Sair</button>
+    </div>
+  </header>
+
+  <!-- BOX DA PORTARIA 2048 -->
+  <div class="portaria-box no-print">
+    <h4>Controle de cursos para Educação Permanente — Cumprimento legal Portaria 2048 do Ministério da Saúde</h4>
+    <div>• <b>Técnicos de Enfermagem:</b> 14h mensais ou 168h/ano.</div>
+    <div>• <b>Condutor Socorrista:</b> 16h mensais ou 200h/ano.</div>
+  </div>
+
+  <div class="nav-tabs no-print">
+    <button class="tab-btn active" id="btnTabMeusCursos" onclick="trocarAba('meus')">🎓 Meus Lançamentos & Horas</button>
+    <button class="tab-btn" id="btnTabAdmin" style="display:none;" onclick="trocarAba('admin')">📊 Relatórios por Servidor (Admin)</button>
+  </div>
+
+  <!-- ABA 1: MEUS CURSOS -->
+  <div id="abaMeusCursos" class="card">
+    <h3 class="no-print">Lançar Novo Curso / Capacitação</h3>
+    <form id="formCurso" class="no-print" onsubmit="salvarCurso(event)" style="margin-bottom:20px;">
+      <div class="grid-form">
+        <div class="form-group" style="flex:2;">
+          <label>NOME DO CURSO *</label>
+          <input type="text" id="cNome" placeholder="Sua resposta" required>
+        </div>
+        <div class="form-group">
+          <label>INSTITUIÇÃO *</label>
+          <input type="text" id="cInstituicao" placeholder="Sua resposta (Ex: NEU-SC)" required>
+        </div>
+        <div class="form-group">
+          <label>MODALIDADE *</label>
+          <select id="cModalidade" required>
+            <option value="Educação a Distância - EAD">Educação a Distância - EAD</option>
+            <option value="Presencial">Presencial</option>
+            <option value="Híbrido">Híbrido</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>DATA DO CERTIFICADO *</label>
+          <input type="date" id="cDataCertificado" required>
+        </div>
+        <div class="form-group">
+          <label>CARGA HORÁRIA (Horas) *</label>
+          <input type="number" id="cCarga" placeholder="Ex: 2" required>
+        </div>
+        <button class="btn btn-success" type="submit">💾 Enviar Lançamento</button>
+      </div>
+    </form>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <h3>Histórico de Cursos Registrados</h3>
+      <div id="boxTotalHorasMeus" style="font-size:13px; font-weight:bold; color:var(--navy-blue);">Total Carga Horária: <span class="badge-ch" id="totalHorasMeus">0h</span></div>
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>PROFISSIONAL</th>
+            <th>NOME DO CURSO</th>
+            <th>INSTITUIÇÃO</th>
+            <th>MODALIDADE</th>
+            <th>DATA DO CERTIFICADO</th>
+            <th>CARGA HORÁRIA</th>
+          </tr>
+        </thead>
+        <tbody id="tbMeusCursos"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ABA 2: RELATÓRIOS ADMIN / ABAS POR SERVIDORES -->
+  <div id="abaAdmin" class="card" style="display:none;">
+    <div class="no-print" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+      <h3>📊 Consolidação Geral e Filtragem por Servidor</h3>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <label style="margin:0;">Filtrar Servidor:</label>
+        <select id="selectFiltroServidor" onchange="renderizarTabelaAdmin()" style="width:220px;">
+          <option value="TODOS">-- Todos os Servidores --</option>
+        </select>
+        <button class="btn btn-primary btn-print" onclick="window.print()">🖨️ Imprimir Relatório / PDF</button>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>CARIMBO / DATA</th>
+            <th>PROFISSIONAL</th>
+            <th>NOME DO CURSO</th>
+            <th>INSTITUIÇÃO</th>
+            <th>MODALIDADE</th>
+            <th>DATA DO CERTIFICADO</th>
+            <th>CARGA HORÁRIA</th>
+            <th class="no-print">AÇÕES</th>
+          </tr>
+        </thead>
+        <tbody id="tbAdminCursos"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co"; 
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"; 
+  
+  const dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let usuarioLogado = null;
+  let colaboradores = [];
+  let listaCursos = [];
+
+  async function carregarDados() {
+    const { data: cData } = await dbNuvem.from('colaboradores').select('*');
+    colaboradores = cData || [];
+
+    const { data: curData } = await dbNuvem.from('cursos_certificados').select('*').order('created_at', { ascending: false });
+    listaCursos = curData || [];
+
+    preencherSelectFiltro();
+    verificarSessao();
+    renderizarTabelas();
+  }
+
+  function preencherSelectFiltro() {
+    const sel = document.getElementById("selectFiltroServidor");
+    if (!sel) return;
+    sel.innerHTML = `<option value="TODOS">-- Todos os Servidores --</option>`;
+    colaboradores.forEach(c => {
+      sel.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+    });
+  }
+
+  function verificarSessao() {
+    const sessao = localStorage.getItem("samu_user_logado");
+    if (sessao) {
+      usuarioLogado = JSON.parse(sessao);
+      document.getElementById("labelUsuario").innerText = `${usuarioLogado.nome} (${usuarioLogado.funcao})`;
+      document.getElementById("btnAbrirLogin").style.display = "none";
+      document.getElementById("btnSair").style.display = "inline-flex";
+
+      const f = usuarioLogado.funcao ? usuarioLogado.funcao.toLowerCase() : "";
+      const ehGestor = f.includes("coordenadora") || f.includes("administrativo") || usuarioLogado.perfil === "admin";
+      document.getElementById("btnTabAdmin").style.display = ehGestor ? "inline-block" : "none";
+    } else {
+      abrirModalLogin();
+    }
+  }
+
+  function abrirModalLogin() { document.getElementById("modalLogin").style.display = "flex"; }
+  function fecharModalLogin() { document.getElementById("modalLogin").style.display = "none"; }
+
+  async function autenticarUsuario(e) {
+    e.preventDefault();
+    const cpfDig = document.getElementById("loginCPF").value.trim().replace(/\D/g, '');
+    const senhaDig = document.getElementById("loginSenha").value.trim();
+
+    const user = colaboradores.find(c => c.cpf && c.cpf.replace(/\D/g, '') === cpfDig);
+
+    if (!user || (user.senha && user.senha !== senhaDig)) {
+      alert("Credenciais incorretas!");
+      return;
+    }
+
+    usuarioLogado = user;
+    localStorage.setItem("samu_user_logado", JSON.stringify(usuarioLogado));
+    fecharModalLogin();
+    verificarSessao();
+    renderizarTabelas();
+  }
+
+  function logout() {
+    localStorage.removeItem("samu_user_logado");
+    usuarioLogado = null;
+    location.reload();
+  }
+
+  async function salvarCurso(e) {
+    e.preventDefault();
+    if (!usuarioLogado) return alert("Faça login primeiro!");
+
+    const novoCurso = {
+      colaborador_id: usuarioLogado.id,
+      servidor_nome: `${usuarioLogado.nome} - ${usuarioLogado.funcao}`,
+      cpf: usuarioLogado.cpf,
+      nome_curso: document.getElementById("cNome").value,
+      instituicao: document.getElementById("cInstituicao").value,
+      modalidade: document.getElementById("cModalidade").value,
+      data_certificado: document.getElementById("cDataCertificado").value,
+      carga_horaria: parseInt(document.getElementById("cCarga").value)
+    };
+
+    const { error } = await dbNuvem.from('cursos_certificados').insert([novoCurso]);
+
+    if (!error) {
+      alert("Curso registrado com sucesso!");
+      document.getElementById("formCurso").reset();
+      await carregarDados();
+    } else {
+      alert("Erro ao gravar no banco: " + error.message);
+    }
+  }
+
+  function renderizarTabelas() {
+    const tbMeus = document.getElementById("tbMeusCursos");
+    tbMeus.innerHTML = "";
+
+    if (!usuarioLogado) return;
+
+    const meus = listaCursos.filter(c => c.colaborador_id === usuarioLogado.id || c.cpf === usuarioLogado.cpf);
+
+    let somaHoras = 0;
+
+    meus.forEach(c => {
+      somaHoras += Number(c.carga_horaria) || 0;
+      tbMeus.innerHTML += `
+        <tr>
+          <td><b>${c.servidor_nome}</b></td>
+          <td>${c.nome_curso}</td>
+          <td>${c.instituicao}</td>
+          <td>${c.modalidade}</td>
+          <td>${c.data_certificado ? c.data_certificado.split('-').reverse().join('/') : '-'}</td>
+          <td><span class="badge-ch">${c.carga_horaria}h</span></td>
+        </tr>
+      `;
+    });
+
+    document.getElementById("totalHorasMeus").innerText = `${somaHoras}h`;
+    renderizarTabelaAdmin();
+  }
+
+  function renderizarTabelaAdmin() {
+    const tbAdmin = document.getElementById("tbAdminCursos");
+    if (!tbAdmin) return;
+    tbAdmin.innerHTML = "";
+
+    const filtroServ = document.getElementById("selectFiltroServidor").value;
+
+    const cursosFiltrados = (filtroServ === "TODOS") 
+      ? listaCursos 
+      : listaCursos.filter(c => c.servidor_nome.includes(filtroServ));
+
+    cursosFiltrados.forEach(c => {
+      const dataCriacao = c.created_at ? new Date(c.created_at).toLocaleString('pt-BR') : '-';
+      tbAdmin.innerHTML += `
+        <tr>
+          <td style="font-size:10px; color:#64748b;">${dataCriacao}</td>
+          <td><b>${c.servidor_nome}</b></td>
+          <td>${c.nome_curso}</td>
+          <td>${c.instituicao}</td>
+          <td>${c.modalidade}</td>
+          <td>${c.data_certificado ? c.data_certificado.split('-').reverse().join('/') : '-'}</td>
+          <td><span class="badge-ch">${c.carga_horaria}h</span></td>
+          <td class="no-print"><button class="btn btn-danger" onclick="excluirCurso(${c.id})">Remover</button></td>
+        </tr>
+      `;
+    });
+  }
+
+  async function excluirCurso(id) {
+    if (confirm("Deseja excluir este registro de curso?")) {
+      await dbNuvem.from('cursos_certificados').delete().eq('id', id);
+      await carregarDados();
+    }
+  }
+
+  function trocarAba(aba) {
+    document.getElementById("abaMeusCursos").style.display = (aba === 'meus') ? "block" : "none";
+    document.getElementById("abaAdmin").style.display = (aba === 'admin') ? "block" : "none";
+
+    document.getElementById("btnTabMeusCursos").classList.toggle("active", aba === 'meus');
+    document.getElementById("btnTabAdmin").classList.toggle("active", aba === 'admin');
+  }
+
+  document.addEventListener("DOMContentLoaded", carregarDados);
+</script>
+</body>
+</html>
