@@ -1,1 +1,2087 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema Integrado de Escalas e Trocas — SAMU 192 USB 11 Orleans</title>
+  <!-- BIBLIOTECAS SUPABASE E EMAILJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
+  <style>
+    :root {
+      --primary-red: #b71c1c;
+      --dark-blue: #0f172a;
+      --slate-dark: #1e293b;
+      --slate-muted: #64748b;
+      --bg-light: #f8fafc;
+      --border-color: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', Arial, sans-serif; }
+    body { margin: 0; padding: 12px; background-color: #f1f5f9; color: var(--dark-blue); }
+
+    .container { max-width: 1280px; margin: 0 auto; }
+
+    /* OVERLAY E MODAIS CLEAN */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(5px); }
+    .box-modal { background: #fff; padding: 30px; border-radius: 12px; width: 90%; max-width: 420px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); text-align: center; position: relative; }
+    .box-modal img.logo-modal { max-height: 65px; margin-bottom: 12px; object-fit: contain; }
+    .box-modal h2 { color: var(--primary-red); margin-top: 0; font-size: 18px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .box-modal input, .box-modal select { width: 100%; margin-bottom: 12px; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; transition: border-color 0.2s; }
+    .box-modal input:focus { border-color: var(--primary-red); outline: none; }
+    .btn-fechar-modal { position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--slate-muted); font-weight: bold; }
+
+    header { background: linear-gradient(135deg, #b71c1c 0%, #880e4f 100%); color: #fff; padding: 16px 20px; border-radius: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+    .header-brand img { max-height: 48px; border-radius: 6px; background: #fff; padding: 2px; }
+    header h1 { margin: 0; font-size: 18px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+    header small { font-size: 12px; opacity: 0.9; }
+    .user-info { font-size: 12px; background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    .nav-tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; flex-wrap: wrap; }
+    .tab-btn { padding: 10px 16px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; background: #e2e8f0; color: #334155; font-size: 13px; transition: all 0.2s; }
+    .tab-btn.active { background: var(--primary-red); color: #fff; box-shadow: 0 2px 4px rgba(183, 28, 28, 0.3); }
+
+    .card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 20px; }
+    .card h3 { margin-top: 0; color: var(--slate-dark); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
+
+    .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: flex-end; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    label { font-size: 11px; font-weight: 700; color: var(--slate-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    input, select { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none; }
+
+    .mes-selector { display: flex; align-items: center; gap: 6px; }
+    .btn-arrow { background: #e2e8f0; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; cursor: pointer; font-weight: bold; color: #334155; font-size: 14px; transition: background 0.2s; }
+    .btn-arrow:hover { background: #cbd5e1; }
+
+    .btn { padding: 9px 16px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; color: #fff; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; transition: opacity 0.2s; }
+    .btn:hover { opacity: 0.9; }
+    .btn-primary { background: #2563eb; }
+    .btn-success { background: #16a34a; }
+    .btn-warning { background: #d97706; color: #fff; }
+    .btn-danger { background: #dc2626; }
+    .btn-info { background: #0284c7; }
+    .btn-dark { background: #334155; }
+
+    .table-responsive { overflow-x: auto; background: #fff; border-radius: 8px; border: 1px solid var(--border-color); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; }
+    th { background: var(--slate-dark); color: #fff; padding: 10px 8px; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+    td { padding: 8px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+    tr:nth-child(even) { background-color: var(--bg-light); }
+
+    .badge { padding: 4px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .badge-pendente { background: #fef3c7; color: #b45309; }
+    .badge-aprovado { background: #dcfce7; color: #15803d; }
+    .badge-recusado { background: #fee2e2; color: #b91c1c; }
+    .badge-cancelado { background: #e2e8f0; color: #475569; }
+    .badge-quitado { background: #e0f2fe; color: #0369a1; }
+
+    .st-i { background-color: #fef08a; font-weight: bold; color: #854d0e; }
+    .st-fol { background-color: #dcfce7; color: #166534; }
+    .st-adm { background-color: #e0f2fe; font-weight: bold; color: #0369a1; }
+    .col-fds { background-color: #e2e8f0 !important; font-weight: bold; }
+    .col-feriado { background-color: #fecaca !important; color: #991b1b !important; font-weight: bold; }
+
+    .header-relatorio-impressao { display: none; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+    .header-relatorio-impressao .rel-container { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+    .header-relatorio-impressao img.logo-relatorio { max-height: 65px; object-fit: contain; }
+    .header-relatorio-impressao .rel-texto { flex: 1; text-align: center; }
+    .header-relatorio-impressao h2 { margin: 0; font-size: 11pt; font-weight: 800; text-transform: uppercase; color: #000; }
+    .header-relatorio-impressao h3 { margin: 2px 0; font-size: 9.5pt; font-weight: 700; color: #000; }
+    .header-relatorio-impressao p { margin: 0; font-size: 8.5pt; font-weight: 600; color: #000; }
+
+    .status-nuvem { font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 4px; background: #dcfce7; color: #15803d; display: inline-flex; align-items: center; gap: 4px; }
+
+    .rodape-assinaturas { display: none; }
+
+    @media print {
+      .no-print, header, .nav-tabs, .card h3, .grid-form, .btn-arrow { display: none !important; }
+      body { background: #fff; padding: 0; margin: 0; color: #000; }
+      .card { box-shadow: none; border: none; padding: 0; margin: 0; }
+      .header-relatorio-impressao { display: block !important; }
+      .table-responsive { border: none; overflow: visible !important; }
+
+      body.modo-retrato { font-size: 7.5pt; }
+      body.modo-retrato table { width: 100% !important; font-size: 7.5pt !important; }
+      body.modo-retrato th { background-color: #e2e8f0 !important; color: #000 !important; padding: 3px 2px !important; border: 1px solid #000 !important; }
+      body.modo-retrato td { padding: 3px 2px !important; border: 1px solid #000 !important; }
+
+      body.modo-paisagem { font-size: 6.5pt; }
+      body.modo-paisagem table { width: 100% !important; font-size: 6.5pt !important; table-layout: fixed !important; }
+      body.modo-paisagem th, body.modo-paisagem td { border: 1px solid #000 !important; padding: 2px 0 !important; }
+
+      .st-i { background-color: #fef08a !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+      .st-fol { background-color: #ffffff !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+      .st-adm { background-color: #e0f2fe !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+      .col-fds { background-color: #e2e8f0 !important; font-weight: bold !important; -webkit-print-color-adjust: exact; }
+      .col-feriado { background-color: #fecaca !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+
+      .rodape-assinaturas { display: flex !important; justify-content: space-between; align-items: flex-end; margin-top: 25px; font-size: 8pt; }
+      .campo-assinatura { text-align: center; width: 45%; border-top: 1px solid #000; padding-top: 4px; }
+    }
+  </style>
+</head>
+<body class="modo-retrato">
+<div class="container">
+
+  <!-- MODAL DE LOGIN DE ACESSO RESTRITO -->
+  <div id="modalLogin" class="modal-overlay">
+    <div class="box-modal">
+      <button class="btn-fechar-modal" onclick="fecharModalLogin()">✕</button>
+      <img src="logo.png" alt="Logo SAMU" class="logo-modal logo-dinamica" onerror="this.style.display='none'">
+      <h2>SAMU 192 — Acesso Restrito</h2>
+      <p style="font-size:12px; color:#64748b; margin-bottom:15px;">Digite seu CPF e senha para acessar o painel restrito.</p>
+      
+      <form id="formLogin" onsubmit="autenticarUsuario(event)">
+        <input type="text" id="loginCPF" placeholder="CPF (Ex: 000.000.000-00)" required>
+        <input type="password" id="loginSenha" placeholder="Senha de Acesso" required>
+        <button class="btn btn-primary" type="submit" style="width:100%; padding:11px;">🔑 Entrar no Sistema</button>
+      </form>
+
+      <div style="margin-top:12px; font-size:12px;">
+        <a href="#" onclick="abrirModalEsqueciSenha(); return false;" style="color:#0284c7; text-decoration:none; font-weight:600;">Esqueceu sua senha? Clique aqui</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE RECUPERAÇÃO DE SENHA -->
+  <div id="modalEsqueciSenha" class="modal-overlay">
+    <div class="box-modal">
+      <button class="btn-fechar-modal" onclick="fecharModalEsqueciSenha()">✕</button>
+      <h2>🔑 Redefinir Senha</h2>
+      <p style="font-size:12px; color:#64748b; margin-bottom:15px;">Confirme seu CPF e o número do seu COREN ou CNH para redefinir sua senha.</p>
+      
+      <form id="formEsqueciSenha" onsubmit="processarRecuperacaoSenha(event)">
+        <input type="text" id="recupCPF" placeholder="CPF Cadastrado" required>
+        <input type="text" id="recupDoc" placeholder="Nº COREN ou Nº CNH" required>
+        <input type="password" id="recupNovaSenha" placeholder="Nova Senha Desejada" required>
+        <button class="btn btn-success" type="submit" style="width:100%; padding:10px; margin-bottom:8px;">💾 Alterar Senha</button>
+        <button class="btn btn-info" type="button" onclick="enviarLinkPorEmail()" style="width:100%; padding:10px;">📧 Enviar Link por E-mail</button>
+      </form>
+    </div>
+  </div>
+
+  <header class="no-print">
+    <div class="header-brand">
+      <img src="logo.png" alt="Logo SAMU" class="logo-dinamica" onerror="this.style.display='none'">
+      <div>
+        <h1>SAMU 192 — Módulo Integrado de Escalas</h1>
+        <small>Unidade de Suporte Básico — USB 11 Orleans</small>
+      </div>
+    </div>
+    <div class="user-info">
+      <span class="status-nuvem" id="stNuvem">☁️ Nuvem Supabase Conectada</span>
+      <span id="labelUsuarioConectado" style="font-weight:bold;">Visualização Pública (Consulta)</span>
+      
+      <button class="btn btn-primary" id="btnAbrirLogin" onclick="abrirModalLogin()">🔑 Fazer Login / Restrito</button>
+      <button class="btn btn-danger" id="btnSair" style="display:none;" onclick="fazerLogout()">Sair</button>
+    </div>
+  </header>
+
+  <div class="nav-tabs no-print">
+    <button class="tab-btn active" id="btnTabEscalas" onclick="trocarAba('escalas')">📅 Consulta de Escalas Pública</button>
+    <button class="tab-btn" id="btnTabTrocas" style="display:none;" onclick="trocarAba('trocas')">🔄 Minhas Trocas de Plantão</button>
+    <button class="tab-btn" id="btnTabColaboradores" style="display:none;" onclick="trocarAba('colaboradores')">👥 Colaboradores</button>
+    <button class="tab-btn" id="btnTabAfastamentos" style="display:none;" onclick="trocarAba('afastamentos')">🏥 Licenças e Escala Temporária</button>
+    <button class="tab-btn" id="btnTabAdmin" style="display:none; background: #334155; color: #fff;" onclick="trocarAba('admin')">⚙️ Gestão / Auditoria Admin</button>
+  </div>
+
+  <!-- ABA 1: GERADOR E CONSULTA DE ESCALAS -->
+  <div id="abaEscalas" class="card">
+    <div class="grid-form no-print">
+      <div class="form-group">
+        <label>Mês / Ano da Escala</label>
+        <div class="mes-selector">
+          <button class="btn-arrow" type="button" onclick="mudarMes(-1)">◀</button>
+          <input type="month" id="escalaMesAno" value="2026-09" onchange="renderizarEscalas(); preencherDatasTrocasForm();">
+          <button class="btn-arrow" type="button" onclick="mudarMes(1)">▶</button>
+        </div>
+      </div>
+
+      <div class="form-group area-gestor-filtro" style="display:none;">
+        <label>Data-Base Inicial Original (24x96)</label>
+        <input type="date" id="escalaDataBase" value="2026-09-01" onchange="renderizarEscalas(); preencherDatasTrocasForm();">
+      </div>
+
+      <div class="form-group area-gestor-filtro" style="display:none;">
+        <label>Regime da Escala / Simulação</label>
+        <select id="escalaRegime" onchange="toggleOpcoesRegime(this.value)">
+          <option value="24x96">24x96 (Padrão Oficial 5 Duplas)</option>
+          <option value="24x72">24x72 (Rodízio Acelerado 4 Duplas)</option>
+          <option value="24x48">24x48 (Rodízio Acelerado 3 Duplas)</option>
+          <option value="24x24">24x24 (Rodízio Intensivo 2 Duplas)</option>
+          <option value="12x36">12x36 (Plantão 12h Diurno / Noturno)</option>
+          <option value="12x48">12x48 (Plantão 12h com Maior Descanso)</option>
+          <option value="40h">Escala Administrativa 40h (Seg - Sex)</option>
+          <option value="coren">Matriz Oficial COREN (Visão Geral)</option>
+          <option value="CUSTOM">Customizado (Trabalho x Folga)</option>
+        </select>
+      </div>
+
+      <div class="form-group area-gestor-filtro" id="grpHorasCustom" style="display:none;">
+        <label>Horas Trab. x Folga</label>
+        <div style="display:flex; gap:5px; align-items:center;">
+          <input type="number" id="simHorasTrab" value="24" style="width:65px;">
+          <span>x</span>
+          <input type="number" id="simHorasFolga" value="48" style="width:65px;">
+        </div>
+      </div>
+
+      <div class="form-group area-gestor-filtro" id="grpIntervaloTransicao" style="display:none;">
+        <label>Aplica-se às Categoria(s)</label>
+        <select id="simAplicaCategoria">
+          <option value="TODOS">Toda a Unidade (Condutores e Técnicos)</option>
+          <option value="CONDUTOR">Apenas Condutores Socorristas</option>
+          <option value="TECNICO">Apenas Técnicos de Enfermagem</option>
+        </select>
+      </div>
+
+      <div class="form-group area-gestor-filtro" id="grpDataInicioTrans" style="display:none;">
+        <label>Início da Transição</label>
+        <input type="date" id="simDataInicio" value="2026-09-15">
+      </div>
+
+      <div class="form-group area-gestor-filtro" id="grpDataFimTrans" style="display:none;">
+        <label>Fim da Transição</label>
+        <input type="date" id="simDataFim" value="2026-09-30">
+      </div>
+
+      <div class="area-gestor-filtro" style="display:none; gap:6px; flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="simularOuGerarEscala(true)">🔍 Simular Escala</button>
+        <button class="btn btn-warning" onclick="resetarSimulacao()">🔄 Resetar para 24x96</button>
+        <button class="btn btn-success" onclick="imprimirAjustado()">🖨️ Imprimir / PDF</button>
+      </div>
+    </div>
+
+    <!-- CABEÇALHO DO RELATÓRIO DE IMPRESSÃO CLEAN COM LOGO -->
+    <div class="header-relatorio-impressao">
+      <div class="rel-container">
+        <img src="logo.png" alt="Logo SAMU" class="logo-relatorio logo-dinamica" onerror="this.style.display='none'">
+        <div class="rel-texto">
+          <h2>ESTADO DE SANTA CATARINA — SECRETARIA MUNICIPAL DE SAÚDE DE ORLEANS</h2>
+          <h3>UNIDADE DE SUPORTE BÁSICO DE ATENDIMENTO MÓVEL — USB 11 ORLEANS</h3>
+          <p id="tituloEscalaImpressao">ESCALA OPERACIONAL MENSAL — SETEMBRO DE 2026</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-responsive" style="margin-top: 10px;">
+      <table id="tblGerada">
+        <thead id="headTblGerada"></thead>
+        <tbody id="bodyTblGerada"></tbody>
+      </table>
+    </div>
+
+    <div class="rodape-assinaturas">
+      <div class="campo-assinatura">Responsável Técnico (RT) Enfermagem / COREN-SC</div>
+      <div class="campo-assinatura">Coordenação Operacional SAMU 192 — USB 11 Orleans</div>
+    </div>
+  </div>
+
+  <!-- ABA 2: TROCAS DE PLANTÃO -->
+  <div id="abaTrocas" class="card" style="display:none;">
+    <h3 id="tituloFormTroca">Solicitar / Editar Troca de Plantão</h3>
+    <form id="formTroca" onsubmit="solicitarTroca(event)">
+      <input type="hidden" id="trocaIdEdit">
+      <div class="grid-form">
+        <div class="form-group">
+          <label>Data do Meu Plantão (Oficial)</label>
+          <select id="trocaDataMinha" required></select>
+        </div>
+        <div class="form-group">
+          <label>Período do Plantão</label>
+          <select id="trocaPeriodo" required>
+            <option value="24h">🔄 24 Horas — Integral (07h às 07h)</option>
+            <option value="12h_diurno">☀️ 12 Horas — Diurno (07h às 19h)</option>
+            <option value="12h_noturno">🌙 12 Horas — Noturno (19h às 07h)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Substituto (Mesma Categoria)</label>
+          <select id="trocaSubstituto" onchange="atualizarDatasDevolucaoForm()" required></select>
+        </div>
+        <div class="form-group">
+          <label>Tipo de Troca</label>
+          <select id="trocaTipo" onchange="toggleTipoTroca()">
+            <option value="Direta">Troca por Troca (Com Devolução Definida)</option>
+            <option value="A Haver">A Haver (Sem Data Definida em Aberto)</option>
+          </select>
+        </div>
+        <div class="form-group" id="grpDataDevolucao">
+          <label>Data de Devolução (Plantão do Colega) *</label>
+          <select id="trocaDataDevolucao"></select>
+        </div>
+        <div class="form-group" style="flex:2;">
+          <label>Justificativa / Motivo</label>
+          <input type="text" id="trocaMotivo" placeholder="Motivo da solicitação de troca" required>
+        </div>
+        <button class="btn btn-warning" type="submit" id="btnSalvarTroca">📩 Enviar Solicitação para a Nuvem</button>
+        <button class="btn btn-dark" type="button" id="btnCancelarTroca" style="display:none;" onclick="cancelarEdicaoTroca()">❌ Cancelar</button>
+      </div>
+    </form>
+
+    <h3 style="margin-top:25px;">Minhas Solicitações e Notificações Recebidas</h3>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>SOLICITANTE</th>
+            <th>DATA PLANTÃO</th>
+            <th>PERÍODO</th>
+            <th>SUBSTITUTO</th>
+            <th>TIPO</th>
+            <th>DEVOLUÇÃO</th>
+            <th>MOTIVO</th>
+            <th>STATUS</th>
+            <th>AÇÕES / ACEITE</th>
+          </tr>
+        </thead>
+        <tbody id="tbTrocas"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ABA 3: CADASTRO DE COLABORADORES -->
+  <div id="abaColaboradores" class="card" style="display:none;">
+    <h3 id="tituloFormColaborador">Cadastrar / Editar Colaborador</h3>
+    <form id="formColaborador" onsubmit="salvarColaborador(event)">
+      <input type="hidden" id="cadId">
+      <div class="grid-form">
+        <div class="form-group">
+          <label>Nome Completo</label>
+          <input type="text" id="cadNome" required placeholder="Ex: Nome Completo">
+        </div>
+        <div class="form-group">
+          <label>CPF (Login)</label>
+          <input type="text" id="cadCPF" required placeholder="000.000.000-00">
+        </div>
+        <div class="form-group">
+          <label>Função / Perfil</label>
+          <select id="cadFuncao" required>
+            <option value="Condutor Socorrista">Condutor Socorrista</option>
+            <option value="Técnico(a) de Enfermagem Socorrista">Técnico(a) de Enfermagem Socorrista</option>
+            <option value="Enfermeira Coordenadora">Enfermeira Coordenadora (Acesso Total)</option>
+            <option value="Administrativo / Master">Administrativo / Master (Acesso Total)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>COREN</label>
+          <input type="text" id="cadCoren" placeholder="Nº COREN">
+        </div>
+        <div class="form-group">
+          <label>CNH</label>
+          <input type="text" id="cadCnh" placeholder="Nº CNH">
+        </div>
+        <div class="form-group">
+          <label>Telefone</label>
+          <input type="text" id="cadFone" placeholder="(48) 99999-9999">
+        </div>
+        <div class="form-group">
+          <label>E-mail</label>
+          <input type="email" id="cadEmail" placeholder="email@dominio.com">
+        </div>
+        <button class="btn btn-success" type="submit" id="btnSalvarColaborador">💾 Salvar Servidor na Nuvem</button>
+        <button class="btn btn-warning" type="button" onclick="cancelarEdicao()">❌ Cancelar Edição</button>
+        <button class="btn btn-danger" type="button" onclick="restaurarPadraoColaboradores()">🔄 Resetar Tabela Oficial</button>
+      </div>
+    </form>
+
+    <h3 style="margin-top:25px;">Servidores Cadastrados</h3>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>NOME COMPLETO</th>
+            <th>CPF</th>
+            <th>FUNÇÃO</th>
+            <th>COREN</th>
+            <th>CNH</th>
+            <th>TELEFONE</th>
+            <th>E-MAIL</th>
+            <th>AÇÕES</th>
+          </tr>
+        </thead>
+        <tbody id="tbColaboradores"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ABA 4: LICENÇAS E COBERTURA DIÁRIA -->
+  <div id="abaAfastamentos" class="card" style="display:none;">
+    <h3 id="tituloFormAfastamento">Registrar Licença e Cobertura Diária por Função</h3>
+    <form id="formAfastamento" onsubmit="salvarAfastamento(event)">
+      <input type="hidden" id="afastId">
+      <div class="grid-form">
+        <div class="form-group">
+          <label>Servidor de Atestado / Licença / Férias</label>
+          <select id="afastServidor" onchange="gerarGradeSubstitutosDia()" required></select>
+        </div>
+        <div class="form-group">
+          <label>Tipo de Afastamento *</label>
+          <select id="afastTipoMotivo" required>
+            <option value="Atestado Médico">🏥 Atestado Médico</option>
+            <option value="Férias">🌴 Férias</option>
+            <option value="Licença Prêmio">🏆 Licença Prêmio</option>
+            <option value="Folga / Compensação">🏖️ Folga / Compensação</option>
+            <option value="Outros">📋 Outros Motivos</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Início da Licença</label>
+          <input type="date" id="afastInicio" onchange="gerarGradeSubstitutosDia()" required>
+        </div>
+        <div class="form-group">
+          <label>Término da Licença</label>
+          <input type="date" id="afastFim" onchange="gerarGradeSubstitutosDia()" required>
+        </div>
+        <div class="form-group">
+          <label>Regime Temporário Adotado</label>
+          <select id="afastRegimeTipo" onchange="toggleRegimeCustomAfastamento()" required>
+            <option value="24x96">24x96 (Manter 24x96 com Substituto Escalado)</option>
+            <option value="24x72_CATEGORIA">24x72 (Rodízio Acelerado Apenas para a Categoria)</option>
+            <option value="24x72_GERAL">24x72 (Rodízio Acelerado para Toda a Unidade)</option>
+            <option value="CUSTOM">Outra Escala Personalizada...</option>
+          </select>
+        </div>
+        <div class="form-group" id="grpAfastCustom" style="display:none;">
+          <label>Horas Trabalho x Horas Folga</label>
+          <div style="display:flex; gap:5px; align-items:center;">
+            <input type="number" id="afastHorasTrab" placeholder="24" style="width:70px;">
+            <span>x</span>
+            <input type="number" id="afastHorasFolga" placeholder="48" style="width:70px;">
+          </div>
+        </div>
+        <div class="form-group" style="flex:2;">
+          <label>Observação Complementar / Detalhes</label>
+          <input type="text" id="afastObs" placeholder="Ex: Portaria nº 123 ou CID">
+        </div>
+      </div>
+
+      <div id="boxSubstitutosDiarios" style="margin-top: 15px; background: #f8fafc; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px;">
+        <label style="color:#b71c1c; font-size:12px;"><b>PLANTÕES REAIS DO PERÍODO (COBERTURA DIÁRIA EM 24X96):</b></label>
+        <div id="containerGradeDias" style="margin-top: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px;">
+          <span style="font-size:11px; color:#64748b;">Selecione o servidor e as datas de início/término para gerar a grade.</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 15px;">
+        <button class="btn btn-primary" type="submit" id="btnSalvarAfastamento">🏥 Salvar Licença na Nuvem</button>
+        <button class="btn btn-warning" type="button" onclick="cancelarEdicaoAfastamento()">❌ Cancelar</button>
+      </div>
+    </form>
+
+    <h3 style="margin-top:25px;">Licenças e Coberturas Ativas</h3>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>SERVIDOR AFASTADO</th>
+            <th>FUNÇÃO</th>
+            <th>MOTIVO / TIPO</th>
+            <th>PERÍODO</th>
+            <th>REGIME ADOTADO</th>
+            <th>SUBSTITUTOS DOS PLANTÕES REAIS</th>
+            <th>OBSERVAÇÃO</th>
+            <th>AÇÕES</th>
+          </tr>
+        </thead>
+        <tbody id="tbAfastamentos"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ABA 5: PAINEL ADMINISTRADOR -->
+  <div id="abaAdmin" class="card" style="display:none;">
+    <h3>⚙️ Gestão Administrativa, Anexo de Logo e Auditoria Geral</h3>
+    
+    <div style="background:#f8fafc; padding:15px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:20px;">
+      <label style="color:#b71c1c;"><b>🖼️ LOGO INSTITUCIONAL DO SISTEMA E DOS RELATÓRIOS:</b></label>
+      <p style="font-size:11px; color:#64748b; margin:4px 0 10px 0;">O sistema lê automaticamente o arquivo <code>logo.png</code> na pasta do GitHub. Se quiser alterar a imagem sem mexer no GitHub, anexe uma nova logo abaixo:</p>
+      <input type="file" id="inputLogoUpload" accept="image/*" onchange="uploadNovaLogo(event)">
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>SOLICITANTE</th>
+            <th>DATA PLANTÃO</th>
+            <th>PERÍODO</th>
+            <th>SUBSTITUTO</th>
+            <th>DEVOLUÇÃO</th>
+            <th>STATUS ATUAL</th>
+            <th>MOTIVO DA TROCA</th>
+            <th>AÇÕES DE GESTÃO (ADMIN)</th>
+          </tr>
+        </thead>
+        <tbody id="tbAdminTrocas"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+  <script>
+    // INICIALIZAÇÃO DO EMAILJS COM A SUA PUBLIC KEY
+    (function() {
+      if (typeof emailjs !== 'undefined') {
+        emailjs.init("g3X1Q4SXuGXbXqHuB");
+      }
+    })();
+
+    const EMAILJS_SERVICE_ID = "service_929jaih";
+    const EMAILJS_TEMPLATE_ID = "template_r0yg20n";
+
+    const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co"; 
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"; 
+    
+    let dbNuvem = null;
+    let usuarioLogado = null;
+
+    try {
+      if (typeof supabase !== 'undefined' && SUPABASE_URL !== "") {
+        dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+    } catch(e) {}
+
+    const feriadosOficiaisNacionais = [
+      "2026-01-01", "2026-02-16", "2026-02-17", "2026-04-03", "2026-04-21", 
+      "2026-05-01", "2026-06-04", "2026-09-07", "2026-10-12", "2026-11-02", 
+      "2026-11-15", "2026-12-25"
+    ];
+
+    const colaboradoresOficiais = [
+      { id: 1, nome: "Edimara Tochetto Suaya Netto", cpf: "029.488.379-79", funcao: "Enfermeira Coordenadora", coren: "110151", cnh: "N/A", fone: "(48) 99204-7060", email: "edimarota@hotmail.com", senha: "", idDupla: 4 },
+      { id: 2, nome: "Clênio Borges", cpf: "004.078.689-76", funcao: "Técnico(a) de Enfermagem Socorrista", coren: "862518", cnh: "N/A", fone: "(48) 99698-4838", email: "clenio.farmacia@gmail.com", senha: "", idDupla: 2 },
+      { id: 3, nome: "Daniel Alexandre Fernandes", cpf: "075.486.369-70", funcao: "Condutor Socorrista", coren: "N/A", cnh: "5031057705", fone: "(48) 98848-1903", email: "danieltbsc@gmail.com", senha: "", idDupla: 4 },
+      { id: 4, nome: "Gicerléia Trindade da Rosa", cpf: "828.896.000-68", funcao: "Técnico(a) de Enfermagem Socorrista", coren: "870568", cnh: "N/A", fone: "(48) 99993-5340", email: "gyrosa_bn@hotmail.com", senha: "", idDupla: 4 },
+      { id: 5, nome: "Lucas Vieira Mendes", cpf: "049.042.089-35", funcao: "Condutor Socorrista", coren: "N/A", cnh: "3419217070", fone: "(48) 99808-2658", email: "lucasvmconstrucoes@gmail.com", senha: "", idDupla: 2 },
+      { id: 6, nome: "Luis Eduardo Formanski Vitório", cpf: "091.311.529-02", funcao: "Técnico(a) de Enfermagem Socorrista", coren: "1551746", cnh: "N/A", fone: "(48) 99991-1598", email: "eduardo.fvitorio@hotmail.com", senha: "", idDupla: 3 },
+      { id: 7, nome: "Márcio Becker", cpf: "000.172.329-45", funcao: "Condutor Socorrista", coren: "N/A", cnh: "17232945", fone: "(48) 99956-3192", email: "beckermarcio916@gmail.com", senha: "", idDupla: 1 },
+      { id: 8, nome: "Renato Cândido", cpf: "035.784.239-12", funcao: "Condutor Socorrista", coren: "N/A", cnh: "2157610821", fone: "(48) 99177-0565", email: "candidorenato1@gmail.com", senha: "", idDupla: 3 },
+      { id: 9, nome: "Rinaldo Calegario", cpf: "019.739.469-80", funcao: "Técnico(a) de Enfermagem Socorrista", coren: "331871", cnh: "N/A", fone: "(48) 98819-8058", email: "rinaldocalegario192@gmail.com", senha: "", idDupla: 1 },
+      { id: 10, nome: "Suandre Adão Machado", cpf: "027.333.709-28", funcao: "Técnico(a) de Enfermagem Socorrista", coren: "99894", cnh: "N/A", fone: "(48) 99602-8693", email: "suandremachado@gmail.com", senha: "", idDupla: 0 },
+      { id: 11, nome: "Vanderlei José Tasca", cpf: "803.699.019-91", funcao: "Condutor Socorrista", coren: "N/A", cnh: "940076430", fone: "(48) 99192-6750", email: "vandotasca22@gmail.com", senha: "", idDupla: 0 }
+    ];
+
+    const duplasPadrao = [
+      { cond: "Vanderlei José Tasca", tec: "Suandre Adão Machado" },
+      { cond: "Márcio Becker", tec: "Rinaldo Calegario" },
+      { cond: "Lucas Vieira Mendes", tec: "Clênio Borges" },
+      { cond: "Renato Cândido", tec: "Luis Eduardo Formanski Vitório" },
+      { cond: "Daniel Alexandre Fernandes", tec: "Gicerléia Trindade da Rosa" }
+    ];
+
+    let colaboradores = [];
+    let trocas = [];
+    let afastamentos = [];
+
+    // FUNÇÃO PARA ENVIAR ALERTAS POR E-MAIL
+    function enviarAlertaEmailTroca(trocaObj) {
+      const destinatario = colaboradores.find(c => c.nome.trim().toLowerCase() === trocaObj.substituto.trim().toLowerCase());
+      
+      if (!destinatario || !destinatario.email || destinatario.email === "-" || !destinatario.email.includes("@")) {
+        console.warn(`O servidor substituto '${trocaObj.substituto}' não possui e-mail válido cadastrado na aba Colaboradores.`);
+        return;
+      }
+
+      const templateParams = {
+        email_destino: destinatario.email,
+        id_troca: trocaObj.id || "NOVA",
+        nome_solicitante: trocaObj.solicitante,
+        nome_substituto: trocaObj.substituto,
+        data_plantao: trocaObj.dataMinha ? trocaObj.dataMinha.split('-').reverse().join('/') : '-',
+        periodo: formatarPeriodo(trocaObj.periodo),
+        tipo_troca: trocaObj.tipo,
+        data_devolucao: (trocaObj.dataDevolucao && trocaObj.dataDevolucao !== "A HAVER") 
+          ? trocaObj.dataDevolucao.split('-').reverse().join('/') 
+          : "A HAVER",
+        motivo: trocaObj.motivo
+      };
+
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+        .then(function(response) {
+           console.log('Notificação de troca enviada por e-mail com sucesso!', response.status, response.text);
+        }, function(error) {
+           console.error('Erro ao enviar notificação de troca via EmailJS:', error);
+        });
+    }
+
+    function ordenarAlfabeticamente() {
+      colaboradores.sort((a, b) => {
+        if (a.funcao.includes("Coordenadora")) return -1;
+        if (b.funcao.includes("Coordenadora")) return 1;
+        return a.nome.localeCompare(b.nome, 'pt-BR');
+      });
+    }
+
+    function mudarMes(delta) {
+      const inputMes = document.getElementById("escalaMesAno");
+      if (!inputMes.value) return;
+
+      let [ano, mes] = inputMes.value.split('-').map(Number);
+      mes += delta;
+
+      if (mes > 12) { mes = 1; ano++; }
+      if (mes < 1) { mes = 12; ano--; }
+
+      inputMes.value = `${ano}-${String(mes).padStart(2, '0')}`;
+      renderizarEscalas();
+      preencherDatasTrocasForm();
+    }
+
+    function uploadNovaLogo(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const logoData = evt.target.result;
+          localStorage.setItem("samu_logo_custom", logoData);
+          aplicarLogoCarregada();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function aplicarLogoCarregada() {
+      const logoSalva = localStorage.getItem("samu_logo_custom");
+      if (logoSalva) {
+        document.querySelectorAll(".logo-dinamica").forEach(img => {
+          img.src = logoSalva;
+          img.style.display = "inline-block";
+        });
+      }
+    }
+
+    function abrirModalLogin() {
+      document.getElementById("modalLogin").style.display = "flex";
+    }
+
+    function fecharModalLogin() {
+      document.getElementById("modalLogin").style.display = "none";
+    }
+
+    function abrirModalEsqueciSenha() {
+      fecharModalLogin();
+      document.getElementById("modalEsqueciSenha").style.display = "flex";
+    }
+
+    function fecharModalEsqueciSenha() {
+      document.getElementById("modalEsqueciSenha").style.display = "none";
+    }
+
+    async function processarRecuperacaoSenha(e) {
+      e.preventDefault();
+      const cpfDig = document.getElementById("recupCPF").value.trim().replace(/\D/g, '');
+      const docDig = document.getElementById("recupDoc").value.trim();
+      const novaSenha = document.getElementById("recupNovaSenha").value.trim();
+
+      const usuario = colaboradores.find(c => c.cpf.replace(/\D/g, '') === cpfDig);
+
+      if (!usuario) {
+        alert("CPF não localizado!");
+        return;
+      }
+
+      const docValido = (usuario.coren && usuario.coren.trim() === docDig) || (usuario.cnh && usuario.cnh.trim() === docDig);
+
+      if (!docValido) {
+        alert("Número do COREN ou CNH não confere com o CPF digitado!");
+        return;
+      }
+
+      usuario.senha = novaSenha;
+      await salvarColaboradoresStorage();
+      alert("Senha redefinida com sucesso! Você já pode fazer login com sua nova senha.");
+      fecharModalEsqueciSenha();
+      abrirModalLogin();
+    }
+
+    function enviarLinkPorEmail() {
+      const cpfDig = document.getElementById("recupCPF").value.trim().replace(/\D/g, '');
+      const usuario = colaboradores.find(c => c.cpf.replace(/\D/g, '') === cpfDig);
+
+      if (!usuario || !usuario.email || usuario.email === "-") {
+        alert("Servidor ou e-mail cadastrado não encontrado!");
+        return;
+      }
+
+      alert(`Link de redefinição enviado com sucesso para o e-mail: ${usuario.email}`);
+    }
+
+    function autenticarUsuario(e) {
+      e.preventDefault();
+      const cpfDig = document.getElementById("loginCPF").value.trim().replace(/\D/g, '');
+      const senhaDig = document.getElementById("loginSenha").value.trim();
+
+      const usuarioEncontrado = colaboradores.find(c => c.cpf.replace(/\D/g, '') === cpfDig);
+
+      if (!usuarioEncontrado) {
+        alert("CPF não localizado na lista oficial do SAMU Orleans!");
+        return;
+      }
+
+      if (usuarioEncontrado.senha && usuarioEncontrado.senha !== "" && usuarioEncontrado.senha !== senhaDig) {
+        alert("Senha incorreta!");
+        return;
+      }
+
+      usuarioLogado = usuarioEncontrado;
+      localStorage.setItem("samu_user_logado", JSON.stringify(usuarioLogado));
+      
+      fecharModalLogin();
+      aplicarPermissoes();
+      renderizarTudo();
+    }
+
+    function aplicarPermissoes() {
+      const elGestores = document.querySelectorAll(".area-gestor-filtro");
+
+      if (!usuarioLogado) {
+        document.getElementById("labelUsuarioConectado").innerText = "Visualização Pública (Consulta)";
+        document.getElementById("btnAbrirLogin").style.display = "inline-flex";
+        document.getElementById("btnSair").style.display = "none";
+        document.getElementById("btnTabTrocas").style.display = "none";
+        document.getElementById("btnTabColaboradores").style.display = "none";
+        document.getElementById("btnTabAfastamentos").style.display = "none";
+        document.getElementById("btnTabAdmin").style.display = "none";
+
+        elGestores.forEach(el => el.style.display = "none");
+        trocarAba('escalas');
+        return;
+      }
+
+      const f = usuarioLogado.funcao.toLowerCase();
+      const ehGestor = f.includes("coordenadora") || f.includes("administrativo") || f.includes("master") || usuarioLogado.cpf.replace(/\D/g, '') === "07548636970";
+
+      document.getElementById("labelUsuarioConectado").innerText = `Usuário: ${usuarioLogado.nome} (${usuarioLogado.funcao})`;
+      document.getElementById("btnAbrirLogin").style.display = "none";
+      document.getElementById("btnSair").style.display = "inline-flex";
+
+      document.getElementById("btnTabTrocas").style.display = "inline-block";
+      document.getElementById("btnTabColaboradores").style.display = ehGestor ? "inline-block" : "none";
+      document.getElementById("btnTabAfastamentos").style.display = ehGestor ? "inline-block" : "none";
+      document.getElementById("btnTabAdmin").style.display = ehGestor ? "inline-block" : "none";
+
+      elGestores.forEach(el => el.style.display = ehGestor ? "flex" : "none");
+    }
+
+    function fazerLogout() {
+      localStorage.removeItem("samu_user_logado");
+      usuarioLogado = null;
+      aplicarPermissoes();
+      renderizarTudo();
+    }
+
+    function verificarSessao() {
+      const sessaoSalva = localStorage.getItem("samu_user_logado");
+      if (sessaoSalva) {
+        usuarioLogado = JSON.parse(sessaoSalva);
+      }
+      aplicarPermissoes();
+    }
+
+    async function carregarDados() {
+      if (!dbNuvem) {
+        alert("Erro crítico: Banco de Dados Supabase não inicializado.");
+        document.getElementById("stNuvem").innerText = "❌ Nuvem Desconectada";
+        document.getElementById("stNuvem").style.background = "#fee2e2";
+        document.getElementById("stNuvem").style.color = "#b91c1c";
+        return;
+      }
+
+      try {
+        const { data: cData, error: cErr } = await dbNuvem.from('colaboradores').select('*');
+        if (cErr) throw cErr;
+
+        if (cData && cData.length > 0) {
+          colaboradores = cData;
+        } else {
+          colaboradores = JSON.parse(JSON.stringify(colaboradoresOficiais));
+        }
+
+        const me = colaboradores.find(c => c.cpf.replace(/\D/g, '') === "07548636970");
+        if (me) me.funcao = "Condutor Socorrista";
+
+        const { data: tData, error: tErr } = await dbNuvem.from('trocas').select('*');
+        if (tErr) throw tErr;
+        trocas = tData || [];
+
+        const { data: aData, error: aErr } = await dbNuvem.from('afastamentos').select('*');
+        if (aErr) throw aErr;
+        
+        afastamentos = (aData || []).map(a => ({
+          ...a,
+          substitutosDiarios: typeof a.substitutosDiarios === 'string' 
+            ? JSON.parse(a.substitutosDiarios) 
+            : a.substitutosDiarios
+        }));
+
+        document.getElementById("stNuvem").innerText = "☁️ Nuvem Supabase Ativa";
+        document.getElementById("stNuvem").style.background = "#dcfce7";
+        document.getElementById("stNuvem").style.color = "#15803d";
+      } catch(e) {
+        console.error("Erro ao carregar do Supabase:", e);
+        document.getElementById("stNuvem").innerText = "⚠️ Falha ao Sincronizar Nuvem";
+        document.getElementById("stNuvem").style.background = "#fef3c7";
+        document.getElementById("stNuvem").style.color = "#b45309";
+      }
+
+      ordenarAlfabeticamente();
+      verificarSessao();
+      aplicarLogoCarregada();
+      renderizarTudo();
+    }
+
+    async function salvarColaboradoresStorage() {
+      ordenarAlfabeticamente();
+      if (!dbNuvem) return;
+      await dbNuvem.from('colaboradores').upsert(colaboradores);
+    }
+
+    async function salvarTrocasStorage() {
+      if (!dbNuvem) return;
+      await dbNuvem.from('trocas').upsert(trocas);
+    }
+
+    async function salvarAfastamentosStorage() {
+      if (!dbNuvem) return;
+      const afastamentosParaNuvem = afastamentos.map(a => ({
+        ...a,
+        substitutosDiarios: typeof a.substitutosDiarios === 'object' 
+          ? JSON.stringify(a.substitutosDiarios) 
+          : a.substitutosDiarios
+      }));
+      await dbNuvem.from('afastamentos').upsert(afastamentosParaNuvem);
+    }
+
+    function renderizarTudo() {
+      renderizarTabelaColaboradores();
+      preencherSelects();
+      renderizarTabelaAfastamentos();
+      renderizarTabelaTrocas();
+      renderizarAdminTrocas();
+      renderizarEscalas();
+      preencherDatasTrocasForm();
+    }
+
+    function init() {
+      carregarDados();
+    }
+
+    function trocarAba(aba) {
+      const f = usuarioLogado ? usuarioLogado.funcao.toLowerCase() : "";
+      const ehGestor = f.includes("coordenadora") || f.includes("administrativo") || f.includes("master") || (usuarioLogado && usuarioLogado.cpf.replace(/\D/g, '') === "07548636970");
+
+      if (!usuarioLogado && aba !== 'escalas') {
+        abrirModalLogin();
+        return;
+      }
+
+      if (!ehGestor && (aba === 'colaboradores' || aba === 'afastamentos' || aba === 'admin')) {
+        alert("Acesso restrito à Coordenação e Administração.");
+        return;
+      }
+
+      document.getElementById("abaEscalas").style.display = (aba === 'escalas') ? "block" : "none";
+      document.getElementById("abaTrocas").style.display = (aba === 'trocas') ? "block" : "none";
+      document.getElementById("abaColaboradores").style.display = (aba === 'colaboradores') ? "block" : "none";
+      document.getElementById("abaAfastamentos").style.display = (aba === 'afastamentos') ? "block" : "none";
+      document.getElementById("abaAdmin").style.display = (aba === 'admin') ? "block" : "none";
+
+      document.getElementById("btnTabEscalas").classList.toggle("active", aba === 'escalas');
+      document.getElementById("btnTabTrocas").classList.toggle("active", aba === 'trocas');
+      document.getElementById("btnTabColaboradores").classList.toggle("active", aba === 'colaboradores');
+      document.getElementById("btnTabAfastamentos").classList.toggle("active", aba === 'afastamentos');
+      document.getElementById("btnTabAdmin").classList.toggle("active", aba === 'admin');
+
+      if (aba === 'trocas') {
+        preencherSelectsSubstitutosTroca();
+        preencherDatasTrocasForm();
+      }
+    }
+
+    function alterarRegimeVisual(val) {
+      document.body.className = (val === 'coren') ? 'modo-paisagem' : 'modo-retrato';
+      renderizarEscalas();
+    }
+
+    function imprimirAjustado() {
+      const regime = document.getElementById("escalaRegime").value;
+      let stylePage = document.getElementById("dynamicPageStyle");
+      if (!stylePage) {
+        stylePage = document.createElement("style");
+        stylePage.id = "dynamicPageStyle";
+        document.head.appendChild(stylePage);
+      }
+
+      if (regime === "coren") {
+        stylePage.innerHTML = "@page { size: A4 landscape; margin: 3mm; }";
+      } else {
+        stylePage.innerHTML = "@page { size: A4 portrait; margin: 4mm; }";
+      }
+
+      window.print();
+    }
+
+    function obterPlantoesDoServidorJanela(nomeServidor) {
+      const mesAno = document.getElementById("escalaMesAno").value;
+      const dataBaseStr = document.getElementById("escalaDataBase").value;
+      const regimePadrao = document.getElementById("escalaRegime").value;
+
+      if (!mesAno || !dataBaseStr || !nomeServidor) return [];
+
+      const [anoInit, mesInit] = mesAno.split("-").map(Number);
+      const plantoes = [];
+
+      for (let offset = 0; offset < 3; offset++) {
+        let ano = anoInit;
+        let mes = mesInit + offset;
+
+        while (mes > 12) {
+          mes -= 12;
+          ano += 1;
+        }
+
+        const diasNoMes = new Date(ano, mes, 0).getDate();
+
+        for (let d = 1; d <= diasNoMes; d++) {
+          const dtIso = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+          const resDia = calcularEscalaNoDia(dtIso, dataBaseStr, regimePadrao);
+
+          if (resDia.cond.includes(nomeServidor) || resDia.tec.includes(nomeServidor)) {
+            plantoes.push(dtIso);
+          }
+        }
+      }
+
+      return plantoes;
+    }
+
+    const mesesNomesAbrev = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    const diasSemanaAbrev = ["dom.", "seg.", "ter.", "qua.", "qui.", "sex.", "sáb."];
+
+    function preencherDatasTrocasForm() {
+      const selDataMinha = document.getElementById("trocaDataMinha");
+      if (!selDataMinha) return;
+
+      selDataMinha.innerHTML = "";
+
+      if (!usuarioLogado) {
+        selDataMinha.innerHTML = `<option value="">-- Faça login primeiro --</option>`;
+        return;
+      }
+
+      const plantoesMeus = obterPlantoesDoServidorJanela(usuarioLogado.nome);
+
+      if (plantoesMeus.length === 0) {
+        selDataMinha.innerHTML = `<option value="">-- Sem plantão nos próximos meses --</option>`;
+        return;
+      }
+
+      plantoesMeus.forEach(dtIso => {
+        const [a, m, d] = dtIso.split('-').map(Number);
+        const dtObj = new Date(a, m - 1, d);
+        const diaSem = diasSemanaAbrev[dtObj.getDay()];
+        const mesNome = mesesNomesAbrev[m - 1];
+        const dtFmt = `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${a}`;
+
+        selDataMinha.innerHTML += `<option value="${dtIso}">${dtFmt} (${diaSem}) — ${mesNome}</option>`;
+      });
+
+      atualizarDatasDevolucaoForm();
+    }
+
+    function atualizarDatasDevolucaoForm() {
+      const selDev = document.getElementById("trocaDataDevolucao");
+      const nomeSubstituto = document.getElementById("trocaSubstituto") ? document.getElementById("trocaSubstituto").value : "";
+
+      if (!selDev) return;
+      selDev.innerHTML = "";
+
+      if (!nomeSubstituto || nomeSubstituto.includes("Nenhum") || nomeSubstituto.includes("login")) {
+        selDev.innerHTML = `<option value="">-- Selecione o substituto primeiro --</option>`;
+        return;
+      }
+
+      const plantoesSubstitutos = obterPlantoesDoServidorJanela(nomeSubstituto);
+
+      if (plantoesSubstitutos.length === 0) {
+        selDev.innerHTML = `<option value="">-- Substituto sem plantão nos próximos meses --</option>`;
+        return;
+      }
+
+      plantoesSubstitutos.forEach(dtIso => {
+        const [a, m, d] = dtIso.split('-').map(Number);
+        const dtObj = new Date(a, m - 1, d);
+        const diaSem = diasSemanaAbrev[dtObj.getDay()];
+        const mesNome = mesesNomesAbrev[m - 1];
+        const dtFmt = `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${a}`;
+
+        selDev.innerHTML += `<option value="${dtIso}">${dtFmt} (${diaSem}) — ${mesNome}</option>`;
+      });
+    }
+
+    async function salvarColaborador(e) {
+      e.preventDefault();
+      const idEdit = document.getElementById("cadId").value;
+      
+      if (idEdit) {
+        const idx = colaboradores.findIndex(c => c.id == idEdit);
+        if (idx !== -1) {
+          colaboradores[idx].nome = document.getElementById("cadNome").value.trim();
+          colaboradores[idx].cpf = document.getElementById("cadCPF").value.trim();
+          colaboradores[idx].funcao = document.getElementById("cadFuncao").value;
+          colaboradores[idx].coren = document.getElementById("cadCoren").value.trim() || "N/A";
+          colaboradores[idx].cnh = document.getElementById("cadCnh").value.trim() || "N/A";
+          colaboradores[idx].fone = document.getElementById("cadFone").value.trim() || "-";
+          colaboradores[idx].email = document.getElementById("cadEmail").value.trim() || "-";
+        }
+        alert("Dados do servidor atualizados!");
+      } else {
+        const novo = {
+          id: Date.now(),
+          nome: document.getElementById("cadNome").value.trim(),
+          cpf: document.getElementById("cadCPF").value.trim(),
+          funcao: document.getElementById("cadFuncao").value,
+          coren: document.getElementById("cadCoren").value.trim() || "N/A",
+          cnh: document.getElementById("cadCnh").value.trim() || "N/A",
+          fone: document.getElementById("cadFone").value.trim() || "-",
+          email: document.getElementById("cadEmail").value.trim() || "-",
+          senha: ""
+        };
+        colaboradores.push(novo);
+        alert("Servidor cadastrado!");
+      }
+
+      await salvarColaboradoresStorage();
+      cancelarEdicao();
+      renderizarTabelaColaboradores();
+      preencherSelects();
+      renderizarEscalas();
+    }
+
+    function editarColaborador(id) {
+      const c = colaboradores.find(item => item.id == id);
+      if (c) {
+        document.getElementById("cadId").value = c.id;
+        document.getElementById("cadNome").value = c.nome;
+        document.getElementById("cadCPF").value = c.cpf;
+        document.getElementById("cadFuncao").value = c.funcao;
+        document.getElementById("cadCoren").value = c.coren !== "N/A" ? c.coren : "";
+        document.getElementById("cadCnh").value = c.cnh !== "N/A" ? c.cnh : "";
+        document.getElementById("cadFone").value = c.fone;
+        document.getElementById("cadEmail").value = c.email;
+
+        document.getElementById("tituloFormColaborador").innerText = `Editando Servidor: ${c.nome}`;
+        document.getElementById("btnSalvarColaborador").innerText = "💾 Salvar Alterações na Nuvem";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function cancelarEdicao() {
+      document.getElementById("cadId").value = "";
+      document.getElementById("formColaborador").reset();
+      document.getElementById("tituloFormColaborador").innerText = "Cadastrar / Editar Colaborador";
+      document.getElementById("btnSalvarColaborador").innerText = "💾 Salvar Servidor na Nuvem";
+    }
+
+    async function restaurarPadraoColaboradores() {
+      if (confirm("Deseja restaurar a lista oficial de colaboradores do SAMU Orleans?")) {
+        colaboradores = JSON.parse(JSON.stringify(colaboradoresOficiais));
+        await salvarColaboradoresStorage();
+        cancelarEdicao();
+        renderizarTabelaColaboradores();
+        preencherSelects();
+        renderizarEscalas();
+      }
+    }
+
+    function renderizarTabelaColaboradores() {
+      ordenarAlfabeticamente();
+      const tb = document.getElementById("tbColaboradores");
+      if (!tb) return;
+      tb.innerHTML = "";
+      colaboradores.forEach(c => {
+        tb.innerHTML += `
+          <tr>
+            <td style="text-align:left;"><b>${c.nome}</b></td>
+            <td>${c.cpf}</td>
+            <td><b>${c.funcao}</b></td>
+            <td>${c.coren}</td>
+            <td>${c.cnh}</td>
+            <td>${c.fone}</td>
+            <td style="text-align:left;">${c.email}</td>
+            <td>
+              <button class="btn btn-info" onclick="editarColaborador(${c.id})">✏️ Editar</button>
+              <button class="btn btn-danger" onclick="excluirColaborador(${c.id})">Excluir</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function excluirColaborador(id) {
+      if (confirm("Confirma a exclusão deste colaborador?")) {
+        colaboradores = colaboradores.filter(c => c.id !== id);
+        if (dbNuvem) await dbNuvem.from('colaboradores').delete().eq('id', id);
+        await salvarColaboradoresStorage();
+        renderizarTabelaColaboradores();
+        preencherSelects();
+        renderizarEscalas();
+      }
+    }
+
+    function preencherSelects() {
+      ordenarAlfabeticamente();
+      preencherSelectsSubstitutosTroca();
+
+      const selAfast = document.getElementById("afastServidor");
+      if (selAfast) {
+        selAfast.innerHTML = "";
+        colaboradores.forEach(c => {
+          selAfast.innerHTML += `<option value="${c.nome}">${c.nome} (${c.funcao})</option>`;
+        });
+      }
+    }
+
+    function preencherSelectsSubstitutosTroca() {
+      const selSubst = document.getElementById("trocaSubstituto");
+      if (!selSubst) return;
+
+      selSubst.innerHTML = "";
+
+      if (!usuarioLogado) {
+        selSubst.innerHTML = `<option value="">-- Faça login primeiro --</option>`;
+        return;
+      }
+
+      const fUser = usuarioLogado.funcao.toLowerCase();
+      const ehCondutor = fUser.includes("condutor");
+
+      const colegasMesmaCategoria = colaboradores.filter(c => {
+        if (c.nome.trim().toLowerCase() === usuarioLogado.nome.trim().toLowerCase()) return false;
+        const fCol = c.funcao.toLowerCase();
+
+        if (ehCondutor) {
+          return fCol.includes("condutor");
+        } else {
+          return (fCol.includes("técnic") || fCol.includes("enfermeir")) && !fCol.includes("coordenadora");
+        }
+      });
+
+      if (colegasMesmaCategoria.length === 0) {
+        selSubst.innerHTML = `<option value="">-- Nenhum colega da mesma categoria --</option>`;
+        return;
+      }
+
+      colegasMesmaCategoria.forEach(c => {
+        selSubst.innerHTML += `<option value="${c.nome}">${c.nome} (${c.funcao})</option>`;
+      });
+
+      atualizarDatasDevolucaoForm();
+    }
+
+    function toggleRegimeCustomAfastamento() {
+      const tipo = document.getElementById("afastRegimeTipo").value;
+      document.getElementById("grpAfastCustom").style.display = (tipo === "CUSTOM") ? "flex" : "none";
+    }
+
+    function ehMesmaFuncaoExata(funcaoAfastado, funcaoColega, nomeColega) {
+      const fAf = funcaoAfastado.toLowerCase();
+      const fCol = funcaoColega.toLowerCase();
+
+      const afEhCondutor = fAf.includes("condutor");
+      if (afEhCondutor) {
+        return fCol.includes("condutor");
+      }
+
+      const afEhTecnico = fAf.includes("técnic") || fAf.includes("enfermeir");
+      if (afEhTecnico) {
+        return (fCol.includes("técnic") || fCol.includes("enfermeir")) && !fCol.includes("coordenadora");
+      }
+
+      return false;
+    }
+
+    function gerarGradeSubstitutosDia() {
+      const nomeServidor = document.getElementById("afastServidor").value;
+      const inicioStr = document.getElementById("afastInicio").value;
+      const fimStr = document.getElementById("afastFim").value;
+      const container = document.getElementById("containerGradeDias");
+      const dataBaseStr = document.getElementById("escalaDataBase") ? document.getElementById("escalaDataBase").value : "2026-09-01";
+      
+      if (!nomeServidor || !inicioStr || !fimStr || !container) return;
+
+      container.innerHTML = "";
+
+      const servidorObj = colaboradores.find(c => c.nome === nomeServidor);
+      if (!servidorObj) return;
+
+      const dataBase = new Date(dataBaseStr + "T00:00:00");
+      const dtIni = new Date(inicioStr + "T00:00:00");
+      const dtFim = new Date(fimStr + "T00:00:00");
+
+      if (dtFim < dtIni) return;
+
+      const colegasMesmaFuncao = colaboradores.filter(c => c.nome !== nomeServidor && ehMesmaFuncaoExata(servidorObj.funcao, c.funcao, c.nome));
+
+      let cur = new Date(dtIni);
+      let plantoesEncontrados = 0;
+
+      while (cur <= dtFim) {
+        const dtIso = cur.toISOString().split("T")[0];
+        const dtFmt = `${String(cur.getDate()).padStart(2,'0')}/${String(cur.getMonth()+1).padStart(2,'0')}/${cur.getFullYear()}`;
+
+        const diffTime = cur.getTime() - dataBase.getTime();
+        const diasCorridos = Math.floor(diffTime / (1000 * 3600 * 24));
+        const eqIndex = ((diasCorridos % duplasPadrao.length) + duplasPadrao.length) % duplasPadrao.length;
+        const eqOriginal = duplasPadrao[eqIndex];
+
+        const ehCondutorEPlantao = (servidorObj.funcao.toLowerCase().includes("condutor") && eqOriginal.cond === servidorObj.nome);
+        const ehTecnicoEPlantao = (!servidorObj.funcao.toLowerCase().includes("condutor") && eqOriginal.tec === servidorObj.nome);
+
+        if (ehCondutorEPlantao || ehTecnicoEPlantao) {
+          plantoesEncontrados++;
+
+          let optionsHtml = `<option value="A DEFINIR">-- A DEFINIR --</option>`;
+          colegasMesmaFuncao.forEach(c => {
+            optionsHtml += `<option value="${c.nome}">${c.nome}</option>`;
+          });
+
+          container.innerHTML += `
+            <div style="background:#fff; padding:10px; border:1px solid #cbd5e1; border-radius:5px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+              <label style="font-size:11px; color:#b71c1c; font-weight:bold;">Plantão Real #${plantoesEncontrados} (${dtFmt}):</label>
+              <div style="font-size:10px; color:#0284c7; margin-bottom:4px; font-weight:bold;">Categoria Exclusiva: ${servidorObj.funcao.includes("Condutor") ? 'CONDUTORES' : 'TÉCNICOS DE ENFERMAGEM'}</div>
+              <select class="sel-subst-dia" data-data="${dtIso}" style="width:100%;">
+                ${optionsHtml}
+              </select>
+            </div>
+          `;
+        }
+
+        cur.setDate(cur.getDate() + 1);
+      }
+
+      if (plantoesEncontrados === 0) {
+        container.innerHTML = `<span style="font-size:11px; color:#dc2626; font-weight:bold;">Nenhum plantão real do servidor cai neste intervalo de datas.</span>`;
+      }
+    }
+
+    async function salvarAfastamento(e) {
+      e.preventDefault();
+      const idEdit = document.getElementById("afastId").value;
+      const nomeServidor = document.getElementById("afastServidor").value;
+      const tipoMotivo = document.getElementById("afastTipoMotivo").value;
+      const tipoReg = document.getElementById("afastRegimeTipo").value;
+      let regNome = tipoReg;
+
+      if (tipoReg === "24x72_CATEGORIA") regNome = "24x72 (Apenas Categoria)";
+      if (tipoReg === "24x72_GERAL") regNome = "24x72 (Unidade Geral)";
+      if (tipoReg === "24x96") regNome = "24x96 (Com Substituto)";
+      if (tipoReg === "CUSTOM") {
+        const ht = document.getElementById("afastHorasTrab").value || 24;
+        const hf = document.getElementById("afastHorasFolga").value || 48;
+        regNome = `${ht}x${hf} (Personalizado)`;
+      }
+
+      const servidorObj = colaboradores.find(c => c.nome === nomeServidor);
+
+      const subsPorDia = {};
+      const elSelects = document.querySelectorAll(".sel-subst-dia");
+      elSelects.forEach(sel => {
+        subsPorDia[sel.getAttribute("data-data")] = sel.value;
+      });
+
+      const objetoAfastamento = {
+        servidor: nomeServidor,
+        funcao: servidorObj ? servidorObj.funcao : "—",
+        tipoMotivo: tipoMotivo,
+        inicio: document.getElementById("afastInicio").value,
+        fim: document.getElementById("afastFim").value,
+        regime: regNome,
+        substitutosDiarios: JSON.stringify(subsPorDia),
+        obs: document.getElementById("afastObs").value || "-"
+      };
+
+      if (idEdit) {
+        objetoAfastamento.id = Number(idEdit);
+      }
+
+      if (dbNuvem) {
+        const { error } = await dbNuvem.from('afastamentos').upsert([objetoAfastamento]);
+        if (error) {
+          alert("Erro ao gravar afastamento no banco de dados: " + error.message);
+          return;
+        }
+      }
+
+      alert("Licença salva na nuvem com sucesso!");
+      cancelarEdicaoAfastamento();
+      await carregarDados();
+    }
+
+    function editarAfastamento(id) {
+      const a = afastamentos.find(item => item.id == id);
+      if (a) {
+        document.getElementById("afastId").value = a.id;
+        document.getElementById("afastServidor").value = a.servidor;
+        document.getElementById("afastTipoMotivo").value = a.tipoMotivo || "Atestado Médico";
+        document.getElementById("afastInicio").value = a.inicio;
+        document.getElementById("afastFim").value = a.fim;
+        document.getElementById("afastObs").value = a.obs || "";
+
+        gerarGradeSubstitutosDia();
+
+        if (a.substitutosDiarios) {
+          setTimeout(() => {
+            const elSelects = document.querySelectorAll(".sel-subst-dia");
+            elSelects.forEach(sel => {
+              const dt = sel.getAttribute("data-data");
+              if (a.substitutosDiarios[dt]) sel.value = a.substitutosDiarios[dt];
+            });
+          }, 100);
+        }
+
+        document.getElementById("tituloFormAfastamento").innerText = `Editando Licença: ${a.servidor}`;
+        document.getElementById("btnSalvarAfastamento").innerText = "💾 Salvar Alterações na Nuvem";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function cancelarEdicaoAfastamento() {
+      document.getElementById("afastId").value = "";
+      const form = document.getElementById("formAfastamento");
+      if (form) form.reset();
+
+      const container = document.getElementById("containerGradeDias");
+      if (container) {
+        container.innerHTML = `<span style="font-size:11px; color:#64748b;">Selecione o servidor e as datas de início/término para gerar os plantões reais.</span>`;
+      }
+      
+      document.getElementById("tituloFormAfastamento").innerText = "Registrar Licença e Cobertura Diária por Função";
+      document.getElementById("btnSalvarAfastamento").innerText = "🏥 Salvar Licença na Nuvem";
+    }
+
+    async function excluirAfastamento(id) {
+      if (confirm("Confirma a remoção desta licença?")) {
+        if (dbNuvem) {
+          const { error } = await dbNuvem.from('afastamentos').delete().eq('id', id);
+          if (error) { alert("Erro ao excluir do servidor: " + error.message); return; }
+        }
+        await carregarDados();
+      }
+    }
+
+    function renderizarTabelaAfastamentos() {
+      const tb = document.getElementById("tbAfastamentos");
+      if (!tb) return;
+      tb.innerHTML = "";
+      afastamentos.forEach(a => {
+        let resumoSubs = "";
+        if (a.substitutosDiarios && Object.keys(a.substitutosDiarios).length > 0) {
+          resumoSubs = Object.entries(a.substitutosDiarios).map(([dt, sub]) => {
+            const dtFmt = dt.split('-').reverse().slice(0,2).join('/');
+            return `<div><b>Plantão ${dtFmt}:</b> ${sub === 'A DEFINIR' ? '<span style="color:#dc2626;">A DEFINIR</span>' : '<span style="color:#16a34a; font-weight:bold;">'+sub+'</span>'}</div>`;
+          }).join("");
+        } else {
+          resumoSubs = "Rodízio em 24x72 ou sem substitutos";
+        }
+
+        tb.innerHTML += `
+          <tr>
+            <td style="text-align:left;"><b>${a.servidor}</b></td>
+            <td>${a.funcao || '—'}</td>
+            <td><b style="color:#b71c1c;">${a.tipoMotivo || 'Atestado Médico'}</b></td>
+            <td>De ${a.inicio.split('-').reverse().join('/')} até ${a.fim.split('-').reverse().join('/')}</td>
+            <td><b style="color:#0284c7;">${a.regime}</b></td>
+            <td style="text-align:left; font-size:10px;">${resumoSubs}</td>
+            <td style="text-align:left;">${a.obs || '-'}</td>
+            <td>
+              <button class="btn btn-info" onclick="editarAfastamento(${a.id})">✏️ Editar Plantões</button>
+              <button class="btn btn-danger" onclick="excluirAfastamento(${a.id})">Remover</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function toggleOpcoesRegime(val) {
+      const ehCustom = (val === 'CUSTOM');
+      const ehEspecial = (val !== '24x96' && val !== '40h' && val !== 'coren');
+
+      document.getElementById("grpHorasCustom").style.display = ehCustom ? 'flex' : 'none';
+      document.getElementById("grpIntervaloTransicao").style.display = ehEspecial ? 'flex' : 'none';
+      document.getElementById("grpDataInicioTrans").style.display = ehEspecial ? 'flex' : 'none';
+      document.getElementById("grpDataFimTrans").style.display = ehEspecial ? 'flex' : 'none';
+
+      alterarRegimeVisual(val);
+    }
+
+    function validarQuadroSimulacao() {
+      const regime = document.getElementById("escalaRegime").value;
+      if (regime === "24x96" || regime === "40h" || regime === "coren") return true;
+
+      let ht = 24, hf = 96;
+      if (regime === "24x72") { ht = 24; hf = 72; }
+      else if (regime === "24x48") { ht = 24; hf = 48; }
+      else if (regime === "24x24") { ht = 24; hf = 24; }
+      else if (regime === "12x36") { ht = 12; hf = 36; }
+      else if (regime === "12x48") { ht = 12; hf = 48; }
+      else if (regime === "CUSTOM") {
+        ht = parseInt(document.getElementById("simHorasTrab").value) || 24;
+        hf = parseInt(document.getElementById("simHorasFolga").value) || 48;
+      }
+
+      const equipesNecessarias = Math.max(1, Math.round((ht + hf) / ht));
+      const equipesDisponiveis = duplasPadrao.length;
+
+      if (equipesNecessarias === equipesDisponiveis) {
+        alert(`✅ SIMULAÇÃO VIÁVEL!\n\n• Regime Escolhido: ${ht}x${hf}\n• Necessidade Operacional: ${equipesNecessarias} duplas/equipes.\n• Quadro Atual: ${equipesDisponiveis} duplas na USB 11.\n\nO ciclo fecha em 100% sem sobras ou furos na cobertura.`);
+        return true;
+      } else if (equipesDisponiveis > equipesNecessarias) {
+        const sobra = equipesDisponiveis - equipesNecessarias;
+        alert(`⚠️ DIAGNÓSTICO: EQUIPES EM EXCESSO!\n\n• Regime Escolhido: ${ht}x${hf}\n• Necessidade Operacional: ${equipesNecessarias} duplas/equipes.\n• Quadro Atual: ${equipesDisponiveis} duplas na USB 11.\n\nSobram ${sobra} dupla(s) para este regime. Se aplicar continuamente, ${sobra} equipe(s) ficará(ão) ociosa(s) fora do rodízio.`);
+        return true;
+      } else {
+        const falta = equipesNecessarias - equipesDisponiveis;
+        alert(`❌ DIAGNÓSTICO: FALTAM EQUIPES!\n\n• Regime Escolhido: ${ht}x${hf}\n• Necessidade Operacional: ${equipesNecessarias} duplas/equipes.\n• Quadro Atual: ${equipesDisponiveis} duplas na USB 11.\n\nFALTAM ${falta} dupla(s) no quadro para sustentar este ciclo de plantão sem deixar dias descobertos.`);
+        return false;
+      }
+    }
+
+    function simularOuGerarEscala(isSimulacao) {
+      if (isSimulacao) {
+        validarQuadroSimulacao();
+      }
+      renderizarEscalas();
+    }
+
+    function resetarSimulacao() {
+      document.getElementById("escalaRegime").value = "24x96";
+      toggleOpcoesRegime("24x96");
+      renderizarEscalas();
+    }
+
+    function toggleTipoTroca() {
+      const tipo = document.getElementById("trocaTipo").value;
+      const grpDev = document.getElementById("grpDataDevolucao");
+
+      if (tipo === "Direta") {
+        grpDev.style.display = "flex";
+      } else {
+        grpDev.style.display = "none";
+      }
+    }
+
+    async function solicitarTroca(e) {
+      e.preventDefault();
+      if (!usuarioLogado) {
+        alert("Você precisa estar logado para solicitar trocas.");
+        return;
+      }
+
+      if (!dbNuvem) {
+        alert("Erro de conexão: Banco Supabase indisponível.");
+        return;
+      }
+
+      const idEdit = document.getElementById("trocaIdEdit").value;
+      const tipo = document.getElementById("trocaTipo").value;
+      const dataDev = (tipo === "Direta") ? document.getElementById("trocaDataDevolucao").value : "A HAVER";
+      const dataMinha = document.getElementById("trocaDataMinha").value;
+      const periodo = document.getElementById("trocaPeriodo").value;
+      const substitutoEscolhido = document.getElementById("trocaSubstituto").value;
+
+      if (!dataMinha) {
+        alert("Selecione um plantão seu válido.");
+        return;
+      }
+
+      if (!substitutoEscolhido || substitutoEscolhido.includes("Nenhum") || substitutoEscolhido.includes("login")) {
+        alert("Selecione um substituto válido da mesma categoria.");
+        return;
+      }
+
+      if (tipo === "Direta" && !dataDev) {
+        alert("A data de devolução é obrigatória em trocas diretas!");
+        return;
+      }
+
+      const nomeSolicitante = usuarioLogado.nome;
+
+      if (idEdit) {
+        const idx = trocas.findIndex(t => t.id == idEdit);
+        if (idx !== -1 && trocas[idx].status === "PENDENTE") {
+          trocas[idx].dataMinha = dataMinha;
+          trocas[idx].periodo = periodo;
+          trocas[idx].substituto = substitutoEscolhido;
+          trocas[idx].tipo = tipo;
+          trocas[idx].dataDevolucao = dataDev;
+          trocas[idx].motivo = document.getElementById("trocaMotivo").value;
+
+          const { error } = await dbNuvem.from('trocas').upsert([trocas[idx]]);
+          if (error) {
+            alert("Erro ao atualizar troca online: " + error.message);
+            return;
+          }
+          
+          enviarAlertaEmailTroca(trocas[idx]);
+          alert("Solicitação de troca atualizada com sucesso e e-mail enviado ao substituto!");
+        }
+      } else {
+        const novaTrocaObj = {
+          solicitante: nomeSolicitante,
+          dataMinha: dataMinha,
+          periodo: periodo,
+          substituto: substitutoEscolhido,
+          tipo: tipo,
+          dataDevolucao: dataDev,
+          motivo: document.getElementById("trocaMotivo").value,
+          status: "PENDENTE"
+        };
+
+        const { data: insertedData, error } = await dbNuvem.from('trocas').insert([novaTrocaObj]).select();
+        if (error) {
+          alert("Erro ao enviar troca para o banco de dados online: " + error.message);
+          return;
+        }
+
+        const trocaSalva = (insertedData && insertedData.length > 0) ? insertedData[0] : novaTrocaObj;
+        enviarAlertaEmailTroca(trocaSalva);
+
+        alert(`Solicitação enviada com sucesso! Um e-mail de notificação foi disparado para ${substitutoEscolhido}.`);
+      }
+
+      cancelarEdicaoTroca();
+      await carregarDados();
+    }
+
+    async function quitarTrocaAHaverLinha(idTroca) {
+      const t = trocas.find(item => item.id == idTroca);
+      if (!t) return;
+
+      const nomeLogadoNorm = usuarioLogado.nome.trim().toLowerCase();
+      const ehSolicitante = (t.solicitante.trim().toLowerCase() === nomeLogadoNorm);
+      const colegaNome = ehSolicitante ? t.substituto : t.solicitante;
+
+      const plantoesColega = obterPlantoesDoServidorJanela(colegaNome);
+
+      if (plantoesColega.length === 0) {
+        alert(`Nenhum plantão oficial encontrado para ${colegaNome} nos próximos meses.`);
+        return;
+      }
+
+      let mensagemData = `DEFINIR PAGAMENTO DA TROCA #${t.id}\nSelecione o número correspondente à data de devolução do plantão de ${colegaNome}:\n\n`;
+      plantoesColega.forEach((dtIso, idx) => {
+        const [a, m, d] = dtIso.split('-').map(Number);
+        const dtObj = new Date(a, m - 1, d);
+        const diaSem = diasSemanaAbrev[dtObj.getDay()];
+        const mesNome = mesesNomesAbrev[m - 1];
+        mensagemData += `${idx + 1}) ${dtIso.split('-').reverse().join('/')} (${diaSem}) — ${mesNome}\n`;
+      });
+
+      const opcao = prompt(mensagemData);
+      if (!opcao) return;
+
+      const idxEscolhido = parseInt(opcao) - 1;
+      if (isNaN(idxEscolhido) || idxEscolhido < 0 || idxEscolhido >= plantoesColega.length) {
+        alert("Opção inválida!");
+        return;
+      }
+
+      const dataDevolucaoEscolhida = plantoesColega[idxEscolhido];
+
+      t.dataDevolucao = dataDevolucaoEscolhida;
+      t.status = "PENDENTE";
+      t.motivo += ` | [Data de devolução agendada para ${dataDevolucaoEscolhida.split('-').reverse().join('/')}]`;
+
+      if (dbNuvem) {
+        const { error } = await dbNuvem.from('trocas').upsert([t]);
+        if (error) {
+          alert("Erro ao agendar pagamento da troca: " + error.message);
+          return;
+        }
+      }
+
+      enviarAlertaEmailTroca(t);
+      alert("Data de devolução sugerida com sucesso! Notificação enviada por e-mail.");
+      await carregarDados();
+    }
+
+    function editarTrocaSolicitante(id) {
+      const t = trocas.find(item => item.id == id);
+      if (t && t.status === "PENDENTE") {
+        document.getElementById("trocaIdEdit").value = t.id;
+        preencherDatasTrocasForm();
+        document.getElementById("trocaDataMinha").value = t.dataMinha;
+        document.getElementById("trocaPeriodo").value = t.periodo || "24h";
+        
+        preencherSelectsSubstitutosTroca();
+        document.getElementById("trocaSubstituto").value = t.substituto;
+        
+        document.getElementById("trocaTipo").value = t.tipo;
+        toggleTipoTroca();
+        if (t.tipo === "Direta") {
+          atualizarDatasDevolucaoForm();
+          document.getElementById("trocaDataDevolucao").value = t.dataDevolucao;
+        }
+        document.getElementById("trocaMotivo").value = t.motivo;
+
+        document.getElementById("tituloFormTroca").innerText = `Editando Solicitação de Troca #${t.id}`;
+        document.getElementById("btnSalvarTroca").innerText = "💾 Salvar Alterações da Troca";
+        document.getElementById("btnCancelarTroca").style.display = "inline-flex";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function cancelarEdicaoTroca() {
+      document.getElementById("trocaIdEdit").value = "";
+      document.getElementById("formTroca").reset();
+      toggleTipoTroca();
+      document.getElementById("tituloFormTroca").innerText = "Solicitar / Editar Troca de Plantão";
+      document.getElementById("btnSalvarTroca").innerText = "📩 Enviar Solicitação para a Nuvem";
+      document.getElementById("btnCancelarTroca").style.display = "none";
+      preencherSelectsSubstitutosTroca();
+      preencherDatasTrocasForm();
+    }
+
+    async function responderTroca(id, aprovar) {
+      const t = trocas.find(item => item.id == id);
+      if (t) {
+        t.status = aprovar ? "APROVADO" : "RECUSADO";
+        if (dbNuvem) {
+          const { error } = await dbNuvem.from('trocas').upsert([t]);
+          if (error) {
+            alert("Erro ao responder a troca no servidor: " + error.message);
+            return;
+          }
+        }
+        await carregarDados();
+      }
+    }
+
+    function formatarPeriodo(p) {
+      if (p === "12h_diurno") return "☀️ 12h Diurno";
+      if (p === "12h_noturno") return "🌙 12h Noturno";
+      return "🔄 24h Integral";
+    }
+
+    function renderizarTabelaTrocas() {
+      const tb = document.getElementById("tbTrocas");
+      if (!tb) return;
+      tb.innerHTML = "";
+
+      if (!usuarioLogado) {
+        tb.innerHTML = `<tr><td colspan="10" style="color:#64748b; padding:15px;">Faça login para visualizar suas trocas.</td></tr>`;
+        return;
+      }
+
+      const nomeLogadoNorm = usuarioLogado.nome.trim().toLowerCase();
+      const f = usuarioLogado.funcao.toLowerCase();
+      const ehGestor = f.includes("coordenadora") || f.includes("administrativo") || f.includes("master") || usuarioLogado.cpf.replace(/\D/g, '') === "07548636970";
+
+      const trocasFiltradas = ehGestor ? trocas : trocas.filter(t => {
+        const sol = (t.solicitante || "").trim().toLowerCase();
+        const sub = (t.substituto || "").trim().toLowerCase();
+        return sol === nomeLogadoNorm || sub === nomeLogadoNorm;
+      });
+
+      if (trocasFiltradas.length === 0) {
+        tb.innerHTML = `<tr><td colspan="10" style="color:#64748b; padding:15px;">Nenhuma solicitação de troca encontrada para seu perfil.</td></tr>`;
+        return;
+      }
+
+      trocasFiltradas.forEach(t => {
+        let stBadge = `<span class="badge badge-pendente">Pendente</span>`;
+        if (t.status === "APROVADO") stBadge = `<span class="badge badge-aprovado">Aprovado</span>`;
+        if (t.status === "RECUSADO") stBadge = `<span class="badge badge-recusado">Recusado</span>`;
+        if (t.status === "CANCELADO") stBadge = `<span class="badge badge-cancelado">Cancelado Admin</span>`;
+        if (t.status === "PAGO / QUITADO") stBadge = `<span class="badge badge-quitado">Pago / Quitado</span>`;
+
+        let acoes = "-";
+        const solNorm = (t.solicitante || "").trim().toLowerCase();
+        const subNorm = (t.substituto || "").trim().toLowerCase();
+
+        const ehSubstituto = (subNorm === nomeLogadoNorm);
+        const ehSolicitante = (solNorm === nomeLogadoNorm);
+
+        if (t.status === "PENDENTE") {
+          if (ehSubstituto || ehGestor) {
+            acoes = `
+              <button class="btn btn-success" onclick="responderTroca(${t.id}, true)">Aceitar</button>
+              <button class="btn btn-danger" onclick="responderTroca(${t.id}, false)">Recusar</button>
+            `;
+          } else if (ehSolicitante) {
+            acoes = `<button class="btn btn-info" onclick="editarTrocaSolicitante(${t.id})">✏️ Editar</button>`;
+          }
+        } else if (t.status === "APROVADO" && t.tipo === "A Haver" && t.dataDevolucao === "A HAVER") {
+          acoes = `<button class="btn btn-warning" onclick="quitarTrocaAHaverLinha(${t.id})">🗓️ Pagar Plantão</button>`;
+        }
+
+        tb.innerHTML += `
+          <tr>
+            <td>#${t.id}</td>
+            <td style="text-align:left;"><b>${t.solicitante}</b></td>
+            <td><b>${t.dataMinha ? t.dataMinha.split('-').reverse().join('/') : '-'}</b></td>
+            <td>${formatarPeriodo(t.periodo)}</td>
+            <td style="text-align:left;"><b>${t.substituto}</b></td>
+            <td>${t.tipo}</td>
+            <td>${(t.dataDevolucao && t.dataDevolucao !== "A HAVER") ? t.dataDevolucao.split('-').reverse().join('/') : 'A HAVER'}</td>
+            <td style="text-align:left;">${t.motivo}</td>
+            <td>${stBadge}</td>
+            <td>${acoes}</td>
+          </tr>
+        `;
+      });
+    }
+
+    async function adminCancelarTroca(id) {
+      const t = trocas.find(item => item.id == id);
+      if (t) {
+        const justificativa = prompt(`Informe a justificativa administrativa para cancelar a troca #${id}:`);
+        if (justificativa && justificativa.trim() !== "") {
+          t.status = "CANCELADO";
+          t.motivo += ` | [CANCELADO ADMIN]: ${justificativa.trim()}`;
+          if (dbNuvem) await dbNuvem.from('trocas').upsert([t]);
+          await carregarDados();
+          alert("Troca cancelada com sucesso!");
+        }
+      }
+    }
+
+    async function adminEditarTroca(id) {
+      const t = trocas.find(item => item.id == id);
+      if (t) {
+        const novaDataMinha = prompt("Nova Data do Plantão (AAAA-MM-DD):", t.dataMinha);
+        const novaDataDev = prompt("Nova Data de Devolução (AAAA-MM-DD ou A HAVER):", t.dataDevolucao);
+        
+        if (novaDataMinha) {
+          t.dataMinha = novaDataMinha;
+          if (novaDataDev) t.dataDevolucao = novaDataDev;
+          if (dbNuvem) await dbNuvem.from('trocas').upsert([t]);
+          await carregarDados();
+          alert("Troca reajustada pelo Administrador!");
+        }
+      }
+    }
+
+    function renderizarAdminTrocas() {
+      const tb = document.getElementById("tbAdminTrocas");
+      if (!tb) return;
+      tb.innerHTML = "";
+      trocas.forEach(t => {
+        let stBadge = `<span class="badge badge-pendente">Pendente</span>`;
+        if (t.status === "APROVADO") stBadge = `<span class="badge badge-aprovado">Aprovado</span>`;
+        if (t.status === "RECUSADO") stBadge = `<span class="badge badge-recusado">Recusado</span>`;
+        if (t.status === "CANCELADO") stBadge = `<span class="badge badge-cancelado">Cancelado Admin</span>`;
+        if (t.status === "PAGO / QUITADO") stBadge = `<span class="badge badge-quitado">Pago / Quitado</span>`;
+
+        tb.innerHTML += `
+          <tr>
+            <td>#${t.id}</td>
+            <td style="text-align:left;"><b>${t.solicitante}</b></td>
+            <td><b>${t.dataMinha ? t.dataMinha.split('-').reverse().join('/') : '-'}</b></td>
+            <td>${formatarPeriodo(t.periodo)}</td>
+            <td style="text-align:left;"><b>${t.substituto}</b></td>
+            <td>${(t.dataDevolucao && t.dataDevolucao !== "A HAVER") ? t.dataDevolucao.split('-').reverse().join('/') : 'A HAVER'}</td>
+            <td>${stBadge}</td>
+            <td style="text-align:left;">${t.motivo}</td>
+            <td>
+              <button class="btn btn-info" onclick="adminEditarTroca(${t.id})">✏️ Reajustar Datas</button>
+              <button class="btn btn-danger" onclick="adminCancelarTroca(${t.id})">🛑 Cancelar / Suspender</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function calcularEscalaNoDia(dtIso, dataBaseStr, regimePadrao) {
+      const dataBase = new Date(dataBaseStr + "T00:00:00");
+      const dtAtual = new Date(dtIso + "T00:00:00");
+      
+      const diffTime = dtAtual.getTime() - dataBase.getTime();
+      const diasCorridosBase = Math.floor(diffTime / (1000 * 3600 * 24));
+
+      if (diasCorridosBase < 0) {
+        return { cond: "FORA DA SEQUÊNCIA", tec: "FORA DA SEQUÊNCIA", obs: "Data anterior à Data-Base" };
+      }
+
+      const eqIndex2496 = ((diasCorridosBase % duplasPadrao.length) + duplasPadrao.length) % duplasPadrao.length;
+      let cond = duplasPadrao[eqIndex2496].cond;
+      let tec = duplasPadrao[eqIndex2496].tec;
+      let obs = "-";
+
+      const dtIniTrans = document.getElementById("simDataInicio") ? document.getElementById("simDataInicio").value : "";
+      const dtFimTrans = document.getElementById("simDataFim") ? document.getElementById("simDataFim").value : "";
+      const categoriaAplicada = document.getElementById("simAplicaCategoria") ? document.getElementById("simAplicaCategoria").value : "TODOS";
+
+      const ehPeriodoTransicao = (regimePadrao !== '24x96' && regimePadrao !== '40h' && regimePadrao !== 'coren') && (dtIniTrans && dtFimTrans && dtIso >= dtIniTrans && dtIso <= dtFimTrans);
+
+      if (ehPeriodoTransicao) {
+        const dtIniObj = new Date(dtIniTrans + "T00:00:00");
+        const diffTrans = Math.floor((dtAtual.getTime() - dtIniObj.getTime()) / (1000 * 3600 * 24));
+        
+        const diffTransBase = Math.floor((dtIniObj.getTime() - dataBase.getTime()) / (1000 * 3600 * 24));
+        const idxDuplaInicioTrans = ((diffTransBase % duplasPadrao.length) + duplasPadrao.length) % duplasPadrao.length;
+
+        let cicloDias = 5;
+        if (regimePadrao === "24x72") cicloDias = 4;
+        if (regimePadrao === "24x48") cicloDias = 3;
+        if (regimePadrao === "24x24") cicloDias = 2;
+        if (regimePadrao === "CUSTOM") {
+          const ht = parseInt(document.getElementById("simHorasTrab").value) || 24;
+          const hf = parseInt(document.getElementById("simHorasFolga").value) || 48;
+          cicloDias = Math.max(1, Math.round((ht + hf) / 24));
+        }
+
+        const idxDuplaSim = (idxDuplaInicioTrans + diffTrans) % duplasPadrao.length;
+        const duplaTrans = duplasPadrao[idxDuplaSim];
+
+        if (categoriaAplicada === "TODOS" || categoriaAplicada === "CONDUTOR") {
+          cond = duplaTrans.cond;
+        }
+        if (categoriaAplicada === "TODOS" || categoriaAplicada === "TECNICO") {
+          tec = duplaTrans.tec;
+        }
+
+        obs = `Simulação / Transição (${regimePadrao.toUpperCase()})`;
+      }
+
+      const afCond = afastamentos.find(a => a.funcao.includes("Condutor") && a.regime.includes("Categoria") && dtIso >= a.inicio && dtIso <= a.fim);
+      const afTec = afastamentos.find(a => (a.funcao.includes("Técnic") || a.funcao.includes("Enfermeir")) && !a.funcao.includes("Coordenadora") && a.regime.includes("Categoria") && dtIso >= a.inicio && dtIso <= a.fim);
+
+      if (afCond) {
+        const condutoresOficiais = ["Vanderlei José Tasca", "Márcio Becker", "Lucas Vieira Mendes", "Renato Cândido", "Daniel Alexandre Fernandes"];
+        const condutoresAtivos = condutoresOficiais.filter(nome => nome !== afCond.servidor);
+        const dtIniAf = new Date(afCond.inicio + "T00:00:00");
+        const diffAf = Math.floor((dtAtual.getTime() - dtIniAf.getTime()) / (1000 * 3600 * 24));
+        if (diffAf >= 0 && condutoresAtivos.length > 0) {
+          cond = condutoresAtivos[diffAf % condutoresAtivos.length];
+          obs = `Rodízio Categoria (${afCond.tipoMotivo || 'Afastamento'})`;
+        }
+      }
+
+      if (afTec) {
+        const tecsOficiais = ["Suandre Adão Machado", "Rinaldo Calegario", "Clênio Borges", "Luis Eduardo Formanski Vitório", "Gicerléia Trindade da Rosa"];
+        const tecsAtivos = tecsOficiais.filter(nome => nome !== afTec.servidor);
+        const dtIniAf = new Date(afTec.inicio + "T00:00:00");
+        const diffAf = Math.floor((dtAtual.getTime() - dtIniAf.getTime()) / (1000 * 3600 * 24));
+        if (diffAf >= 0 && tecsAtivos.length > 0) {
+          tec = tecsAtivos[diffAf % tecsAtivos.length];
+          obs = `Rodízio Categoria (${afTec.tipoMotivo || 'Afastamento'})`;
+        }
+      }
+
+      afastamentos.forEach(atestado => {
+        if (dtIso >= atestado.inicio && dtIso <= atestado.fim) {
+          const substDia = atestado.substitutosDiarios ? atestado.substitutosDiarios[dtIso] : null;
+          const labelMotivo = atestado.tipoMotivo || "Atestado";
+
+          if (cond === atestado.servidor) {
+            if (substDia && substDia !== "A DEFINIR") {
+              cond = `${substDia} (Subst.)`;
+              obs = `Cobertura: ${atestado.servidor} (${labelMotivo})`;
+            } else if (!atestado.regime.includes("Categoria")) {
+              cond = `<span style="color:#dc2626; font-weight:bold;">SUBSTITUTO A DEFINIR</span>`;
+              obs = `${labelMotivo}: ${atestado.servidor}`;
+            }
+          }
+
+          if (tec === atestado.servidor) {
+            if (substDia && substDia !== "A DEFINIR") {
+              tec = `${substDia} (Subst.)`;
+              obs = `Cobertura: ${atestado.servidor} (${labelMotivo})`;
+            } else if (!atestado.regime.includes("Categoria")) {
+              tec = `<span style="color:#dc2626; font-weight:bold;">SUBSTITUTO A DEFINIR</span>`;
+              obs = `${labelMotivo}: ${atestado.servidor}`;
+            }
+          }
+        }
+      });
+
+      const trocasAprovadas = trocas.filter(t => (t.dataMinha === dtIso || t.dataDevolucao === dtIso) && (t.status === "APROVADO" || t.status === "PAGO / QUITADO"));
+      
+      if (trocasAprovadas.length > 0) {
+        let condDiurno = null, condNoturno = null;
+        let tecDiurno = null, tecNoturno = null;
+
+        trocasAprovadas.forEach(t => {
+          const p = t.periodo || "24h";
+          const ehMinhaData = (t.dataMinha === dtIso);
+          const titular = ehMinhaData ? t.solicitante : t.substituto;
+          const cobridor = ehMinhaData ? t.substituto : t.solicitante;
+
+          if (cond.includes(titular) || cond.includes(cobridor)) {
+            if (p === "24h") {
+              cond = `${cobridor} (Subst. 24h)`;
+            } else if (p === "12h_diurno") {
+              condDiurno = `${cobridor} (Diurno)`;
+              condNoturno = `${titular} (Noturno)`;
+            } else if (p === "12h_noturno") {
+              condDiurno = `${titular} (Diurno)`;
+              condNoturno = `${cobridor} (Noturno)`;
+            }
+          }
+
+          if (tec.includes(titular) || tec.includes(cobridor)) {
+            if (p === "24h") {
+              tec = `${cobridor} (Subst. 24h)`;
+            } else if (p === "12h_diurno") {
+              tecDiurno = `${cobridor} (Diurno)`;
+              tecNoturno = `${titular} (Noturno)`;
+            } else if (p === "12h_noturno") {
+              tecDiurno = `${titular} (Diurno)`;
+              tecNoturno = `${cobridor} (Noturno)`;
+            }
+          }
+
+          obs = `Troca Aprovada #${t.id} (${formatarPeriodo(p)})`;
+        });
+
+        if (condDiurno && condNoturno) cond = `<b>${condDiurno}</b> / <b>${condNoturno}</b>`;
+        if (tecDiurno && tecNoturno) tec = `<b>${tecDiurno}</b> / <b>${tecNoturno}</b>`;
+      }
+
+      return { cond, tec, obs };
+    }
+
+    function renderizarEscalas() {
+      const mesAno = document.getElementById("escalaMesAno").value;
+      const dataBaseStr = document.getElementById("escalaDataBase").value;
+      let regimePadrao = document.getElementById("escalaRegime").value;
+
+      if (!mesAno || !dataBaseStr) return;
+
+      const [ano, mes] = mesAno.split("-").map(Number);
+      const mesesNomes = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"];
+      
+      const elImp = document.getElementById("tituloEscalaImpressao");
+      if (elImp) elImp.innerText = `ESCALA OPERACIONAL MENSAL (${regimePadrao.toUpperCase()}) — ${mesesNomes[mes - 1]} DE ${ano}`;
+
+      const head = document.getElementById("headTblGerada");
+      const body = document.getElementById("bodyTblGerada");
+      if (!head || !body) return;
+
+      head.innerHTML = "";
+      body.innerHTML = "";
+
+      const diasNoMes = new Date(ano, mes, 0).getDate();
+
+      if (regimePadrao !== "40h" && regimePadrao !== "coren") {
+        head.innerHTML = `<tr><th>DIA</th><th>SEMANA</th><th>PERÍODO</th><th>CONDUTOR SOCORRISTA</th><th>TÉCNICO DE ENFERMAGEM</th><th>OBSERVAÇÕES / ALTERAÇÕES</th></tr>`;
+        
+        for (let d = 1; d <= diasNoMes; d++) {
+          const dtAtual = new Date(ano, mes - 1, d);
+          const dtFmt = `${String(d).padStart(2,'0')}/${String(mes).padStart(2,'0')}/${ano}`;
+          const dtIso = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+          const fds = (dtAtual.getDay() === 0 || dtAtual.getDay() === 6);
+
+          const resDia = calcularEscalaNoDia(dtIso, dataBaseStr, regimePadrao);
+
+          body.innerHTML += `
+            <tr class="${fds ? 'col-fds' : ''}">
+              <td><b>${dtFmt}</b></td>
+              <td>${diasSemanaAbrev[dtAtual.getDay()]}</td>
+              <td>07h às 07h</td>
+              <td>${resDia.cond}</td>
+              <td>${resDia.tec}</td>
+              <td>${resDia.obs}</td>
+            </tr>
+          `;
+        }
+      } else if (regimePadrao === "40h") {
+        head.innerHTML = `<tr><th>DIA</th><th>SEMANA</th><th>HORÁRIO EXPEDIENTE</th><th>RESPONSÁVEL TÉCNICA / ENFERMAGEM</th><th>OBSERVAÇÕES / SITUAÇÃO</th></tr>`;
+        
+        ordenarAlfabeticamente();
+        const coord = colaboradores.find(c => c.funcao.includes("Coordenadora")) || { nome: "Edimara Tochetto Suaya Netto" };
+
+        for (let d = 1; d <= diasNoMes; d++) {
+          const dt = new Date(ano, mes - 1, d);
+          const dtFmt = `${String(d).padStart(2,'0')}/${String(mes).padStart(2,'0')}/${ano}`;
+          const dtIso = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+          
+          const ehFds = (dt.getDay() === 0 || dt.getDay() === 6);
+          const ehFeriado = feriadosOficiaisNacionais.includes(dtIso);
+
+          let hor = "08h às 17h (40h Semanais)";
+          let serv = `<b>${coord.nome}</b> (Enfermeira Coordenadora)`;
+          let obs = "Expediente Normal";
+          let rowClass = "";
+
+          if (ehFds) {
+            hor = "FOLGA SEMANAL";
+            serv = "—";
+            obs = "Final de Semana";
+            rowClass = "col-fds";
+          } else if (ehFeriado) {
+            hor = "FOLGA / FERIADO";
+            serv = "—";
+            obs = "Feriado Oficial";
+            rowClass = "col-feriado";
+          }
+
+          body.innerHTML += `
+            <tr class="${rowClass}">
+              <td><b>${dtFmt}</b></td>
+              <td>${diasSemanaAbrev[dt.getDay()]}</td>
+              <td>${hor}</td>
+              <td>${serv}</td>
+              <td>${obs}</td>
+            </tr>
+          `;
+        }
+      } else if (regimePadrao === "coren") {
+        let headHtml = `<tr><th style="width:18%;">NOME COMPLETO</th><th style="width:8%;">REGISTRO</th><th style="width:10%;">FUNÇÃO</th>`;
+        for (let d = 1; d <= diasNoMes; d++) headHtml += `<th>${String(d).padStart(2,'0')}</th>`;
+        headHtml += `</tr>`;
+        head.innerHTML = headHtml;
+
+        ordenarAlfabeticamente();
+
+        colaboradores.forEach(c => {
+          let regExibido = c.coren !== "N/A" ? c.coren : c.cnh;
+          let line = `<tr><td style="text-align:left;"><b>${c.nome}</b></td><td>${regExibido}</td><td>${c.funcao}</td>`;
+          const eh40h = c.funcao.includes("Coordenadora");
+
+          for (let d = 1; d <= diasNoMes; d++) {
+            const dtAtual = new Date(ano, mes - 1, d);
+            const dtIso = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const ehFds = (dtAtual.getDay() === 0 || dtAtual.getDay() === 6);
+            const ehFeriado = feriadosOficiaisNacionais.includes(dtIso);
+            const fdsClass = ehFds ? "col-fds" : "";
+
+            if (eh40h) {
+              if (ehFds || ehFeriado) {
+                line += `<td class="st-fol ${ehFeriado ? 'col-feriado' : fdsClass}">FOL</td>`;
+              } else {
+                line += `<td class="st-adm">ADM</td>`;
+              }
+            } else {
+              const resDia = calcularEscalaNoDia(dtIso, dataBaseStr, "24x96");
+              const ehPlantaoCond = resDia.cond.includes(c.nome);
+              const ehPlantaoTec = resDia.tec.includes(c.nome);
+              const atestado = afastamentos.find(a => a.servidor === c.nome && dtIso >= a.inicio && dtIso <= a.fim);
+
+              if (atestado) {
+                line += `<td style="background-color:#fee2e2; color:#b91c1c; font-weight:bold;">ATEST</td>`;
+              } else if (ehPlantaoCond || ehPlantaoTec) {
+                line += `<td class="st-i ${fdsClass}">I</td>`;
+              } else {
+                line += `<td class="st-fol ${fdsClass}">FOL</td>`;
+              }
+            }
+          }
+          line += `</tr>`;
+          body.innerHTML += line;
+        });
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
