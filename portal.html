@@ -213,7 +213,7 @@
 
         <div class="card-panel">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="color:var(--navy-blue); font-size:0.95rem;">📋 Cursos Registrados no meu CPF</h3>
+            <h3 style="color:var(--navy-blue); font-size:0.95rem;">📋 Cursos Registrados no meu Perfil</h3>
             <div style="font-weight:bold; color:var(--navy-blue);">Total Acumulado: <span class="badge-ch" id="myTotalHours">0h</span></div>
           </div>
 
@@ -421,28 +421,44 @@
     }
 
     async function carregarMeusCursos() {
-      const { data } = await dbNuvem.from('cursos_certificados').select('*').order('created_at', { ascending: false });
+      const { data } = await dbNuvem.from('cursos_certificados').select('*');
       todosCursos = data || [];
 
-      const meus = todosCursos.filter(c => c.colaborador_id === usuarioLogado.id || c.cpf === usuarioLogado.cpf);
-      const tbMeus = document.getElementById("tbMeusCursos");
-      tbMeus.innerHTML = "";
-
-      let somaHoras = 0;
-      meus.forEach(c => {
-        somaHoras += Number(c.carga_horaria) || 0;
-        tbMeus.innerHTML += `
-          <tr>
-            <td><b>${c.nome_curso}</b></td>
-            <td>${c.instituicao}</td>
-            <td>${c.modalidade}</td>
-            <td>${c.data_certificado ? c.data_certificado.split('-').reverse().join('/') : '-'}</td>
-            <td><span class="badge-ch">${c.carga_horaria}h</span></td>
-          </tr>
-        `;
+      // Filtro flexível para localizar o servidor logado
+      const meus = todosCursos.filter(c => {
+        const idBate = c.colaborador_id && Number(c.colaborador_id) === Number(usuarioLogado.id);
+        const cpfBate = c.cpf && usuarioLogado.cpf && c.cpf.replace(/\D/g, '') === usuarioLogado.cpf.replace(/\D/g, '');
+        const nomeBate = c.servidor_nome && c.servidor_nome.toLowerCase().includes(usuarioLogado.nome.toLowerCase());
+        return idBate || cpfBate || nomeBate;
       });
 
-      document.getElementById("myTotalHours").innerText = `${somaHoras}h`;
+      const tbMeus = document.getElementById("tbMeusCursos");
+      if (tbMeus) {
+        tbMeus.innerHTML = "";
+        let somaHoras = 0;
+
+        meus.forEach(c => {
+          somaHoras += Number(c.carga_horaria) || 0;
+          
+          const modExibida = c.disciplina || c.modalidade || '-';
+          const dataBruta = c.data_certificado || c.certificado_de_dados || '';
+          const dataFmt = dataBruta ? dataBruta.split('-').reverse().join('/') : '-';
+
+          tbMeus.innerHTML += `
+            <tr>
+              <td><b>${c.nome_curso || '-'}</b></td>
+              <td>${c.instituicao || '-'}</td>
+              <td>${modExibida}</td>
+              <td>${dataFmt}</td>
+              <td><span class="badge-ch">${c.carga_horaria || 0}h</span></td>
+            </tr>
+          `;
+        });
+
+        const elTotal = document.getElementById("myTotalHours");
+        if (elTotal) elTotal.innerText = `${somaHoras}h`;
+      }
+
       carregarRelatorioAdminCursos();
     }
 
@@ -461,19 +477,23 @@
       tbAdmin.innerHTML = "";
 
       const filtro = document.getElementById("selectFiltroServidor").value;
-      const filtrados = (filtro === "TODOS") ? todosCursos : todosCursos.filter(c => c.servidor_nome.includes(filtro));
+      const filtrados = (filtro === "TODOS") ? todosCursos : todosCursos.filter(c => c.servidor_nome && c.servidor_nome.includes(filtro));
 
       filtrados.forEach(c => {
-        const env = c.created_at ? new Date(c.created_at).toLocaleString('pt-BR') : '-';
+        const env = c.criado_em || c.created_at ? new Date(c.criado_em || c.created_at).toLocaleString('pt-BR') : '-';
+        const modExibida = c.disciplina || c.modalidade || '-';
+        const dataBruta = c.data_certificado || c.certificado_de_dados || '';
+        const dataFmt = dataBruta ? dataBruta.split('-').reverse().join('/') : '-';
+
         tbAdmin.innerHTML += `
           <tr>
             <td style="font-size:0.75rem; color:#64748b;">${env}</td>
-            <td><b>${c.servidor_nome}</b></td>
-            <td>${c.nome_curso}</td>
-            <td>${c.instituicao}</td>
-            <td>${c.modalidade}</td>
-            <td>${c.data_certificado ? c.data_certificado.split('-').reverse().join('/') : '-'}</td>
-            <td><span class="badge-ch">${c.carga_horaria}h</span></td>
+            <td><b>${c.servidor_nome || '-'}</b></td>
+            <td>${c.nome_curso || '-'}</td>
+            <td>${c.instituicao || '-'}</td>
+            <td>${modExibida}</td>
+            <td>${dataFmt}</td>
+            <td><span class="badge-ch">${c.carga_horaria || 0}h</span></td>
             <td class="no-print"><button class="btn-danger-sm" onclick="excluirCurso(${c.id})">Remover</button></td>
           </tr>
         `;
