@@ -13,6 +13,7 @@
       --navy-dark: #001a2d;
       --bg-gray: #f4f6f9;
       --border-color: #e2e8f0;
+      --slate-muted: #64748b;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
@@ -45,10 +46,10 @@
     .link-forgot { font-size: 0.8rem; color: var(--navy-blue); font-weight: 600; text-decoration: none; cursor: pointer; display: inline-block; margin-top: 10px; }
     .link-forgot:hover { text-decoration: underline; }
 
-    /* LAYOUT DO PAINEL PROFISSIONAL */
+    /* LAYOUT PAINEL PROFISSIONAL */
     .app-layout { display: none; min-height: 100vh; flex-direction: row; width: 100%; }
 
-    /* SIDEBAR NAV */
+    /* SIDEBAR */
     .sidebar { width: 260px; background: var(--navy-blue); color: white; padding: 25px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
     .brand-header { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .brand-header img { width: 42px; height: auto; }
@@ -56,7 +57,7 @@
     .brand-subtitle { font-size: 0.72rem; opacity: 0.7; }
 
     .nav-menu { display: flex; flex-direction: column; gap: 8px; flex-grow: 1; }
-    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #cbd5e1; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #cbd5e1; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: 0.2s; }
     .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.12); color: white; }
 
     .user-card-sidebar { background: var(--navy-dark); padding: 15px; border-radius: 10px; margin-top: auto; display: flex; align-items: center; gap: 12px; }
@@ -69,30 +70,29 @@
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
     .page-title { font-size: 1.4rem; color: var(--navy-blue); font-weight: 800; }
 
-    /* CARDS DE ESTATÍSTICA */
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-    .stat-card { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--border-color); }
-    .stat-number { font-size: 1.5rem; font-weight: 800; color: var(--navy-blue); }
-    .stat-label { font-size: 0.8rem; color: #64748b; font-weight: 600; }
-
-    /* TABELAS E AÇÕES */
-    .card-panel { background: white; padding: 22px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--border-color); }
+    /* CARDS E TABELAS */
+    .card-panel { background: white; padding: 22px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--border-color); margin-bottom: 20px; }
     .action-bar { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
     .search-input { padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; width: 100%; max-width: 320px; font-size: 0.88rem; outline: none; }
+    
     .btn-primary { background: var(--navy-blue); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.88rem; display: flex; align-items: center; gap: 6px; }
     .btn-primary:hover { background: var(--navy-dark); }
+    .btn-action-sm { background: #f1f5f9; color: var(--navy-blue); border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.78rem; }
+    .btn-action-sm:hover { background: var(--navy-blue); color: white; }
+    .btn-danger-sm { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; padding: 5px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.78rem; }
+    .btn-danger-sm:hover { background: #dc2626; color: white; }
 
     .table-wrapper { overflow-x: auto; width: 100%; }
-    .data-table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+    .data-table { width: 100%; border-collapse: collapse; min-width: 900px; }
     .data-table th, .data-table td { border-bottom: 1px solid var(--border-color); padding: 12px 14px; font-size: 0.85rem; text-align: left; white-space: nowrap; }
     .data-table th { background: #f8fafc; color: var(--navy-blue); font-weight: 700; }
 
     .badge-role { padding: 4px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
     .role-admin { background: #fee2e2; color: #991b1b; }
     .role-user { background: #e0f2fe; color: #0369a1; }
+    .badge-ch { background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 12px; font-weight: bold; }
 
-    .btn-action-sm { background: #f1f5f9; color: var(--navy-blue); border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.78rem; }
-    .btn-action-sm:hover { background: var(--navy-blue); color: white; }
+    .portaria-box { background: #fff; border-left: 4px solid var(--primary-red); padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; font-size: 0.82rem; color: #334155; }
 
     /* MODAL */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
@@ -100,21 +100,17 @@
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
     .modal-title { font-size: 1.1rem; color: var(--navy-blue); font-weight: 800; }
 
-    /* RESPONSIVO */
-    @media (max-width: 850px) {
-      .app-layout { flex-direction: column; }
-      .sidebar { width: 100%; padding: 15px; }
-      .brand-header { margin-bottom: 10px; padding-bottom: 10px; }
-      .nav-menu { flex-direction: row; overflow-x: auto; }
-      .nav-item { padding: 8px 12px; white-space: nowrap; font-size: 0.82rem; }
-      .user-card-sidebar { display: none; }
-      .main-content { padding: 15px; }
+    @media print {
+      .sidebar, .page-header button, .no-print, .search-input { display: none !important; }
+      body { background: white; }
+      .main-content { padding: 0; }
+      .card-panel { border: none; box-shadow: none; padding: 0; }
     }
   </style>
 </head>
 <body>
 
-  <!-- LOGIN -->
+  <!-- TELA DE LOGIN -->
   <div id="loginScreen" class="login-wrapper">
     <div class="login-container">
       <img src="logo.png" alt="SAMU Orleans" class="login-logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
@@ -124,7 +120,7 @@
       <form onsubmit="realizarLogin(event)">
         <div class="form-group">
           <label>CPF / Usuário:</label>
-          <input type="text" id="loginCPF" placeholder="Digite seu CPF ou admin" required>
+          <input type="text" id="loginCPF" placeholder="Digite seu CPF" required>
         </div>
         <div class="form-group">
           <label>Senha:</label>
@@ -134,16 +130,14 @@
       </form>
 
       <a class="link-forgot" onclick="abrirModalRecuperacao()">Esqueceu sua senha?</a>
-
       <div id="loginError" style="color:#dc2626; font-size:0.8rem; margin-top:12px; font-weight:600; display:none;">Usuário ou Senha incorretos!</div>
     </div>
   </div>
 
-  <!-- DASHBOARD / APPLAYOUT -->
+  <!-- PAINEL PRINCIPAL -->
   <div id="dashboardScreen" class="app-layout">
     
-    <!-- SIDEBAR DE NAVEGAÇÃO -->
-    <aside class="sidebar">
+    <aside class="sidebar no-print">
       <div class="brand-header">
         <img src="logo.png" alt="Logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
         <div>
@@ -154,8 +148,9 @@
 
       <nav class="nav-menu">
         <div class="nav-item active" onclick="switchTab('tabMeuPerfil', this)">👤 Meus Dados & Uniformes</div>
-        <div class="nav-item" id="btnAdminTab" style="display:none;" onclick="switchTab('tabAdmin', this)">⚙️ Gestão de Servidores</div>
-        <div class="nav-item" id="btnLogsTab" style="display:none;" onclick="switchTab('tabLogs', this)">📋 Logs de Auditoria</div>
+        <div class="nav-item" onclick="switchTab('tabMeusCursos', this)">🎓 Minhas Capacitações</div>
+        <div class="nav-item" id="btnAdminServidores" style="display:none;" onclick="switchTab('tabAdminServidores', this)">⚙️ Gestão de Servidores</div>
+        <div class="nav-item" id="btnAdminCursos" style="display:none;" onclick="switchTab('tabAdminCursos', this)">📊 Relatório Cursos (Admin)</div>
       </nav>
 
       <div class="user-card-sidebar">
@@ -168,16 +163,15 @@
       </div>
     </aside>
 
-    <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
     <main class="main-content">
       
-      <!-- ABA 1: MEUS DADOS -->
+      <!-- ABA 1: PERFIL DO SERVIDOR -->
       <div id="tabMeuPerfil" class="tab-pane">
         <div class="page-header">
           <div class="page-title">Meu Perfil e Cadastro de Insumos</div>
         </div>
 
-        <div class="card-panel" style="margin-bottom:20px;">
+        <div class="card-panel">
           <h3 style="color:var(--navy-blue); margin-bottom:15px; font-size:0.95rem;">📋 Dados Pessoais & Contato</h3>
           <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
             <div class="form-group"><label>Nome Completo:</label><input type="text" id="perfilNome" disabled></div>
@@ -186,64 +180,65 @@
             <div class="form-group"><label>Registro (COREN/CNH):</label><input type="text" id="perfilRegistro"></div>
             <div class="form-group"><label>Telefone / WhatsApp:</label><input type="text" id="perfilTelefone"></div>
             <div class="form-group"><label>E-mail:</label><input type="email" id="perfilEmail"></div>
-            <div class="form-group"><label>Alterar Senha:</label><input type="password" id="perfilNovaSenha" placeholder="Min. 8 chars (Maiúscula, Número, Especial)"></div>
           </div>
         </div>
 
-        <div class="card-panel" style="margin-bottom:20px;">
+        <div class="card-panel">
           <h3 style="color:var(--navy-blue); margin-bottom:15px; font-size:0.95rem;">👕 Tamanhos de Uniformes e Equipamentos</h3>
           <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
-            <div class="form-group">
-              <label>Tipo Sanguíneo:</label>
-              <select id="uTipoSangue">
-                <option value="">Selecione...</option>
-                <option value="A+">A+</option><option value="A-">A-</option>
-                <option value="B+">B+</option><option value="B-">B-</option>
-                <option value="AB+">AB+</option><option value="AB-">AB-</option>
-                <option value="O+">O+</option><option value="O-">O-</option>
-              </select>
-            </div>
-            <div class="form-group"><label>Nome de Guerra (Bíriba):</label><input type="text" id="uNomeGuerra"></div>
+            <div class="form-group"><label>Tipo Sanguíneo:</label><input type="text" id="uTipoSangue"></div>
+            <div class="form-group"><label>Nome de Guerra:</label><input type="text" id="uNomeGuerra"></div>
             <div class="form-group"><label>Macacão:</label><input type="text" id="uMacacao"></div>
             <div class="form-group"><label>Camiseta:</label><input type="text" id="uCamiseta"></div>
             <div class="form-group"><label>Jaqueta:</label><input type="text" id="uJaqueta"></div>
             <div class="form-group"><label>Coturno (Número):</label><input type="text" id="uCoturno"></div>
             <div class="form-group"><label>Capa de Chuva:</label><input type="text" id="uCapaChuva"></div>
           </div>
-        </div>
-
-        <div class="card-panel">
-          <h3 style="color:var(--navy-blue); margin-bottom:15px; font-size:0.95rem;">🏦 Dados Bancários para Repasses</h3>
-          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
-            <div class="form-group"><label>Banco:</label><input type="text" id="bBanco"></div>
-            <div class="form-group"><label>Agência:</label><input type="text" id="bAgencia"></div>
-            <div class="form-group"><label>Conta:</label><input type="text" id="bConta"></div>
-            <div class="form-group"><label>Chave PIX:</label><input type="text" id="bPix"></div>
-          </div>
-          <button class="btn-primary" style="margin-top:15px; background:#166534;" onclick="salvarTudoPerfil()">💾 Salvar Alterações</button>
+          <button class="btn-primary" style="margin-top:15px; background:#166534;" onclick="salvarTudoPerfil()">💾 Salvar Dados</button>
         </div>
       </div>
 
-      <!-- ABA 2: QUADRO DE SERVIDORES (ADMIN) -->
-      <div id="tabAdmin" class="tab-pane" style="display:none;">
+      <!-- ABA 2: MINHAS CAPACITAÇÕES (CONSULTA DO SERVIDOR) -->
+      <div id="tabMeusCursos" class="tab-pane" style="display:none;">
         <div class="page-header">
-          <div class="page-title">Painel de Gestão de Colaboradores</div>
-          <button class="btn-primary" onclick="abrirModalNovoServidor()">➕ Novo Colaborador</button>
+          <div class="page-title">Histórico de Cursos e Horas Acumuladas</div>
+          <a href="cursos.html" target="_blank" class="btn-primary" style="text-decoration:none;">➕ Novo Lançamento em Cursos</a>
         </div>
 
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-number" id="statTotal">0</div>
-            <div class="stat-label">Total de Servidores Cadastrados</div>
+        <div class="portaria-box">
+          <b>Educação Permanente — Cumprimento legal da Portaria 2048 do Ministério da Saúde:</b><br>
+          • <b>Técnicos de Enfermagem:</b> Meta de 14h mensais ou 168h/ano.<br>
+          • <b>Condutor Socorrista:</b> Meta de 16h mensais ou 200h/ano.
+        </div>
+
+        <div class="card-panel">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 style="color:var(--navy-blue); font-size:0.95rem;">📋 Cursos Registrados no meu CPF</h3>
+            <div style="font-weight:bold; color:var(--navy-blue);">Total Acumulado: <span class="badge-ch" id="myTotalHours">0h</span></div>
           </div>
-          <div class="stat-card">
-            <div class="stat-number" id="statCondutores">0</div>
-            <div class="stat-label">Condutores Socorristas</div>
+
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nome do Curso</th>
+                  <th>Instituição</th>
+                  <th>Modalidade</th>
+                  <th>Data do Certificado</th>
+                  <th>Carga Horária</th>
+                </tr>
+              </thead>
+              <tbody id="tbMeusCursos"></tbody>
+            </table>
           </div>
-          <div class="stat-card">
-            <div class="stat-number" id="statTecnicos">0</div>
-            <div class="stat-label">Técnicos de Enfermagem / Coord.</div>
-          </div>
+        </div>
+      </div>
+
+      <!-- ABA 3: GESTÃO DE SERVIDORES (ADMINISTRADOR) -->
+      <div id="tabAdminServidores" class="tab-pane" style="display:none;">
+        <div class="page-header">
+          <div class="page-title">Painel de Gestão do Quadro de Servidores</div>
+          <button class="btn-primary" onclick="abrirModalNovoServidor()">➕ Novo Colaborador</button>
         </div>
 
         <div class="card-panel">
@@ -259,8 +254,6 @@
                   <th>CPF</th>
                   <th>Função</th>
                   <th>Registro</th>
-                  <th>Tipo Sang.</th>
-                  <th>Nome Guerra</th>
                   <th>Coturno</th>
                   <th>Macacão</th>
                   <th>Camiseta</th>
@@ -276,20 +269,45 @@
         </div>
       </div>
 
-      <!-- ABA 3: LOGS DE AUDITORIA -->
-      <div id="tabLogs" class="tab-pane" style="display:none;">
+      <!-- ABA 4: RELATÓRIO GERAL DE CURSOS (ADMINISTRADOR) -->
+      <div id="tabAdminCursos" class="tab-pane" style="display:none;">
         <div class="page-header">
-          <div class="page-title">Histórico e Logs de Auditoria</div>
+          <div class="page-title">Relatório e Auditoria de Cursos da Unidade</div>
+          <button class="btn-primary" onclick="window.print()">🖨️ Imprimir Relatório PDF</button>
         </div>
+
         <div class="card-panel">
-          <div id="logsContainer"></div>
+          <div style="display:flex; gap:12px; align-items:center; margin-bottom:15px;" class="no-print">
+            <label style="font-weight:bold; font-size:0.85rem;">Filtrar por Servidor:</label>
+            <select id="selectFiltroServidor" onchange="carregarRelatorioAdminCursos()" style="padding:8px; border-radius:6px; border:1px solid #cbd5e1; width:250px;">
+              <option value="TODOS">-- Todos os Servidores --</option>
+            </select>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Carimbo Envio</th>
+                  <th>Profissional</th>
+                  <th>Nome do Curso</th>
+                  <th>Instituição</th>
+                  <th>Modalidade</th>
+                  <th>Data Certificado</th>
+                  <th>Carga Horária</th>
+                  <th class="no-print">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="adminCursosTable"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
     </main>
   </div>
 
-  <!-- MODAL PARA CADASTRAR OU EDITAR COLABORADOR -->
+  <!-- MODAL DE EDIÇÃO DE COLABORADOR -->
   <div id="editModal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
@@ -298,7 +316,6 @@
       </div>
       
       <input type="hidden" id="modalServidorId">
-      
       <div class="form-group"><label>Nome Completo:</label><input type="text" id="modalNome" required></div>
       <div class="form-group"><label>CPF:</label><input type="text" id="modalCPF" required></div>
       <div class="form-group">
@@ -309,15 +326,15 @@
           <option value="Enfermeira Coordenadora">Enfermeira Coordenadora</option>
         </select>
       </div>
-      <div class="form-group"><label>Registro (COREN ou CNH):</label><input type="text" id="modalRegistro"></div>
+      <div class="form-group"><label>Registro (COREN/CNH):</label><input type="text" id="modalRegistro"></div>
       <div class="form-group">
-        <label>Perfil de Acesso ao Sistema:</label>
+        <label>Perfil de Acesso:</label>
         <select id="modalPerfil">
           <option value="servidor">Servidor</option>
           <option value="admin">Administrador (Admin)</option>
         </select>
       </div>
-      <div class="form-group"><label>Senha de Acesso:</label><input type="text" id="modalNovaSenha" placeholder="Min. 8 chars (Maiúscula, Número, Especial)"></div>
+      <div class="form-group"><label>Senha de Acesso:</label><input type="text" id="modalNovaSenha" placeholder="Deixe em branco para não alterar"></div>
 
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
         <button class="btn-action-sm" onclick="fecharModal()">Cancelar</button>
@@ -326,45 +343,15 @@
     </div>
   </div>
 
-  <!-- MODAL DE RECUPERAÇÃO DE SENHA POR CONFIRMAÇÃO DE DADOS -->
-  <div id="modalRecuperacao" class="modal-overlay">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="modal-title">🔑 Recuperar Acesso ao Portal</div>
-        <button style="background:none; border:none; font-size:1.2rem; cursor:pointer;" onclick="fecharModalRecuperacao()">✕</button>
-      </div>
-      
-      <p style="font-size:0.82rem; color:#64748b; margin-bottom:15px;">Informe seus dados cadastrais para confirmar sua identidade e redefinir a senha:</p>
-
-      <div class="form-group"><label>CPF (Apenas números):</label><input type="text" id="recCPF" placeholder="Digite seu CPF"></div>
-      <div class="form-group"><label>Registro Profissional (COREN ou CNH):</label><input type="text" id="recRegistro" placeholder="Digite apenas os números do registro"></div>
-      <div class="form-group"><label>E-mail Cadastrado:</label><input type="email" id="recEmail" placeholder="Digite seu e-mail"></div>
-
-      <hr style="border:none; border-top:1px solid #e2e8f0; margin:15px 0;">
-
-      <div class="form-group"><label>Nova Senha Forte:</label><input type="password" id="recNovaSenha" placeholder="Min. 8 chars (Maiúscula, Número, Especial)"></div>
-
-      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-        <button class="btn-action-sm" onclick="fecharModalRecuperacao()">Cancelar</button>
-        <button class="btn-primary" onclick="processarRecuperacaoSenha()">Validar e Redefinir</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_LaC2YnoF3htaAh0f_X8tNg_V9hOkEQ8";
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
+    const dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let usuarioLogado = null;
     let listaColaboradores = [];
     let listaUniformes = [];
-
-    function validarSenhaForte(senha) {
-      if (!senha) return true;
-      const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
-      return regex.test(senha);
-    }
+    let todosCursos = [];
 
     async function realizarLogin(e) {
       e.preventDefault();
@@ -372,14 +359,14 @@
       const cpfClean = rawInput.replace(/\D/g, '');
       const senhaInput = document.getElementById('loginSenha').value.trim();
 
-      const { data, error } = await supabaseClient.from('colaboradores').select('*');
-
+      const { data, error } = await dbNuvem.from('colaboradores').select('*');
       if (error || !data) {
         document.getElementById('loginError').style.display = 'block';
         return;
       }
 
-      const user = data.find(u => {
+      listaColaboradores = data;
+      const user = listaColaboradores.find(u => {
         const userCpfClean = u.cpf ? u.cpf.replace(/\D/g, '') : '';
         return u.cpf === rawInput || (cpfClean !== '' && userCpfClean === cpfClean);
       });
@@ -398,7 +385,7 @@
       document.getElementById('dashboardScreen').style.display = 'flex';
 
       document.getElementById('userName').innerText = usuarioLogado.nome;
-      document.getElementById('userRole').innerText = `${usuarioLogado.funcao}`;
+      document.getElementById('userRole').innerText = usuarioLogado.funcao;
       document.getElementById('userInitial').innerText = usuarioLogado.nome.charAt(0);
 
       document.getElementById('perfilNome').value = usuarioLogado.nome;
@@ -408,7 +395,8 @@
       document.getElementById('perfilTelefone').value = usuarioLogado.telefone || '';
       document.getElementById('perfilEmail').value = usuarioLogado.email || '';
 
-      const { data: uni } = await supabaseClient.from('uniformes').select('*').eq('colaborador_id', usuarioLogado.id).single();
+      // Uniformes
+      const { data: uni } = await dbNuvem.from('uniformes').select('*').eq('colaborador_id', usuarioLogado.id).single();
       if (uni) {
         document.getElementById('uTipoSangue').value = uni.tipo_sangue || '';
         document.getElementById('uNomeGuerra').value = uni.nome_guerra || '';
@@ -419,219 +407,154 @@
         document.getElementById('uCapaChuva').value = uni.capa_chuva || '';
       }
 
-      const { data: banco } = await supabaseClient.from('dados_bancarios').select('*').eq('colaborador_id', usuarioLogado.id).single();
-      if (banco) {
-        document.getElementById('bBanco').value = banco.banco || '';
-        document.getElementById('bAgencia').value = banco.agencia || '';
-        document.getElementById('bConta').value = banco.conta || '';
-        document.getElementById('bPix').value = banco.chave_pix || '';
+      const f = usuarioLogado.funcao ? usuarioLogado.funcao.toLowerCase() : "";
+      const ehAdmin = usuarioLogado.perfil === 'admin' || f.includes("coordenadora") || f.includes("administrativo");
+
+      if (ehAdmin) {
+        document.getElementById('btnAdminServidores').style.display = 'flex';
+        document.getElementById('btnAdminCursos').style.display = 'flex';
+        carregarServidoresAdmin();
+        preencherSelectFiltro();
       }
 
-      if (usuarioLogado.perfil === 'admin' || usuarioLogado.funcao.includes('Coordenadora')) {
-        document.getElementById('btnAdminTab').style.display = 'flex';
-        document.getElementById('btnLogsTab').style.display = 'flex';
-        carregarServidoresAdmin();
-        carregarLogs();
+      await carregarMeusCursos();
+    }
+
+    async function carregarMeusCursos() {
+      const { data } = await dbNuvem.from('cursos_certificados').select('*').order('created_at', { ascending: false });
+      todosCursos = data || [];
+
+      const meus = todosCursos.filter(c => c.colaborador_id === usuarioLogado.id || c.cpf === usuarioLogado.cpf);
+      const tbMeus = document.getElementById("tbMeusCursos");
+      tbMeus.innerHTML = "";
+
+      let somaHoras = 0;
+      meus.forEach(c => {
+        somaHoras += Number(c.carga_horaria) || 0;
+        tbMeus.innerHTML += `
+          <tr>
+            <td><b>${c.nome_curso}</b></td>
+            <td>${c.instituicao}</td>
+            <td>${c.modalidade}</td>
+            <td>${c.data_certificado ? c.data_certificado.split('-').reverse().join('/') : '-'}</td>
+            <td><span class="badge-ch">${c.carga_horaria}h</span></td>
+          </tr>
+        `;
+      });
+
+      document.getElementById("myTotalHours").innerText = `${somaHoras}h`;
+      carregarRelatorioAdminCursos();
+    }
+
+    function preencherSelectFiltro() {
+      const sel = document.getElementById("selectFiltroServidor");
+      if (!sel) return;
+      sel.innerHTML = `<option value="TODOS">-- Todos os Servidores --</option>`;
+      listaColaboradores.forEach(c => {
+        sel.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+      });
+    }
+
+    function carregarRelatorioAdminCursos() {
+      const tbAdmin = document.getElementById("adminCursosTable");
+      if (!tbAdmin) return;
+      tbAdmin.innerHTML = "";
+
+      const filtro = document.getElementById("selectFiltroServidor").value;
+      const filtrados = (filtro === "TODOS") ? todosCursos : todosCursos.filter(c => c.servidor_nome.includes(filtro));
+
+      filtrados.forEach(c => {
+        const env = c.created_at ? new Date(c.created_at).toLocaleString('pt-BR') : '-';
+        tbAdmin.innerHTML += `
+          <tr>
+            <td style="font-size:0.75rem; color:#64748b;">${env}</td>
+            <td><b>${c.servidor_nome}</b></td>
+            <td>${c.nome_curso}</td>
+            <td>${c.instituicao}</td>
+            <td>${c.modalidade}</td>
+            <td>${c.data_certificado ? c.data_certificado.split('-').reverse().join('/') : '-'}</td>
+            <td><span class="badge-ch">${c.carga_horaria}h</span></td>
+            <td class="no-print"><button class="btn-danger-sm" onclick="excluirCurso(${c.id})">Remover</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    async function excluirCurso(id) {
+      if (confirm("Remover este registro de curso?")) {
+        await dbNuvem.from('cursos_certificados').delete().eq('id', id);
+        await carregarMeusCursos();
       }
     }
 
     async function carregarServidoresAdmin() {
-      const { data: colabs } = await supabaseClient.from('colaboradores').select('*').order('nome');
-      const { data: unis } = await supabaseClient.from('uniformes').select('*');
+      const { data: colabs } = await dbNuvem.from('colaboradores').select('*').order('nome');
+      const { data: unis } = await dbNuvem.from('uniformes').select('*');
 
       listaColaboradores = colabs || [];
       listaUniformes = unis || [];
 
-      document.getElementById('statTotal').innerText = listaColaboradores.length;
-      document.getElementById('statCondutores').innerText = listaColaboradores.filter(c => c.funcao.includes('Condutor')).length;
-      document.getElementById('statTecnicos').innerText = listaColaboradores.filter(c => !c.funcao.includes('Condutor')).length;
-
-      renderTabelaServidores(listaColaboradores);
-    }
-
-    function renderTabelaServidores(dados) {
       const tbody = document.getElementById('adminServidoresTable');
       tbody.innerHTML = '';
 
-      dados.forEach(s => {
+      listaColaboradores.forEach(s => {
         const u = listaUniformes.find(item => item.colaborador_id === s.id) || {};
         const isRoleAdmin = s.perfil === 'admin';
         
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><strong>${s.nome}</strong></td>
-          <td>${s.cpf}</td>
-          <td>${s.funcao}</td>
-          <td>${s.coren !== 'N/A' ? s.coren : s.cnh}</td>
-          <td>${u.tipo_sangue || '-'}</td>
-          <td>${u.nome_guerra || '-'}</td>
-          <td>${u.coturno || '-'}</td>
-          <td>${u.macacao || '-'}</td>
-          <td>${u.camiseta || '-'}</td>
-          <td>${u.jaqueta || '-'}</td>
-          <td>${u.capa_chuva || '-'}</td>
-          <td><span class="badge-role ${isRoleAdmin ? 'role-admin' : 'role-user'}">${s.perfil || 'servidor'}</span></td>
-          <td><button class="btn-action-sm" onclick="abrirModalEdicao(${s.id})">✏️ Editar</button></td>
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${s.nome}</strong></td>
+            <td>${s.cpf}</td>
+            <td>${s.funcao}</td>
+            <td>${s.coren !== 'N/A' ? s.coren : s.cnh}</td>
+            <td>${u.coturno || '-'}</td>
+            <td>${u.macacao || '-'}</td>
+            <td>${u.camiseta || '-'}</td>
+            <td>${u.jaqueta || '-'}</td>
+            <td>${u.capa_chuva || '-'}</td>
+            <td><span class="badge-role ${isRoleAdmin ? 'role-admin' : 'role-user'}">${s.perfil || 'servidor'}</span></td>
+            <td><button class="btn-action-sm" onclick="abrirModalEdicao(${s.id})">✏️ Editar</button></td>
+          </tr>
         `;
-        tbody.appendChild(tr);
       });
     }
 
     function filtrarTabelaServidores() {
       const query = document.getElementById('searchServidores').value.toLowerCase();
-      const filtrados = listaColaboradores.filter(s => 
-        s.nome.toLowerCase().includes(query) || s.cpf.includes(query)
-      );
-      renderTabelaServidores(filtrados);
-    }
+      const filtrados = listaColaboradores.filter(s => s.nome.toLowerCase().includes(query) || s.cpf.includes(query));
+      
+      const tbody = document.getElementById('adminServidoresTable');
+      tbody.innerHTML = '';
 
-    function abrirModalNovoServidor() {
-      document.getElementById('modalFormTitle').innerText = '➕ Cadastrar Novo Colaborador';
-      document.getElementById('modalServidorId').value = '';
-      document.getElementById('modalNome').value = '';
-      document.getElementById('modalCPF').value = '';
-      document.getElementById('modalFuncao').value = 'Condutor Socorrista';
-      document.getElementById('modalRegistro').value = '';
-      document.getElementById('modalPerfil').value = 'servidor';
-      document.getElementById('modalNovaSenha').value = '';
-
-      document.getElementById('editModal').style.display = 'flex';
-    }
-
-    function abrirModalEdicao(id) {
-      const s = listaColaboradores.find(item => item.id === id);
-      if (!s) return;
-
-      document.getElementById('modalFormTitle').innerText = '✏️ Editar Dados do Colaborador';
-      document.getElementById('modalServidorId').value = s.id;
-      document.getElementById('modalNome').value = s.nome;
-      document.getElementById('modalCPF').value = s.cpf;
-      document.getElementById('modalFuncao').value = s.funcao;
-      document.getElementById('modalRegistro').value = s.coren !== 'N/A' ? s.coren : s.cnh;
-      document.getElementById('modalPerfil').value = s.perfil || 'servidor';
-      document.getElementById('modalNovaSenha').value = '';
-
-      document.getElementById('editModal').style.display = 'flex';
-    }
-
-    function fecharModal() {
-      document.getElementById('editModal').style.display = 'none';
-    }
-
-    function abrirModalRecuperacao() {
-      document.getElementById('modalRecuperacao').style.display = 'flex';
-    }
-
-    function fecharModalRecuperacao() {
-      document.getElementById('modalRecuperacao').style.display = 'none';
-    }
-
-    async function processarRecuperacaoSenha() {
-      const cpfInput = document.getElementById('recCPF').value.trim().replace(/\D/g, '');
-      const regInput = document.getElementById('recRegistro').value.trim();
-      const emailInput = document.getElementById('recEmail').value.trim().toLowerCase();
-      const novaSenha = document.getElementById('recNovaSenha').value.trim();
-
-      if (!validarSenhaForte(novaSenha)) {
-        alert('A nova senha deve ter no mínimo 8 caracteres, contendo pelo menos uma letra maiúscula, um número e um caractere especial (@, #, $, !).');
-        return;
-      }
-
-      const { data: servidores, error } = await supabaseClient.from('colaboradores').select('*');
-
-      if (error || !servidores) {
-        alert('Erro ao conectar com o banco de dados.');
-        return;
-      }
-
-      const user = servidores.find(s => {
-        const cpfClean = s.cpf ? s.cpf.replace(/\D/g, '') : '';
-        const regMatch = (s.coren && s.coren === regInput) || (s.cnh && s.cnh === regInput);
-        const emailMatch = s.email && s.email.toLowerCase() === emailInput;
-        return cpfClean === cpfInput && regMatch && emailMatch;
+      filtrados.forEach(s => {
+        const u = listaUniformes.find(item => item.colaborador_id === s.id) || {};
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${s.nome}</strong></td>
+            <td>${s.cpf}</td>
+            <td>${s.funcao}</td>
+            <td>${s.coren !== 'N/A' ? s.coren : s.cnh}</td>
+            <td>${u.coturno || '-'}</td>
+            <td>${u.macacao || '-'}</td>
+            <td>${u.camiseta || '-'}</td>
+            <td>${u.jaqueta || '-'}</td>
+            <td>${u.capa_chuva || '-'}</td>
+            <td><span class="badge-role ${s.perfil === 'admin' ? 'role-admin' : 'role-user'}">${s.perfil || 'servidor'}</span></td>
+            <td><button class="btn-action-sm" onclick="abrirModalEdicao(${s.id})">✏️ Editar</button></td>
+          </tr>
+        `;
       });
-
-      if (!user) {
-        alert('Os dados informados não coincidem com nenhum cadastro ativo.');
-        return;
-      }
-
-      const { error: upError } = await supabaseClient
-        .from('colaboradores')
-        .update({ senha: novaSenha })
-        .eq('id', user.id);
-
-      if (!upError) {
-        await registrarLog("Recuperação de Senha", `O servidor ${user.nome} redefiniu sua senha via validação de dados pessoais.`);
-        alert('Senha redefinida com sucesso!');
-        fecharModalRecuperacao();
-      } else {
-        alert('Erro ao atualizar a senha no sistema.');
-      }
-    }
-
-    async function salvarEdicaoAdmin() {
-      const id = document.getElementById('modalServidorId').value;
-      const nome = document.getElementById('modalNome').value;
-      const cpf = document.getElementById('modalCPF').value;
-      const funcao = document.getElementById('modalFuncao').value;
-      const reg = document.getElementById('modalRegistro').value;
-      const perfil = document.getElementById('modalPerfil').value;
-      const novaSenha = document.getElementById('modalNovaSenha').value;
-
-      if (novaSenha && !validarSenhaForte(novaSenha)) {
-        alert('A senha informada deve ter no mínimo 8 caracteres, com letra maiúscula, número e caractere especial.');
-        return;
-      }
-
-      let payload = { nome, cpf, funcao, perfil };
-
-      if (funcao.toLowerCase().includes('condutor')) {
-        payload.cnh = reg;
-        payload.coren = 'N/A';
-      } else {
-        payload.coren = reg;
-        payload.cnh = 'N/A';
-      }
-
-      if (novaSenha.trim() !== '') {
-        payload.senha = novaSenha.trim();
-      }
-
-      let res;
-      if (id) {
-        res = await supabaseClient.from('colaboradores').update(payload).eq('id', id);
-      } else {
-        if (!payload.senha) payload.senha = 'Samu192@Orleans';
-        res = await supabaseClient.from('colaboradores').insert([payload]);
-      }
-
-      if (!res.error) {
-        await registrarLog("Gestão Admin", `Administrador cadastrou/alterou o servidor ${nome}.`);
-        alert('Dados salvos com sucesso!');
-        fecharModal();
-        carregarServidoresAdmin();
-      } else {
-        alert('Erro ao salvar colaborador.');
-      }
     }
 
     async function salvarTudoPerfil() {
       const reg = document.getElementById('perfilRegistro').value;
       const tel = document.getElementById('perfilTelefone').value;
       const email = document.getElementById('perfilEmail').value;
-      const novaSenha = document.getElementById('perfilNovaSenha').value;
-
-      if (novaSenha && !validarSenhaForte(novaSenha)) {
-        alert('A nova senha deve conter no mínimo 8 caracteres, incluindo pelo menos uma letra maiúscula, um número e um caractere especial (@, #, $, !).');
-        return;
-      }
 
       let upColab = { telefone: tel, email: email };
-      if (novaSenha) upColab.senha = novaSenha;
       if (usuarioLogado.funcao.includes('Condutor')) { upColab.cnh = reg; } else { upColab.coren = reg; }
 
-      await supabaseClient.from('colaboradores').update(upColab).eq('id', usuarioLogado.id);
+      await dbNuvem.from('colaboradores').update(upColab).eq('id', usuarioLogado.id);
 
       const upUni = {
         colaborador_id: usuarioLogado.id,
@@ -643,46 +566,66 @@
         coturno: document.getElementById('uCoturno').value,
         capa_chuva: document.getElementById('uCapaChuva').value
       };
-      await supabaseClient.from('uniformes').upsert(upUni, { onConflict: 'colaborador_id' });
+      await dbNuvem.from('uniformes').upsert(upUni, { onConflict: 'colaborador_id' });
 
-      const upBanco = {
-        colaborador_id: usuarioLogado.id,
-        banco: document.getElementById('bBanco').value,
-        agencia: document.getElementById('bAgencia').value,
-        conta: document.getElementById('bConta').value,
-        chave_pix: document.getElementById('bPix').value
-      };
-      await supabaseClient.from('dados_bancarios').upsert(upBanco, { onConflict: 'colaborador_id' });
-
-      await registrarLog("Atualização Cadastral", "Servidor atualizou seus dados pessoais e uniformes.");
-      alert('Informações salvas com sucesso!');
+      alert('Dados salvos com sucesso!');
     }
 
-    async function carregarLogs() {
-      const { data } = await supabaseClient.from('logs_alteracoes').select('*').order('data_hora', { ascending: false }).limit(25);
-      const container = document.getElementById('logsContainer');
-      container.innerHTML = '';
-
-      (data || []).forEach(l => {
-        const div = document.createElement('div');
-        div.style.padding = '10px 0';
-        div.style.borderBottom = '1px solid var(--border-color)';
-        div.style.fontSize = '0.82rem';
-        div.innerHTML = `
-          <strong>${l.usuario_nome || 'Sistema'}</strong> (${l.acao}): ${l.detalhes}
-          <div style="color:#94a3b8; font-size:0.75rem;">${new Date(l.data_hora).toLocaleString('pt-BR')}</div>
-        `;
-        container.appendChild(div);
-      });
+    function abrirModalNovoServidor() {
+      document.getElementById('modalFormTitle').innerText = '➕ Cadastrar Novo Colaborador';
+      document.getElementById('modalServidorId').value = '';
+      document.getElementById('modalNome').value = '';
+      document.getElementById('modalCPF').value = '';
+      document.getElementById('modalFuncao').value = 'Condutor Socorrista';
+      document.getElementById('modalRegistro').value = '';
+      document.getElementById('modalPerfil').value = 'servidor';
+      document.getElementById('modalNovaSenha').value = '';
+      document.getElementById('editModal').style.display = 'flex';
     }
 
-    async function registrarLog(acao, detalhes) {
-      await supabaseClient.from('logs_alteracoes').insert([{
-        usuario_cpf: usuarioLogado.cpf,
-        usuario_nome: usuarioLogado.nome,
-        acao: acao,
-        detalhes: detalhes
-      }]);
+    function abrirModalEdicao(id) {
+      const s = listaColaboradores.find(item => item.id === id);
+      if (!s) return;
+
+      document.getElementById('modalFormTitle').innerText = '✏️ Editar Colaborador';
+      document.getElementById('modalServidorId').value = s.id;
+      document.getElementById('modalNome').value = s.nome;
+      document.getElementById('modalCPF').value = s.cpf;
+      document.getElementById('modalFuncao').value = s.funcao;
+      document.getElementById('modalRegistro').value = s.coren !== 'N/A' ? s.coren : s.cnh;
+      document.getElementById('modalPerfil').value = s.perfil || 'servidor';
+      document.getElementById('modalNovaSenha').value = '';
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function fecharModal() { document.getElementById('editModal').style.display = 'none'; }
+
+    async function salvarEdicaoAdmin() {
+      const id = document.getElementById('modalServidorId').value;
+      const nome = document.getElementById('modalNome').value;
+      const cpf = document.getElementById('modalCPF').value;
+      const funcao = document.getElementById('modalFuncao').value;
+      const reg = document.getElementById('modalRegistro').value;
+      const perfil = document.getElementById('modalPerfil').value;
+      const novaSenha = document.getElementById('modalNovaSenha').value;
+
+      let payload = { nome, cpf, funcao, perfil };
+      if (funcao.toLowerCase().includes('condutor')) { payload.cnh = reg; payload.coren = 'N/A'; } 
+      else { payload.coren = reg; payload.cnh = 'N/A'; }
+
+      if (novaSenha.trim() !== '') payload.senha = novaSenha.trim();
+
+      let res = id 
+        ? await dbNuvem.from('colaboradores').update(payload).eq('id', id)
+        : await dbNuvem.from('colaboradores').insert([payload]);
+
+      if (!res.error) {
+        alert('Dados salvos!');
+        fecharModal();
+        carregarServidoresAdmin();
+      } else {
+        alert('Erro ao salvar.');
+      }
     }
 
     function switchTab(tabId, element) {
@@ -694,8 +637,7 @@
 
     function logout() {
       usuarioLogado = null;
-      document.getElementById('dashboardScreen').style.display = 'none';
-      document.getElementById('loginScreen').style.display = 'flex';
+      location.reload();
     }
   </script>
 </body>
