@@ -182,6 +182,7 @@
         <div class="nav-item" onclick="switchTab('tabMeusCursos', this)">🎓 Minhas Capacitações</div>
         <div class="nav-item" id="btnAdminServidores" style="display:none;" onclick="switchTab('tabAdminServidores', this)">⚙️ Gestão de Servidores</div>
         <div class="nav-item" id="btnAdminCursos" style="display:none;" onclick="switchTab('tabAdminCursos', this)">📊 Relatório Cursos (Admin)</div>
+        <div class="nav-item" id="btnAdminLogs" style="display:none;" onclick="switchTab('tabAdminLogs', this)">📜 Logs de Alterações</div>
       </nav>
 
       <div class="user-card-sidebar">
@@ -370,6 +371,28 @@
         </div>
       </div>
 
+      <!-- ABA 5: LOGS DE AUDITORIA (ADMINISTRADOR) -->
+      <div id="tabAdminLogs" class="tab-pane" style="display:none;">
+        <div class="page-header">
+          <div class="page-title">Histórico de Alterações e Auditoria</div>
+        </div>
+        <div class="card-panel">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:20%;">DATA / HORA</th>
+                  <th style="width:25%;">USUÁRIO / SERVIDOR</th>
+                  <th style="width:20%;">AÇÃO REALIZADA</th>
+                  <th style="width:35%;">DETALHES DA MODIFICAÇÃO</th>
+                </tr>
+              </thead>
+              <tbody id="tbAdminLogs"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 
@@ -478,7 +501,9 @@
       if (ehAdmin) {
         document.getElementById('btnAdminServidores').style.display = 'flex';
         document.getElementById('btnAdminCursos').style.display = 'flex';
+        document.getElementById('btnAdminLogs').style.display = 'flex';
         carregarServidoresAdmin();
+        carregarLogsAuditoria();
       }
 
       await carregarMeusCursos();
@@ -711,6 +736,34 @@
 
       const tabelaResumoAdminBody = document.querySelector("#tabAdminCursos .table-resumo tbody");
       if (tabelaResumoAdminBody) tabelaResumoAdminBody.innerHTML = htmlResumoAdmin;
+    }
+
+    async function carregarLogsAuditoria() {
+      const { data: logs, error } = await dbNuvem
+        .from('registros_alteracoes')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      const tbody = document.getElementById('tbAdminLogs');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (error || !logs || logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b; padding:15px;">Nenhum registro de alteração localizado no histórico.</td></tr>`;
+        return;
+      }
+
+      logs.forEach(l => {
+        const dataFmt = l.created_at ? new Date(l.created_at).toLocaleString('pt-BR') : '-';
+        tbody.innerHTML += `
+          <tr>
+            <td style="font-size:0.78rem; color:#64748b;"><b>${dataFmt}</b></td>
+            <td><b>${l.usuario_nome || l.cpf || 'Sistema'}</b></td>
+            <td><span class="badge-role role-user">${l.acao || 'Alteração'}</span></td>
+            <td>${l.detalhes || l.descricao || '-'}</td>
+          </tr>
+        `;
+      });
     }
 
     async function excluirCurso(id) {
