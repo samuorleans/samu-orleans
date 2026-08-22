@@ -55,39 +55,49 @@
 </div>
 
 <script>
-  // Função que busca os insumos da tabela estoque_mestre no Supabase
-  async function carregarInsumosCombustivel() {
+  (async function() {
     const sel = document.getElementById('abs_combustivel');
     if (!sel) return;
 
-    try {
-      // Busca insumos cadastrados na estoque_mestre
-      const { data, error } = await dbNuvem
-        .from('estoque_mestre')
-        .select('*')
-        .order('descricao_insumo', { ascending: true });
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        sel.innerHTML = '<option value="">Selecione o insumo...</option>';
-        data.forEach(item => {
-          const nomeItem = item.descricao_insumo || item.descricao || item.nome || 'Item sem nome';
-          sel.innerHTML += `<option value="${nomeItem}">${nomeItem}</option>`;
-        });
-      } else {
-        sel.innerHTML = '<option value="">Nenhum insumo cadastrado</option>';
-      }
-    } catch (err) {
-      console.error("Erro ao carregar insumos:", err);
-      // Fallback de segurança mantendo o padrão do formulário
+    // Função de preenchimento fallback em caso de lentidão ou falha
+    function aplicarFallback() {
       sel.innerHTML = `
+        <option value="">Selecione o insumo...</option>
         <option value="Diesel S10">Diesel S10</option>
-        <option value="Arla 32">Arla 32</option>
+        <option value="Arla">Arla</option>
       `;
     }
-  }
 
-  // Executa o carregamento assim que o módulo é inserido/carregado na tela
-  setTimeout(carregarInsumosCombustivel, 100);
+    try {
+      // Garante a referência ao cliente Supabase
+      const client = window.dbNuvem || (window.supabase && typeof window.supabase.createClient === 'function' ? window.supabase.createClient(
+        "https://rcpgukslnlfptreiusff.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
+      ) : null);
+
+      if (!client) {
+        aplicarFallback();
+        return;
+      }
+
+      const { data, error } = await client
+        .from('estoque_mestre')
+        .select('descricao_insumo')
+        .order('descricao_insumo', { ascending: true });
+
+      if (error || !data || data.length === 0) {
+        aplicarFallback();
+      } else {
+        sel.innerHTML = '<option value="">Selecione o insumo...</option>';
+        data.forEach(item => {
+          if (item.descricao_insumo) {
+            sel.innerHTML += `<option value="${item.descricao_insumo}">${item.descricao_insumo}</option>`;
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Erro na busca de insumos:", e);
+      aplicarFallback();
+    }
+  })();
 </script>
