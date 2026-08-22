@@ -51,7 +51,7 @@
 <body>
 
   <div class="container">
-    <!-- CABEÇALHO SAMU CONNECT COM LOGO OFICIAL -->
+    <!-- CABEÇALHO SAMU CONNECT COM LOGO LOCAL -->
     <div class="header">
       <img src="logo.png" alt="SAMU 192" class="brand-logo" onerror="this.style.display='none'">
       <h1>SAMU CONNECT — CENTRAL OPERACIONAL</h1>
@@ -75,7 +75,7 @@
         <div class="form-card-block">
           <label class="title">NOME DO PROFISSIONAL (CONDUTOR OU TÉCNICO) <span>*</span></label>
           <div class="form-group">
-            <select id="p1_profissional" required onchange="filtrarOpcoesPorFuncao()">
+            <select id="p1_profissional" required onchange="filtrarOpcoesPorFuncaoDirect()">
               <option value="">Escolher...</option>
             </select>
           </div>
@@ -142,8 +142,6 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
-    let listaColaboradoresCache = [];
-
     window.onload = function() {
       carregarViaturas();
       carregarProfissionais();
@@ -166,32 +164,35 @@
     async function carregarProfissionais() {
       const selP = document.getElementById('p1_profissional');
       try {
-        // BUSCA NOME E FUNÇÃO DE TODOS OS COLABORADORES DA BASE
+        // Grava o atributo data-funcao diretamente no <option>
         const { data } = await dbNuvem.from('colaboradores').select('nome, funcao, status').order('nome', { ascending: true });
         if (data && data.length > 0) {
-          listaColaboradoresCache = data;
-          selP.innerHTML = '<option value="">Escolher...</option>';
+          selP.innerHTML = '<option value="" data-funcao="">Escolher...</option>';
           data.forEach(c => {
             if (c.status !== 'DESLIGADO') {
-              selP.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+              const funcLimpa = (c.funcao || '').toUpperCase();
+              selP.innerHTML += `<option value="${c.nome}" data-funcao="${funcLimpa}">${c.nome}</option>`;
             }
           });
         }
       } catch (e) {}
     }
 
-    // FILTRA AS OPÇÕES AUTOMATICAMENTE DE ACORDO COM A FUNÇÃO DO SERVIDORE NO BANCO
-    function filtrarOpcoesPorFuncao() {
-      const nomeSel = document.getElementById('p1_profissional').value;
+    // LER A FUNÇÃO DIRETAMENTE DO OPTION SELECIONADO E OCULTAR/EXIBIR OPÇÕES
+    function filtrarOpcoesPorFuncaoDirect() {
+      const selectP = document.getElementById('p1_profissional');
+      const selectedOption = selectP.options[selectP.selectedIndex];
+      const funcao = selectedOption ? (selectedOption.getAttribute('data-funcao') || '') : '';
+
       const optCond = document.getElementById('opt_condutor');
       const optTec = document.getElementById('opt_tecnico');
       const optAbs = document.getElementById('opt_abastecimento');
       const optLacre = document.getElementById('opt_lacre');
 
-      // Limpa qualquer opção anteriormente marcada
+      // Reseta rádios marcados
       document.querySelectorAll('input[name="procedimento"]').forEach(r => r.checked = false);
 
-      if (!nomeSel) {
+      if (!selectP.value) {
         optCond.style.display = 'flex';
         optTec.style.display = 'flex';
         optAbs.style.display = 'flex';
@@ -199,24 +200,21 @@
         return;
       }
 
-      const colab = listaColaboradoresCache.find(c => c.nome === nomeSel);
-      const funcao = colab ? (colab.funcao || '').toUpperCase() : '';
-
-      // CONDUTOR SOCORRISTA -> Libera apenas Checklist Condutor e Abastecimento
+      // CONDUTOR -> Checklist Condutor e Abastecimento
       if (funcao.includes('CONDUTOR') || funcao.includes('MOTORISTA')) {
         optCond.style.display = 'flex';
         optAbs.style.display = 'flex';
         optTec.style.display = 'none';
         optLacre.style.display = 'none';
       } 
-      // TÉCNICO / ENFERMEIRO -> Libera apenas Checklist Técnico e Troca de Lacre
+      // TÉCNICO / ENFERMEIRO -> Checklist Técnico e Troca de Lacre
       else if (funcao.includes('TÉCNICO') || funcao.includes('TECNICO') || funcao.includes('ENFERM')) {
         optTec.style.display = 'flex';
         optLacre.style.display = 'flex';
         optCond.style.display = 'none';
         optAbs.style.display = 'none';
       } 
-      // COORDENAÇÃO / ADMIN -> Libera todas as opções
+      // COORDENAÇÃO / ADMIN -> Exibe Tudo
       else {
         optCond.style.display = 'flex';
         optTec.style.display = 'flex';
