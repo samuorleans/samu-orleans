@@ -102,7 +102,7 @@
 
     /* MODAL */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
-    .modal-card { background: white; padding: 22px; border-radius: 14px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .modal-card { background: white; padding: 22px; border-radius: 14px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
     .modal-title { font-size: 1rem; color: var(--navy-blue); font-weight: 800; }
 
@@ -118,18 +118,27 @@
       .page-header { flex-direction: column; align-items: flex-start; gap: 8px; }
     }
 
+    /* FORMATO OFICIAL DE IMPRESSÃO A4 */
     @media print {
-      @page { size: A4 portrait; margin: 8mm; }
-      body { background: white; color: #000; font-size: 8pt; width: 100%; }
-      .sidebar, .page-header button, .no-print, .search-input, .grid-filter { display: none !important; }
-      .app-layout { display: block !important; }
-      .main-content { padding: 0 !important; overflow: visible !important; }
-      .card-panel { border: none !important; box-shadow: none !important; padding: 0 !important; margin-bottom: 12pt !important; }
-      .relatorio-header-print { display: block !important; }
+      @page { size: A4 portrait; margin: 10mm; }
+      body { background: white !important; color: #000 !important; font-size: 9pt !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+      .sidebar, .page-header, .no-print, .search-input, .grid-filter, .login-wrapper, .modal-header button { display: none !important; }
       
-      .data-table { width: 100% !important; border-collapse: collapse !important; font-size: 8pt !important; table-layout: auto !important; }
-      .data-table th, .data-table td { border: 1px solid #000 !important; padding: 4px 6px !important; white-space: normal !important; word-break: break-word !important; }
-      .data-table th { background-color: #f1f5f9 !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+      .app-layout { display: block !important; min-height: auto !important; }
+      .main-content { padding: 0 !important; overflow: visible !important; }
+      
+      .modal-overlay { position: static !important; background: transparent !important; padding: 0 !important; display: block !important; }
+      .modal-card { max-width: 100% !important; width: 100% !important; max-height: none !important; box-shadow: none !important; border: none !important; padding: 0 !important; border-radius: 0 !important; }
+      
+      .relatorio-header-print { display: block !important; margin-bottom: 15px; text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; }
+      
+      .data-table, table { width: 100% !important; border-collapse: collapse !important; font-size: 8.5pt !important; margin-bottom: 12px !important; }
+      .data-table th, .data-table td, table th, table td { border: 1px solid #000 !important; padding: 5px 8px !important; color: #000 !important; }
+      .data-table th, table th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      
+      .badge-print { border: 1px solid #000 !important; padding: 2px 6px !important; font-size: 7.5pt !important; font-weight: bold !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      
+      .print-signature-area { display: block !important; margin-top: 35px; border-top: 1px solid #000; width: 260px; margin-left: auto; margin-right: auto; text-align: center; font-size: 8.5pt; font-weight: bold; padding-top: 4px; }
     }
   </style>
 </head>
@@ -192,11 +201,11 @@
 
     <main class="main-content">
       
-      <!-- CABEÇALHO IMPRESSÃO -->
+      <!-- CABEÇALHO PARA IMPRESSÃO -->
       <div class="relatorio-header-print">
         <h2>ESTADO DE SANTA CATARINA — MUNICÍPIO DE ORLEANS</h2>
         <h3>SAMU 192 — UNIDADE DE SUPORTE BÁSICO (USB 11 ORLEANS)</h3>
-        <p style="font-size:8.5pt; font-weight:bold; margin-top:3px;">RELATÓRIO OFICIAL DE AUDITORIA E GESTÃO INTEGRADA</p>
+        <p style="font-size:8.5pt; font-weight:bold; margin-top:3px;">RELATÓRIO OFICIAL DE AUDITORIA E FICHA DE CONFERÊNCIA OPERACIONAL</p>
       </div>
 
       <!-- ABA 1: PERFIL DO SERVIDOR -->
@@ -416,14 +425,16 @@
   <!-- MODAL DE ESPELHO GRÁFICO COMPLETO DO CHECKLIST -->
   <div id="modalChecklistEspelho" class="modal-overlay">
     <div class="modal-card">
-      <div class="modal-header">
+      <div class="modal-header no-print">
         <div class="modal-title">📄 ESPELHO DO CHECKLIST OPERACIONAL</div>
         <button style="background:none; border:none; font-size:1.2rem; cursor:pointer;" onclick="fecharModalChecklist()">✕</button>
       </div>
+      
       <div id="conteudoChecklistEspelho"></div>
+      
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:15px;" class="no-print">
         <button class="btn-action-sm" onclick="fecharModalChecklist()">Fechar</button>
-        <button class="btn-primary" onclick="window.print()">🖨️ Imprimir Ficha</button>
+        <button class="btn-primary" onclick="window.print()">🖨️ Imprimir Ficha A4</button>
       </div>
     </div>
   </div>
@@ -805,7 +816,7 @@
       });
     }
 
-    // MONTA O ESPELHO GRÁFICO COMPLETO (OXIGÊNIO + COMBUSTÍVEL + PNEUS + ITENS)
+    // MONTA O ESPELHO GRÁFICO COMPLETO E FIEL
     async function abrirEspelhoChecklist(data) {
       let dadosSaude = null;
       if (data.tipo_procedimento && data.tipo_procedimento.includes('Enfermagem')) {
@@ -829,27 +840,28 @@
         </div>
       `;
 
-      // NÍVEIS E PNEUS (CONDUTOR SOCORRISTA)
-      if (data.nivel_combustivel || data.estado_pneus) {
+      // NÍVEIS, PNEUS E CILINDRO PORTÁTIL DO SOCORRISTA
+      if (data.nivel_combustivel || data.estado_pneus || data.cilindro_portatil_bar) {
         html += `
-          <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase;">⛽ Níveis & Condições de Rodagem</h4>
+          <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase;">⛽ Níveis, Pneus & Oxigênio Portátil (Condutor)</h4>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; margin-bottom:12px; background:#fff; padding:8px; border:1px solid #e2e8f0; border-radius:6px;">
             <div><b>Combustível:</b> ${data.nivel_combustivel || 'N/D'}</div>
             <div><b>Arla 32:</b> ${data.nivel_arla32 || 'N/D'}</div>
             <div><b>Próxima Troca Óleo:</b> ${data.km_proxima_troca_oleo || 'N/D'} km</div>
-            ${data.estado_pneus ? `<div><b>Pneus:</b> Diant: ${data.estado_pneus.dianteiros || '-'} | Tras: ${data.estado_pneus.traseiros || '-'} | Estepe: ${data.estado_pneus.estepe || '-'}</div>` : ''}
+            <div><b>Cilindro Portátil VTR:</b> <b>${data.cilindro_portatil_bar || 0} bar</b></div>
+            ${data.estado_pneus ? `<div style="grid-column: span 2;"><b>Pneus:</b> Diant: ${data.estado_pneus.dianteiros || '-'} | Tras: ${data.estado_pneus.traseiros || '-'} | Estepe: ${data.estado_pneus.estepe || '-'}</div>` : ''}
           </div>
         `;
       }
 
-      // MEDIÇÃO DE GASES E LACRES (TÉCNICO DE ENFERMAGEM)
+      // MEDIÇÃO DE GASES E LACRES DA ENFERMAGEM
       if (dadosSaude) {
         html += `
-          <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase;">💨 Medição de Gases & Lacres Psicotrópicos</h4>
+          <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase;">💨 Medição de Gases & Lacres Psicotrópicos (Enfermagem)</h4>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; margin-bottom:12px; background:#e0f2fe; padding:8px; border:1px solid #bae6fd; border-radius:6px;">
             <div><b>Cilindro Fixo 1:</b> ${dadosSaude.cilindro_fixo_1_bar || 0} bar</div>
             <div><b>Cilindro Fixo 2:</b> ${dadosSaude.cilindro_fixo_2_bar || 0} bar</div>
-            <div><b>Portátil 1:</b> ${dadosSaude.cilindro_portatil_1_bar || 0} bar</div>
+            <div><b>Portátil Salão:</b> ${dadosSaude.cilindro_portatil_1_bar || 0} bar</div>
             <div><b>Ar Comprimido:</b> ${dadosSaude.cilindro_ar_comprimido_bar || 0} bar</div>
             <div style="grid-column: span 2;"><b>Nº Lacre Psicotrópicos:</b> ${dadosSaude.numero_lacre_psicotropicos || 'N/D'}</div>
             <div style="grid-column: span 2;"><b>Status Alerta / Risco Obstétrico:</b> ${dadosSaude.status_kit_parto || 'Conforme'}</div>
@@ -857,16 +869,16 @@
         `;
       }
 
-      // TABELA DE ITENS MECÂNICOS OU MOCHILAS DE ENFERMAGEM
-      const mapaItens = data.mecanica_iluminacao || data.mochilas_equipamentos;
+      // TABELA DE ITENS (MECÂNICA, MOCHILAS E NR 32/EQUIPAMENTOS)
+      const mapaItens = data.mecanica_iluminacao || data.mochilas_equipamentos || data.epis_seguranca_nr32;
       if (mapaItens && typeof mapaItens === 'object' && !Array.isArray(mapaItens)) {
         html += `
-          <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase;">📋 Itens Verificados</h4>
+          <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase;">📋 Itens Verificados e Equipamentos / NR 32</h4>
           <table style="width:100%; border-collapse:collapse; font-size:0.8rem; margin-bottom:12px;">
             <thead>
               <tr style="background:#002b49; color:white;">
                 <th style="padding:5px; text-align:left;">Item Verificado</th>
-                <th style="padding:5px; text-align:center;">Status</th>
+                <th style="padding:5px; text-align:center;">Status Identificado</th>
               </tr>
             </thead>
             <tbody>
@@ -881,7 +893,7 @@
             <tr style="border-bottom:1px solid #e2e8f0;">
               <td style="padding:5px;"><b>${item}</b></td>
               <td style="padding:5px; text-align:center;">
-                <span style="background:${bgBg}; color:white; padding:2px 8px; border-radius:10px; font-size:0.72rem; font-weight:bold;">
+                <span class="badge-print" style="background:${bgBg}; color:white; padding:2px 8px; border-radius:10px; font-size:0.72rem; font-weight:bold;">
                   ${status}
                 </span>
               </td>
@@ -893,11 +905,19 @@
 
       if (data.relato_avarias) {
         html += `
-          <div style="background:#fff3cd; border:1px solid #ffeba2; padding:10px; border-radius:8px; font-size:0.8rem;">
+          <div style="background:#fff3cd; border:1px solid #ffeba2; padding:10px; border-radius:8px; font-size:0.8rem; margin-bottom:12px;">
             <b>Observações / Avarias Registradas:</b><br>${data.relato_avarias}
           </div>
         `;
       }
+
+      // ASSINATURA PARA A IMPRESSÃO A4
+      html += `
+        <div class="print-signature-area">
+          Assinatura do Profissional Responsável<br>
+          <span style="font-weight:normal; font-size:7.5pt;">${data.profissional_nome || ''}</span>
+        </div>
+      `;
 
       document.getElementById('conteudoChecklistEspelho').innerHTML = html;
       document.getElementById('modalChecklistEspelho').style.display = 'flex';
