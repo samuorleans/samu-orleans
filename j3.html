@@ -226,7 +226,7 @@
       equipeEnfermagemReserva.forEach(i => selT.innerHTML += `<option value="${i.nome}">${i.nome}</option>`);
     }
 
-    /* PROCESSAMENTO DO J3 COM TRAVA DE TROCA ANTES DE 24 HORAS */
+    /* PROCESSAMENTO DO J3 COM RIGOROSA TRAVA DE 24 HORAS */
     async function processarJ3(e) {
       e.preventDefault();
       const condutor = document.getElementById('j3_condutor').value;
@@ -236,41 +236,45 @@
       const justificativa = document.getElementById('j3_justificativa').value.trim();
 
       if (!condutor || !tecnico) {
-        alert("⚠️ ATENÇÃO: A viatura precisa da dupla completa (Condutor + Enfermagem) para confirmar o J3."); return;
+        alert("⚠️ ATENÇÃO: A viatura precisa da dupla completa (Condutor + Enfermagem) para confirmar o J3."); 
+        return;
       }
 
       try {
-        // 1. CHECAGEM DE TRAVA DE 24 HORAS: Busca o último plantão ATIVO no banco
-        const { data: plantoesAtivos } = await dbNuvem
+        // 1. CONSULTA RIGOROSA: Busca todos os registros recentes
+        const { data: ultimosPlantoes } = await dbNuvem
           .from('plantoes_j3')
           .select('*')
-          .eq('status', 'ATIVO')
           .order('id', { ascending: false })
-          .limit(1);
+          .limit(5);
 
-        if (plantoesAtivos && plantoesAtivos.length > 0) {
-          const ultimoP = plantoesAtivos[0];
-          const dataUltimo = new Date(ultimoP.data_confirmacao || ultimoP.created_at);
-          const diferencaHoras = (new Date() - dataUltimo) / (1000 * 60 * 60);
+        if (ultimosPlantoes && ultimosPlantoes.length > 0) {
+          // Pega o plantão ativo mais recente
+          const plantaoAtivo = ultimosPlantoes.find(p => p.status === 'ATIVO') || ultimosPlantoes[0];
 
-          // Verifica se houve alteração na dupla de condutor ou enfermagem
-          const houveAlteracaoEquipe = (ultimoP.condutor !== condutor || ultimoP.enfermagem !== tecnico);
+          if (plantaoAtivo) {
+            const timeUltimo = new Date(plantaoAtivo.data_confirmacao || plantaoAtivo.created_at).getTime();
+            const timeAgora = new Date().getTime();
+            const horasDecorridas = (timeAgora - timeUltimo) / (1000 * 60 * 60);
 
-          // Se tiver passado menos de 24 horas E a equipe for diferente: EXIGE JUSTIFICATIVA
-          if (diferencaHoras < 24 && houveAlteracaoEquipe) {
-            if (!ehExcepcional || !justificativa) {
-              alert("⚠️ BLOQUEIO OPERACIONAL:\n\nExiste um plantão ativo registrado nas últimas 24 horas.\n\nPara alterar a equipe antes do término das 24h, marque a caixa 'Troca de última hora' e descreva a justificativa obrigatoriamente.");
-              
-              document.getElementById('j3_chk_excepcional').checked = true;
-              alternarJustificativa();
-              document.getElementById('j3_justificativa').focus();
-              return;
+            const houveAlteracaoDupla = (plantaoAtivo.condutor !== condutor || plantaoAtivo.enfermagem !== tecnico);
+
+            // Se faz MENOS DE 24 HORAS do último J3 e a equipe MUDOU: BLOQUEIA SEM JUSTIFICATIVA
+            if (horasDecorridas < 24 && houveAlteracaoDupla) {
+              if (!ehExcepcional || !justificativa) {
+                alert(`⚠️ BLOQUEIO OPERACIONAL:\n\nJá existe um plantão registrado há apenas ${horasDecorridas.toFixed(1)} horas.\n\nPara alterar a equipe antes das 24h, você OBRIGATORIAMENTE deve:\n1. Marcar a caixa "Troca de última hora"\n2. Descrever o motivo no campo de justificativa.`);
+                
+                document.getElementById('j3_chk_excepcional').checked = true;
+                alternarJustificativa();
+                document.getElementById('j3_justificativa').focus();
+                return;
+              }
             }
           }
         }
 
         if (ehExcepcional && !justificativa) {
-          alert("Informe a justificativa da troca emergencial."); return;
+          alert("Por favor, informe a justificativa da troca emergencial."); return;
         }
 
         // 2. Validação da Senha Única
@@ -285,16 +289,17 @@
         }
 
         if (usuarioValido || senha === 'samu192' || senha === '123456') {
-          // Encerra plantão anterior ativo
+          // Encerra os plantões anteriores ativos
           await dbNuvem.from('plantoes_j3').update({ status: 'ENCERRADO' }).eq('status', 'ATIVO');
 
-          // Insere o novo J3 ativo
+          // Insere o novo J3 ativo com carimbo de data local
           await dbNuvem.from('plantoes_j3').insert([{
             condutor: condutor,
             enfermagem: tecnico,
             tipo_registro: ehExcepcional ? 'EXCEPCIONAL' : 'REGULAR',
             justificativa: justificativa || 'Assunção de Plantão 24h',
-            status: 'ATIVO'
+            status: 'ATIVO',
+            data_confirmacao: new Date().toISOString()
           }]);
 
           const cpfLog = usuarioValido ? usuarioValido.cpf : '075.486.369-70';
@@ -320,7 +325,7 @@
         } else {
           alert("❌ Senha Única incorreta.");
         }
-      } catch (err) { alert("Erro ao conectar com o banco."); }
+      } catch (err) { alert("Erro ao conectar com o banco de dados."); }
     }
 
     function copiarTextoZap() {
