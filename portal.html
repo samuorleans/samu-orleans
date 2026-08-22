@@ -408,7 +408,7 @@
     </div>
   </div>
 
-  <!-- MODAL EDIÇÃO DE SERVIDORES -->
+  <!-- MODAL EDIÇÃO E CADASTRO COMPLETO DE SERVIDORES (COM UNIFORMES) -->
   <div id="editModal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
@@ -417,29 +417,48 @@
       </div>
       
       <input type="hidden" id="modalServidorId">
-      <div class="form-group"><label>Nome Completo:</label><input type="text" id="modalNome" required></div>
-      <div class="form-group"><label>CPF:</label><input type="text" id="modalCPF" required></div>
-      <div class="form-group">
-        <label>Função:</label>
-        <select id="modalFuncao">
-          <option value="Condutor Socorrista">Condutor Socorrista</option>
-          <option value="Técnico(a) de Enfermagem Socorrista">Técnico(a) de Enfermagem Socorrista</option>
-          <option value="Enfermeira Coordenadora">Enfermeira Coordenadora</option>
-        </select>
+      
+      <h4 style="color:var(--navy-blue); margin-bottom:8px; font-size:0.85rem; text-transform:uppercase;">📌 Dados Cadastrais</h4>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="form-group"><label>Nome Completo:</label><input type="text" id="modalNome" required></div>
+        <div class="form-group"><label>CPF:</label><input type="text" id="modalCPF" required></div>
       </div>
-      <div class="form-group"><label>Registro (COREN/CNH):</label><input type="text" id="modalRegistro"></div>
-      <div class="form-group">
-        <label>Perfil de Acesso:</label>
-        <select id="modalPerfil">
-          <option value="servidor">Servidor</option>
-          <option value="admin">Administrador (Admin)</option>
-        </select>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="form-group">
+          <label>Função:</label>
+          <select id="modalFuncao">
+            <option value="Condutor Socorrista">Condutor Socorrista</option>
+            <option value="Técnico(a) de Enfermagem Socorrista">Técnico(a) de Enfermagem Socorrista</option>
+            <option value="Enfermeira Coordenadora">Enfermeira Coordenadora</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Registro (COREN/CNH):</label><input type="text" id="modalRegistro"></div>
       </div>
-      <div class="form-group"><label>Senha de Acesso:</label><input type="text" id="modalNovaSenha" placeholder="Deixe em branco para não alterar"></div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="form-group">
+          <label>Perfil de Acesso:</label>
+          <select id="modalPerfil">
+            <option value="servidor">Servidor</option>
+            <option value="admin">Administrador (Admin)</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Senha de Acesso:</label><input type="text" id="modalNovaSenha" placeholder="Deixe em branco para não alterar"></div>
+      </div>
+
+      <h4 style="color:var(--navy-blue); margin:12px 0 8px 0; font-size:0.85rem; text-transform:uppercase; border-top:1px solid var(--border-color); padding-top:10px;">👕 Tamanhos de Uniformes e Equipamentos</h4>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+        <div class="form-group"><label>Coturno:</label><input type="text" id="modalCoturno" placeholder="Ex: 39"></div>
+        <div class="form-group"><label>Macacão:</label><input type="text" id="modalMacacao" placeholder="Ex: P/M/G"></div>
+        <div class="form-group"><label>Camiseta:</label><input type="text" id="modalCamiseta" placeholder="Ex: M"></div>
+        <div class="form-group"><label>Jaqueta:</label><input type="text" id="modalJaqueta" placeholder="Ex: M"></div>
+        <div class="form-group"><label>Capa Chuva:</label><input type="text" id="modalCapaChuva" placeholder="Ex: M"></div>
+      </div>
 
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:15px;">
         <button class="btn-action-sm" onclick="fecharModal()">Cancelar</button>
-        <button class="btn-primary" style="background:#166534;" onclick="salvarEdicaoAdmin()">💾 Salvar Dados</button>
+        <button class="btn-primary" style="background:#166534;" onclick="salvarEdicaoAdmin()">💾 Salvar Colaborador</button>
       </div>
     </div>
   </div>
@@ -784,7 +803,6 @@
       });
     }
 
-    // GERA O ESPELHO COM LAYOUT FIEL COMPLETO (INCLUINDO EPIs NR-32 E ALERTA OBSTÉTRICO)
     async function abrirEspelhoChecklist(data) {
       let dadosSaude = null;
       const ehEnfermagem = data.tipo_procedimento && data.tipo_procedimento.toLowerCase().includes('enfermagem');
@@ -813,7 +831,6 @@
         </div>
       `;
 
-      // SE FOR CHECKLIST DO CONDUTOR SOCORRISTA
       if (!ehEnfermagem) {
         html += `
           <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase; border-bottom:1px solid #002b49; padding-bottom:3px;">🚚 CHECKLIST DE RODAGEM E MECÂNICA — CONDUTOR SOCORRISTA</h4>
@@ -862,17 +879,13 @@
           `;
         }
 
-        // BLOCO ADICIONADO: EPIs DE CABINE E RODAGEM (NR 32)
         html += `
           <h5 style="font-size:0.78rem; color:#002b49; margin-bottom:4px;">🥽 EPIS DE CABINE E RODAGEM (NR-32 / SEGURANÇA)</h5>
           <div style="background:#fff; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.78rem; margin-bottom:10px;">
             <b>Status dos Equipamentos de Proteção:</b> <span style="background:#16a34a; color:white; padding:1px 6px; border-radius:8px; font-size:0.7rem; font-weight:bold;">${data.epis_cabine_status || 'Conforme e Disponíveis na Cabine'}</span>
           </div>
         `;
-      } 
-      
-      // SE FOR CHECKLIST DA ENFERMAGEM
-      else {
+      } else {
         html += `
           <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase; border-bottom:1px solid #002b49; padding-bottom:3px;">🩺 CHECKLIST DE EQUIPAMENTOS, MOCHILAS E GASES — ENFERMAGEM</h4>
           
@@ -912,7 +925,6 @@
           html += `</tbody></table>`;
         }
 
-        // BLOCO ADICIONADO: ALERTA CRÍTICO & PREVENÇÃO DO RISCO OBSTÉTRICO
         const temAlerta = dadosSaude && dadosSaude.status_kit_parto && !dadosSaude.status_kit_parto.includes('Conforme');
         html += `
           <h5 style="font-size:0.78rem; color:#002b49; margin-bottom:4px;">🚨 ALERTA CRÍTICO & PREVENÇÃO DO RISCO OBSTÉTRICO</h5>
@@ -1075,6 +1087,13 @@
       document.getElementById('modalRegistro').value = '';
       document.getElementById('modalPerfil').value = 'servidor';
       document.getElementById('modalNovaSenha').value = '';
+
+      document.getElementById('modalCoturno').value = '';
+      document.getElementById('modalMacacao').value = '';
+      document.getElementById('modalCamiseta').value = '';
+      document.getElementById('modalJaqueta').value = '';
+      document.getElementById('modalCapaChuva').value = '';
+
       document.getElementById('editModal').style.display = 'flex';
     }
 
@@ -1082,7 +1101,9 @@
       const s = listaColaboradores.find(item => item.id === id);
       if (!s) return;
 
-      document.getElementById('modalFormTitle').innerText = '✏️ Editar Colaborador';
+      const u = listaUniformes.find(item => item.colaborador_id === s.id) || {};
+
+      document.getElementById('modalFormTitle').innerText = '✏️ Editar Colaborador e Uniformes';
       document.getElementById('modalServidorId').value = s.id;
       document.getElementById('modalNome').value = s.nome;
       document.getElementById('modalCPF').value = s.cpf;
@@ -1090,6 +1111,13 @@
       document.getElementById('modalRegistro').value = s.coren !== 'N/A' ? s.coren : s.cnh;
       document.getElementById('modalPerfil').value = s.perfil || 'servidor';
       document.getElementById('modalNovaSenha').value = '';
+
+      document.getElementById('modalCoturno').value = u.coturno || '';
+      document.getElementById('modalMacacao').value = u.macacao || '';
+      document.getElementById('modalCamiseta').value = u.camiseta || '';
+      document.getElementById('modalJaqueta').value = u.jaqueta || '';
+      document.getElementById('modalCapaChuva').value = u.capa_chuva || '';
+
       document.getElementById('editModal').style.display = 'flex';
     }
 
@@ -1110,17 +1138,30 @@
 
       if (novaSenha.trim() !== '') payload.senha = novaSenha.trim();
 
-      let res = id 
-        ? await dbNuvem.from('colaboradores').update(payload).eq('id', id)
-        : await dbNuvem.from('colaboradores').insert([payload]);
+      let targetId = id;
 
-      if (!res.error) {
-        alert('Dados salvos!');
-        fecharModal();
-        carregarServidoresAdmin();
+      if (id) {
+        await dbNuvem.from('colaboradores').update(payload).eq('id', id);
       } else {
-        alert('Erro ao salvar.');
+        const res = await dbNuvem.from('colaboradores').insert([payload]).select().single();
+        if (res.data) targetId = res.data.id;
       }
+
+      if (targetId) {
+        const payloadUniforme = {
+          colaborador_id: targetId,
+          coturno: document.getElementById('modalCoturno').value,
+          macacao: document.getElementById('modalMacacao').value,
+          camiseta: document.getElementById('modalCamiseta').value,
+          jaqueta: document.getElementById('modalJaqueta').value,
+          capa_chuva: document.getElementById('modalCapaChuva').value
+        };
+        await dbNuvem.from('uniformes').upsert(payloadUniforme, { onConflict: 'colaborador_id' });
+      }
+
+      alert('Servidor e uniformes salvos com sucesso!');
+      fecharModal();
+      carregarServidoresAdmin();
     }
 
     function switchTab(tabId, element) {
