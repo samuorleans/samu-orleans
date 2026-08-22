@@ -95,8 +95,37 @@
     </table>
   </div>
 
+  <div class="section-header-title">🧰 Equipamentos de Salvamento e Ferramentas (POP-ALM-001)</div>
+  <div class="checkbox-list">
+    <label class="checkbox-item"><input type="checkbox" class="chk_ferramenta" value="Cones (3) & Fita Zebrada" checked> Cones de Sinalização (3 Unidades) e Fita Zebrada (1 Unidade)</label>
+    <label class="checkbox-item"><input type="checkbox" class="chk_ferramenta" value="Lanternas Recarregáveis (2)" checked> Lanternas Carregáveis (2 Unidades Grande/Média)</label>
+    <label class="checkbox-item"><input type="checkbox" class="chk_ferramenta" value="Kit Ferramentas Completo" checked> Kit de Ferramentas (Alicate, Fenda, Martelo, Chaves de Boca, Serrinha, Cabo Elétrico)</label>
+    <label class="checkbox-item"><input type="checkbox" class="chk_ferramenta" value="Pés de Cabra (2)" checked> Pés de Cabra (2 Unidades)</label>
+    <label class="checkbox-item"><input type="checkbox" class="chk_ferramenta" value="Cadeira e Maca Articulada" checked> Cadeira de Rodas e Maca Articulada</label>
+    <label class="checkbox-item"><input type="checkbox" class="chk_ferramenta" value="Pranchas Longas com Tirantes (2)" checked> Pranchas Longas com Tirantes (2 Unidades)</label>
+    <label class="checkbox-item"><input type="checkbox" class="chk_ferramenta" value="Celular Operacional + Carregador" checked> Celular com Carregador Veicular</label>
+  </div>
+
+  <div class="form-group" style="margin-top:16px;">
+    <label>EPIs de Cabine e Rodagem (Óculos, Luvas de Vaqueta, Colete Refletivo NR-32):*</label>
+    <select id="cond_epi" required>
+      <option value="">Selecione...</option>
+      <option value="Sim, todos conformes e disponíveis">Sim, todos conformes e disponíveis</option>
+      <option value="Não, solicitar reposição/adequação imediata">Não, solicitar reposição/adequação imediata</option>
+    </select>
+  </div>
+
   <div class="form-group">
-    <label>Relato de Avarias e Observações do Condutor:</label>
+    <label>Cilindro Portátil 2 (1m³ — Reserva sob o Banco do Salão):*</label>
+    <select id="cond_cil_port2" required>
+      <option value="">Selecione...</option>
+      <option value="Lacre Íntegro / Cheio (200 bar)">Lacre Íntegro / Cheio (200 bar)</option>
+      <option value="Necessita Substituição / Vazio">Necessita Substituição / Vazio</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Relato de Avarias e Observações Gerais do Condutor:</label>
     <div class="mic-wrapper">
       <textarea id="cond_avarias" rows="3" placeholder="Digite ou toque no microfone para falar..."></textarea>
       <button type="button" class="btn-mic" onclick="iniciarVoz('cond_avarias')">🎙️ Ouvir</button>
@@ -111,10 +140,10 @@
 
 <script>
   const listaMecanica = [
-    "Nível de Óleo do Motor", "Líquido de Arrefecimento", "Óleo da Direção Hidráulica",
-    "Fluido de Freio", "Motor de Arranque / Partida", "Sistemas de Direção e Câmbio",
-    "Ar-Condicionado (Cabine e Salão)", "Módulo de Sirene e Giroflex",
-    "Limpador de Para-brisa e Vidros", "Faróis, Lanternas e Piscas"
+    "Óleo do Motor", "Líquido de Arrefecimento", "Óleo de Direção",
+    "Fluido de Freio", "Motor de Arranque", "Direção e Câmbio",
+    "Ar-Condicionado (Cabine e Salão)", "Módulo Sirene e Giroflex",
+    "Limpadores e Vidros", "Faróis e Piscas"
   ];
 
   function renderizarMecanica() {
@@ -125,8 +154,8 @@
         <tr id="row_mec_${index}">
           <td>${item}</td>
           <td><input type="radio" name="mec_${index}" value="Ok / Conforme"></td>
-          <td><input type="radio" name="mec_${index}" value="Alerta / Abaixo"></td>
-          <td><input type="radio" name="mec_${index}" value="Avaria / Defeito"></td>
+          <td><input type="radio" name="mec_${index}" value="Abaixo do Nível / Alerta"></td>
+          <td><input type="radio" name="mec_${index}" value="Com Avaria / Outro"></td>
         </tr>
       `;
     });
@@ -154,6 +183,9 @@
       alert(`⚠️ Preenchimento obrigatório incompleto!\nAvalie os itens destacados em vermelho.`); return;
     }
 
+    let ferrSelecionadas = [];
+    document.querySelectorAll('.chk_ferramenta:checked').forEach(c => ferrSelecionadas.push(c.value));
+
     const payload = {
       viatura: document.getElementById('vtr_prefixo').value,
       profissional_nome: document.getElementById('prof_nome').value,
@@ -165,6 +197,11 @@
       nivel_arla32: document.getElementById('cond_arla').value,
       mecanica_iluminacao: mapaMecanica,
       estado_pneus: { dianteiros: pneuDiant.value, traseiros: pneuTras.value, estepe: pneuEstepe.value },
+      mochilas_equipamentos: {
+        ferramentas: ferrSelecionadas,
+        epis: document.getElementById('cond_epi').value,
+        cilindro_portatil_2: document.getElementById('cond_cil_port2').value
+      },
       relato_avarias: document.getElementById('cond_avarias').value
     };
 
