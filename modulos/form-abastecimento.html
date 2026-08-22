@@ -18,11 +18,13 @@
         </select>
       </div>
 
-      <!-- TIPO DE COMBUSTÍVEL - POPULADO DINAMICAMENTE DO ESTOQUE_MESTRE -->
+      <!-- TIPO DE COMBUSTÍVEL - BUSCA DINÂMICA DO ESTOQUE MESTRE -->
       <div style="display:flex; flex-direction:column;">
         <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Tipo de Insumo / Combustível:*</label>
-        <select id="abs_combustivel" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
-          <option value="">Carregando insumos...</option>
+        <select id="abs_combustivel" required onfocus="carregarInsumosCombustivelDirect()" style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
+          <option value="">Selecione o insumo...</option>
+          <option value="Diesel S10">Diesel S10</option>
+          <option value="Arla">Arla</option>
         </select>
       </div>
 
@@ -55,49 +57,38 @@
 </div>
 
 <script>
-  (async function() {
+  async function carregarInsumosCombustivelDirect() {
     const sel = document.getElementById('abs_combustivel');
-    if (!sel) return;
-
-    // Função de preenchimento fallback em caso de lentidão ou falha
-    function aplicarFallback() {
-      sel.innerHTML = `
-        <option value="">Selecione o insumo...</option>
-        <option value="Diesel S10">Diesel S10</option>
-        <option value="Arla">Arla</option>
-      `;
-    }
+    if (!sel || sel.dataset.carregado === "true") return;
 
     try {
-      // Garante a referência ao cliente Supabase
       const client = window.dbNuvem || (window.supabase && typeof window.supabase.createClient === 'function' ? window.supabase.createClient(
         "https://rcpgukslnlfptreiusff.supabase.co",
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
       ) : null);
 
-      if (!client) {
-        aplicarFallback();
-        return;
-      }
+      if (!client) return;
 
       const { data, error } = await client
         .from('estoque_mestre')
         .select('descricao_insumo')
         .order('descricao_insumo', { ascending: true });
 
-      if (error || !data || data.length === 0) {
-        aplicarFallback();
-      } else {
+      if (data && data.length > 0) {
         sel.innerHTML = '<option value="">Selecione o insumo...</option>';
         data.forEach(item => {
-          if (item.descricao_insumo) {
-            sel.innerHTML += `<option value="${item.descricao_insumo}">${item.descricao_insumo}</option>`;
+          const valor = item.descricao_insumo;
+          if (valor) {
+            sel.innerHTML += `<option value="${valor}">${valor}</option>`;
           }
         });
+        sel.dataset.carregado = "true";
       }
     } catch (e) {
-      console.error("Erro na busca de insumos:", e);
-      aplicarFallback();
+      console.log("Mantendo valores padrao de insumo");
     }
-  })();
+  }
+
+  // Execução imediata caso a função seja invocada
+  setTimeout(carregarInsumosCombustivelDirect, 300);
 </script>
