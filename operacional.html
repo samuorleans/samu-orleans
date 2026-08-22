@@ -3,269 +3,140 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAMU Connect — Central Operacional USB 11</title>
+  <title>SAMU Connect — Central Operacional</title>
+  <!-- SDK OFICIAL SUPABASE DA CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --samu-red: #d32f2f;
       --samu-navy: #0d233a;
       --samu-blue: #1976d2;
       --bg-surface: #f4f7fa;
       --card-bg: #ffffff;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
       --border: #cbd5e1;
       --shadow: 0 10px 30px rgba(13, 35, 58, 0.08);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-    body { background-color: var(--bg-surface); color: var(--text-main); padding: 25px 12px; display: flex; justify-content: center; min-height: 100vh; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background-color: var(--bg-surface); color: #1e293b; min-height: 100vh; padding: 20px 12px; }
 
-    .main-card {
-      width: 100%; max-width: 820px; background: var(--card-bg); border-radius: 20px;
-      box-shadow: var(--shadow); border-top: 6px solid var(--samu-red);
-      padding: 30px 22px; margin-bottom: 40px;
-    }
+    .container { max-width: 650px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; text-align: center; }
+    .header h1 { font-size: 1.2rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; }
+    .header p { font-size: 0.8rem; color: #64748b; margin-bottom: 20px; font-weight: 600; }
 
-    .brand-header { text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
-    .brand-header img { width: 75px; height: auto; margin-bottom: 12px; }
-    .brand-header h1 { font-size: 1.25rem; color: var(--samu-navy); font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
-    .brand-header p { font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
-
-    .form-group { display: flex; flex-direction: column; margin-bottom: 16px; text-align: left; position: relative; }
-    .form-group label { font-size: 0.78rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
-    .form-group input, .form-group select, .form-group textarea {
-      padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; transition: 0.2s; width: 100%; background: #f8fafc;
-    }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-      border-color: var(--samu-blue); background: white; box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.1);
-    }
-
-    .radio-card {
-      display: flex; align-items: center; gap: 12px; padding: 14px; border: 1.5px solid var(--border);
-      border-radius: 10px; margin-bottom: 10px; cursor: pointer; background: #ffffff; transition: 0.2s;
-    }
-    .radio-card:hover { border-color: var(--samu-blue); background: #f0f7ff; }
-    .radio-card.disabled { opacity: 0.3; pointer-events: none; background: #e2e8f0; filter: grayscale(1); }
-    .radio-card input[type="radio"] { width: 18px; height: 18px; accent-color: var(--samu-red); cursor: pointer; }
-    .radio-card label { margin: 0; font-size: 0.9rem; font-weight: 600; color: var(--text-main); cursor: pointer; }
-
-    .action-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 30px; }
-    .btn-main { background: var(--samu-navy); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
-    .btn-back { background: #e2e8f0; color: #334155; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
-    .btn-save { background: #15803d; color: white; border: none; padding: 13px 24px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.92rem; }
-
-    @media (max-width: 600px) { .action-row { flex-direction: column; } }
+    .btn-voltar { display: inline-block; margin-top: 20px; font-size: 0.85rem; color: var(--samu-blue); text-decoration: none; font-weight: 700; }
   </style>
 </head>
 <body>
 
-  <div class="main-card">
-    <div class="brand-header">
-      <img src="logo.png" alt="SAMU 192" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
+  <div class="container">
+    <div class="header">
       <h1>SAMU CONNECT — CENTRAL OPERACIONAL</h1>
       <p>USB 11 ORLEANS — Registros Operacionais e Checklists de Rotina</p>
     </div>
 
-    <!-- SELEÇÃO INICIAL DE PERFIL E PROCEDIMENTO -->
-    <div id="etapa_inicial">
-      <div class="form-group">
-        <label>Viatura / Prefixo:*</label>
-        <select id="vtr_prefixo" required>
-          <option value="">Carregando viaturas...</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Nome do Profissional (Condutor ou Técnico):*</label>
-        <select id="prof_nome" onchange="aplicarFiltroPerfil()" required>
-          <option value="">Carregando colaboradores...</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Qual procedimento deseja realizar agora?*</label>
-        
-        <div class="radio-card" id="card_condutor">
-          <input type="radio" id="opt_condutor" name="procedimento" value="modulos/form-condutor.html">
-          <label for="opt_condutor">🚑 Checklist de Plantão — Condutor Socorrista</label>
-        </div>
-        
-        <div class="radio-card" id="card_tecnico">
-          <input type="radio" id="opt_tecnico" name="procedimento" value="modulos/form-tecnico.html">
-          <label for="opt_tecnico">🩺 Checklist de Plantão — Técnico de Enfermagem</label>
-        </div>
-        
-        <div class="radio-card" id="card_abastecimento">
-          <input type="radio" id="opt_abastecimento" name="procedimento" value="modulos/form-abastecimento.html">
-          <label for="opt_abastecimento">⛽ Registro de Abastecimento de Combustível/Arla</label>
-        </div>
-        
-        <div class="radio-card" id="card_lacre">
-          <input type="radio" id="opt_lacre" name="procedimento" value="modulos/form-lacre.html">
-          <label for="opt_lacre">🔒 Registro de Ocorrência / Substituição de Lacre</label>
-        </div>
-      </div>
-
-      <div class="action-row" style="justify-content: flex-end;">
-        <button type="button" class="btn-main" onclick="carregarModulo()">Avançar ➔</button>
-      </div>
+    <!-- CARREGAMENTO DINÂMICO DO MÓDULO DE ABASTECIMENTO -->
+    <div id="conteudoModulo">
+      <p style="color:#64748b; font-size:0.85rem;">Carregando formulário operacional...</p>
     </div>
 
-    <!-- ÁREA DINÂMICA ONDE O MÓDULO É CARREGADO -->
-    <div id="area_modulo"></div>
-
+    <a href="index.html" class="btn-voltar">⬅️ Voltar ao Painel Principal</a>
   </div>
 
   <script>
+    // Conexão oficial do Supabase
     const dbNuvem = supabase.createClient(
       "https://rcpgukslnlfptreiusff.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
-    /* MAPEAMENTO DA EQUIPE USB 11 */
-    const condutoresNomes = ["DANIEL ALEXANDRE FERNANDES", "LUCAS VIEIRA MENDES", "MÁRCIO BECKER", "MARCIO BECKER", "RENATO CÂNDIDO", "RENATO CANDIDO", "VANDERLEI JOSÉ TASCA", "VANDERLEI JOSE TASCA"];
-    const tecnicosNomes = ["CLÊNIO BORGES", "CLENIO BORGES", "GICERLÉIA TRINDADE DA ROSA", "GICERLEIA TRINDADE DA ROSA", "LUIS EDUARDO FORMANSKI VITÓRIO", "LUIS EDUARDO FORMANSKI VITORIO", "RINALDO CALEGARIO", "SUANDRE ADÃO MACHADO", "SUANDRE ADAO MACHADO"];
-
-    async function carregarListasIniciais() {
-      // 1. Carrega Viaturas Ativas
-      const { data: viaturas } = await dbNuvem.from('operacional_viaturas').select('*').eq('status', 'ATIVA');
-      const selVtr = document.getElementById('vtr_prefixo');
-      selVtr.innerHTML = '<option value="">Selecione a viatura...</option>';
-      if (viaturas) {
-        viaturas.forEach(v => {
-          selVtr.innerHTML += `<option value="${v.prefixo}">${v.prefixo}</option>`;
+    window.onload = function() {
+      // Carrega o módulo do arquivo modulos/form-abastecimento.html
+      fetch('modulos/form-abastecimento.html')
+        .then(res => res.text())
+        .then(html => {
+          document.getElementById('conteudoModulo').innerHTML = html;
+          carregarViaturas();
+          carregarCondutores();
+          carregarPostos();
+        })
+        .catch(err => {
+          document.getElementById('conteudoModulo').innerHTML = '<p style="color:red;">Erro ao carregar o módulo.</p>';
         });
-      }
+    };
 
-      // 2. Carrega Colaboradores
-      const { data: colaboradores } = await dbNuvem.from('colaboradores').select('*').order('nome');
-      const selProf = document.getElementById('prof_nome');
-      selProf.innerHTML = '<option value="">Selecione o seu nome...</option>';
+    // FUNÇÕES DE BUSCA NO BANCO DE DADOS
+    async function carregarViaturas() {
+      const selV = document.getElementById('abs_viatura');
+      if (!selV) return;
+      try {
+        const { data } = await dbNuvem.from('operacional_viaturas').select('*');
+        if (data && data.length > 0) {
+          selV.innerHTML = '<option value="">Selecione a Viatura...</option>';
+          data.forEach(v => {
+            const label = v.placa ? `${v.prefixo || 'USB'} (${v.placa})` : v.prefixo;
+            selV.innerHTML += `<option value="${label}">${label}</option>`;
+          });
+        }
+      } catch (e) {}
+    }
 
-      if (colaboradores) {
-        colaboradores.forEach(c => {
-          const nomeUpper = (c.nome || '').toUpperCase().trim();
-          const strCargo = ((c.cargo || c.funcao || '') + '').toUpperCase();
-
-          // Ignora o perfil de Administrador do Sistema na lista operacional
-          if (!nomeUpper.includes('ADMINISTRADOR') && !strCargo.includes('ADMINISTRADOR')) {
-            let cargoRotulo = 'Servidor';
-            let cargoTag = 'COORDENACAO';
-
-            if (condutoresNomes.includes(nomeUpper) || strCargo.includes('CONDUTOR')) {
-              cargoRotulo = 'Condutor Socorrista';
-              cargoTag = 'CONDUTOR';
-            } else if (tecnicosNomes.includes(nomeUpper) || strCargo.includes('TÉCNICO') || strCargo.includes('TECNICO')) {
-              cargoRotulo = 'Técnico de Enfermagem';
-              cargoTag = 'TECNICO';
-            } else if (nomeUpper.includes('EDIMARA') || strCargo.includes('ENFERMEIR') || strCargo.includes('COORDENADORA')) {
-              cargoRotulo = 'Enfermeira Coordenadora';
-              cargoTag = 'COORDENACAO';
+    async function carregarCondutores() {
+      const selC = document.getElementById('abs_condutor');
+      if (!selC) return;
+      try {
+        const { data } = await dbNuvem.from('colaboradores').select('nome, funcao, status').order('nome', { ascending: true });
+        if (data && data.length > 0) {
+          selC.innerHTML = '<option value="">Selecione o Condutor...</option>';
+          data.forEach(c => {
+            const f = (c.funcao || '').toUpperCase();
+            if (c.status !== 'DESLIGADO' && (f.includes('CONDUTOR') || f.includes('MOTORISTA') || f.includes('ADMIN'))) {
+              selC.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
             }
-
-            selProf.innerHTML += `<option value="${c.nome} - ${cargoRotulo}" data-cargo="${cargoTag}">${c.nome} - ${cargoRotulo}</option>`;
-          }
-        });
-      }
+          });
+        }
+      } catch (e) {}
     }
 
-    /* FILTRO DINÂMICO DE ACESSO COM TRAVA DE SEGURANÇA */
-    function aplicarFiltroPerfil() {
-      const sel = document.getElementById('prof_nome');
-      const cargo = sel.options[sel.selectedIndex]?.getAttribute('data-cargo');
-      
-      const cCond = document.getElementById('card_condutor');
-      const cTec = document.getElementById('card_tecnico');
-      const cAbs = document.getElementById('card_abastecimento');
-      const cLac = document.getElementById('card_lacre');
-
-      // Limpa seleções de radio anteriores
-      document.querySelectorAll('input[name="procedimento"]').forEach(r => r.checked = false);
-
-      if (cargo === 'CONDUTOR') {
-        cCond.classList.remove('disabled'); cAbs.classList.remove('disabled');
-        cTec.classList.add('disabled'); cLac.classList.add('disabled');
-      } else if (cargo === 'TECNICO') {
-        cTec.classList.remove('disabled'); cLac.classList.remove('disabled');
-        cCond.classList.add('disabled'); cAbs.classList.add('disabled');
-      } else {
-        // Coordenação / Enfermeira — Habilita todos os acessos
-        cCond.classList.remove('disabled'); cAbs.classList.remove('disabled');
-        cTec.classList.remove('disabled'); cLac.classList.remove('disabled');
-      }
+    async function carregarPostos() {
+      const selP = document.getElementById('abs_posto');
+      if (!selP) return;
+      try {
+        const { data } = await dbNuvem.from('operacional_postos').select('nome_posto, status').eq('status', 'ATIVO');
+        if (data && data.length > 0) {
+          selP.innerHTML = '<option value="">Selecione o Posto...</option>';
+          data.forEach(p => {
+            selP.innerHTML += `<option value="${p.nome_posto}">${p.nome_posto}</option>`;
+          });
+        }
+      } catch (e) {}
     }
 
-    /* CARREGAMENTO DINÂMICO DE COMPONENTES (SPA) */
-    async function carregarModulo() {
-      const vtr = document.getElementById('vtr_prefixo').value;
-      const prof = document.getElementById('prof_nome').value;
-      const moduloUrl = document.querySelector('input[name="procedimento"]:checked')?.value;
-
-      if (!vtr || !prof || !moduloUrl) {
-        alert("Por favor, selecione a Viatura, seu Nome e o Procedimento desejado."); return;
-      }
+    // GRAVAÇÃO NA TABELA operacional_abastecimentos
+    async function salvarAbastecimento(e) {
+      e.preventDefault();
+      const payload = {
+        viatura: document.getElementById('abs_viatura').value,
+        condutor_nome: document.getElementById('abs_condutor').value,
+        posto_credenciado: document.getElementById('abs_posto').value,
+        tipo_insumo: document.getElementById('abs_combustivel').value,
+        km_atual: parseInt(document.getElementById('abs_km').value),
+        litros: parseFloat(document.getElementById('abs_litros').value),
+        valor_pago: parseFloat(document.getElementById('abs_valor').value),
+        observacoes: document.getElementById('abs_obs').value.trim()
+      };
 
       try {
-        const response = await fetch(moduloUrl);
-        const html = await response.text();
-        
-        document.getElementById('etapa_inicial').style.display = 'none';
-        const container = document.getElementById('area_modulo');
-        container.innerHTML = html;
-
-        const scripts = container.getElementsByTagName('script');
-        for (let s of scripts) { eval(s.innerText); }
+        const { error } = await dbNuvem.from('operacional_abastecimentos').insert([payload]);
+        if (error) {
+          alert("❌ Erro ao salvar: " + error.message);
+        } else {
+          alert("✅ Abastecimento gravado com sucesso no Supabase!");
+          document.getElementById('formAbastecimento').reset();
+        }
       } catch (err) {
-        alert("Erro ao carregar o módulo selecionado. Verifique os arquivos da pasta 'modulos/'.");
+        alert("❌ Erro ao conectar ao banco.");
       }
     }
-
-    function voltarInicio() {
-      document.getElementById('area_modulo').innerHTML = '';
-      document.getElementById('etapa_inicial').style.display = 'block';
-    }
-
-    /* RECONHECIMENTO DE VOZ (SPEECH-TO-TEXT) */
-    function iniciarVoz(idCampo) {
-      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        alert("O reconhecimento de voz não é suportado neste navegador."); return;
-      }
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'pt-BR';
-      recognition.interimResults = false;
-
-      const btn = event.currentTarget;
-      btn.classList.add('recording');
-      btn.innerText = '🔴 Ouvindo...';
-
-      recognition.start();
-
-      recognition.onresult = (e) => {
-        const texto = e.results[0][0].transcript;
-        const campo = document.getElementById(idCampo);
-        campo.value += (campo.value ? " " : "") + texto;
-      };
-
-      recognition.onerror = recognition.onend = () => {
-        btn.classList.remove('recording');
-        btn.innerText = '🎙️ Ouvir';
-      };
-    }
-
-    async function registrarLog(sistema, acao, detalhes) {
-      try {
-        await dbNuvem.from('logs_alteracoes').insert([{
-          sistema: sistema,
-          usuario_nome: document.getElementById('prof_nome').value || 'Servidor',
-          acao: acao,
-          detalhes: detalhes
-        }]);
-      } catch (err) { console.error(err); }
-    }
-
-    carregarListasIniciais();
   </script>
 </body>
 </html>
