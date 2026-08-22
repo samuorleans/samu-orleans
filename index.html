@@ -68,7 +68,7 @@
       background: rgba(0, 0, 0, 0.6); display: none; justify-content: center; align-items: center; z-index: 1000;
     }
     .modal-box {
-      background: white; padding: 28px; border-radius: 12px; width: 90%; max-width: 420px;
+      background: white; padding: 28px; border-radius: 12px; width: 90%; max-width: 440px;
       text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.3); position: relative;
     }
     .modal-box h3 { color: var(--navy-blue); margin-bottom: 8px; }
@@ -76,7 +76,7 @@
 
     .form-group-modal { text-align: left; margin-bottom: 14px; }
     .form-group-modal label { font-size: 0.75rem; font-weight: 700; color: var(--navy-blue); text-transform: uppercase; display: block; margin-bottom: 4px; }
-    .input-field { width: 100%; padding: 11px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; outline: none; }
+    .input-field { width: 100%; padding: 11px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; outline: none; background: #fff; }
     .input-field:focus { border-color: var(--navy-blue); }
 
     .btn-submit { width: 100%; padding: 12px; background-color: var(--primary-red); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; margin-top: 10px; }
@@ -92,10 +92,10 @@
 </head>
 <body>
 
-  <!-- Topbar com botão de Acesso Restrito -->
+  <!-- Topbar com botão de Gestão -->
   <div class="topbar">
     <div class="topbar-brand">🚑 SAMU ORLEANS</div>
-    <button class="btn-admin-login" id="auth-btn" onclick="openLoginModal('GESTAO')">🔒 Gestão / Coordenação</button>
+    <button class="btn-admin-login" id="auth-btn" onclick="openGestaoModal()">🔒 Gestão / Coordenação</button>
   </div>
 
   <!-- Cabeçalho Principal -->
@@ -130,12 +130,12 @@
         <span class="badge">Visualizar Escala</span>
       </a>
 
-      <!-- Card 3: NOVO - Lançamento de J3 / Indisponibilidade -->
+      <!-- Card 3: Lançamento do J3 Diário / Indisponibilidade -->
       <div onclick="abrirModalJ3()" class="card" style="border-top-color: #d97706;">
         <div>
           <div class="card-icon">🚨</div>
-          <div class="card-title">Lançar J3 / Atestado</div>
-          <div class="card-desc">Registro rápido de indisponibilidade, atestados ou trocas de plantão.</div>
+          <div class="card-title">Lançamento de J3 / Atestado</div>
+          <div class="card-desc">Registro rápido de indisponibilidade, atestados médicos ou trocas de plantão.</div>
         </div>
         <span class="badge" style="color: #d97706;">Lançar J3</span>
       </div>
@@ -170,19 +170,19 @@
         <span class="badge">Gerar Folha</span>
       </a>
 
-      <!-- Card 7: Portal do Servidor (Requer Senha Única) -->
-      <div onclick="openLoginModal('PORTAL')" class="card">
+      <!-- Card 7: Portal do Servidor (Abre direto a tela de login unificada) -->
+      <a href="portal.html" class="card">
         <div>
           <div class="card-icon">🔐</div>
           <div class="card-title">Portal do Servidor</div>
-          <div class="card-desc">Acesso a dados cadastrais, perfil de acesso e histórico.</div>
+          <div class="card-desc">Acesso restrito a dados pessoais, troca de plantão e certificados.</div>
         </div>
-        <span class="badge">Acessar com Senha</span>
-      </div>
+        <span class="badge">Acessar Portal</span>
+      </a>
 
     </div>
 
-    <!-- SEÇÃO 2: ÁREA RESTRITA / GESTÃO (LIBERADA AUTOMATICAMENTE PARA ADMIN/COORDENAÇÃO) -->
+    <!-- SEÇÃO 2: ÁREA RESTRITA / GESTÃO (LIBERADA APÓS SENHA) -->
     <div id="admin-section">
       <h2 class="section-title" style="border-bottom-color: var(--navy-blue);">📊 Banco de Dados & Gestão de Frotas/Materiais</h2>
       <div class="grid-container">
@@ -222,39 +222,27 @@
 
   </div>
 
-  <!-- MODAL DE LOGIN (SERVIDORES E GESTÃO) -->
-  <div class="modal-overlay" id="loginModal">
+  <!-- MODAL DE SENHA DE GESTÃO -->
+  <div class="modal-overlay" id="gestaoModal">
     <div class="modal-box">
-      <span class="close-modal" onclick="closeLoginModal()">&times;</span>
-      <h3 id="modalTitle">Acesso ao Portal</h3>
-      <p id="modalDesc">Digite seu CPF e sua Senha Única para continuar.</p>
-
-      <form id="formLoginModal" onsubmit="processarLoginModal(event)">
-        <div class="form-group-modal">
-          <label>CPF do Servidor:*</label>
-          <input type="text" id="login_cpf" class="input-field" placeholder="000.000.000-00" oninput="mascaraCPF(this)" maxlength="14" required>
-        </div>
-
-        <div class="form-group-modal">
-          <label>Senha Única:*</label>
-          <input type="password" id="login_senha" class="input-field" placeholder="••••••••" required>
-        </div>
-
-        <button type="submit" class="btn-submit">Entrar ➔</button>
-      </form>
+      <span class="close-modal" onclick="closeGestaoModal()">&times;</span>
+      <h3>Acesso Restrito à Gestão</h3>
+      <p>Digite a senha da coordenação/gestão para liberar os bancos de dados.</p>
+      <input type="password" id="passInputGestao" class="input-field" placeholder="Digite a senha de gestão">
+      <button class="btn-submit" onclick="validarSenhaGestao()">Entrar na Gestão</button>
     </div>
   </div>
 
-  <!-- MODAL DE LANÇAMENTO DE J3 -->
+  <!-- MODAL DE LANÇAMENTO DO J3 DIÁRIO -->
   <div class="modal-overlay" id="modalJ3">
     <div class="modal-box">
       <span class="close-modal" onclick="fecharModalJ3()">&times;</span>
-      <h3>🚨 Registrar Indisponibilidade / J3</h3>
-      <p>Informe o servidor e o motivo do afastamento do plantão.</p>
+      <h3 style="color:#d97706;">🚨 Lançamento de J3 / Indisponibilidade</h3>
+      <p>Selecione o colaborador e informe os dados do afastamento ou troca de plantão.</p>
 
       <form id="formJ3" onsubmit="salvarJ3(event)">
         <div class="form-group-modal">
-          <label>Servidor / Colaborador:*</label>
+          <label>Nome do Colaborador / Servidor:*</label>
           <select id="j3_servidor" class="input-field" required>
             <option value="">Carregando equipe...</option>
           </select>
@@ -263,7 +251,7 @@
         <div class="form-group-modal">
           <label>Motivo do J3 / Afastamento:*</label>
           <select id="j3_motivo" class="input-field" required>
-            <option value="">Selecione...</option>
+            <option value="">Selecione o motivo...</option>
             <option value="Atestado Médico / Licença Saúde">Atestado Médico / Licença Saúde</option>
             <option value="Folga / Troca de Plantão">Folga / Troca de Plantão</option>
             <option value="Capacitação / Cursos">Capacitação / Cursos</option>
@@ -272,12 +260,12 @@
         </div>
 
         <div class="form-group-modal">
-          <label>Data de Início:*</label>
+          <label>Data de Início do J3:*</label>
           <input type="date" id="j3_data_inicio" class="input-field" required>
         </div>
 
         <div class="form-group-modal">
-          <label>Data de Término:*</label>
+          <label>Data de Término do J3:*</label>
           <input type="date" id="j3_data_fim" class="input-field" required>
         </div>
 
@@ -292,98 +280,49 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
-    let destinoAcesso = 'PORTAL';
-
-    function mascaraCPF(i) {
-      let v = i.value.replace(/\D/g, '');
-      if (v.length <= 11) {
-        v = v.replace(/(\d{3})(\d)/, '$1.$2');
-        v = v.replace(/(\d{3})(\d)/, '$1.$2');
-        v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-      }
-      i.value = v;
+    function openGestaoModal() {
+      document.getElementById('gestaoModal').style.display = 'flex';
+      document.getElementById('passInputGestao').focus();
     }
 
-    function openLoginModal(tipo) {
-      destinoAcesso = tipo;
-      document.getElementById('loginModal').style.display = 'flex';
-      document.getElementById('login_cpf').focus();
+    function closeGestaoModal() {
+      document.getElementById('gestaoModal').style.display = 'none';
+      document.getElementById('passInputGestao').value = '';
     }
 
-    function closeLoginModal() {
-      document.getElementById('loginModal').style.display = 'none';
-      document.getElementById('login_cpf').value = '';
-      document.getElementById('login_senha').value = '';
-    }
-
-    async function processarLoginModal(e) {
-      e.preventDefault();
-      const cpfLimpo = document.getElementById('login_cpf').value.replace(/\D/g, '').trim();
-      const senha = document.getElementById('login_senha').value.trim();
-
-      const { data, error } = await dbNuvem.from('colaboradores').select('*');
-
-      if (!error && data) {
-        const usuario = data.find(c => {
-          const cBD = (c.cpf || '').replace(/\D/g, '').trim();
-          const sBD = c.senha_unica || c.senha || 'samu192';
-          return (cBD === cpfLimpo && sBD === senha);
-        });
-
-        // Caso de login via chave padrão de gestão
-        if (senha === 'samu192' && destinoAcesso === 'GESTAO') {
-          closeLoginModal();
-          liberarGestao();
-          return;
-        }
-
-        if (usuario) {
-          const nivel = (usuario.nivel_acesso || usuario.cargo || '').toUpperCase();
-
-          sessionStorage.setItem('samu_usuario_logado', JSON.stringify({
-            id: usuario.id,
-            nome: usuario.nome,
-            cpf: usuario.cpf,
-            cargo: usuario.cargo,
-            nivel: nivel
-          }));
-
-          closeLoginModal();
-
-          // Se for Coordenador ou Administrador, libera automaticamente a seção de Gestão na tela
-          if (nivel.includes('ADMINISTRADOR') || nivel.includes('COORDENA') || nivel.includes('ENFERMEIR')) {
-            liberarGestao();
-          }
-
-          if (destinoAcesso === 'PORTAL') {
-            window.location.href = 'portal.html';
-          }
-        } else {
-          alert("❌ CPF ou Senha Única incorretos.");
-        }
+    function validarSenhaGestao() {
+      const input = document.getElementById('passInputGestao').value.trim();
+      if (input === 'samu192' || input === '123456') {
+        closeGestaoModal();
+        document.getElementById('admin-section').style.display = 'block';
+        document.getElementById('auth-btn').innerText = "🔓 Gestão Liberada";
+        document.getElementById('auth-btn').style.backgroundColor = "#28a745";
+        document.getElementById('auth-btn').onclick = null;
+        document.getElementById('admin-section').scrollIntoView({ behavior: 'smooth' });
+      } else {
+        alert("Senha de gestão incorreta.");
       }
     }
 
-    function liberarGestao() {
-      document.getElementById('admin-section').style.display = 'block';
-      document.getElementById('auth-btn').innerText = "🔓 Gestão Liberada";
-      document.getElementById('auth-btn').style.backgroundColor = "#28a745";
-      document.getElementById('auth-btn').onclick = null;
-      document.getElementById('admin-section').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    /* CONTROLE DO MODAL DE J3 */
+    /* BUSCA DINÂMICA DE COLABORADORES PARA O MODAL DO J3 */
     async function abrirModalJ3() {
       document.getElementById('modalJ3').style.display = 'flex';
-      
-      // Carrega colaboradores na lista
-      const { data } = await dbNuvem.from('colaboradores').select('nome, cargo').order('nome');
       const sel = document.getElementById('j3_servidor');
-      sel.innerHTML = '<option value="">Selecione o servidor...</option>';
-      if (data) {
+      sel.innerHTML = '<option value="">Carregando colaboradores...</option>';
+
+      // Busca na tabela colaboradores do Supabase
+      const { data, error } = await dbNuvem.from('colaboradores').select('nome, cargo').order('nome');
+
+      if (!error && data) {
+        sel.innerHTML = '<option value="">Selecione o servidor...</option>';
         data.forEach(c => {
-          sel.innerHTML += `<option value="${c.nome}">${c.nome} (${c.cargo || 'Servidor'})</option>`;
+          const nomeUpper = (c.nome || '').toUpperCase();
+          if (!nomeUpper.includes('ADMINISTRADOR')) {
+            sel.innerHTML += `<option value="${c.nome}">${c.nome} (${c.cargo || 'Servidor'})</option>`;
+          }
         });
+      } else {
+        sel.innerHTML = '<option value="">Erro ao carregar lista de colaboradores</option>';
       }
     }
 
