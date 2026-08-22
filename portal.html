@@ -102,7 +102,7 @@
 
     /* MODAL */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
-    .modal-card { background: white; padding: 22px; border-radius: 14px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .modal-card { background: white; padding: 22px; border-radius: 14px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
     .modal-title { font-size: 1rem; color: var(--navy-blue); font-weight: 800; }
 
@@ -360,7 +360,7 @@
         </div>
       </div>
 
-      <!-- ABA 5: FROTAS & CHECKLISTS OPERACIONAIS (NOVA ABA INTEGRADA) -->
+      <!-- ABA 5: FROTAS & CHECKLISTS OPERACIONAIS -->
       <div id="tabAdminChecklists" class="tab-pane" style="display:none;">
         <div class="page-header">
           <div class="page-title">Histórico de Checklists Operacionais e Viatura</div>
@@ -413,7 +413,7 @@
     </main>
   </div>
 
-  <!-- MODAL DE ESPELHO GRÁFICO DO CHECKLIST -->
+  <!-- MODAL DE ESPELHO GRÁFICO COMPLETO DO CHECKLIST -->
   <div id="modalChecklistEspelho" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
@@ -772,7 +772,7 @@
       if (tabelaResumoAdminBody) tabelaResumoAdminBody.innerHTML = htmlResumoAdmin;
     }
 
-    // CARREGA E EXIBE O HISTÓRICO DE CHECKLISTS DA UNIDADE
+    // CARREGA E LISTA OS CHECKLISTS NO PORTAL ADMIN
     async function carregarRelatorioChecklistsAdmin() {
       const tb = document.getElementById("tbAdminChecklists");
       if (!tb) return;
@@ -798,32 +798,75 @@
             <td><b>${c.viatura || '-'}</b></td>
             <td>${c.profissional_nome || '-'}</td>
             <td><span class="badge-role role-user">${c.tipo_procedimento || 'Checklist'}</span></td>
-            <td>${c.relato_avarias ? c.relato_avarias.substring(0, 40) + '...' : 'Sem avarias'}</td>
+            <td>${c.relato_avarias ? c.relato_avarias.substring(0, 30) + '...' : 'Sem avarias'}</td>
             <td><button class="btn-action-sm" onclick='abrirEspelhoChecklist(${jsonStr})'>👁️ Ver Espelho</button></td>
           </tr>
         `;
       });
     }
 
-    function abrirEspelhoChecklist(data) {
+    // MONTA O ESPELHO GRÁFICO COMPLETO (OXIGÊNIO + COMBUSTÍVEL + PNEUS + ITENS)
+    async function abrirEspelhoChecklist(data) {
+      let dadosSaude = null;
+      if (data.tipo_procedimento && data.tipo_procedimento.includes('Enfermagem')) {
+        const { data: saude } = await dbNuvem
+          .from('operacional_saude_lacres')
+          .select('*')
+          .eq('viatura', data.viatura)
+          .eq('data_hora', data.data_hora)
+          .maybeSingle();
+        dadosSaude = saude;
+      }
+
       let html = `
         <div style="background:#f8fafc; padding:12px; border-radius:8px; display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.82rem; margin-bottom:14px; border:1px solid #cbd5e1;">
           <div><b>Viatura:</b> ${data.viatura || 'N/D'}</div>
           <div><b>Profissional:</b> ${data.profissional_nome || 'N/D'}</div>
           <div><b>Data/Hora:</b> ${data.data_hora ? new Date(data.data_hora).toLocaleString('pt-BR') : 'N/D'}</div>
           <div><b>Procedimento:</b> ${data.tipo_procedimento || 'Checklist'}</div>
+          ${data.turno_plantao ? `<div><b>Turno:</b> ${data.turno_plantao}</div>` : ''}
+          ${data.km_atual ? `<div><b>KM Odômetro:</b> ${data.km_atual} km</div>` : ''}
         </div>
       `;
 
-      const mapaItens = data.mecanica_iluminacao || data.mochilas_equipamentos;
-      if (mapaItens) {
+      // NÍVEIS E PNEUS (CONDUTOR SOCORRISTA)
+      if (data.nivel_combustivel || data.estado_pneus) {
         html += `
-          <h4 style="color:#002b49; font-size:0.85rem; margin-bottom:8px; text-transform:uppercase;">Itens Verificados e Status</h4>
-          <table style="width:100%; border-collapse:collapse; font-size:0.82rem; margin-bottom:14px;">
+          <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase;">⛽ Níveis & Condições de Rodagem</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; margin-bottom:12px; background:#fff; padding:8px; border:1px solid #e2e8f0; border-radius:6px;">
+            <div><b>Combustível:</b> ${data.nivel_combustivel || 'N/D'}</div>
+            <div><b>Arla 32:</b> ${data.nivel_arla32 || 'N/D'}</div>
+            <div><b>Próxima Troca Óleo:</b> ${data.km_proxima_troca_oleo || 'N/D'} km</div>
+            ${data.estado_pneus ? `<div><b>Pneus:</b> Diant: ${data.estado_pneus.dianteiros || '-'} | Tras: ${data.estado_pneus.traseiros || '-'} | Estepe: ${data.estado_pneus.estepe || '-'}</div>` : ''}
+          </div>
+        `;
+      }
+
+      // MEDIÇÃO DE GASES E LACRES (TÉCNICO DE ENFERMAGEM)
+      if (dadosSaude) {
+        html += `
+          <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase;">💨 Medição de Gases & Lacres Psicotrópicos</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; margin-bottom:12px; background:#e0f2fe; padding:8px; border:1px solid #bae6fd; border-radius:6px;">
+            <div><b>Cilindro Fixo 1:</b> ${dadosSaude.cilindro_fixo_1_bar || 0} bar</div>
+            <div><b>Cilindro Fixo 2:</b> ${dadosSaude.cilindro_fixo_2_bar || 0} bar</div>
+            <div><b>Portátil 1:</b> ${dadosSaude.cilindro_portatil_1_bar || 0} bar</div>
+            <div><b>Ar Comprimido:</b> ${dadosSaude.cilindro_ar_comprimido_bar || 0} bar</div>
+            <div style="grid-column: span 2;"><b>Nº Lacre Psicotrópicos:</b> ${dadosSaude.numero_lacre_psicotropicos || 'N/D'}</div>
+            <div style="grid-column: span 2;"><b>Status Alerta / Risco Obstétrico:</b> ${dadosSaude.status_kit_parto || 'Conforme'}</div>
+          </div>
+        `;
+      }
+
+      // TABELA DE ITENS MECÂNICOS OU MOCHILAS DE ENFERMAGEM
+      const mapaItens = data.mecanica_iluminacao || data.mochilas_equipamentos;
+      if (mapaItens && typeof mapaItens === 'object' && !Array.isArray(mapaItens)) {
+        html += `
+          <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase;">📋 Itens Verificados</h4>
+          <table style="width:100%; border-collapse:collapse; font-size:0.8rem; margin-bottom:12px;">
             <thead>
               <tr style="background:#002b49; color:white;">
-                <th style="padding:6px; text-align:left;">Item</th>
-                <th style="padding:6px; text-align:center;">Status</th>
+                <th style="padding:5px; text-align:left;">Item Verificado</th>
+                <th style="padding:5px; text-align:center;">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -836,22 +879,21 @@
 
           html += `
             <tr style="border-bottom:1px solid #e2e8f0;">
-              <td style="padding:6px;"><b>${item}</b></td>
-              <td style="padding:6px; text-align:center;">
-                <span style="background:${bgBg}; color:white; padding:2px 8px; border-radius:10px; font-size:0.75rem; font-weight:bold;">
+              <td style="padding:5px;"><b>${item}</b></td>
+              <td style="padding:5px; text-align:center;">
+                <span style="background:${bgBg}; color:white; padding:2px 8px; border-radius:10px; font-size:0.72rem; font-weight:bold;">
                   ${status}
                 </span>
               </td>
             </tr>
           `;
         }
-
         html += `</tbody></table>`;
       }
 
       if (data.relato_avarias) {
         html += `
-          <div style="background:#fff3cd; border:1px solid #ffeba2; padding:10px; border-radius:8px; font-size:0.82rem;">
+          <div style="background:#fff3cd; border:1px solid #ffeba2; padding:10px; border-radius:8px; font-size:0.8rem;">
             <b>Observações / Avarias Registradas:</b><br>${data.relato_avarias}
           </div>
         `;
