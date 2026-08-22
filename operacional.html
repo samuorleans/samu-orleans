@@ -528,7 +528,7 @@
       }
     }
 
-   // GRAVAÇÃO CHECKLIST TÉCNICO (COM DATA_HORA BRT E COLUNAS CORRETAS DO BANCO)
+  // GRAVAÇÃO DO CHECKLIST DA ENFERMAGEM NAS DUAS TABELAS CORRESPONDENTES
 async function salvarChecklistTecnico(e) {
   e.preventDefault();
 
@@ -551,10 +551,11 @@ async function salvarChecklistTecnico(e) {
 
   const cil1 = parseFloat(document.getElementById('tec_cil1').value) || 0;
   const cil2 = parseFloat(document.getElementById('tec_cil2').value) || 0;
+  const dataHoraBR = obterDataHoraBrasil();
 
-  // Payload ajustado estritamente para as colunas existentes em operacional_saude_lacres
-  const payload = {
-    data_hora: obterDataHoraBrasil(),
+  // 1. Dados de Lacres e Gases -> Tabela operacional_saude_lacres
+  const payloadSaude = {
+    data_hora: dataHoraBR,
     viatura: document.getElementById('resumo_viatura').innerText,
     profissional_nome: document.getElementById('resumo_profissional').innerText,
     numero_lacre_psicotropicos: document.getElementById('tec_lacre').value,
@@ -566,17 +567,30 @@ async function salvarChecklistTecnico(e) {
     alerta_oxigenio_critico: (cil1 < 15 || cil2 < 15)
   };
 
+  // 2. Dados Completos do Checklist / Mochilas -> Tabela operacional_checklists
+  const payloadChecklist = {
+    data_hora: dataHoraBR,
+    viatura: document.getElementById('resumo_viatura').innerText,
+    profissional_nome: document.getElementById('resumo_profissional').innerText,
+    tipo_procedimento: 'Checklist Enfermagem',
+    turno_plantao: document.getElementById('tec_turno').value,
+    mochilas_equipamentos: mapaMochilas,
+    relato_avarias: document.getElementById('tec_obs') ? document.getElementById('tec_obs').value.trim() : ''
+  };
+
   try {
-    const { error } = await dbNuvem.from('operacional_saude_lacres').insert([payload]);
-    if (!error) {
-      if (payload.alerta_oxigenio_critico) {
-        alert("🚨 ATENÇÃO: Checklist salvo! ALERTA CRÍTICO: Cilindros de oxigênio abaixo de 15 bar.");
+    const { error: errSaude } = await dbNuvem.from('operacional_saude_lacres').insert([payloadSaude]);
+    const { error: errCheck } = await dbNuvem.from('operacional_checklists').insert([payloadChecklist]);
+
+    if (!errSaude && !errCheck) {
+      if (payloadSaude.alerta_oxigenio_critico) {
+        alert("🚨 ATENÇÃO: Checklist salvo! ALERTA CRÍTICO: Cilindro de oxigênio abaixo de 15 bar.");
       } else {
         alert("✅ Checklist de Enfermagem salvo com sucesso no Supabase!");
       }
       voltarPasso1();
     } else {
-      alert("❌ Erro ao salvar no banco: " + error.message);
+      alert("❌ Erro ao salvar: " + (errSaude ? errSaude.message : errCheck.message));
     }
   } catch (err) {
     alert("❌ Erro de conexão com o banco de dados.");
