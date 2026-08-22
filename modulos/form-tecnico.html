@@ -12,7 +12,7 @@
       </select>
     </div>
     <div class="form-group">
-      <label>Número Lacre Maleta Psicotrópicos:*</label>
+      <label>Número Lacre Maleta Psicotrópicos (Rastreabilidade COREN / Portaria 344/98):*</label>
       <input type="text" id="tec_lacre" placeholder="Ex: 123456" required>
     </div>
   </div>
@@ -27,7 +27,7 @@
     <div class="form-group"><label>Cilindro Ar Comprimido Fixo (bar):*</label><input type="number" id="tec_ar_comp" placeholder="Ex: 150" required></div>
   </div>
 
-  <div class="section-header-title">🎒 Conferência das Mochilas e Equipamentos Médicos (POP-ALM-001)</div>
+  <div class="section-header-title">🎒 Conferência das Mochilas e Equipamentos Médicos (POP-ALM-001 / POP-EQP-001)</div>
   <div class="table-container">
     <table class="custom-table">
       <thead>
@@ -42,10 +42,20 @@
     </table>
   </div>
 
+  <div class="section-header-title">🚨 Alerta Crítico & Prevenção do Risco Obstétrico</div>
   <div class="form-group">
-    <label>Descrição de Materiais Faltantes ou Observações:</label>
+    <label>ALERTA CRÍTICO: Existe algum material de emergência FALTANDO ou VENCIDO?*</label>
+    <select id="tec_alerta_critico" required>
+      <option value="">Selecione...</option>
+      <option value="Não, tudo conforme">Não, tudo conforme</option>
+      <option value="SIM - Descrever abaixo">SIM - Descrever abaixo</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Descrição de Materiais Faltantes / Reposição Necessária:</label>
     <div class="mic-wrapper">
-      <textarea id="tec_obs" rows="3" placeholder="Descreva os itens faltantes, lotes ou validades..."></textarea>
+      <textarea id="tec_obs" rows="3" placeholder="Descreva detalhadamente os materiais faltantes ou vencidos..."></textarea>
       <button type="button" class="btn-mic" onclick="iniciarVoz('tec_obs')">🎙️ Ouvir</button>
     </div>
   </div>
@@ -58,11 +68,16 @@
 
 <script>
   const listaMochilasEnf = [
-    "Mochila Azul - Vias Aéreas", "Mochila Laranja - Trauma", "Mochila Verde - Medicamentos",
-    "Mochila Vermelha - Acesso Venoso & Soluções", "Mochila Amarela - Sinais Vitais & Glicosímetro",
-    "DEA / Monitor Multiparâmetros Mindray", "Aspirador Portátil & Vidro de Aspiração",
-    "Compressor Thorácico Autopulse / Baterias", "Kit Parto Iminente (Prevenção Risco Obstétrico)",
-    "Salão & Compartimentos de Insumos"
+    "Mochila Azul - Vias Aéreas (POP-ALM-001)",
+    "Mochila Laranja - Trauma (POP-ALM-001)",
+    "Mochila Verde - Medicamentos (POP-ALM-001)",
+    "Mochila Vermelha - Acesso Venoso & Soluções (POP-ALM-001)",
+    "Mochila Amarela - Sinais Vitais & Glicosímetro (POP-ALM-001)",
+    "DEA / Monitor Multiparâmetros Mindray (POP-ALM-001)",
+    "Aspirador Portátil & Vidro de Aspiração (POP-ALM-001)",
+    "Compressor Thorácico Autopulse / Baterias (POP-EQP-001)",
+    "Kit Parto Iminente Confirmado Estéril (Prevenção Risco Obstétrico)",
+    "Salão & Compartimentos de Insumos (POP-ALM-001)"
   ];
 
   function renderizarMochilasEnf() {
@@ -93,7 +108,7 @@
     });
 
     if (pendentes.length > 0) {
-      alert(`⚠️ Preenchimento obrigatório incompleto!\nAvalie os itens destacados em vermelho.`); return;
+      alert(`⚠️ Preenchimento obrigatório incompleto!\nAvalie as mochilas e equipamentos em vermelho.`); return;
     }
 
     const cil1 = parseFloat(document.getElementById('tec_cil1').value);
@@ -102,17 +117,21 @@
     const payload = {
       viatura: document.getElementById('vtr_prefixo').value,
       profissional_nome: document.getElementById('prof_nome').value,
-      cilindro_fixo_1_bar: cil1, cilindro_fixo_2_bar: cil2,
+      cilindro_fixo_1_bar: cil1,
+      cilindro_fixo_2_bar: cil2,
       cilindro_portatil_1_bar: parseFloat(document.getElementById('tec_portatil').value) || 0,
       cilindro_ar_comprimido_bar: parseFloat(document.getElementById('tec_ar_comp').value) || 0,
       numero_lacre_psicotropicos: document.getElementById('tec_lacre').value,
+      status_kit_parto: document.getElementById('tec_alerta_critico').value,
       alerta_oxigenio_critico: (cil1 < 15 || cil2 < 15)
     };
 
     const { error } = await dbNuvem.from('operacional_saude_lacres').insert([payload]);
     if (!error) {
-      await registrarLog('Operacional', 'Checklist Enfermagem', `Conferência realizada por ${payload.profissional_nome}.`);
-      alert('✅ Checklist de Enfermagem salvo com sucesso!'); location.reload();
+      await registrarLog('Operacional', 'Checklist Enfermagem', `Conferência realizada por ${payload.profissional_nome}. Lacre: ${payload.numero_lacre_psicotropicos}.`);
+      if (payload.alerta_oxigenio_critico) alert('🚨 ALERTA CRÍTICO: Cilindro de Oxigênio abaixo de 15 bar registrado!');
+      else alert('✅ Checklist de Enfermagem salvo com sucesso!');
+      location.reload();
     } else { alert('Erro: ' + error.message); }
   }
 
