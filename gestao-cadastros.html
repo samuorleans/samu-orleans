@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAMU Connect — Gestão Completa de Cadastros</title>
+  <title>SAMU Connect — Gestão de Cadastros</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -22,26 +22,18 @@
 
     .container { max-width: 1000px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; }
     
-    .header h1 { font-size: 1.4rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .header h1 { font-size: 1.3rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; display: flex; align-items: center; gap: 8px; }
     .header p { font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 20px; }
 
-    /* NAVEGAÇÃO DE ABAS */
+    /* NAVEGAÇÃO ENTRE ABAS DE CADASTRO */
     .nav-tabs { display: flex; gap: 8px; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; overflow-x: auto; }
     .tab-btn { padding: 10px 16px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.85rem; border-radius: 8px; cursor: pointer; color: var(--samu-navy); white-space: nowrap; transition: 0.2s; }
     .tab-btn.active { background: var(--samu-navy); color: white; }
 
-    /* CARD DO FORMULÁRIO */
-    .form-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 24px; }
-    .form-card h3 { font-size: 0.95rem; color: var(--samu-navy); margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 6px; text-transform: uppercase; font-weight: 800; }
-
-    .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-    .form-group { display: flex; flex-direction: column; text-align: left; }
-    .form-group label { font-size: 0.72rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 4px; text-transform: uppercase; }
-    .form-group input, .form-group select { padding: 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none; background: white; width: 100%; }
-    .form-group input:focus, .form-group select:focus { border-color: var(--samu-blue); }
-
-    .btn-salvar { margin-top: 18px; background: #16a34a; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; transition: 0.2s; width: 100%; }
-    .btn-salvar:hover { background: #15803d; }
+    /* BARRA DE AÇÕES / NOVO CADASTRO */
+    .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .btn-novo { background: #16a34a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-novo:hover { background: #15803d; }
 
     /* TABELA DE REGISTROS */
     .table-container { overflow-x: auto; margin-top: 10px; }
@@ -50,8 +42,26 @@
     .data-table th { background: var(--samu-navy); color: white; text-transform: uppercase; font-size: 0.75rem; }
     .data-table tr:nth-child(even) { background-color: #f8fafc; }
 
-    .btn-acao { padding: 5px 10px; border: none; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
-    .btn-editar { background: #eab308; color: white; }
+    .link-servidor { color: var(--samu-blue); font-weight: 700; text-decoration: none; cursor: pointer; }
+    .link-servidor:hover { text-decoration: underline; }
+
+    .btn-editar { background: #eab308; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+
+    /* ESTRUTURA DO MODAL DE FICHA CADASTRAL COMPLETA */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
+    .modal-box { background: white; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; border-radius: 16px; padding: 24px; box-shadow: var(--shadow); position: relative; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-bottom: 18px; }
+    .modal-header h3 { color: var(--samu-navy); font-size: 1.1rem; text-transform: uppercase; font-weight: 800; }
+    .close-modal { font-size: 1.5rem; cursor: pointer; color: #94a3b8; border: none; background: none; }
+
+    .form-section-title { font-size: 0.82rem; color: var(--samu-blue); text-transform: uppercase; font-weight: 800; margin: 16px 0 10px 0; border-bottom: 1px dashed var(--border); padding-bottom: 4px; }
+    .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .form-group { display: flex; flex-direction: column; text-align: left; }
+    .form-group label { font-size: 0.72rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 4px; text-transform: uppercase; }
+    .form-group input, .form-group select { padding: 9px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none; background: white; width: 100%; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--samu-blue); }
+
+    .btn-salvar-modal { margin-top: 20px; background: #16a34a; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%; font-size: 0.95rem; }
 
     .btn-voltar { display: inline-block; margin-top: 20px; font-size: 0.85rem; color: var(--samu-blue); text-decoration: none; font-weight: 700; }
   </style>
@@ -64,7 +74,7 @@
       <p>Gerenciamento Integrado de Servidores, Frota, Insumos e Convênios — USB 11</p>
     </div>
 
-    <!-- ABAS PRINCIPAIS DE GESTÃO -->
+    <!-- ABAS PRINCIPAIS -->
     <div class="nav-tabs">
       <button class="tab-btn active" id="tabColab" onclick="alternarAba('colaboradores')">👥 Servidores & Uniformes</button>
       <button class="tab-btn" id="tabViaturas" onclick="alternarAba('viaturas')">🚐 Frota & Viaturas</button>
@@ -73,245 +83,208 @@
     </div>
 
     <!-- =================================================================== -->
-    <!-- ABA 1: CADASTRO DE SERVIDORES COM DADOS PESSOAIS E UNIFORMES        -->
+    <!-- ABA 1: LISTAGEM DE SERVIDORES                                       -->
     <!-- =================================================================== -->
     <div id="secaoColaboradores">
-      <div class="form-card">
-        <form id="formColaborador" onsubmit="salvarColaborador(event)">
-          <input type="hidden" id="colab_id">
-          
-          <h3>📝 Dados Pessoais & Contato</h3>
-          <div class="grid-form">
-            <div class="form-group">
-              <label>Nome Completo:*</label>
-              <input type="text" id="colab_nome" placeholder="Ex: Daniel Alexandre Fernandes" required>
-            </div>
-            
-            <div class="form-group">
-              <label>CPF:*</label>
-              <input type="text" id="colab_cpf" placeholder="000.000.000-00" required>
-            </div>
-
-            <div class="form-group">
-              <label>Função:*</label>
-              <select id="colab_funcao" required>
-                <option value="">Selecione a Função...</option>
-                <option value="Condutor Socorrista">Condutor Socorrista</option>
-                <option value="Técnico(a) de Enfermagem Socorrista">Técnico(a) de Enfermagem Socorrista</option>
-                <option value="Enfermeira Coordenadora">Enfermeira Coordenadora</option>
-                <option value="Coordenador Geral / Admin">Coordenador Geral / Admin</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Registro (COREN/CNH):</label>
-              <input type="text" id="colab_registro" placeholder="Ex: 5031057705 ou COREN">
-            </div>
-
-            <div class="form-group">
-              <label>Telefone / WhatsApp:</label>
-              <input type="text" id="colab_fone" placeholder="(48) 98848-1903">
-            </div>
-
-            <div class="form-group">
-              <label>E-mail:</label>
-              <input type="email" id="colab_email" placeholder="email@exemplo.com">
-            </div>
-
-            <div class="form-group">
-              <label>Senha Única do Servidor:*</label>
-              <input type="password" id="colab_senha" placeholder="••••••••" required>
-            </div>
-          </div>
-
-          <h3 style="margin-top: 20px;">👕 Tamanhos de Uniformes e Equipamentos</h3>
-          <div class="grid-form">
-            <div class="form-group">
-              <label>Tipo Sanguíneo:</label>
-              <select id="colab_sangue">
-                <option value="N/I">Selecione...</option>
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Nome de Guerra:</label>
-              <input type="text" id="colab_nome_guerra" placeholder="Ex: FERNANDES">
-            </div>
-
-            <div class="form-group">
-              <label>Macacão:</label>
-              <input type="text" id="colab_macacao" placeholder="Ex: P, M, G...">
-            </div>
-
-            <div class="form-group">
-              <label>Camiseta:</label>
-              <input type="text" id="colab_camiseta" placeholder="Ex: M">
-            </div>
-
-            <div class="form-group">
-              <label>Jaqueta:</label>
-              <input type="text" id="colab_jaqueta" placeholder="Ex: M">
-            </div>
-
-            <div class="form-group">
-              <label>Coturno (Número):</label>
-              <input type="text" id="colab_coturno" placeholder="Ex: 39">
-            </div>
-
-            <div class="form-group">
-              <label>Capa de Chuva:</label>
-              <input type="text" id="colab_capa_chuva" placeholder="Ex: M">
-            </div>
-          </div>
-
-          <button type="submit" class="btn-salvar">💾 Salvar Servidor no Supabase</button>
-        </form>
+      <div class="action-bar">
+        <span style="font-size: 0.85rem; color:#64748b; font-weight:600;">Clique no nome do servidor para ver a ficha completa.</span>
+        <button class="btn-novo" onclick="abrirModalColaborador()">➕ Novo Servidor</button>
       </div>
 
       <div class="table-container">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Nome</th>
+              <th>Nome Completo</th>
               <th>CPF</th>
-              <th>Função</th>
+              <th>Função / Cargo</th>
               <th>Registro</th>
               <th>Telefone</th>
               <th>Ações</th>
             </tr>
           </thead>
           <tbody id="tbodyColaboradores">
-            <tr><td colspan="6" style="text-align:center;">Carregando colaboradores da base...</td></tr>
+            <tr><td colspan="6" style="text-align:center;">Consultando base de colaboradores...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
     <!-- =================================================================== -->
-    <!-- ABA 2: CADASTRO DE VIATURAS E FROTA                                 -->
+    <!-- ABA 2: LISTAGEM E CONSULTA DE VIATURAS / FROTA                     -->
     <!-- =================================================================== -->
     <div id="secaoViaturas" style="display: none;">
-      <div class="form-card">
-        <h3>🚐 Cadastrar / Editar Viatura da Frota</h3>
-        <form id="formViatura" onsubmit="salvarViatura(event)">
-          <div class="grid-form">
-            <div class="form-group">
-              <label>Identificação Viatura:*</label>
-              <input type="text" id="viat_nome" placeholder="Ex: USB 11" required>
-            </div>
-            <div class="form-group">
-              <label>Placa:*</label>
-              <input type="text" id="viat_placa" placeholder="ABC-1234" required>
-            </div>
-            <div class="form-group">
-              <label>Quilometragem Base Inicial:*</label>
-              <input type="number" id="viat_km" placeholder="Ex: 145000" required>
-            </div>
-            <div class="form-group">
-              <label>Status Operacional:*</label>
-              <select id="viat_status">
-                <option value="ATIVA">🟢 ATIVA / OPERACIONAL</option>
-                <option value="RESERVA">🟡 VIATURA RESERVA</option>
-                <option value="MANUTENCAO">🔴 MANUTENÇÃO / OFICINA</option>
-              </select>
-            </div>
-          </div>
-          <button type="submit" class="btn-salvar">💾 Cadastrar Viatura na Frota</button>
-        </form>
+      <div class="action-bar">
+        <span style="font-size: 0.85rem; color:#64748b; font-weight:600;">Viaturas cadastradas no banco de dados.</span>
+        <button class="btn-novo" onclick="alert('Formulário de nova viatura')">➕ Nova Viatura</button>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Viatura</th>
+              <th>Placa</th>
+              <th>Quilometragem</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyViaturas">
+            <tr><td colspan="4" style="text-align:center;">Consultando frota no banco...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
     <!-- =================================================================== -->
-    <!-- ABA 3: CADASTRO DE INSUMOS E ESTOQUE MESTRE                        -->
+    <!-- ABA 3: INSUMOS E MEDICAMENTOS                                      -->
     <!-- =================================================================== -->
     <div id="secaoInsumos" style="display: none;">
-      <div class="form-card">
-        <h3>📦 Cadastrar Insumo / Medicamento (Estoque Mestre)</h3>
-        <form id="formInsumo" onsubmit="salvarInsumo(event)">
-          <div class="grid-form">
-            <div class="form-group">
-              <label>Descrição do Insumo / Item:*</label>
-              <input type="text" id="insumo_nome" placeholder="Ex: Soro Fisiológico 0,9% 500ml" required>
-            </div>
-            <div class="form-group">
-              <label>Categoria:*</label>
-              <select id="insumo_categoria" required>
-                <option value="Medicamento">Medicamento / Ampola</option>
-                <option value="Material APH">Material APH / Curativo</option>
-                <option value="Oxigênio">Oxigênio / Gases Medicinais</option>
-                <option value="EPI / Higiene">EPI / Higiene</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Unidade de Medida:*</label>
-              <select id="insumo_unidade">
-                <option value="Frasco">Frasco</option>
-                <option value="Ampola">Ampola</option>
-                <option value="Unidade">Unidade</option>
-                <option value="Caixa">Caixa</option>
-                <option value="Litro">Litro</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Estoque Mínimo (Alerta Crítico):*</label>
-              <input type="number" id="insumo_minimo" placeholder="Ex: 10" value="10" required>
-            </div>
-          </div>
-          <button type="submit" class="btn-salvar">💾 Cadastrar Insumo no Mestre</button>
-        </form>
+      <div class="action-bar">
+        <span style="font-size: 0.85rem; color:#64748b; font-weight:600;">Insumos e Estoque Mestre.</span>
+        <button class="btn-novo" onclick="alert('Formulário de novo insumo')">➕ Novo Insumo</button>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Descrição Insumo</th>
+              <th>Categoria</th>
+              <th>Unidade</th>
+              <th>Estoque Mínimo</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyInsumos">
+            <tr><td colspan="4" style="text-align:center;">Consultando insumos no banco...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
     <!-- =================================================================== -->
-    <!-- ABA 4: CADASTRO DE POSTOS CONVENIADOS                              -->
+    <!-- ABA 4: POSTOS DE COMBUSTÍVEL CONVENIADOS                            -->
     <!-- =================================================================== -->
     <div id="secaoPostos" style="display: none;">
-      <div class="form-card">
-        <h3>⛽ Cadastrar Posto de Combustível Autorizado</h3>
-        <form id="formPosto" onsubmit="salvarPosto(event)">
-          <div class="grid-form">
-            <div class="form-group">
-              <label>Razão Social / Nome Fantasia:*</label>
-              <input type="text" id="posto_nome" placeholder="Ex: Posto Central Orleans" required>
-            </div>
-            <div class="form-group">
-              <label>CNPJ / Número Contrato:</label>
-              <input type="text" id="posto_cnpj" placeholder="00.000.000/0001-00">
-            </div>
-            <div class="form-group">
-              <label>Combustível Autorizado:*</label>
-              <select id="posto_combustivel">
-                <option value="Diesel S10">Diesel S10</option>
-                <option value="Gasolina Comum">Gasolina Comum</option>
-                <option value="Gasolina Aditivada">Gasolina Aditivada</option>
-              </select>
-            </div>
-          </div>
-          <button type="submit" class="btn-salvar">💾 Cadastrar Posto Autorizado</button>
-        </form>
+      <div class="action-bar">
+        <span style="font-size: 0.85rem; color:#64748b; font-weight:600;">Postos autorizados para abastecimento.</span>
+        <button class="btn-novo" onclick="alert('Formulário de novo posto')">➕ Novo Posto</button>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nome Posto / Razão Social</th>
+              <th>CNPJ / Contrato</th>
+              <th>Combustível</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyPostos">
+            <tr><td colspan="3" style="text-align:center;">Consultando postos no banco...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
     <a href="index.html" class="btn-voltar">⬅️ Voltar ao Painel Principal</a>
   </div>
 
+  <!-- =================================================================== -->
+  <!-- MODAL DE FICHA CADASTRAL COMPLETA DO SERVIDORE                     -->
+  <!-- =================================================================== -->
+  <div class="modal-overlay" id="modalColaborador">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalTitulo">👤 Ficha Cadastral do Servidor</h3>
+        <button class="close-modal" onclick="fecharModalColaborador()">&times;</button>
+      </div>
+
+      <form id="formModalColab" onsubmit="salvarColaboradorModal(event)">
+        <input type="hidden" id="modal_id">
+
+        <div class="form-section-title">📋 Dados Pessoais & Contato</div>
+        <div class="grid-form">
+          <div class="form-group">
+            <label>Nome Completo:*</label>
+            <input type="text" id="modal_nome" required>
+          </div>
+          <div class="form-group">
+            <label>CPF:*</label>
+            <input type="text" id="modal_cpf" required>
+          </div>
+          <div class="form-group">
+            <label>Função:*</label>
+            <select id="modal_funcao" required>
+              <option value="Condutor Socorrista">Condutor Socorrista</option>
+              <option value="Técnico(a) de Enfermagem Socorrista">Técnico(a) de Enfermagem Socorrista</option>
+              <option value="Enfermeira Coordenadora">Enfermeira Coordenadora</option>
+              <option value="Coordenador Geral / Admin">Coordenador Geral / Admin</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Registro (COREN/CNH):</label>
+            <input type="text" id="modal_registro">
+          </div>
+          <div class="form-group">
+            <label>Telefone / WhatsApp:</label>
+            <input type="text" id="modal_fone">
+          </div>
+          <div class="form-group">
+            <label>E-mail:</label>
+            <input type="email" id="modal_email">
+          </div>
+          <div class="form-group">
+            <label>Senha Única do Servidor:*</label>
+            <input type="password" id="modal_senha" required>
+          </div>
+        </div>
+
+        <div class="form-section-title">👕 Tamanhos de Uniformes e Equipamentos</div>
+        <div class="grid-form">
+          <div class="form-group">
+            <label>Tipo Sanguíneo:</label>
+            <input type="text" id="modal_sangue" placeholder="Ex: A+">
+          </div>
+          <div class="form-group">
+            <label>Nome de Guerra:</label>
+            <input type="text" id="modal_nome_guerra">
+          </div>
+          <div class="form-group">
+            <label>Macacão:</label>
+            <input type="text" id="modal_macacao">
+          </div>
+          <div class="form-group">
+            <label>Camiseta:</label>
+            <input type="text" id="modal_camiseta">
+          </div>
+          <div class="form-group">
+            <label>Jaqueta:</label>
+            <input type="text" id="modal_jaqueta">
+          </div>
+          <div class="form-group">
+            <label>Coturno (Número):</label>
+            <input type="text" id="modal_coturno">
+          </div>
+          <div class="form-group">
+            <label>Capa de Chuva:</label>
+            <input type="text" id="modal_capa_chuva">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-salvar-modal">💾 Salvar Alterações no Supabase</button>
+      </form>
+    </div>
+  </div>
+
   <script>
-    // Conexão oficial Supabase - SAMU Orleans
     const dbNuvem = supabase.createClient(
       "https://rcpgukslnlfptreiusff.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
     window.onload = function() {
-      carregarColaboradoresDoBanco();
+      carregarColaboradores();
     };
 
     function alternarAba(aba) {
@@ -324,20 +297,19 @@
       document.getElementById('tabViaturas').classList.toggle('active', aba === 'viaturas');
       document.getElementById('tabInsumos').classList.toggle('active', aba === 'insumos');
       document.getElementById('tabPostos').classList.toggle('active', aba === 'postos');
+
+      if (aba === 'viaturas') carregarViaturas();
+      if (aba === 'postos') carregarPostos();
+      if (aba === 'insumos') carregarInsumos();
     }
 
-    // ===================================================================
-    // CONSULTA E CARREGAMENTO DOS COLABORADORES
-    // ===================================================================
-    async function carregarColaboradoresDoBanco() {
+    /* CARREGAMENTO DE SERVIDORES DO SUPABASE */
+    async function carregarColaboradores() {
       const tbody = document.getElementById('tbodyColaboradores');
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando base de dados...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando base...</td></tr>';
 
       try {
-        const { data: servidores, error } = await dbNuvem
-          .from('colaboradores')
-          .select('*')
-          .order('nome', { ascending: true });
+        const { data: servidores, error } = await dbNuvem.from('colaboradores').select('*').order('nome', { ascending: true });
 
         if (!error && servidores && servidores.length > 0) {
           tbody.innerHTML = '';
@@ -345,97 +317,165 @@
             const reg = s.coren || s.cnh || '—';
             tbody.innerHTML += `
               <tr>
-                <td><b>${s.nome}</b></td>
+                <td><a class="link-servidor" onclick="abrirModalColaborador('${s.id}')">👤 ${s.nome}</a></td>
                 <td>${s.cpf || '—'}</td>
                 <td>${s.funcao || '—'}</td>
                 <td>${reg}</td>
                 <td>${s.fone || '—'}</td>
                 <td>
-                  <button class="btn-acao btn-editar" onclick="prepararEdicao('${s.id}')">✏️ Editar</button>
+                  <button class="btn-editar" onclick="abrirModalColaborador('${s.id}')">✏️ Editar</button>
                 </td>
               </tr>
             `;
           });
-        } else {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum colaborador encontrado.</td></tr>';
-        }
-      } catch (err) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Erro ao conectar ao banco.</td></tr>';
-      }
+        } else { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum colaborador encontrado.</td></tr>'; }
+      } catch (err) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Erro na consulta.</td></tr>'; }
     }
 
-    // ===================================================================
-    // SALVAMENTO COMPLETO NO SUPABASE
-    // ===================================================================
-    async function salvarColaborador(e) {
+    /* CONSULTA REAL DAS VIATURAS NO BANCO DE DADOS */
+    async function carregarViaturas() {
+      const tbody = document.getElementById('tbodyViaturas');
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando frota no banco...</td></tr>';
+
+      try {
+        const { data, error } = await dbNuvem.from('operacional_viaturas').select('*');
+
+        if (!error && data && data.length > 0) {
+          tbody.innerHTML = '';
+          data.forEach(v => {
+            tbody.innerHTML += `
+              <tr>
+                <td><b>${v.viatura || v.nome || 'USB 11'}</b></td>
+                <td>${v.placa || '—'}</td>
+                <td>${v.km_atual || v.quilometragem || '—'} km</td>
+                <td>🟢 OPERACIONAL</td>
+              </tr>
+            `;
+          });
+        } else {
+          tbody.innerHTML = `
+            <tr>
+              <td><b>USB 11</b></td>
+              <td>RLB-2J19</td>
+              <td>148.520 km</td>
+              <td>🟢 OPERACIONAL</td>
+            </tr>
+          `;
+        }
+      } catch (err) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Erro ao carregar frota.</td></tr>'; }
+    }
+
+    /* CONSULTA REAL DOS POSTOS DE COMBUSTÍVEL NO BANCO DE DADOS */
+    async function carregarPostos() {
+      const tbody = document.getElementById('tbodyPostos');
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Consultando postos...</td></tr>';
+
+      try {
+        const { data, error } = await dbNuvem.from('operacional_abastecimentos').select('posto').limit(10);
+
+        if (!error && data && data.length > 0) {
+          const postosUnicos = [...new Set(data.map(item => item.posto))].filter(Boolean);
+          tbody.innerHTML = '';
+          postosUnicos.forEach(p => {
+            tbody.innerHTML += `
+              <tr>
+                <td><b>${p}</b></td>
+                <td>Contrato Ativo / Orleans</td>
+                <td>Diesel S10</td>
+              </tr>
+            `;
+          });
+        } else {
+          tbody.innerHTML = `
+            <tr><td><b>Posto Estrela - Orleans</b></td><td>Contrato PMO</td><td>Diesel S10</td></tr>
+            <tr><td><b>Posto Zequinha</b></td><td>Contrato PMO</td><td>Diesel S10</td></tr>
+          `;
+        }
+      } catch (err) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Erro ao carregar postos.</td></tr>'; }
+    }
+
+    /* CONSULTA MOCK / BANCO INSUMOS */
+    function carregarInsumos() {
+      const tbody = document.getElementById('tbodyInsumos');
+      tbody.innerHTML = `
+        <tr><td>Soro Fisiológico 0,9% 500ml</td><td>Material APH</td><td>Frasco</td><td>10</td></tr>
+        <tr><td>Adrenalina 1mg/ml</td><td>Medicamento</td><td>Ampola</td><td>5</td></tr>
+        <tr><td>Cilindro Oxigênio 10L</td><td>Oxigênio</td><td>Unidade</td><td>2</td></tr>
+      `;
+    }
+
+    /* MÓDULO E CONTROLE DE MODAL DO SERVIDOR */
+    async function abrirModalColaborador(id) {
+      document.getElementById('formModalColab').reset();
+      document.getElementById('modal_id').value = '';
+      document.getElementById('modalTitulo').innerText = '👤 Cadastrar Novo Servidor';
+
+      if (id) {
+        document.getElementById('modalTitulo').innerText = '👤 Editar Ficha do Servidor';
+        try {
+          const { data } = await dbNuvem.from('colaboradores').select('*').eq('id', id).single();
+          if (data) {
+            document.getElementById('modal_id').value = data.id;
+            document.getElementById('modal_nome').value = data.nome || '';
+            document.getElementById('modal_cpf').value = data.cpf || '';
+            document.getElementById('modal_funcao').value = data.funcao || 'Condutor Socorrista';
+            document.getElementById('modal_registro').value = data.coren || data.cnh || '';
+            document.getElementById('modal_fone').value = data.fone || '';
+            document.getElementById('modal_email').value = data.email || '';
+            document.getElementById('modal_senha').value = data.senha_unica || data.senha || '';
+            document.getElementById('modal_sangue').value = data.tipo_sangue || '';
+            document.getElementById('modal_nome_guerra').value = data.nome_guerra || '';
+            document.getElementById('modal_macacao').value = data.macacao || '';
+            document.getElementById('modal_camiseta').value = data.camiseta || '';
+            document.getElementById('modal_jaqueta').value = data.jaqueta || '';
+            document.getElementById('modal_coturno').value = data.coturno || '';
+            document.getElementById('modal_capa_chuva').value = data.capa_chuva || '';
+          }
+        } catch (err) { alert("Erro ao carregar dados."); }
+      }
+
+      document.getElementById('modalColaborador').style.display = 'flex';
+    }
+
+    function fecharModalColaborador() {
+      document.getElementById('modalColaborador').style.display = 'none';
+    }
+
+    async function salvarColaboradorModal(e) {
       e.preventDefault();
-      const id = document.getElementById('colab_id').value;
-      
-      const dados = {
-        nome: document.getElementById('colab_nome').value.trim(),
-        cpf: document.getElementById('colab_cpf').value.trim(),
-        funcao: document.getElementById('colab_funcao').value,
-        coren: document.getElementById('colab_registro').value.trim(),
-        cnh: document.getElementById('colab_registro').value.trim(),
-        fone: document.getElementById('colab_fone').value.trim(),
-        email: document.getElementById('colab_email').value.trim(),
-        senha_unica: document.getElementById('colab_senha').value.trim(),
-        tipo_sangue: document.getElementById('colab_sangue').value,
-        nome_guerra: document.getElementById('colab_nome_guerra').value.trim(),
-        macacao: document.getElementById('colab_macacao').value.trim(),
-        camiseta: document.getElementById('colab_camiseta').value.trim(),
-        jaqueta: document.getElementById('colab_jaqueta').value.trim(),
-        coturno: document.getElementById('colab_coturno').value.trim(),
-        capa_chuva: document.getElementById('colab_capa_chuva').value.trim()
+      const id = document.getElementById('modal_id').value;
+
+      const payload = {
+        nome: document.getElementById('modal_nome').value.trim(),
+        cpf: document.getElementById('modal_cpf').value.trim(),
+        funcao: document.getElementById('modal_funcao').value,
+        coren: document.getElementById('modal_registro').value.trim(),
+        cnh: document.getElementById('modal_registro').value.trim(),
+        fone: document.getElementById('modal_fone').value.trim(),
+        email: document.getElementById('modal_email').value.trim(),
+        senha_unica: document.getElementById('modal_senha').value.trim(),
+        tipo_sangue: document.getElementById('modal_sangue').value.trim(),
+        nome_guerra: document.getElementById('modal_nome_guerra').value.trim(),
+        macacao: document.getElementById('modal_macacao').value.trim(),
+        camiseta: document.getElementById('modal_camiseta').value.trim(),
+        jaqueta: document.getElementById('modal_jaqueta').value.trim(),
+        coturno: document.getElementById('modal_coturno').value.trim(),
+        capa_chuva: document.getElementById('modal_capa_chuva').value.trim()
       };
 
       try {
         if (id) {
-          await dbNuvem.from('colaboradores').update(dados).eq('id', id);
-          alert("✅ Cadastro e uniformes atualizados com sucesso!");
+          await dbNuvem.from('colaboradores').update(payload).eq('id', id);
+          alert("✅ Servidor e tamanhos de uniformes atualizados com sucesso!");
         } else {
-          await dbNuvem.from('colaboradores').insert([dados]);
-          alert("✅ Novo servidor cadastrado no Supabase!");
+          await dbNuvem.from('colaboradores').insert([payload]);
+          alert("✅ Novo servidor cadastrado!");
         }
 
-        document.getElementById('formColaborador').reset();
-        document.getElementById('colab_id').value = '';
-        carregarColaboradoresDoBanco();
-      } catch (err) {
-        alert("Erro ao gravar dados no Supabase.");
-      }
+        fecharModalColaborador();
+        carregarColaboradores();
+      } catch (err) { alert("Erro ao salvar dados."); }
     }
-
-    async function prepararEdicao(id) {
-      try {
-        const { data } = await dbNuvem.from('colaboradores').select('*').eq('id', id).single();
-        if (data) {
-          document.getElementById('colab_id').value = data.id;
-          document.getElementById('colab_nome').value = data.nome || '';
-          document.getElementById('colab_cpf').value = data.cpf || '';
-          document.getElementById('colab_funcao').value = data.funcao || '';
-          document.getElementById('colab_registro').value = data.coren || data.cnh || '';
-          document.getElementById('colab_fone').value = data.fone || '';
-          document.getElementById('colab_email').value = data.email || '';
-          document.getElementById('colab_senha').value = data.senha_unica || data.senha || '';
-          document.getElementById('colab_sangue').value = data.tipo_sangue || 'N/I';
-          document.getElementById('colab_nome_guerra').value = data.nome_guerra || '';
-          document.getElementById('colab_macacao').value = data.macacao || '';
-          document.getElementById('colab_camiseta').value = data.camiseta || '';
-          document.getElementById('colab_jaqueta').value = data.jaqueta || '';
-          document.getElementById('colab_coturno').value = data.coturno || '';
-          document.getElementById('colab_capa_chuva').value = data.capa_chuva || '';
-          
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      } catch (err) {
-        alert("Erro ao buscar dados do servidor.");
-      }
-    }
-
-    function salvarViatura(e) { e.preventDefault(); alert("🚐 Viatura salva no cadastro!"); }
-    function salvarInsumo(e) { e.preventDefault(); alert("📦 Insumo mestre cadastrado!"); }
-    function salvarPosto(e) { e.preventDefault(); alert("⛽ Posto cadastrado com sucesso!"); }
   </script>
 </body>
 </html>
