@@ -136,7 +136,7 @@
         </div>
 
         <div id="conteudoFormEspecifico">
-          <!-- O MÓDULO LIMPO É CARREGADO AQUI -->
+          <!-- O MÓDULO É CARREGADO AQUI VIA FETCH -->
         </div>
 
         <div style="margin-top: 20px; text-align: left;">
@@ -278,7 +278,7 @@
       }
     }
 
-    // BUSCA AUTOMÁTICA E PREENCHIMENTO DOS POSTOS AO CARREGAR O MÓDULO
+    // BUSCA AUTOMÁTICA DOS POSTOS DA TABELA operacional_postos
     async function carregarPostosNoModulo() {
       const selP = document.getElementById('abs_posto');
       if (!selP) return;
@@ -302,6 +302,36 @@
         }
       } catch (err) {
         selP.innerHTML = '<option value="">Erro ao carregar postos</option>';
+      }
+    }
+
+    // BUSCA AUTOMÁTICA DOS INSUMOS DA TABELA estoque_mestre
+    async function carregarInsumosNoModulo() {
+      const selC = document.getElementById('abs_combustivel');
+      if (!selC) return;
+
+      try {
+        const { data, error } = await dbNuvem.from('estoque_mestre').select('descricao_insumo');
+        if (!error && data && data.length > 0) {
+          selC.innerHTML = '<option value="">Selecione o Insumo...</option>';
+          data.forEach(i => {
+            if (i.descricao_insumo) {
+              selC.innerHTML += `<option value="${i.descricao_insumo}">${i.descricao_insumo}</option>`;
+            }
+          });
+        } else {
+          selC.innerHTML = `
+            <option value="">Selecione o Insumo...</option>
+            <option value="Diesel S10">Diesel S10</option>
+            <option value="Arla">Arla</option>
+          `;
+        }
+      } catch (err) {
+        selC.innerHTML = `
+          <option value="">Selecione o Insumo...</option>
+          <option value="Diesel S10">Diesel S10</option>
+          <option value="Arla">Arla</option>
+        `;
       }
     }
 
@@ -347,9 +377,10 @@
         .then(html => {
           document.getElementById('conteudoFormEspecifico').innerHTML = html;
           
-          // Dispara a busca dos postos após injetar o formulário na tela
+          // Dispara o carregamento dos postos e dos insumos simultaneamente
           setTimeout(() => {
             carregarPostosNoModulo();
+            carregarInsumosNoModulo();
           }, 150);
         });
     }
