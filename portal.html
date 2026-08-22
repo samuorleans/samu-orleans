@@ -366,23 +366,50 @@
         </div>
       </div>
 
-      <!-- ABA 6: LOGS DE AUDITORIA -->
+      <!-- ABA 6: LOGS DE ALTERAÇÕES E AUDITORIA -->
       <div id="tabAdminLogs" class="tab-pane" style="display:none;">
         <div class="page-header">
           <div class="page-title">Histórico de Alterações e Auditoria</div>
+          <button class="btn-primary" onclick="carregarLogsAuditoria()">🔄 Atualizar Logs</button>
         </div>
+
+        <div class="card-panel no-print">
+          <div class="grid-filter">
+            <div class="form-group">
+              <label>Buscar por Usuário / Texto:</label>
+              <input type="text" class="search-input" id="filtroLogsBusca" placeholder="🔍 Nome, CPF ou detalhe..." onkeyup="filtrarLogs()">
+            </div>
+            <div class="form-group">
+              <label>Ação / Categoria:</label>
+              <select id="filtroLogsAcao" onchange="filtrarLogs()">
+                <option value="TODOS">-- Todas as Ações --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Data Inicial:</label>
+              <input type="date" id="filtroLogsDataIni" onchange="filtrarLogs()">
+            </div>
+            <div class="form-group">
+              <label>Data Final:</label>
+              <input type="date" id="filtroLogsDataFim" onchange="filtrarLogs()">
+            </div>
+          </div>
+        </div>
+
         <div class="card-panel">
           <div class="table-wrapper">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th style="width:20%;">DATA / HORA</th>
+                  <th style="width:18%;">DATA / HORA</th>
                   <th style="width:25%;">USUÁRIO / SERVIDOR</th>
-                  <th style="width:20%;">AÇÃO REALIZADA</th>
+                  <th style="width:22%;">AÇÃO REALIZADA</th>
                   <th style="width:35%;">DETALHES DA MODIFICAÇÃO</th>
                 </tr>
               </thead>
-              <tbody id="tbAdminLogs"></tbody>
+              <tbody id="tbAdminLogs">
+                <tr><td colspan="4" style="text-align:center;">Carregando logs do sistema...</td></tr>
+              </tbody>
             </table>
           </div>
         </div>
@@ -408,7 +435,7 @@
     </div>
   </div>
 
-  <!-- MODAL EDIÇÃO E CADASTRO COMPLETO DE SERVIDORES (COM UNIFORMES) -->
+  <!-- MODAL EDIÇÃO E CADASTRO COMPLETO DE SERVIDORES -->
   <div id="editModal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
@@ -472,6 +499,23 @@
     let listaColaboradores = [];
     let listaUniformes = [];
     let todosCursos = [];
+    let todosLogs = [];
+
+    // FUNÇÃO GLOBAL DE REGISTRO DE AUDITORIA NA TABELA `logs_alteracoes`
+    async function registrarLog(acao, detalhes) {
+      if (!usuarioLogado) return;
+      try {
+        await dbNuvem.from('logs_alteracoes').insert([{
+          usuario_cpf: usuarioLogado.cpf || '00000000000',
+          usuario_nome: usuarioLogado.nome || 'Usuário do Sistema',
+          acao: acao,
+          detalhes: detalhes,
+          data_hora: new Date().toISOString()
+        }]);
+      } catch (err) {
+        console.error("Erro ao registrar log:", err);
+      }
+    }
 
     async function realizarLogin(e) {
       e.preventDefault();
@@ -497,6 +541,7 @@
       }
 
       usuarioLogado = user;
+      await registrarLog("Acesso ao Sistema", "Realizou login no Portal do Servidor.");
       carregarDashboard();
     }
 
@@ -959,29 +1004,83 @@
       document.getElementById('modalChecklistEspelho').style.display = 'none';
     }
 
+    // CARREGA E FILTRA OS LOGS DE ALTERAÇÕES DA TABELA `logs_alteracoes`
     async function carregarLogsAuditoria() {
-      const { data: logs, error } = await dbNuvem
-        .from('registros_alteracoes')
-        .select('*')
-        .order('created_at', { ascending: false });
-
       const tbody = document.getElementById('tbAdminLogs');
       if (!tbody) return;
-      tbody.innerHTML = '';
+
+      const { data: logs, error } = await dbNuvem
+        .from('logs_alteracoes')
+        .select('*')
+        .order('data_hora', { ascending: false });
 
       if (error || !logs || logs.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b; padding:15px;">Nenhum registro de alteração localizado no histórico.</td></tr>`;
         return;
       }
 
-      logs.forEach(l => {
-        const dataFmt = l.created_at ? new Date(l.created_at).toLocaleString('pt-BR') : '-';
+      todosLogs = logs;
+
+      // Popula o select de Ações com os tipos existentes no banco
+      const selAcao = document.getElementById('filtroLogsAcao');
+      if (selAcao) {
+        const acoesSet = new Set(logs.map(l => l.acao).filter(Boolean));
+        selAcao.innerHTML = `<option value="TODOS">-- Todas as Ações --</option>`;
+        Array.from(acoesSet).sort().forEach(act => {
+          selAcao.innerHTML += `<option value="${act}">${act}</option>`;
+        });
+      }
+
+      filtrarLogs();
+    }
+
+    function filtrarLogs() {
+      const tbody = document.getElementById('tbAdminLogs');
+      if (!tbody) return;
+
+      const busca = document.getElementById('filtroLogsBusca').value.toLowerCase();
+      const acaoSel = document.getElementById('filtroLogsAcao').value;
+      const dtIniStr = document.getElementById('filtroLogsDataIni').value;
+      const dtFimStr = document.getElementById('filtroLogsDataFim').value;
+
+      const dtIniFilter = dtIniStr ? new Date(dtIniStr + 'T00:00:00') : null;
+      const dtFimFilter = dtFimStr ? new Date(dtFimStr + 'T23:59:59') : null;
+
+      const logsFiltrados = todosLogs.filter(l => {
+        if (busca) {
+          const mNome = l.usuario_nome && l.usuario_nome.toLowerCase().includes(busca);
+          const mCpf = l.usuario_cpf && l.usuario_cpf.includes(busca);
+          const mDet = l.detalhes && l.detalhes.toLowerCase().includes(busca);
+          const mAcao = l.acao && l.acao.toLowerCase().includes(busca);
+          if (!mNome && !mCpf && !mDet && !mAcao) return false;
+        }
+
+        if (acaoSel !== 'TODOS' && l.acao !== acaoSel) return false;
+
+        if (l.data_hora) {
+          const dtObj = new Date(l.data_hora);
+          if (dtIniFilter && dtObj < dtIniFilter) return false;
+          if (dtFimFilter && dtObj > dtFimFilter) return false;
+        }
+
+        return true;
+      });
+
+      tbody.innerHTML = '';
+
+      if (logsFiltrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b; padding:15px;">Nenhum log encontrado para os filtros selecionados.</td></tr>`;
+        return;
+      }
+
+      logsFiltrados.forEach(l => {
+        const dataFmt = l.data_hora ? new Date(l.data_hora).toLocaleString('pt-BR') : '-';
         tbody.innerHTML += `
           <tr>
             <td style="font-size:0.78rem; color:#64748b;"><b>${dataFmt}</b></td>
-            <td><b>${l.usuario_nome || l.cpf || 'Sistema'}</b></td>
+            <td><b>${l.usuario_nome || 'Sistema'}</b><br><span style="font-size:0.7rem; color:#64748b;">CPF: ${l.usuario_cpf || '-'}</span></td>
             <td><span class="badge-role role-user">${l.acao || 'Alteração'}</span></td>
-            <td>${l.detalhes || l.descricao || '-'}</td>
+            <td style="font-size:0.8rem; line-height:1.3;">${l.detalhes || '-'}</td>
           </tr>
         `;
       });
@@ -990,6 +1089,7 @@
     async function excluirCurso(id) {
       if (confirm("Remover este registro de curso?")) {
         await dbNuvem.from('cursos_certificados').delete().eq('id', id);
+        await registrarLog("Exclusão de Curso", `Excluiu o registro de curso ID #${id}`);
         await carregarMeusCursos();
       }
     }
@@ -1075,6 +1175,7 @@
       };
       await dbNuvem.from('uniformes').upsert(upUni, { onConflict: 'colaborador_id' });
 
+      await registrarLog("Atualização Cadastral", "Servidor atualizou seus dados pessoais e tamanhos de uniformes.");
       alert('Dados salvos com sucesso!');
     }
 
@@ -1142,9 +1243,11 @@
 
       if (id) {
         await dbNuvem.from('colaboradores').update(payload).eq('id', id);
+        await registrarLog("Edição de Colaborador", `Admin editou o cadastro e perfil de ${nome} (CPF: ${cpf})`);
       } else {
         const res = await dbNuvem.from('colaboradores').insert([payload]).select().single();
         if (res.data) targetId = res.data.id;
+        await registrarLog("Novo Colaborador", `Admin cadastrou novo servidor: ${nome} (CPF: ${cpf})`);
       }
 
       if (targetId) {
@@ -1169,9 +1272,14 @@
       document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
       document.getElementById(tabId).style.display = 'block';
       element.classList.add('active');
+
+      if (tabId === 'tabAdminLogs') {
+        carregarLogsAuditoria();
+      }
     }
 
     function logout() {
+      registrarLog("Logout", "Servidor encerrou a sessão no portal.");
       usuarioLogado = null;
       location.reload();
     }
