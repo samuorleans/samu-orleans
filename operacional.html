@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SGF-SAMU | Sistema Gestor de Frota e Operações</title>
+  <title>SAMU Connect — Central Operacional</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -19,13 +19,13 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
     body { background-color: var(--bg-surface); color: #1e293b; min-height: 100vh; padding: 20px 12px; }
 
-    .container { max-width: 650px; margin: 0 auto; background: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow); border-top: 8px solid var(--samu-navy); overflow: hidden; }
+    .container { max-width: 650px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; text-align: center; }
     
-    .header-banner { background: var(--samu-navy); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--samu-red); }
-    .header-banner h1 { font-size: 1.15rem; font-weight: 800; letter-spacing: 0.5px; }
-    .header-banner p { font-size: 0.78rem; color: #cbd5e1; margin-top: 4px; line-height: 1.3; }
+    .brand-logo { width: 50px; height: auto; margin-bottom: 6px; }
+    .header h1 { font-size: 1.2rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; }
+    .header p { font-size: 0.8rem; color: #64748b; margin-bottom: 20px; font-weight: 600; }
 
-    .form-body { padding: 24px; text-align: left; }
+    .form-body { text-align: left; }
     
     .form-card-block { background: #ffffff; border: 1.5px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
     .form-card-block label.title { font-size: 0.82rem; font-weight: 800; color: var(--samu-navy); text-transform: uppercase; display: block; margin-bottom: 10px; }
@@ -34,7 +34,6 @@
     .form-group input, .form-group select, .form-group textarea { padding: 11px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none; background: white; width: 100%; }
     .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--samu-blue); }
 
-    /* RADIO BUTTONS ESTILIZADOS COMO O GOOGLE FORMS */
     .radio-group { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
     .radio-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: 0.2s; background: #f8fafc; }
     .radio-option:hover { background: #e2e8f0; }
@@ -46,28 +45,24 @@
 
     .btn-voltar-passo { background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; margin-right: 10px; }
 
-    .btn-salvar-final { background: #16a34a; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer; width: 100%; margin-top: 10px; }
-    .btn-salvar-final:hover { background: #15803d; }
-
     .btn-link-home { display: inline-block; margin-top: 20px; font-size: 0.85rem; color: var(--samu-blue); text-decoration: none; font-weight: 700; text-align: center; width: 100%; }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <div class="header-banner">
-      <h1>SGF-SAMU | Sistema Gestor de Frota e Operações</h1>
-      <p>Formulário oficial de registro diário de checklists operacionais (Condutor e Enfermagem) e controle de abastecimento da frota — USB 11 Orleans</p>
+    <!-- CABEÇALHO ORIGINAL SAMU CONNECT -->
+    <div class="header">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Star_of_life_caucasia.svg" alt="SAMU 192" class="brand-logo">
+      <h1>SAMU CONNECT — CENTRAL OPERACIONAL</h1>
+      <p>USB 11 ORLEANS — Registros Operacionais e Checklists de Rotina</p>
     </div>
 
     <div class="form-body">
       
-      <!-- =================================================================== -->
-      <!-- PASSO 1: IDENTIFICAÇÃO E SELEÇÃO DE PROCEDIMENTO (PADRÃO GOOGLE FORMS)-->
-      <!-- =================================================================== -->
+      <!-- PASSO 1: IDENTIFICAÇÃO E SELEÇÃO DE PROCEDIMENTO -->
       <div id="passo1">
         
-        <!-- SELEÇÃO DE VIATURA / PREFIXO -->
         <div class="form-card-block">
           <label class="title">VIATURA / PREFIXO <span>*</span></label>
           <div class="form-group">
@@ -77,7 +72,6 @@
           </div>
         </div>
 
-        <!-- SELEÇÃO DO PROFISSIONAL -->
         <div class="form-card-block">
           <label class="title">NOME DO PROFISSIONAL (CONDUTOR OU TÉCNICO) <span>*</span></label>
           <div class="form-group">
@@ -87,12 +81,11 @@
           </div>
         </div>
 
-        <!-- SELEÇÃO DO PROCEDIMENTO DIRETREMENTE -->
         <div class="form-card-block">
           <label class="title">QUAL PROCEDIMENTO DESEJA REALIZAR AGORA? <span>*</span></label>
           <div class="radio-group">
             <label class="radio-option">
-              <input type="radio" name="procedimento" value="condutor" checked>
+              <input type="radio" name="procedimento" value="condutor">
               <span>📑 Checklist de Plantão - Condutor Socorrista</span>
             </label>
             <label class="radio-option">
@@ -117,18 +110,15 @@
 
       </div>
 
-      <!-- =================================================================== -->
-      <!-- PASSO 2: EXIBIÇÃO DO FORMULÁRIO ESCOLHIDO                            -->
-      <!-- =================================================================== -->
+      <!-- PASSO 2: MÓDULO SELECIONADO -->
       <div id="passo2" style="display: none;">
         
-        <!-- RESUMO DA IDENTIFICAÇÃO -->
         <div style="background: #e2e8f0; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 0.82rem; font-weight: 700; color: var(--samu-navy);">
           Viatura: <span id="resumo_viatura" style="color:var(--samu-blue);"></span> | Profissional: <span id="resumo_profissional" style="color:var(--samu-blue);"></span>
         </div>
 
         <div id="conteudoFormEspecifico">
-          <!-- O formulário específico (Abastecimento, Condutor, Técnico ou Lacre) carrega aqui -->
+          <!-- Carregamento dinâmico da pasta modulos/ -->
         </div>
 
         <div style="margin-top: 20px; text-align: left;">
@@ -142,7 +132,6 @@
   </div>
 
   <script>
-    // Conexão com o Supabase
     const dbNuvem = supabase.createClient(
       "https://rcpgukslnlfptreiusff.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
@@ -153,7 +142,6 @@
       carregarProfissionais();
     };
 
-    // 1. CARREGA VIATURAS DO BANCO
     async function carregarViaturas() {
       const selV = document.getElementById('p1_viatura');
       try {
@@ -168,34 +156,35 @@
       } catch (e) {}
     }
 
-    // 2. CARREGA TODOS OS PROFISSIONAIS ATIVOS
     async function carregarProfissionais() {
       const selP = document.getElementById('p1_profissional');
       try {
-        const { data } = await dbNuvem.from('colaboradores').select('nome, status').order('nome', { ascending: true });
+        const { data } = await dbNuvem.from('colaboradores').select('nome').order('nome', { ascending: true });
         if (data && data.length > 0) {
           selP.innerHTML = '<option value="">Escolher...</option>';
           data.forEach(c => {
-            if (c.status !== 'DESLIGADO') {
-              selP.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
-            }
+            selP.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
           });
         }
       } catch (e) {}
     }
 
-    // 3. AVANÇA PARA O PASSO 2 E CARREGA O MÓDULO ESCOLHIDO
     function avancarPasso2() {
       const viatura = document.getElementById('p1_viatura').value;
       const profissional = document.getElementById('p1_profissional').value;
+      const procSelected = document.querySelector('input[name="procedimento"]:checked');
 
       if (!viatura || !profissional) {
-        alert("⚠️ Por favor, selecione a Viatura e o Nome do Profissional antes de avançar.");
+        alert("⚠️ Por favor, selecione a Viatura e o Nome do Profissional.");
         return;
       }
 
-      const procSel = document.querySelector('input[name="procedimento"]:checked').value;
+      if (!procSelected) {
+        alert("⚠️ Por favor, selecione qual procedimento deseja realizar.");
+        return;
+      }
 
+      const procSel = procSelected.value;
       document.getElementById('resumo_viatura').innerText = viatura;
       document.getElementById('resumo_profissional').innerText = profissional;
 
@@ -212,7 +201,6 @@
         .then(html => {
           document.getElementById('conteudoFormEspecifico').innerHTML = html;
           
-          // Preenche automaticamente viatura e profissional no formulário interno
           setTimeout(() => {
             const fieldViat = document.getElementById('abs_viatura');
             const fieldCond = document.getElementById('abs_condutor');
@@ -227,7 +215,6 @@
       document.getElementById('passo1').style.display = 'block';
     }
 
-    // FUNÇÃO DE GRAVAÇÃO DO ABASTECIMENTO
     async function salvarAbastecimento(e) {
       e.preventDefault();
 
