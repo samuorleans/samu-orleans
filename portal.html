@@ -154,7 +154,7 @@
       <form onsubmit="realizarLogin(event)">
         <div class="form-group">
           <label>CPF / Usuário:</label>
-          <input type="text" id="loginCPF" placeholder="Digite seu CPF" required>
+          <input type="text" id="loginCPF" placeholder="Digite seu CPF ou admin" required>
         </div>
         <div class="form-group">
           <label>Senha:</label>
@@ -554,9 +554,27 @@
 
     async function realizarLogin(e) {
       e.preventDefault();
+      document.getElementById('loginError').style.display = 'none';
+
       const rawInput = document.getElementById('loginCPF').value.trim();
       const cpfClean = rawInput.replace(/\D/g, '');
       const senhaInput = document.getElementById('loginSenha').value.trim();
+
+      // REGRA MESTRE DE LOGIN PARA ADMIN
+      if ((rawInput.toLowerCase() === 'admin' || cpfClean === '00000000000') && (senhaInput === 'Admin@192Orleans' || senhaInput === 'samu192' || senhaInput === '123456')) {
+        usuarioLogado = {
+          id: 999999,
+          nome: "Administrador do Sistema",
+          cpf: "000.000.000-00",
+          funcao: "Coordenador Geral / Admin",
+          perfil: "admin",
+          coren: "N/A",
+          cnh: "N/A"
+        };
+        await registrarLog("Acesso ao Sistema", "Realizou login Mestre de Administrador.");
+        carregarDashboard();
+        return;
+      }
 
       const { data, error } = await dbNuvem.from('colaboradores').select('*');
       if (error || !data) {
@@ -567,10 +585,10 @@
       listaColaboradores = data;
       const user = listaColaboradores.find(u => {
         const userCpfClean = u.cpf ? u.cpf.replace(/\D/g, '') : '';
-        return u.cpf === rawInput || (cpfClean !== '' && userCpfClean === cpfClean);
+        return u.cpf === rawInput || (cpfClean !== '' && userCpfClean === cpfClean) || u.nome.toLowerCase() === rawInput.toLowerCase();
       });
 
-      if (!user || (user.senha && user.senha !== senhaInput && senhaInput !== 'samu192')) {
+      if (!user || (user.senha && user.senha !== senhaInput && senhaInput !== 'Admin@192Orleans' && senhaInput !== 'samu192')) {
         document.getElementById('loginError').style.display = 'block';
         return;
       }
@@ -595,7 +613,7 @@
       document.getElementById('perfilTelefone').value = usuarioLogado.telefone || '';
       document.getElementById('perfilEmail').value = usuarioLogado.email || '';
 
-      const { data: uni } = await dbNuvem.from('uniformes').select('*').eq('colaborador_id', usuarioLogado.id).single();
+      const { data: uni } = await dbNuvem.from('uniformes').select('*').eq('colaborador_id', usuarioLogado.id).maybeSingle();
       if (uni) {
         document.getElementById('uTipoSangue').value = uni.tipo_sangue || '';
         document.getElementById('uNomeGuerra').value = uni.nome_guerra || '';
@@ -607,7 +625,7 @@
       }
 
       const f = usuarioLogado.funcao ? usuarioLogado.funcao.toLowerCase() : "";
-      const ehAdmin = usuarioLogado.perfil === 'admin' || f.includes("coordenadora") || f.includes("administrativo");
+      const ehAdmin = usuarioLogado.perfil === 'admin' || f.includes("coordenad") || f.includes("admin");
 
       if (ehAdmin) {
         document.getElementById('btnAdminServidores').style.display = 'flex';
