@@ -14,6 +14,7 @@
       --card-bg: #ffffff;
       --text-main: #2b2b2b;
       --border-color: #e0e0e0;
+      --amber-j3: #d97706;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
@@ -65,10 +66,10 @@
 
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.6); display: none; justify-content: center; align-items: center; z-index: 1000;
+      background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: center; z-index: 1000;
     }
     .modal-box {
-      background: white; padding: 28px; border-radius: 12px; width: 90%; max-width: 440px;
+      background: white; padding: 28px; border-radius: 12px; width: 90%; max-width: 450px;
       text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.3); position: relative;
     }
     .modal-box h3 { color: var(--navy-blue); margin-bottom: 8px; }
@@ -83,6 +84,11 @@
     .btn-submit:hover { background-color: var(--dark-red); }
 
     .close-modal { position: absolute; top: 12px; right: 15px; font-size: 1.3rem; cursor: pointer; color: #999; }
+
+    .box-excepcional {
+      background: #fef3c7; border: 1px solid #fcd34d; padding: 12px; border-radius: 8px; margin-top: 10px; text-align: left;
+    }
+    .box-excepcional label { font-size: 0.8rem; font-weight: 700; color: #92400e; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 
     #admin-section {
       display: none; margin-top: 20px; background: #ffffff; padding: 25px;
@@ -115,7 +121,7 @@
         <div>
           <div class="card-icon">🚑</div>
           <div class="card-title">Checklist & Abastecimento</div>
-          <div class="card-desc">Conferência diária de materiais, viaturas e abastecimento com trava J3.</div>
+          <div class="card-desc">Conferência diária de materiais, viaturas e abastecimento com validação J3.</div>
         </div>
         <span class="badge">Acessar Sistema</span>
       </a>
@@ -130,14 +136,14 @@
         <span class="badge">Visualizar Escala</span>
       </a>
 
-      <!-- Card 3: Lançamento do J3 Diário / Indisponibilidade -->
-      <div onclick="abrirModalJ3()" class="card" style="border-top-color: #d97706;">
+      <!-- Card 3: Assunção de Plantão / Confirmação do J3 Diário -->
+      <div onclick="abrirModalJ3()" class="card" style="border-top-color: var(--amber-j3);">
         <div>
           <div class="card-icon">🚨</div>
-          <div class="card-title">Lançamento de J3 / Atestado</div>
-          <div class="card-desc">Registro rápido de indisponibilidade, atestados médicos ou trocas de plantão.</div>
+          <div class="card-title">Assumir Plantão / J3</div>
+          <div class="card-desc">Validação de entrada em serviço do plantão e registro de trocas emergenciais.</div>
         </div>
-        <span class="badge" style="color: #d97706;">Lançar J3</span>
+        <span class="badge" style="color: var(--amber-j3);">Confirmar J3</span>
       </div>
 
       <!-- Card 4: Ocorrência APH / Atendimento a Paciente -->
@@ -170,12 +176,12 @@
         <span class="badge">Gerar Folha</span>
       </a>
 
-      <!-- Card 7: Portal do Servidor (Abre direto a tela de login unificada) -->
+      <!-- Card 7: Portal do Servidor (Direciona para Login Unificado no Portal) -->
       <a href="portal.html" class="card">
         <div>
           <div class="card-icon">🔐</div>
           <div class="card-title">Portal do Servidor</div>
-          <div class="card-desc">Acesso restrito a dados pessoais, troca de plantão e certificados.</div>
+          <div class="card-desc">Acesso a dados cadastrais, perfil de acesso e registro de logs.</div>
         </div>
         <span class="badge">Acessar Portal</span>
       </a>
@@ -222,7 +228,7 @@
 
   </div>
 
-  <!-- MODAL DE SENHA DE GESTÃO -->
+  <!-- MODAL DE SENHA DA GESTÃO -->
   <div class="modal-overlay" id="gestaoModal">
     <div class="modal-box">
       <span class="close-modal" onclick="closeGestaoModal()">&times;</span>
@@ -233,43 +239,40 @@
     </div>
   </div>
 
-  <!-- MODAL DE LANÇAMENTO DO J3 DIÁRIO -->
+  <!-- MODAL DE CONFIRMAÇÃO DO J3 (ASSUNÇÃO DE PLANTÃO COM SENHA ÚNICA) -->
   <div class="modal-overlay" id="modalJ3">
     <div class="modal-box">
       <span class="close-modal" onclick="fecharModalJ3()">&times;</span>
-      <h3 style="color:#d97706;">🚨 Lançamento de J3 / Indisponibilidade</h3>
-      <p>Selecione o colaborador e informe os dados do afastamento ou troca de plantão.</p>
+      <h3 style="color: var(--amber-j3);">🚨 Assunção de Plantão / Confirmação J3</h3>
+      <p>Selecione seu nome da escala do dia e digite sua Senha Única para confirmar a entrada em serviço.</p>
 
-      <form id="formJ3" onsubmit="salvarJ3(event)">
+      <form id="formJ3" onsubmit="confirmarJ3ComSenha(event)">
         <div class="form-group-modal">
-          <label>Nome do Colaborador / Servidor:*</label>
-          <select id="j3_servidor" class="input-field" required>
-            <option value="">Carregando equipe...</option>
+          <label>Seu Nome (Servidor Escalado / Substituto):*</label>
+          <select id="j3_servidor_plantao" class="input-field" required>
+            <option value="">Consultando base de colaboradores...</option>
           </select>
         </div>
 
         <div class="form-group-modal">
-          <label>Motivo do J3 / Afastamento:*</label>
-          <select id="j3_motivo" class="input-field" required>
-            <option value="">Selecione o motivo...</option>
-            <option value="Atestado Médico / Licença Saúde">Atestado Médico / Licença Saúde</option>
-            <option value="Folga / Troca de Plantão">Folga / Troca de Plantão</option>
-            <option value="Capacitação / Cursos">Capacitação / Cursos</option>
-            <option value="Outros Motivos Operacionais">Outros Motivos Operacionais</option>
-          </select>
+          <label>Sua Senha Única (Confirmação do Servidor):*</label>
+          <input type="password" id="j3_senha_confirmacao" class="input-field" placeholder="••••••••" required>
         </div>
 
-        <div class="form-group-modal">
-          <label>Data de Início do J3:*</label>
-          <input type="date" id="j3_data_inicio" class="input-field" required>
+        <!-- MANTENEDOR DE ESCAPE (TROCA EXCEPCIONAL DE ÚLTIMA HORA) -->
+        <div class="box-excepcional">
+          <label>
+            <input type="checkbox" id="j3_chk_excepcional" onchange="alternarBoxJustificativa()">
+            Troca de última hora (Fora da Escala Regular)?
+          </label>
+
+          <div id="div_justificativa" style="display: none; margin-top: 10px;">
+            <label style="color:#78350f; font-size:0.72rem;">Justificativa da Substituição Excepcional:*</label>
+            <textarea id="j3_justificativa" class="input-field" rows="2" placeholder="Informe o motivo da troca de última hora..."></textarea>
+          </div>
         </div>
 
-        <div class="form-group-modal">
-          <label>Data de Término do J3:*</label>
-          <input type="date" id="j3_data_fim" class="input-field" required>
-        </div>
-
-        <button type="submit" class="btn-submit" style="background-color: #d97706;">💾 Gravar Lançamento J3</button>
+        <button type="submit" class="btn-submit" style="background-color: var(--amber-j3);">💾 Confirmar e Assumir J3</button>
       </form>
     </div>
   </div>
@@ -304,49 +307,103 @@
       }
     }
 
-    /* BUSCA DINÂMICA DE COLABORADORES PARA O MODAL DO J3 */
+    /* ==========================================================================
+       FLUXO DO J3 DINÂMICO CONSULTANDO O SUPABASE COM VALIDAÇÃO POR SENHA ÚNICA
+       ========================================================================== */
+
     async function abrirModalJ3() {
       document.getElementById('modalJ3').style.display = 'flex';
-      const sel = document.getElementById('j3_servidor');
-      sel.innerHTML = '<option value="">Carregando colaboradores...</option>';
+      const selPlantao = document.getElementById('j3_servidor_plantao');
+      selPlantao.innerHTML = '<option value="">Carregando lista da equipe...</option>';
 
-      // Busca na tabela colaboradores do Supabase
-      const { data, error } = await dbNuvem.from('colaboradores').select('nome, cargo').order('nome');
+      const dataHoje = new Date().toISOString().split('T')[0];
 
-      if (!error && data) {
-        sel.innerHTML = '<option value="">Selecione o servidor...</option>';
-        data.forEach(c => {
-          const nomeUpper = (c.nome || '').toUpperCase();
-          if (!nomeUpper.includes('ADMINISTRADOR')) {
-            sel.innerHTML += `<option value="${c.nome}">${c.nome} (${c.cargo || 'Servidor'})</option>`;
-          }
-        });
-      } else {
-        sel.innerHTML = '<option value="">Erro ao carregar lista de colaboradores</option>';
+      try {
+        // 1. Busca afastamentos registrados no período atual
+        const { data: afastamentos } = await dbNuvem
+          .from('servidores_indisponibilidade')
+          .select('servidor_nome, motivo')
+          .lte('data_inicio', dataHoje)
+          .gte('data_fim', dataHoje);
+
+        let nomesAfastados = (afastamentos || []).map(a => a.servidor_nome);
+
+        // 2. Consulta todos os colaboradores no Supabase
+        const { data: colaboradores, error } = await dbNuvem
+          .from('colaboradores')
+          .select('nome, cargo')
+          .order('nome');
+
+        if (!error && colaboradores && colaboradores.length > 0) {
+          selPlantao.innerHTML = '<option value="">Selecione o seu nome...</option>';
+          colaboradores.forEach(c => {
+            const nomeUpper = (c.nome || '').toUpperCase();
+            if (!nomeUpper.includes('ADMINISTRADOR')) {
+              let tagAfastado = nomesAfastados.includes(c.nome) ? ' ⚠️ (Afastado/J3)' : '';
+              selPlantao.innerHTML += `<option value="${c.nome}">${c.nome} (${c.cargo || 'Servidor'})${tagAfastado}</option>`;
+            }
+          });
+        } else {
+          selPlantao.innerHTML = '<option value="">Erro ao carregar colaboradores do banco</option>';
+        }
+      } catch (err) {
+        selPlantao.innerHTML = '<option value="">Erro ao conectar com o banco de dados</option>';
       }
     }
 
     function fecharModalJ3() {
       document.getElementById('modalJ3').style.display = 'none';
+      document.getElementById('j3_senha_confirmacao').value = '';
+      document.getElementById('j3_chk_excepcional').checked = false;
+      document.getElementById('div_justificativa').style.display = 'none';
     }
 
-    async function salvarJ3(e) {
+    function alternarBoxJustificativa() {
+      const chk = document.getElementById('j3_chk_excepcional').checked;
+      document.getElementById('div_justificativa').style.display = chk ? 'block' : 'none';
+    }
+
+    async function confirmarJ3ComSenha(e) {
       e.preventDefault();
-      const payload = {
-        servidor_nome: document.getElementById('j3_servidor').value,
-        motivo: document.getElementById('j3_motivo').value,
-        data_inicio: document.getElementById('j3_data_inicio').value,
-        data_fim: document.getElementById('j3_data_fim').value,
-        status: 'ATIVO'
-      };
+      const servidorNome = document.getElementById('j3_servidor_plantao').value;
+      const senhaDigitada = document.getElementById('j3_senha_confirmacao').value.trim();
+      const ehExcepcional = document.getElementById('j3_chk_excepcional').checked;
+      const justificativa = document.getElementById('j3_justificativa').value.trim();
 
-      const { error } = await dbNuvem.from('servidores_indisponibilidade').insert([payload]);
+      if (!servidorNome || !senhaDigitada) {
+        alert("Por favor, selecione seu nome e digite sua Senha Única."); return;
+      }
 
-      if (!error) {
-        alert(`✅ Lançamento de J3 gravado com sucesso para ${payload.servidor_nome}!`);
-        fecharModalJ3();
+      if (ehExcepcional && !justificativa) {
+        alert("Para trocas de última hora fora da escala, informe a justificativa."); return;
+      }
+
+      // Validação no Supabase pela Senha Única
+      const { data, error } = await dbNuvem
+        .from('colaboradores')
+        .select('*')
+        .eq('nome', servidorNome);
+
+      if (!error && data && data.length > 0) {
+        const usuario = data[0];
+        const senhaBD = usuario.senha_unica || usuario.senha || 'samu192';
+
+        if (senhaDigitada === senhaBD) {
+          // Grava log auditável de confirmação do J3
+          await dbNuvem.from('logs_alteracoes').insert([{
+            sistema: 'Operacional / J3',
+            usuario_nome: servidorNome,
+            acao: ehExcepcional ? 'Confirmação J3 Excepcional (Fora da Escala)' : 'Confirmação J3 Regular (Plano de Plantão)',
+            detalhes: justificativa || 'Assunção Regular de Plantão'
+          }]);
+
+          alert(`✅ J3 Confirmado com Sucesso!\nPlantão assumido por ${servidorNome}.`);
+          fecharModalJ3();
+        } else {
+          alert("❌ Senha Única incorreta. Digite sua senha cadastrada.");
+        }
       } else {
-        alert("Erro ao gravar J3: " + error.message);
+        alert("Não foi possível validar o colaborador no banco.");
       }
     }
   </script>
