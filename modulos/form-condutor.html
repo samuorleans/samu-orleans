@@ -1,1 +1,179 @@
+<h3 style="color:var(--samu-navy); font-size:1.05rem;">🛠️ Checklist de Rodagem e Mecânica — Condutor Socorrista</h3>
 
+<form id="formCondutor" onsubmit="salvarCondutor(event)">
+  <div class="grid-2" style="margin-top:12px;">
+    <div class="form-group">
+      <label>Turno do Plantão:*</label>
+      <select id="cond_turno" required>
+        <option value="">Selecione...</option>
+        <option value="Diurno (12h)">Diurno (12h)</option>
+        <option value="Noturno (12h)">Noturno (12h)</option>
+        <option value="Plantão 24h">Plantão 24h</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Quilometragem Atual (Odômetro):*</label>
+      <input type="number" id="cond_km" placeholder="Ex: 14850" required>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="form-group">
+      <label>Próxima Troca de Óleo (KM):*</label>
+      <input type="number" id="cond_km_oleo" placeholder="Ex: 20000" required>
+    </div>
+    <div class="form-group">
+      <label>Nível de Combustível:*</label>
+      <select id="cond_comb" required>
+        <option value="">Selecione...</option>
+        <option value="Tanque Cheio (4/4)">Tanque Cheio (4/4)</option>
+        <option value="3/4 Tanque">3/4 Tanque</option>
+        <option value="1/2 Tanque">1/2 Tanque</option>
+        <option value="1/4 (Reserva)">1/4 (Reserva)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Nível de Arla 32:*</label>
+    <select id="cond_arla" required>
+      <option value="">Selecione...</option>
+      <option value="Cheio">Cheio</option>
+      <option value="3/4 Tanque">3/4 Tanque</option>
+      <option value="1/2 Tanque">1/2 Tanque</option>
+      <option value="Reserva/Baixo">Reserva/Baixo</option>
+      <option value="Não Utiliza nesta VTR">Não Utiliza nesta VTR</option>
+    </select>
+  </div>
+
+  <div class="section-header-title">🔧 Condições Mecânicas e Iluminação (Obrigatório Marcar Todos)</div>
+  <div class="table-container">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Item Verificado</th>
+          <th>Ok / Conforme</th>
+          <th>Alerta / Abaixo</th>
+          <th>Avaria / Defeito</th>
+        </tr>
+      </thead>
+      <tbody id="tb_mecanica"></tbody>
+    </table>
+  </div>
+
+  <div class="section-header-title">🛞 Condição Geral dos Pneus (Obrigatório)</div>
+  <div class="table-container">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Posição</th>
+          <th>Bom Estado</th>
+          <th>Meia Vida</th>
+          <th>Crítico / Substituir</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr id="row_pneu_diant">
+          <td>Pneus Dianteiros</td>
+          <td><input type="radio" name="pneu_diant" value="Bom Estado"></td>
+          <td><input type="radio" name="pneu_diant" value="Meia Vida"></td>
+          <td><input type="radio" name="pneu_diant" value="Crítico / Substituir"></td>
+        </tr>
+        <tr id="row_pneu_tras">
+          <td>Pneus Traseiros</td>
+          <td><input type="radio" name="pneu_tras" value="Bom Estado"></td>
+          <td><input type="radio" name="pneu_tras" value="Meia Vida"></td>
+          <td><input type="radio" name="pneu_tras" value="Crítico / Substituir"></td>
+        </tr>
+        <tr id="row_pneu_estepe">
+          <td>Pneu Estepe</td>
+          <td><input type="radio" name="pneu_estepe" value="Bom Estado"></td>
+          <td><input type="radio" name="pneu_estepe" value="Meia Vida"></td>
+          <td><input type="radio" name="pneu_estepe" value="Crítico / Substituir"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="form-group">
+    <label>Relato de Avarias e Observações do Condutor:</label>
+    <div class="mic-wrapper">
+      <textarea id="cond_avarias" rows="3" placeholder="Digite ou toque no microfone para falar..."></textarea>
+      <button type="button" class="btn-mic" onclick="iniciarVoz('cond_avarias')">🎙️ Ouvir</button>
+    </div>
+  </div>
+
+  <div class="action-row">
+    <button type="button" class="btn-back" onclick="voltarInicio()">⬅ Voltar</button>
+    <button type="submit" class="btn-save">💾 Gravar Checklist do Condutor</button>
+  </div>
+</form>
+
+<script>
+  const listaMecanica = [
+    "Nível de Óleo do Motor", "Líquido de Arrefecimento", "Óleo da Direção Hidráulica",
+    "Fluido de Freio", "Motor de Arranque / Partida", "Sistemas de Direção e Câmbio",
+    "Ar-Condicionado (Cabine e Salão)", "Módulo de Sirene e Giroflex",
+    "Limpador de Para-brisa e Vidros", "Faróis, Lanternas e Piscas"
+  ];
+
+  function renderizarMecanica() {
+    const tb = document.getElementById('tb_mecanica');
+    tb.innerHTML = '';
+    listaMecanica.forEach((item, index) => {
+      tb.innerHTML += `
+        <tr id="row_mec_${index}">
+          <td>${item}</td>
+          <td><input type="radio" name="mec_${index}" value="Ok / Conforme"></td>
+          <td><input type="radio" name="mec_${index}" value="Alerta / Abaixo"></td>
+          <td><input type="radio" name="mec_${index}" value="Avaria / Defeito"></td>
+        </tr>
+      `;
+    });
+  }
+
+  async function salvarCondutor(e) {
+    e.preventDefault();
+    let pendentes = [];
+    let mapaMecanica = {};
+
+    listaMecanica.forEach((item, index) => {
+      const marcado = document.querySelector(`input[name="mec_${index}"]:checked`);
+      const tr = document.getElementById(`row_mec_${index}`);
+      if (!marcado) { pendentes.push(item); tr.classList.add('unselected'); }
+      else { tr.classList.remove('unselected'); mapaMecanica[item] = marcado.value; }
+    });
+
+    const pneuDiant = document.querySelector('input[name="pneu_diant"]:checked');
+    const pneuTras = document.querySelector('input[name="pneu_tras"]:checked');
+    const pneuEstepe = document.querySelector('input[name="pneu_estepe"]:checked');
+
+    if (!pneuDiant || !pneuTras || !pneuEstepe) pendentes.push("Estado Geral dos Pneus");
+
+    if (pendentes.length > 0) {
+      alert(`⚠️ Preenchimento obrigatório incompleto!\nAvalie os itens destacados em vermelho.`); return;
+    }
+
+    const payload = {
+      viatura: document.getElementById('vtr_prefixo').value,
+      profissional_nome: document.getElementById('prof_nome').value,
+      tipo_procedimento: 'Checklist Condutor',
+      turno_plantao: document.getElementById('cond_turno').value,
+      km_atual: parseInt(document.getElementById('cond_km').value),
+      km_proxima_troca_oleo: parseInt(document.getElementById('cond_km_oleo').value),
+      nivel_combustivel: document.getElementById('cond_comb').value,
+      nivel_arla32: document.getElementById('cond_arla').value,
+      mecanica_iluminacao: mapaMecanica,
+      estado_pneus: { dianteiros: pneuDiant.value, traseiros: pneuTras.value, estepe: pneuEstepe.value },
+      relato_avarias: document.getElementById('cond_avarias').value
+    };
+
+    const { error } = await dbNuvem.from('operacional_checklists').insert([payload]);
+    if (!error) {
+      await registrarLog('Operacional', 'Checklist Condutor', `Checklist gravado por ${payload.profissional_nome}.`);
+      alert('✅ Checklist do Condutor salvo com sucesso!'); location.reload();
+    } else { alert('Erro: ' + error.message); }
+  }
+
+  renderizarMecanica();
+</script>
