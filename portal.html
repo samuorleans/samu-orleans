@@ -95,26 +95,38 @@
     .role-user { background: #e0f2fe; color: #0369a1; }
     .badge-ch { background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 12px; font-weight: bold; }
 
+    /* CABEÇALHO IMPRESSÃO */
+    .relatorio-header-print { display: none; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 8px; text-align: center; }
+    .relatorio-header-print h2 { font-size: 11pt; text-transform: uppercase; margin: 0; color: #000; font-weight: 800; }
+    .relatorio-header-print h3 { font-size: 9.5pt; text-transform: uppercase; margin: 2px 0; color: #000; }
+
     /* MODAL */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
     .modal-card { background: white; padding: 22px; border-radius: 14px; width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
     .modal-title { font-size: 1rem; color: var(--navy-blue); font-weight: 800; }
 
-    /* IMPRESSÃO ISOLADA A4 - IMPRIME APENAS O ESPELHO DO CHECKLIST */
+    /* REGRAS DE IMPRESSÃO A4 INTELIGENTES */
     @media print {
       @page { size: A4 portrait; margin: 8mm; }
-      body * { visibility: hidden !important; }
+      body { background: white !important; color: #000 !important; font-size: 8.5pt !important; width: 100% !important; }
       
-      #modalChecklistEspelho, #modalChecklistEspelho * { visibility: visible !important; }
-      #modalChecklistEspelho { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; height: auto !important; background: white !important; padding: 0 !important; }
+      .sidebar, .no-print, .search-input, .grid-filter, .login-wrapper, .modal-header button { display: none !important; }
+      .app-layout { display: block !important; }
+      .main-content { padding: 0 !important; overflow: visible !important; }
+      .card-panel { border: none !important; box-shadow: none !important; padding: 0 !important; margin-bottom: 12pt !important; }
       
-      .modal-card { max-width: 100% !important; width: 100% !important; box-shadow: none !important; border: none !important; padding: 0 !important; border-radius: 0 !important; }
-      .no-print { display: none !important; }
-      
-      table { width: 100% !important; border-collapse: collapse !important; font-size: 8pt !important; }
-      th, td { border: 1px solid #000 !important; padding: 4px 6px !important; color: #000 !important; }
-      th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .relatorio-header-print { display: block !important; }
+
+      .data-table, table { width: 100% !important; border-collapse: collapse !important; font-size: 8pt !important; }
+      .data-table th, .data-table td, table th, table td { border: 1px solid #000 !important; padding: 4px 6px !important; color: #000 !important; }
+      .data-table th, table th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+      /* SE A MODAL DO ESPELHO ESTIVER ABERTA, IMPRIME EXCLUSIVAMENTE ELA */
+      body.modal-open-print .app-layout > *:not(.main-content) { display: none !important; }
+      body.modal-open-print .tab-pane { display: none !important; }
+      body.modal-open-print #modalChecklistEspelho { display: block !important; position: static !important; background: transparent !important; padding: 0 !important; }
+      body.modal-open-print #modalChecklistEspelho .modal-card { max-width: 100% !important; width: 100% !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
     }
   </style>
 </head>
@@ -176,6 +188,13 @@
     </aside>
 
     <main class="main-content">
+
+      <!-- CABEÇALHO PARA IMPRESSÃO DE RELATÓRIOS -->
+      <div class="relatorio-header-print">
+        <h2>ESTADO DE SANTA CATARINA — MUNICÍPIO DE ORLEANS</h2>
+        <h3>SAMU 192 — UNIDADE DE SUPORTE BÁSICO (USB 11 ORLEANS)</h3>
+        <p style="font-size:8.5pt; font-weight:bold; margin-top:3px;">RELATÓRIO OFICIAL DE CAPACITAÇÕES E AUDITORIA (PORTARIA 2048/2002)</p>
+      </div>
 
       <!-- ABA 1: PERFIL DO SERVIDOR -->
       <div id="tabMeuPerfil" class="tab-pane">
@@ -501,7 +520,6 @@
     let todosCursos = [];
     let todosLogs = [];
 
-    // FUNÇÃO GLOBAL DE REGISTRO DE AUDITORIA NA TABELA `logs_alteracoes`
     async function registrarLog(acao, detalhes) {
       if (!usuarioLogado) return;
       try {
@@ -849,6 +867,8 @@
     }
 
     async function abrirEspelhoChecklist(data) {
+      document.body.classList.add('modal-open-print');
+      
       let dadosSaude = null;
       const ehEnfermagem = data.tipo_procedimento && data.tipo_procedimento.toLowerCase().includes('enfermagem');
 
@@ -1001,10 +1021,10 @@
     }
 
     function fecharModalChecklist() {
+      document.body.classList.remove('modal-open-print');
       document.getElementById('modalChecklistEspelho').style.display = 'none';
     }
 
-    // CARREGA E FILTRA OS LOGS DE ALTERAÇÕES DA TABELA `logs_alteracoes`
     async function carregarLogsAuditoria() {
       const tbody = document.getElementById('tbAdminLogs');
       if (!tbody) return;
@@ -1021,7 +1041,6 @@
 
       todosLogs = logs;
 
-      // Popula o select de Ações com os tipos existentes no banco
       const selAcao = document.getElementById('filtroLogsAcao');
       if (selAcao) {
         const acoesSet = new Set(logs.map(l => l.acao).filter(Boolean));
