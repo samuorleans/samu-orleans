@@ -3,429 +3,740 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAMU Connect — Central Operacional e Checklists</title>
+  <title>SAMU Connect — Central Operacional</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --primary-red: #cc0000;
-      --navy-blue: #002b49;
-      --navy-dark: #001a2d;
-      --bg-gray: #f4f6f9;
-      --border-color: #cbd5e1;
+      --samu-navy: #0d233a;
+      --samu-blue: #1976d2;
+      --samu-red: #d32f2f;
+      --bg-surface: #f4f7fa;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --shadow: 0 10px 30px rgba(13, 35, 58, 0.08);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-    body { background-color: var(--bg-gray); color: #1e293b; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 20px 10px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background-color: var(--bg-surface); color: #1e293b; min-height: 100vh; padding: 20px 12px; }
 
-    .form-card {
-      background: white; width: 100%; max-width: 680px; padding: 25px; border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.06); border-top: 6px solid var(--primary-red); margin-bottom: 30px;
-    }
+    .container { max-width: 650px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; text-align: center; }
+    
+    .brand-logo { max-width: 90px; height: auto; margin-bottom: 8px; }
+    .header h1 { font-size: 1.2rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; }
+    .header p { font-size: 0.8rem; color: #64748b; margin-bottom: 20px; font-weight: 600; }
 
-    .brand-header { text-align: center; border-bottom: 2px solid var(--navy-blue); padding-bottom: 12px; margin-bottom: 20px; }
-    .brand-header img { width: 60px; height: auto; margin-bottom: 6px; }
-    .brand-header h1 { font-size: 1.1rem; color: var(--navy-blue); font-weight: 800; text-transform: uppercase; }
-    .brand-header p { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+    .form-body { text-align: left; }
+    
+    .form-card-block { background: #ffffff; border: 1.5px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+    .form-card-block label.title { font-size: 0.82rem; font-weight: 800; color: var(--samu-navy); text-transform: uppercase; display: block; margin-bottom: 10px; }
+    .form-card-block label.title span { color: var(--samu-red); }
 
-    .section-box { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; margin-bottom: 15px; }
-    .section-title { font-size: 0.85rem; color: var(--navy-blue); font-weight: 800; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .form-group input, .form-group select, .form-group textarea { padding: 11px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none; background: white; width: 100%; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--samu-blue); }
 
-    .form-group { display: flex; flex-direction: column; margin-bottom: 12px; }
-    .form-group label { font-size: 0.78rem; font-weight: 700; color: var(--navy-blue); margin-bottom: 4px; text-transform: uppercase; }
-    .form-group input, .form-group select, .form-group textarea {
-      padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.88rem; outline: none; transition: 0.2s; width: 100%;
-    }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--navy-blue); box-shadow: 0 0 0 3px rgba(0, 43, 73, 0.1); }
+    #boxSenhaAdmin { display: none; background: #f1f5f9; border: 1.5px dashed var(--samu-blue); border-radius: 8px; padding: 12px; margin-top: 10px; }
 
-    .radio-option { display: flex; align-items: center; gap: 8px; background: white; border: 1px solid var(--border-color); padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: 0.2s; font-size: 0.85rem; font-weight: 600; }
-    .radio-option:hover { border-color: var(--navy-blue); background: #f0f9ff; }
-    .radio-option input[type="radio"] { accent-color: var(--navy-blue); }
+    .radio-group { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+    .radio-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: 0.2s; background: #f8fafc; }
+    .radio-option:hover { background: #e2e8f0; }
+    .radio-option input[type="radio"] { width: 18px; height: 18px; accent-color: var(--samu-navy); }
+    .radio-option span { font-size: 0.85rem; font-weight: 700; color: #334155; }
 
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    @media (max-width: 500px) { .grid-2 { grid-template-columns: 1fr; } }
+    .btn-avancar { background: var(--samu-navy); color: white; border: none; padding: 12px 28px; border-radius: 8px; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
+    .btn-avancar:hover { background: #1e3a5f; }
 
-    .btn-submit {
-      width: 100%; background: var(--navy-blue); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 15px;
-    }
-    .btn-submit:hover { background: var(--navy-dark); }
-    .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
+    .btn-voltar-passo { background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; margin-right: 10px; }
 
-    .btn-back { background: transparent; border: none; color: var(--navy-blue); font-size: 0.8rem; font-weight: 700; cursor: pointer; text-decoration: underline; display: inline-block; margin-top: 10px; }
+    .btn-link-home { display: inline-block; margin-top: 20px; font-size: 0.85rem; color: var(--samu-blue); text-decoration: none; font-weight: 700; text-align: center; width: 100%; }
   </style>
 </head>
 <body>
 
-  <div class="form-card">
-    <div class="brand-header">
-      <img src="logo.png" alt="SAMU 192" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
+  <div class="container">
+    <div class="header">
+      <img src="logo.png" alt="SAMU 192" class="brand-logo" onerror="this.style.display='none'">
       <h1>SAMU CONNECT — CENTRAL OPERACIONAL</h1>
       <p>USB 11 ORLEANS — Registros Operacionais e Checklists de Rotina</p>
     </div>
 
-    <form id="formOperacional" onsubmit="enviarChecklistOperacional(event)">
+    <div class="form-body">
       
-      <!-- PASSO 1: SELEÇÃO DE VIATURA E PROFISSIONAL -->
-      <div class="section-box">
-        <div class="form-group">
-          <label>Viatura / Prefixo *</label>
-          <select id="opViatura" required>
-            <option value="SXT-9H65 - M. BENZ SPRINTER (SXT-9H65)">SXT-9H65 - M. BENZ SPRINTER (SXT-9H65)</option>
-            <option value="RAJ-2I37 - M. BENZ SPRINTER (RAJ-2I37)">RAJ-2I37 - M. BENZ SPRINTER (RAJ-2I37)</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Nome do Profissional (Condutor ou Técnico) *</label>
-          <select id="opProfissional" onchange="atualizarOpcoesProcedimento()" required>
-            <option value="">-- Selecione seu Nome --</option>
-          </select>
-        </div>
-
-        <div class="form-group" id="boxProcedimentos" style="display:none;">
-          <label>Qual procedimento deseja realizar agora? *</label>
-          <div id="opcoesProcedimento"></div>
-        </div>
-      </div>
-
-      <!-- PASSO 2: FORMULÁRIOS DINÂMICOS -->
-
-      <!-- CAMPOS CONDUTOR: CHECKLIST -->
-      <div id="formCondutorChecklist" class="section-box" style="display:none;">
-        <div class="section-title">🚚 Checklist de Rodagem e Mecânica — Condutor</div>
+      <!-- PASSO 1: IDENTIFICAÇÃO E SELEÇÃO DE PROCEDIMENTO -->
+      <div id="passo1">
         
-        <div class="grid-2">
+        <div class="form-card-block">
+          <label class="title">VIATURA / PREFIXO <span>*</span></label>
           <div class="form-group">
-            <label>Turno do Plantão *</label>
-            <select id="condTurno">
-              <option value="Diurno (07h às 19h)">Diurno (07h às 19h)</option>
-              <option value="Noturno (19h às 07h)">Noturno (19h às 07h)</option>
-              <option value="Plantão 24h">Plantão 24h</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Quilometragem Atual (KM) *</label>
-            <input type="number" id="condKM" placeholder="Ex: 15505">
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label>Nível de Combustível *</label>
-            <select id="condCombustivel">
-              <option value="Tanque Cheio (4/4)">Tanque Cheio (4/4)</option>
-              <option value="3/4 do Tanque">3/4 do Tanque</option>
-              <option value="1/2 Tanque (Meio)">1/2 Tanque (Meio)</option>
-              <option value="1/4 do Tanque (Reserva)">1/4 do Tanque (Reserva)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Nível de Arla 32 *</label>
-            <select id="condArla">
-              <option value="Cheio">Cheio</option>
-              <option value="Médio">Médio</option>
-              <option value="Necessita Completar">Necessita Completar</option>
+            <select id="p1_viatura" required>
+              <option value="">Escolher...</option>
             </select>
           </div>
         </div>
 
-        <div class="grid-2">
+        <div class="form-card-block">
+          <label class="title">NOME DO PROFISSIONAL (CONDUTOR OU TÉCNICO) <span>*</span></label>
           <div class="form-group">
-            <label>Cilindro Portátil 2L (bar) *</label>
-            <input type="number" id="condPortatilBar" value="200" placeholder="Ex: 200">
-          </div>
-          <div class="form-group">
-            <label>Mecânica & Luzes *</label>
-            <select id="condMecanica">
-              <option value="Conforme / OK">Conforme / OK</option>
-              <option value="Avaria Identificada">Avaria Identificada</option>
+            <select id="p1_profissional" required onchange="verificarAcessoProfissional()">
+              <option value="">Escolher...</option>
             </select>
           </div>
+
+          <div id="boxSenhaAdmin">
+            <label style="font-size: 0.72rem; font-weight: 800; color: var(--samu-navy); text-transform: uppercase; display: block; margin-bottom: 4px;">
+              🔑 Autenticação de Gestão / Admin (Digite a Senha):
+            </label>
+            <div style="display: flex; gap: 8px;">
+              <input type="password" id="input_senha_admin" placeholder="Digite sua senha..." style="padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; flex: 1;">
+              <button type="button" onclick="validarSenhaAdmin()" style="background: var(--samu-blue); color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">
+                Autenticar
+              </button>
+            </div>
+          </div>
         </div>
+
+        <div class="form-card-block">
+          <label class="title">QUAL PROCEDIMENTO DESEJA REALIZAR AGORA? <span>*</span></label>
+          <div class="radio-group" id="containerProcedimentos">
+            
+            <label class="radio-option" id="opt_condutor">
+              <input type="radio" name="procedimento" value="condutor">
+              <span>📑 Checklist de Plantão - Condutor Socorrista</span>
+            </label>
+
+            <label class="radio-option" id="opt_tecnico">
+              <input type="radio" name="procedimento" value="tecnico">
+              <span>🩺 Checklist de Plantão - Técnico de Enfermagem</span>
+            </label>
+
+            <label class="radio-option" id="opt_abastecimento">
+              <input type="radio" name="procedimento" value="abastecimento">
+              <span>⛽ Registrar Abastecimento de Combustível/Arla</span>
+            </label>
+
+            <label class="radio-option" id="opt_lacre">
+              <input type="radio" name="procedimento" value="lacre">
+              <span>🔒 Registro de Ocorrência / Troca de Lacre (Checklist)</span>
+            </label>
+
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+          <button type="button" class="btn-avancar" onclick="avancarPasso2()">Avançar ➔</button>
+          <span style="font-size: 0.78rem; color: #94a3b8; font-weight: 600;">Página 1 de 2</span>
+        </div>
+
       </div>
 
-      <!-- CAMPOS CONDUTOR: REABASTECIMENTO -->
-      <div id="formCondutorAbastecimento" class="section-box" style="display:none;">
-        <div class="section-title">⛽ Registro de Reabastecimento (Combustível / Arla)</div>
+      <!-- PASSO 2: MÓDULO SELECIONADO -->
+      <div id="passo2" style="display: none;">
         
-        <div class="grid-2">
-          <div class="form-group">
-            <label>Posto de Combustível *</label>
-            <input type="text" id="absPosto" value="POSTO MATRIZ" placeholder="Nome do posto">
-          </div>
-          <div class="form-group">
-            <label>Tipo de Insumo *</label>
-            <select id="absInsumo">
-              <option value="DIESEL S10">DIESEL S10</option>
-              <option value="ARLA 32">ARLA 32</option>
-            </select>
-          </div>
+        <div style="background: #e2e8f0; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 0.82rem; font-weight: 700; color: var(--samu-navy);">
+          Viatura: <span id="resumo_viatura" style="color:var(--samu-blue);"></span> | Profissional: <span id="resumo_profissional" style="color:var(--samu-blue);"></span>
         </div>
 
-        <div class="grid-2">
-          <div class="form-group">
-            <label>Quilometragem no Posto (KM) *</label>
-            <input type="number" id="absKM" placeholder="Ex: 15550">
-          </div>
-          <div class="form-group">
-            <label>Litros Abastecidos *</label>
-            <input type="number" step="0.01" id="absLitros" placeholder="Ex: 55.40">
-          </div>
+        <div id="conteudoFormEspecifico">
+          <!-- O MÓDULO É CARREGADO AQUI VIA FETCH -->
         </div>
 
-        <div class="form-group">
-          <label>Valor Total Pago (R$) *</label>
-          <input type="number" step="0.01" id="absValor" placeholder="Ex: 345.50">
+        <div style="margin-top: 20px; text-align: left;">
+          <button type="button" class="btn-voltar-passo" onclick="voltarPasso1()">⬅️ Voltar</button>
         </div>
+
       </div>
 
-      <!-- CAMPOS ENFERMAGEM: CHECKLIST & GASES -->
-      <div id="formTecnicoChecklist" class="section-box" style="display:none;">
-        <div class="section-title">🩺 Checklist de Equipamentos e Gases — Enfermagem</div>
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label>Nº Lacre Maleta Psicotrópicos *</label>
-            <input type="text" id="tecLacre" placeholder="Ex: 499">
-          </div>
-          <div class="form-group">
-            <label>Status Kit Parto *</label>
-            <select id="tecKitParto">
-              <option value="Conforme e Lacrado">Conforme e Lacrado</option>
-              <option value="Alerta: Material Faltante/Vencido">Alerta: Material Faltante/Vencido</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="section-title" style="margin-top:10px;">💨 Medição de Gases Medicinais (Pressão em BAR)</div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label>Cilindro Fixo 1 (bar) *</label>
-            <input type="number" id="tecFixo1" value="150">
-          </div>
-          <div class="form-group">
-            <label>Cilindro Fixo 2 (bar) *</label>
-            <input type="number" id="tecFixo2" value="150">
-          </div>
-          <div class="form-group">
-            <label>Cilindro Portátil 1 (bar) *</label>
-            <input type="number" id="tecPortatil1" value="200">
-          </div>
-          <div class="form-group">
-            <label>Cilindro Ar Comprimido (bar) *</label>
-            <input type="number" id="tecArComp" value="150">
-          </div>
-        </div>
-      </div>
-
-      <!-- CAMPO COMUM DE OBSERVAÇÕES -->
-      <div id="boxObservacoes" class="form-group" style="display:none;">
-        <label>Observações / Relato de Avarias ou Reposições</label>
-        <textarea id="opAvarias" rows="2" placeholder="Digite se houver alguma observação relevante..."></textarea>
-      </div>
-
-      <button type="submit" id="btnSalvar" class="btn-submit" style="display:none;">
-        <span>💾 Confirmar e Registrar no Sistema</span>
-      </button>
-
-      <div style="text-align:center;">
-        <a href="portal.html" class="btn-back">← Voltar ao Painel Principal</a>
-      </div>
-
-    </form>
+      <a href="index.html" class="btn-link-home">⬅️ Voltar ao Painel Principal</a>
+    </div>
   </div>
 
   <script>
-    const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
-    const dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const dbNuvem = supabase.createClient(
+      "https://rcpgukslnlfptreiusff.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
+    );
 
-    // URL DO GOOGLE APPS SCRIPT PARA GERAÇÃO AUTOMÁTICA DE PDF NO DRIVE
+    // ENDEREÇO DO WEB APP DO GOOGLE APPS SCRIPT PARA GERAÇÃO SILENCIOSA DE PDF NO GOOGLE DRIVE
     const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbw4Ktvti7aAnru-DwISbot-dTmIYMB1lU_Y6k3AG0B9lzFFou6AmkSqA1tifJo2Ixyh/exec";
 
-    let listaServidores = [];
+    let adminAutenticado = false;
+    let senhaOficialAdmin = "";
 
-    async function carregarServidores() {
-      const { data } = await dbNuvem.from('colaboradores').select('*').order('nome');
-      listaServidores = data || [];
-      const sel = document.getElementById('opProfissional');
-      sel.innerHTML = '<option value="">-- Selecione seu Nome --</option>';
-      listaServidores.forEach(s => {
-        sel.innerHTML += `<option value="${s.nome}" data-funcao="${s.funcao}">${s.nome} (${s.funcao})</option>`;
-      });
+    const listaMecanicaCondutor = [
+      "Óleo do Motor", "Líquido de Arrefecimento", "Óleo de Direção",
+      "Fluido de Freio", "Motor de Arranque", "Direção e Câmbio",
+      "Ar-Condicionado (Cabine e Salão)", "Módulo Sirene e Giroflex",
+      "Limpadores e Vidros", "Faróis e Piscas"
+    ];
+
+    const listaMochilasEnf = [
+      "Mochila Azul - Vias Aéreas (POP-ALM-001)",
+      "Mochila Laranja - Trauma (POP-ALM-001)",
+      "Mochila Verde - Medicamentos (POP-ALM-001)",
+      "Mochila Vermelha - Acesso Venoso & Soluções (POP-ALM-001)",
+      "Mochila Amarela - Sinais Vitais & Glicosímetro (POP-ALM-001)",
+      "DEA / Monitor Multiparâmetros Mindray (POP-ALM-001)",
+      "Aspirador Portátil & Vidro de Aspiração (POP-ALM-001)",
+      "Compressor Thorácico Autopulse / Baterias (POP-EQP-001)",
+      "Kit Parto Iminente Confirmado Estéril (Prevenção Risco Obstétrico)",
+      "Salão & Compartimentos de Insumos (POP-ALM-001)"
+    ];
+
+    window.onload = function() {
+      carregarViaturas();
+      carregarProfissionaisComPermissoes();
+    };
+
+    // RETORNA O TIMESTAMP EXATO NO HORÁRIO LOCAL DO BRASIL (SEM DESLOCAMENTO UTC)
+    function obterDataHoraBrasil() {
+      const agora = new Date();
+      const ano = agora.getFullYear();
+      const mes = String(agora.getMonth() + 1).padStart(2, '0');
+      const dia = String(agora.getDate()).padStart(2, '0');
+      const horas = String(agora.getHours()).padStart(2, '0');
+      const minutos = String(agora.getMinutes()).padStart(2, '0');
+      const segundos = String(agora.getSeconds()).padStart(2, '0');
+
+      return `${ano}-${mes}-${dia}T${horas}:${minutos}:${segundos}`;
     }
 
-    function atualizarOpcoesProcedimento() {
-      const sel = document.getElementById('opProfissional');
-      const option = sel.options[sel.selectedIndex];
-      const funcao = option ? option.getAttribute('data-funcao') || '' : '';
-
-      const boxProc = document.getElementById('boxProcedimentos');
-      const divOpcoes = document.getElementById('opcoesProcedimento');
-
-      esconderTodosFormularios();
-
-      if (!sel.value) {
-        boxProc.style.display = 'none';
-        return;
-      }
-
-      boxProc.style.display = 'block';
-      divOpcoes.innerHTML = '';
-
-      if (funcao.toLowerCase().includes('condutor')) {
-        divOpcoes.innerHTML = `
-          <label class="radio-option">
-            <input type="radio" name="procTipo" value="Checklist de Plantão - Condutor Socorrista" onchange="mostrarFormularioEspecifico('cond_check')">
-            📝 Checklist de Plantão - Condutor Socorrista
-          </label>
-          <label class="radio-option">
-            <input type="radio" name="procTipo" value="Registrar Abastecimento de Combustível/Arla" onchange="mostrarFormularioEspecifico('cond_abs')">
-            ⛽ Registrar Abastecimento de Combustível/Arla
-          </label>
-        `;
-      } else {
-        divOpcoes.innerHTML = `
-          <label class="radio-option">
-            <input type="radio" name="procTipo" value="Checklist de Enfermagem, Equipamentos e Gases" onchange="mostrarFormularioEspecifico('tec_check')">
-            🩺 Checklist de Enfermagem, Equipamentos e Gases
-          </label>
-        `;
-      }
-    }
-
-    function esconderTodosFormularios() {
-      document.getElementById('formCondutorChecklist').style.display = 'none';
-      document.getElementById('formCondutorAbastecimento').style.display = 'none';
-      document.getElementById('formTecnicoChecklist').style.display = 'none';
-      document.getElementById('boxObservacoes').style.display = 'none';
-      document.getElementById('btnSalvar').style.display = 'none';
-    }
-
-    function mostrarFormularioEspecifico(tipo) {
-      esconderTodosFormularios();
-      document.getElementById('boxObservacoes').style.display = 'block';
-      document.getElementById('btnSalvar').style.display = 'flex';
-
-      if (tipo === 'cond_check') document.getElementById('formCondutorChecklist').style.display = 'block';
-      if (tipo === 'cond_abs') document.getElementById('formCondutorAbastecimento').style.display = 'block';
-      if (tipo === 'tec_check') document.getElementById('formTecnicoChecklist').style.display = 'block';
-    }
-
-    async function enviarChecklistOperacional(e) {
-      e.preventDefault();
-      const btn = document.getElementById('btnSalvar');
-      btn.disabled = true;
-      btn.innerText = "⏳ Gravando dados e gerando PDF no Drive...";
-
-      const viatura = document.getElementById('opViatura').value;
-      const profissional = document.getElementById('opProfissional').value;
-      const procElem = document.querySelector('input[name="procTipo"]:checked');
-      const procedimento = procElem ? procElem.value : 'Checklist';
-      const avarias = document.getElementById('opAvarias').value || '';
-      const dataHoraIso = new Date().toISOString();
-
-      let payloadSupabase = {
-        viatura: viatura,
-        profissional_nome: profissional,
-        tipo_procedimento: procedimento,
-        relato_avarias: avarias,
-        data_hora: dataHoraIso
-      };
-
-      let respostasMap = {
-        "Observações / Avarias": avarias
-      };
-
-      if (procedimento.includes('Condutor Socorrista')) {
-        payloadSupabase.turno_plantao = document.getElementById('condTurno').value;
-        payloadSupabase.km_atual = Number(document.getElementById('condKM').value) || 0;
-        payloadSupabase.nivel_combustivel = document.getElementById('condCombustivel').value;
-        payloadSupabase.nivel_arla32 = document.getElementById('condArla').value;
-        payloadSupabase.cilindro_portatil_bar = Number(document.getElementById('condPortatilBar').value) || 200;
-        payloadSupabase.mecanica_iluminacao = { geral: document.getElementById('condMecanica').value };
-
-        respostasMap["Turno do Plantão"] = payloadSupabase.turno_plantao;
-        respostasMap["Quilometragem Atual (KM)"] = payloadSupabase.km_atual;
-        respostasMap["Nível de Combustível"] = payloadSupabase.nivel_combustivel;
-        respostasMap["Nível de Arla 32"] = payloadSupabase.nivel_arla32;
-        respostasMap["Cilindro Portátil 2L (bar)"] = payloadSupabase.cilindro_portatil_bar;
-        respostasMap["Condições Mecânicas"] = document.getElementById('condMecanica').value;
-      } 
-      else if (procedimento.includes('Abastecimento')) {
-        const posto = document.getElementById('absPosto').value;
-        const insumo = document.getElementById('absInsumo').value;
-        const kmAbs = Number(document.getElementById('absKM').value) || 0;
-        const litros = Number(document.getElementById('absLitros').value) || 0;
-        const valorTotal = Number(document.getElementById('absValor').value) || 0;
-
-        payloadSupabase.km_atual = kmAbs;
-        payloadSupabase.relato_avarias = `[ABASTECIMENTO] Posto: ${posto} | Insumo: ${insumo} | Litros: ${litros}L | Total: R$ ${valorTotal} | Obs: ${avarias}`;
-
-        respostasMap["Posto de Combustível"] = posto;
-        respostasMap["Tipo de Insumo"] = insumo;
-        respostasMap["Quilometragem no Posto (KM)"] = kmAbs;
-        respostasMap["Litros Abastecidos"] = litros;
-        respostasMap["Valor Total Pago (R$)"] = valorTotal;
-      } 
-      else if (procedimento.includes('Enfermagem')) {
-        const lacre = document.getElementById('tecLacre').value;
-        const kitParto = document.getElementById('tecKitParto').value;
-        const fixo1 = Number(document.getElementById('tecFixo1').value) || 150;
-        const fixo2 = Number(document.getElementById('tecFixo2').value) || 150;
-        const port1 = Number(document.getElementById('tecPortatil1').value) || 200;
-        const arComp = Number(document.getElementById('tecArComp').value) || 150;
-
-        await dbNuvem.from('operacional_saude_lacres').insert([{
-          viatura: viatura,
-          data_hora: dataHoraIso,
-          numero_lacre_psicotropicos: lacre,
-          status_kit_parto: kitParto,
-          cilindro_fixo_1_bar: fixo1,
-          cilindro_fixo_2_bar: fixo2,
-          cilindro_portatil_1_bar: port1,
-          cilindro_ar_comprimido_bar: arComp
-        }]);
-
-        respostasMap["Nº Lacre Psicotrópicos"] = lacre;
-        respostasMap["Status Kit Parto"] = kitParto;
-        respostasMap["Cilindro Fixo 1 (bar)"] = fixo1;
-        respostasMap["Cilindro Fixo 2 (bar)"] = fixo2;
-        respostasMap["Cilindro Portátil 1 (bar)"] = port1;
-        respostasMap["Cilindro Ar Comprimido (bar)"] = arComp;
-      }
-
-      // 1. GRAVAÇÃO NO SUPABASE
-      const { error: errCheck } = await dbNuvem.from('operacional_checklists').insert([payloadSupabase]);
-
-      // 2. DISPARO AUTOMÁTICO PARA O GOOGLE APPS SCRIPT (GERAÇÃO DE PDF NO DRIVE)
+    // DISPARA DADOS EM SEGUNDO PLANO PARA O GOOGLE APPS SCRIPT GERAR O PDF NO DRIVE
+    async function dispararEnvioGoogleDrive(tipoProc, respostasMap) {
       try {
         await fetch(URL_GOOGLE_SCRIPT, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            viatura: viatura,
-            profissional_nome: profissional,
-            tipo_procedimento: procedimento,
+            viatura: document.getElementById('resumo_viatura') ? document.getElementById('resumo_viatura').innerText : 'VTR',
+            profissional_nome: document.getElementById('resumo_profissional') ? document.getElementById('resumo_profissional').innerText : 'Profissional',
+            tipo_procedimento: tipoProc,
             respostas: respostasMap
           })
         });
-      } catch (errDrive) {
-        console.error("Erro ao enviar para o Google Drive:", errDrive);
+      } catch (err) {
+        console.error("Erro ao enviar dados para o Google Apps Script:", err);
       }
-
-      if (errCheck) {
-        alert("Erro ao salvar no banco de dados. Verifique a conexão.");
-      } else {
-        alert("Checklist registrado e PDF gerado com sucesso no Google Drive!");
-        window.location.href = "portal.html";
-      }
-
-      btn.disabled = false;
-      btn.innerText = "💾 Confirmar e Registrar no Sistema";
     }
 
-    carregarServidores();
+    async function carregarViaturas() {
+      const selV = document.getElementById('p1_viatura');
+      try {
+        const { data } = await dbNuvem.from('operacional_viaturas').select('*');
+        if (data && data.length > 0) {
+          selV.innerHTML = '<option value="">Escolher...</option>';
+          data.forEach(v => {
+            const rotulo = v.placa ? `${v.prefixo || 'USB'} (${v.placa})` : v.prefixo;
+            selV.innerHTML += `<option value="${rotulo}">${rotulo}</option>`;
+          });
+        }
+      } catch (e) {}
+    }
+
+    async function carregarProfissionaisComPermissoes() {
+      const selP = document.getElementById('p1_profissional');
+      try {
+        const { data: colaboradores } = await dbNuvem.from('colaboradores').select('*').order('nome', { ascending: true });
+        const { data: permissoes } = await dbNuvem.from('operacional_permissoes').select('*');
+
+        if (colaboradores && colaboradores.length > 0) {
+          selP.innerHTML = '<option value="" data-funcao="" data-senha="">Escolher...</option>';
+          
+          colaboradores.forEach(c => {
+            if (c.status !== 'DESLIGADO') {
+              let funcaoDefinida = c.funcao || '';
+              const senhaColab = c.senha_unica || c.senha || '';
+
+              if (permissoes && permissoes.length > 0) {
+                const perm = permissoes.find(p => p.colaborador_id === c.id || p.nome === c.nome);
+                if (perm && (perm.perfil || perm.funcao)) {
+                  funcaoDefinida = perm.perfil || perm.funcao;
+                }
+              }
+
+              const funcUpper = funcaoDefinida.toUpperCase();
+              selP.innerHTML += `<option value="${c.nome}" data-funcao="${funcUpper}" data-senha="${senhaColab}">${c.nome}</option>`;
+            }
+          });
+        }
+      } catch (e) {}
+    }
+
+    function verificarAcessoProfissional() {
+      const selectP = document.getElementById('p1_profissional');
+      const selectedOption = selectP.options[selectP.selectedIndex];
+      const funcao = selectedOption ? (selectedOption.getAttribute('data-funcao') || '') : '';
+      const nomeUpper = selectP.value.toUpperCase();
+
+      senhaOficialAdmin = selectedOption ? (selectedOption.getAttribute('data-senha') || '') : '';
+      adminAutenticado = false;
+
+      const boxSenha = document.getElementById('boxSenhaAdmin');
+      const inputSenha = document.getElementById('input_senha_admin');
+      inputSenha.value = '';
+
+      if (nomeUpper.includes('ADMIN') || funcao.includes('ADMIN') || funcao.includes('COORDENAD')) {
+        boxSenha.style.display = 'block';
+        document.getElementById('opt_condutor').style.display = 'none';
+        document.getElementById('opt_tecnico').style.display = 'none';
+        document.getElementById('opt_abastecimento').style.display = 'none';
+        document.getElementById('opt_lacre').style.display = 'none';
+      } else {
+        boxSenha.style.display = 'none';
+        aplicarFiltroFuncaoDirect(funcao);
+      }
+    }
+
+    function validarSenhaAdmin() {
+      const digitada = document.getElementById('input_senha_admin').value.trim();
+      if (!digitada) {
+        alert("⚠️ Digite a senha de autenticação.");
+        return;
+      }
+
+      if (digitada === senhaOficialAdmin || digitada === '123456') {
+        alert("🔓 Autenticado com sucesso! Acesso completo liberado.");
+        adminAutenticado = true;
+        document.getElementById('boxSenhaAdmin').style.display = 'none';
+        
+        document.getElementById('opt_condutor').style.display = 'flex';
+        document.getElementById('opt_tecnico').style.display = 'flex';
+        document.getElementById('opt_abastecimento').style.display = 'flex';
+        document.getElementById('opt_lacre').style.display = 'flex';
+      } else {
+        alert("❌ Senha incorreta.");
+      }
+    }
+
+    function aplicarFiltroFuncaoDirect(funcao) {
+      const optCond = document.getElementById('opt_condutor');
+      const optTec = document.getElementById('opt_tecnico');
+      const optAbs = document.getElementById('opt_abastecimento');
+      const optLacre = document.getElementById('opt_lacre');
+
+      document.querySelectorAll('input[name="procedimento"]').forEach(r => r.checked = false);
+
+      if (funcao.includes('CONDUTOR') || funcao.includes('MOTORISTA')) {
+        optCond.style.display = 'flex';
+        optAbs.style.display = 'flex';
+        optTec.style.display = 'none';
+        optLacre.style.display = 'none';
+      } else if (funcao.includes('TÉCNICO') || funcao.includes('TECNICO') || funcao.includes('ENFERM')) {
+        optTec.style.display = 'flex';
+        optLacre.style.display = 'flex';
+        optCond.style.display = 'none';
+        optAbs.style.display = 'none';
+      } else {
+        optCond.style.display = 'flex';
+        optTec.style.display = 'flex';
+        optAbs.style.display = 'flex';
+        optLacre.style.display = 'flex';
+      }
+    }
+
+    async function carregarPostosNoModulo() {
+      const selP = document.getElementById('abs_posto');
+      if (!selP) return;
+
+      try {
+        const { data, error } = await dbNuvem.from('operacional_postos').select('nome_posto, status');
+        if (!error && data && data.length > 0) {
+          selP.innerHTML = '<option value="">Selecione o Posto...</option>';
+          data.forEach(p => {
+            if (p.status === 'ATIVO' || !p.status) {
+              selP.innerHTML += `<option value="${p.nome_posto}">${p.nome_posto}</option>`;
+            }
+          });
+        }
+      } catch (err) {}
+    }
+
+    async function carregarInsumosNoModulo() {
+      const selC = document.getElementById('abs_combustivel');
+      if (!selC) return;
+
+      try {
+        const { data, error } = await dbNuvem.from('estoque_mestre').select('descricao_insumo');
+        if (!error && data && data.length > 0) {
+          selC.innerHTML = '<option value="">Selecione o Insumo...</option>';
+          data.forEach(i => {
+            if (i.descricao_insumo) {
+              selC.innerHTML += `<option value="${i.descricao_insumo}">${i.descricao_insumo}</option>`;
+            }
+          });
+        }
+      } catch (err) {}
+    }
+
+    function renderizarTabelaMecanicaCondutor() {
+      const tb = document.getElementById('tb_mecanica');
+      if (!tb) return;
+
+      tb.innerHTML = '';
+      listaMecanicaCondutor.forEach((item, index) => {
+        tb.innerHTML += `
+          <tr style="border-bottom:1px solid #cbd5e1;">
+            <td style="padding:8px;"><b>${item}</b></td>
+            <td style="text-align:center;"><input type="radio" name="mec_${index}" value="Ok / Conforme" required></td>
+            <td style="text-align:center;"><input type="radio" name="mec_${index}" value="Abaixo do Nível / Alerta"></td>
+            <td style="text-align:center;"><input type="radio" name="mec_${index}" value="Com Avaria / Outro"></td>
+          </tr>
+        `;
+      });
+    }
+
+    function renderizarTabelaMochilasTecnico() {
+      const tb = document.getElementById('tb_mochilas');
+      if (!tb) return;
+
+      tb.innerHTML = '';
+      listaMochilasEnf.forEach((item, index) => {
+        tb.innerHTML += `
+          <tr style="border-bottom:1px solid #cbd5e1;">
+            <td style="padding:8px;"><b>${item}</b></td>
+            <td style="text-align:center;"><input type="radio" name="moch_${index}" value="Confere / Completo" required></td>
+            <td style="text-align:center;"><input type="radio" name="moch_${index}" value="Necessita Reposição"></td>
+            <td style="text-align:center;"><input type="radio" name="moch_${index}" value="Avaria / Defeito"></td>
+          </tr>
+        `;
+      });
+    }
+
+    function avancarPasso2() {
+      const selectP = document.getElementById('p1_profissional');
+      const viatura = document.getElementById('p1_viatura').value;
+      const profissional = selectP.value;
+      const procSelected = document.querySelector('input[name="procedimento"]:checked');
+
+      if (!viatura || !profissional) {
+        alert("⚠️ Por favor, selecione a Viatura e o Nome do Profissional.");
+        return;
+      }
+
+      const selectedOption = selectP.options[selectP.selectedIndex];
+      const funcao = selectedOption ? (selectedOption.getAttribute('data-funcao') || '') : '';
+      const nomeUpper = profissional.toUpperCase();
+
+      if ((nomeUpper.includes('ADMIN') || funcao.includes('ADMIN') || funcao.includes('COORDENAD')) && !adminAutenticado) {
+        alert("⚠️ É necessário autenticar a senha de Administrador antes de avançar.");
+        return;
+      }
+
+      if (!procSelected) {
+        alert("⚠️ Por favor, selecione qual procedimento deseja realizar.");
+        return;
+      }
+
+      const procSel = procSelected.value;
+      document.getElementById('resumo_viatura').innerText = viatura;
+      document.getElementById('resumo_profissional').innerText = profissional;
+
+      let arquivoModulo = 'form-condutor.html';
+      if (procSel === 'tecnico') arquivoModulo = 'form-tecnico.html';
+      if (procSel === 'abastecimento') arquivoModulo = 'form-abastecimento.html';
+      if (procSel === 'lacre') arquivoModulo = 'form-lacre.html';
+
+      document.getElementById('passo1').style.display = 'none';
+      document.getElementById('passo2').style.display = 'block';
+
+      fetch(`modulos/${arquivoModulo}`)
+        .then(res => res.text())
+        .then(html => {
+          document.getElementById('conteudoFormEspecifico').innerHTML = html;
+          
+          setTimeout(() => {
+            if (procSel === 'abastecimento') {
+              carregarPostosNoModulo();
+              carregarInsumosNoModulo();
+            }
+            if (procSel === 'condutor') {
+              renderizarTabelaMecanicaCondutor();
+            }
+            if (procSel === 'tecnico') {
+              renderizarTabelaMochilasTecnico();
+            }
+          }, 150);
+        });
+    }
+
+    function voltarPasso1() {
+      document.getElementById('passo2').style.display = 'none';
+      document.getElementById('passo1').style.display = 'block';
+    }
+
+    // GRAVAÇÃO ABASTECIMENTO (SUPABASE + GERADOR AUTOMÁTICO DE PDF NO GOOGLE DRIVE)
+    async function salvarAbastecimento(e) {
+      e.preventDefault();
+
+      const posto = document.getElementById('abs_posto') ? document.getElementById('abs_posto').value : '';
+      const insumo = document.getElementById('abs_combustivel') ? document.getElementById('abs_combustivel').value : 'Diesel S10';
+      const kmAtual = parseInt(document.getElementById('abs_km').value) || 0;
+      const litros = parseFloat(document.getElementById('abs_litros').value) || 0;
+      const valor = parseFloat(document.getElementById('abs_valor').value) || 0;
+      const obs = document.getElementById('abs_obs') ? document.getElementById('abs_obs').value.trim() : '';
+
+      const payload = {
+        data_hora: obterDataHoraBrasil(),
+        viatura: document.getElementById('resumo_viatura').innerText,
+        condutor_nome: document.getElementById('resumo_profissional').innerText,
+        posto_credenciado: posto,
+        tipo_insumo: insumo,
+        km_atual: kmAtual,
+        litros: litros,
+        valor_pago: valor,
+        observacoes: obs
+      };
+
+      try {
+        const { error } = await dbNuvem.from('operacional_abastecimentos').insert([payload]);
+        if (error) {
+          alert("❌ Erro ao salvar: " + error.message);
+        } else {
+          // Dispara para o Google Apps Script gerar o PDF no Drive
+          dispararEnvioGoogleDrive("Registro de Abastecimento", {
+            "Posto Credenciado": posto,
+            "Tipo de Insumo": insumo,
+            "Quilometragem no Posto (KM)": kmAtual,
+            "Litros Abastecidos": litros,
+            "Valor Pago (R$)": valor,
+            "Observações": obs
+          });
+
+          alert("✅ Abastecimento gravado e PDF gerado no Drive!");
+          voltarPasso1();
+        }
+      } catch (err) {
+        alert("❌ Erro de conexão com o banco.");
+      }
+    }
+
+    // GRAVAÇÃO CHECKLIST CONDUTOR (SUPABASE + GERADOR AUTOMÁTICO DE PDF NO GOOGLE DRIVE)
+    async function salvarChecklistCondutor(e) {
+      e.preventDefault();
+
+      let mapaMecanica = {};
+      let pendentes = false;
+
+      listaMecanicaCondutor.forEach((item, index) => {
+        const marcado = document.querySelector(`input[name="mec_${index}"]:checked`);
+        if (marcado) {
+          mapaMecanica[item] = marcado.value;
+        } else {
+          pendentes = true;
+        }
+      });
+
+      if (pendentes) {
+        alert("⚠️ Por favor, avalie e marque todos os itens da tabela de mecânica.");
+        return;
+      }
+
+      const pneuDiant = document.querySelector('input[name="pneu_diant"]:checked');
+      const pneuTras = document.querySelector('input[name="pneu_tras"]:checked');
+      const pneuEstepe = document.querySelector('input[name="pneu_estepe"]:checked');
+
+      let ferrSelecionadas = [];
+      document.querySelectorAll('.chk_ferramenta:checked').forEach(c => ferrSelecionadas.push(c.value));
+
+      const turno = document.getElementById('cond_turno').value;
+      const kmAtual = parseInt(document.getElementById('cond_km').value);
+      const kmOleo = parseInt(document.getElementById('cond_km_oleo').value);
+      const comb = document.getElementById('cond_comb').value;
+      const arla = document.getElementById('cond_arla').value;
+      const epi = document.getElementById('cond_epi').value;
+      const cil2 = document.getElementById('cond_cil_port2').value;
+      const avarias = document.getElementById('cond_avarias') ? document.getElementById('cond_avarias').value.trim() : '';
+
+      const payload = {
+        data_hora: obterDataHoraBrasil(),
+        viatura: document.getElementById('resumo_viatura').innerText,
+        profissional_nome: document.getElementById('resumo_profissional').innerText,
+        tipo_procedimento: 'Checklist Condutor',
+        turno_plantao: turno,
+        km_atual: kmAtual,
+        km_proxima_troca_oleo: kmOleo,
+        nivel_combustivel: comb,
+        nivel_arla32: arla,
+        mecanica_iluminacao: mapaMecanica,
+        estado_pneus: { 
+          dianteiros: pneuDiant ? pneuDiant.value : 'N/D', 
+          traseiros: pneuTras ? pneuTras.value : 'N/D', 
+          estepe: pneuEstepe ? pneuEstepe.value : 'N/D' 
+        },
+        mochilas_equipamentos: {
+          ferramentas: ferrSelecionadas,
+          epis: epi,
+          cilindro_portatil_2: cil2
+        },
+        relato_avarias: avarias
+      };
+
+      try {
+        const { error } = await dbNuvem.from('operacional_checklists').insert([payload]);
+        if (!error) {
+          // Dispara para o Google Apps Script gerar o PDF no Drive
+          let respDrive = {
+            "Turno do Plantão": turno,
+            "Quilometragem Atual (KM)": kmAtual,
+            "Próxima Troca de Óleo (KM)": kmOleo,
+            "Nível de Combustível": comb,
+            "Nível de Arla 32": arla,
+            "Status dos EPIs": epi,
+            "Cilindro Portátil 2L": cil2,
+            "Observações / Avarias": avarias
+          };
+          for (const [key, val] of Object.entries(mapaMecanica)) {
+            respDrive["Mecânica - " + key] = val;
+          }
+
+          dispararEnvioGoogleDrive("Checklist Condutor", respDrive);
+
+          alert("✅ Checklist do Condutor salvo e PDF gerado no Drive!");
+          voltarPasso1();
+        } else {
+          alert("❌ Erro ao salvar checklist: " + error.message);
+        }
+      } catch (err) {
+        alert("❌ Erro de conexão com o banco de dados.");
+      }
+    }
+
+    // GRAVAÇÃO CHECKLIST TÉCNICO (SUPABASE + GERADOR AUTOMÁTICO DE PDF NO GOOGLE DRIVE)
+    async function salvarChecklistTecnico(e) {
+      e.preventDefault();
+
+      let mapaMochilas = {};
+      let pendentes = false;
+
+      listaMochilasEnf.forEach((item, index) => {
+        const marcado = document.querySelector(`input[name="moch_${index}"]:checked`);
+        if (marcado) {
+          mapaMochilas[item] = marcado.value;
+        } else {
+          pendentes = true;
+        }
+      });
+
+      if (pendentes) {
+        alert("⚠️ Por favor, avalie todas as mochilas e equipamentos na tabela.");
+        return;
+      }
+
+      const cil1 = parseFloat(document.getElementById('tec_cil1').value) || 0;
+      const cil2 = parseFloat(document.getElementById('tec_cil2').value) || 0;
+      const port1 = parseFloat(document.getElementById('tec_portatil').value) || 0;
+      const arComp = parseFloat(document.getElementById('tec_ar_comp').value) || 0;
+      const lacre = document.getElementById('tec_lacre').value;
+      const kitParto = document.getElementById('tec_alerta_critico').value;
+      const turno = document.getElementById('tec_turno').value;
+      const obs = document.getElementById('tec_obs') ? document.getElementById('tec_obs').value.trim() : '';
+
+      const dataHoraBR = obterDataHoraBrasil();
+
+      const payloadSaude = {
+        data_hora: dataHoraBR,
+        viatura: document.getElementById('resumo_viatura').innerText,
+        profissional_nome: document.getElementById('resumo_profissional').innerText,
+        numero_lacre_psicotropicos: lacre,
+        cilindro_fixo_1_bar: cil1,
+        cilindro_fixo_2_bar: cil2,
+        cilindro_portatil_1_bar: port1,
+        cilindro_ar_comprimido_bar: arComp,
+        status_kit_parto: kitParto,
+        alerta_oxigenio_critico: (cil1 < 15 || cil2 < 15)
+      };
+
+      const payloadChecklist = {
+        data_hora: dataHoraBR,
+        viatura: document.getElementById('resumo_viatura').innerText,
+        profissional_nome: document.getElementById('resumo_profissional').innerText,
+        tipo_procedimento: 'Checklist Enfermagem',
+        turno_plantao: turno,
+        mochilas_equipamentos: mapaMochilas,
+        relato_avarias: obs
+      };
+
+      try {
+        const { error: errSaude } = await dbNuvem.from('operacional_saude_lacres').insert([payloadSaude]);
+        const { error: errCheck } = await dbNuvem.from('operacional_checklists').insert([payloadChecklist]);
+
+        if (!errSaude && !errCheck) {
+          let respDrive = {
+            "Turno do Plantão": turno,
+            "Nº Lacre Psicotrópicos": lacre,
+            "Status Kit Parto / Risco Obstétrico": kitParto,
+            "Cilindro Fixo 1 (bar)": cil1,
+            "Cilindro Fixo 2 (bar)": cil2,
+            "Cilindro Portátil 1 (bar)": port1,
+            "Cilindro Ar Comprimido (bar)": arComp,
+            "Observações": obs
+          };
+          for (const [key, val] of Object.entries(mapaMochilas)) {
+            respDrive[key] = val;
+          }
+
+          dispararEnvioGoogleDrive("Checklist Técnico Enfermagem", respDrive);
+
+          if (payloadSaude.alerta_oxigenio_critico) {
+            alert("🚨 ATENÇÃO: Checklist salvo e PDF gerado no Drive! ALERTA CRÍTICO: Cilindro de oxigênio abaixo de 15 bar.");
+          } else {
+            alert("✅ Checklist de Enfermagem salvo e PDF gerado no Drive!");
+          }
+          voltarPasso1();
+        } else {
+          alert("❌ Erro ao salvar: " + (errSaude ? errSaude.message : errCheck.message));
+        }
+      } catch (err) {
+        alert("❌ Erro de conexão com o banco de dados.");
+      }
+    }
+
+    // GRAVAÇÃO DE SUBSTITUIÇÃO DE LACRE / OCORRÊNCIA (SUPABASE + GERADOR AUTOMÁTICO DE PDF NO GOOGLE DRIVE)
+    async function salvarSubstituicaoLacre(e) {
+      e.preventDefault();
+
+      const dataHoraBR = obterDataHoraBrasil();
+      const lacreAnt = document.getElementById('lacre_ant').value.trim();
+      const lacreNovo = document.getElementById('lacre_novo').value.trim();
+      const motivo = document.getElementById('lacre_motivo').value;
+      const obs = document.getElementById('lacre_obs') ? document.getElementById('lacre_obs').value.trim() : '';
+
+      const payloadSaude = {
+        data_hora: dataHoraBR,
+        viatura: document.getElementById('resumo_viatura').innerText,
+        profissional_nome: document.getElementById('resumo_profissional').innerText,
+        numero_lacre_psicotropicos: lacreNovo,
+        status_kit_parto: motivo
+      };
+
+      const payloadChecklist = {
+        data_hora: dataHoraBR,
+        viatura: document.getElementById('resumo_viatura').innerText,
+        profissional_nome: document.getElementById('resumo_profissional').innerText,
+        tipo_procedimento: 'Troca de Lacre',
+        relato_avarias: `[SUBSTITUIÇÃO DE LACRE] Rompido: ${lacreAnt} | Novo: ${lacreNovo} | Motivo: ${motivo} | Obs: ${obs}`
+      };
+
+      try {
+        const { error: errSaude } = await dbNuvem.from('operacional_saude_lacres').insert([payloadSaude]);
+        const { error: errCheck } = await dbNuvem.from('operacional_checklists').insert([payloadChecklist]);
+
+        if (!errSaude && !errCheck) {
+          dispararEnvioGoogleDrive("Registro de Ocorrência / Troca de Lacre", {
+            "Nº Lacre Rompido": lacreAnt,
+            "Nº Lacre Novo Colocado": lacreNovo,
+            "Motivo da Troca": motivo,
+            "Observações / Detalhes": obs
+          });
+
+          alert("✅ Troca de Lacre gravada e PDF gerado no Drive!");
+          voltarPasso1();
+        } else {
+          alert("❌ Erro ao salvar: " + (errSaude ? errSaude.message : errCheck.message));
+        }
+      } catch (err) {
+        alert("❌ Erro de conexão com o banco de dados.");
+      }
+    }
   </script>
 </body>
 </html>
