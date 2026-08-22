@@ -95,7 +95,7 @@
     .role-user { background: #e0f2fe; color: #0369a1; }
     .badge-ch { background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 12px; font-weight: bold; }
 
-    /* CABEÇALHO IMPRESSÃO OFICIAL */
+    /* CABEÇALHO IMPRESSÃO OFICIAL (SÓ PARA RELATÓRIOS) */
     .relatorio-header-print { display: none; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 8px; text-align: center; }
     .relatorio-header-print h2 { font-size: 11pt; text-transform: uppercase; margin: 0; color: #000; font-weight: 800; }
     .relatorio-header-print h3 { font-size: 9.5pt; text-transform: uppercase; margin: 2px 0; color: #000; }
@@ -106,7 +106,7 @@
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
     .modal-title { font-size: 1rem; color: var(--navy-blue); font-weight: 800; }
 
-    /* REGRAS DE IMPRESSÃO A4 INTELIGENTES */
+    /* REGRAS DE IMPRESSÃO A4 ISOLADAS */
     @media print {
       @page { size: A4 portrait; margin: 8mm; }
       body { background: white !important; color: #000 !important; font-size: 8.5pt !important; width: 100% !important; }
@@ -122,11 +122,22 @@
       .data-table th, .data-table td, table th, table td { border: 1px solid #000 !important; padding: 4px 6px !important; color: #000 !important; }
       .data-table th, table th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-      /* SE A MODAL DO ESPELHO ESTIVER ABERTA, IMPRIME EXCLUSIVAMENTE ELA */
-      body.modal-open-print .app-layout > *:not(.main-content) { display: none !important; }
-      body.modal-open-print .tab-pane { display: none !important; }
-      body.modal-open-print #modalChecklistEspelho { display: block !important; position: static !important; background: transparent !important; padding: 0 !important; }
-      body.modal-open-print #modalChecklistEspelho .modal-card { max-width: 100% !important; width: 100% !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
+      /* MODO ESPELHO CHECKLIST (OCULTA O CONTEÚDO DO PORTAL TOTALMENTE) */
+      body.modal-open-print #dashboardScreen { display: none !important; }
+      body.modal-open-print #modalChecklistEspelho { 
+        display: block !important; 
+        position: static !important; 
+        background: transparent !important; 
+        padding: 0 !important; 
+        width: 100% !important;
+      }
+      body.modal-open-print #modalChecklistEspelho .modal-card { 
+        max-width: 100% !important; 
+        width: 100% !important; 
+        box-shadow: none !important; 
+        border: none !important; 
+        padding: 0 !important; 
+      }
     }
   </style>
 </head>
@@ -189,13 +200,6 @@
 
     <main class="main-content">
 
-      <!-- CABEÇALHO PARA IMPRESSÃO DE RELATÓRIOS -->
-      <div class="relatorio-header-print">
-        <h2>ESTADO DE SANTA CATARINA — MUNICÍPIO DE ORLEANS</h2>
-        <h3>SAMU 192 — UNIDADE DE SUPORTE BÁSICO (USB 11 ORLEANS)</h3>
-        <p style="font-size:8.5pt; font-weight:bold; margin-top:3px;">RELATÓRIO OFICIAL DE CAPACITAÇÕES E AUDITORIA (PORTARIA 2048/2002)</p>
-      </div>
-
       <!-- ABA 1: PERFIL DO SERVIDOR -->
       <div id="tabMeuPerfil" class="tab-pane">
         <div class="page-header no-print">
@@ -231,6 +235,12 @@
 
       <!-- ABA 2: MINHAS CAPACITAÇÕES -->
       <div id="tabMeusCursos" class="tab-pane" style="display:none;">
+        <div class="relatorio-header-print">
+          <h2>ESTADO DE SANTA CATARINA — MUNICÍPIO DE ORLEANS</h2>
+          <h3>SAMU 192 — UNIDADE DE SUPORTE BÁSICO (USB 11 ORLEANS)</h3>
+          <p style="font-size:8.5pt; font-weight:bold; margin-top:3px;">RELATÓRIO DE CAPACITAÇÕES DO SERVIDOR (PORTARIA 2048/2002)</p>
+        </div>
+
         <div class="page-header no-print">
           <div class="page-title">Histórico de Capacitações e Metas</div>
           <div style="display:flex; gap:8px;">
@@ -301,6 +311,12 @@
 
       <!-- ABA 4: RELATÓRIO CURSOS (ADMIN) -->
       <div id="tabAdminCursos" class="tab-pane" style="display:none;">
+        <div class="relatorio-header-print">
+          <h2>ESTADO DE SANTA CATARINA — MUNICÍPIO DE ORLEANS</h2>
+          <h3>SAMU 192 — UNIDADE DE SUPORTE BÁSICO (USB 11 ORLEANS)</h3>
+          <p style="font-size:8.5pt; font-weight:bold; margin-top:3px;">RELATÓRIO OFICIAL DE CAPACITAÇÕES E AUDITORIA (PORTARIA 2048/2002)</p>
+        </div>
+
         <div class="page-header no-print">
           <div class="page-title">Relatório Geral de Capacitações (Portaria 2048)</div>
           <button class="btn-primary" onclick="window.print()">🖨️ Imprimir Relatório A4</button>
