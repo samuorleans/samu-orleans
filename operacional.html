@@ -155,8 +155,8 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
-    // ENDEREÇO DO WEB APP DO GOOGLE APPS SCRIPT PARA GERAÇÃO SILENCIOSA DE PDF NO GOOGLE DRIVE
-    const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbw4Ktvti7aAnru-DwISbot-dTmIYMB1lU_Y6k3AG0B9lzFFou6AmkSqA1tifJo2Ixyh/exec";
+    // NOVA URL DO WEB APP DO GOOGLE APPS SCRIPT
+    const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwRrYiZpuZ259euUlDJy83L2zD3UiyElgRBJQtQ_4ucrwZEoQuSYf-YXMTX_sOIzqyn/exec";
 
     let adminAutenticado = false;
     let senhaOficialAdmin = "";
@@ -186,7 +186,6 @@
       carregarProfissionaisComPermissoes();
     };
 
-    // RETORNA O TIMESTAMP EXATO NO HORÁRIO LOCAL DO BRASIL (SEM DESLOCAMENTO UTC)
     function obterDataHoraBrasil() {
       const agora = new Date();
       const ano = agora.getFullYear();
@@ -199,19 +198,23 @@
       return `${ano}-${mes}-${dia}T${horas}:${minutos}:${segundos}`;
     }
 
-    // DISPARA DADOS EM SEGUNDO PLANO PARA O GOOGLE APPS SCRIPT GERAR O PDF NO DRIVE
+    // DISPARO SEGURO COMPATÍVEL COM GOOGLE APPS SCRIPT
     async function dispararEnvioGoogleDrive(tipoProc, respostasMap) {
       try {
+        const formData = new URLSearchParams();
+        formData.append("viatura", document.getElementById('resumo_viatura') ? document.getElementById('resumo_viatura').innerText : 'VTR');
+        formData.append("profissional_nome", document.getElementById('resumo_profissional') ? document.getElementById('resumo_profissional').innerText : 'Profissional');
+        formData.append("tipo_procedimento", tipoProc);
+
+        for (const [key, val] of Object.entries(respostasMap)) {
+          formData.append(key, val);
+        }
+
         await fetch(URL_GOOGLE_SCRIPT, {
           method: 'POST',
           mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            viatura: document.getElementById('resumo_viatura') ? document.getElementById('resumo_viatura').innerText : 'VTR',
-            profissional_nome: document.getElementById('resumo_profissional') ? document.getElementById('resumo_profissional').innerText : 'Profissional',
-            tipo_procedimento: tipoProc,
-            respostas: respostasMap
-          })
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formData.toString()
         });
       } catch (err) {
         console.error("Erro ao enviar dados para o Google Apps Script:", err);
@@ -463,7 +466,7 @@
       document.getElementById('passo1').style.display = 'block';
     }
 
-    // GRAVAÇÃO ABASTECIMENTO (SUPABASE + GERADOR AUTOMÁTICO DE PDF NO GOOGLE DRIVE)
+    // GRAVAÇÃO ABASTECIMENTO
     async function salvarAbastecimento(e) {
       e.preventDefault();
 
@@ -491,7 +494,6 @@
         if (error) {
           alert("❌ Erro ao salvar: " + error.message);
         } else {
-          // Dispara para o Google Apps Script gerar o PDF no Drive
           dispararEnvioGoogleDrive("Registro de Abastecimento", {
             "Posto Credenciado": posto,
             "Tipo de Insumo": insumo,
@@ -501,7 +503,7 @@
             "Observações": obs
           });
 
-          alert("✅ Abastecimento gravado e PDF gerado no Drive!");
+          alert("✅ Abastecimento gravado e PDF enviado para processamento no Drive!");
           voltarPasso1();
         }
       } catch (err) {
@@ -509,7 +511,7 @@
       }
     }
 
-    // GRAVAÇÃO CHECKLIST CONDUTOR (SUPABASE + GERADOR AUTOMÁTICO DE PDF NO GOOGLE DRIVE)
+    // GRAVAÇÃO CHECKLIST CONDUTOR
     async function salvarChecklistCondutor(e) {
       e.preventDefault();
 
@@ -573,7 +575,6 @@
       try {
         const { error } = await dbNuvem.from('operacional_checklists').insert([payload]);
         if (!error) {
-          // Dispara para o Google Apps Script gerar o PDF no Drive
           let respDrive = {
             "Turno do Plantão": turno,
             "Quilometragem Atual (KM)": kmAtual,
@@ -590,7 +591,7 @@
 
           dispararEnvioGoogleDrive("Checklist Condutor", respDrive);
 
-          alert("✅ Checklist do Condutor salvo e PDF gerado no Drive!");
+          alert("✅ Checklist do Condutor salvo com sucesso!");
           voltarPasso1();
         } else {
           alert("❌ Erro ao salvar checklist: " + error.message);
@@ -600,7 +601,7 @@
       }
     }
 
-    // GRAVAÇÃO CHECKLIST TÉCNICO (SUPABASE + GERADOR AUTOMÁTICO DE PDF NO GOOGLE DRIVE)
+    // GRAVAÇÃO CHECKLIST TÉCNICO
     async function salvarChecklistTecnico(e) {
       e.preventDefault();
 
@@ -677,9 +678,9 @@
           dispararEnvioGoogleDrive("Checklist Técnico Enfermagem", respDrive);
 
           if (payloadSaude.alerta_oxigenio_critico) {
-            alert("🚨 ATENÇÃO: Checklist salvo e PDF gerado no Drive! ALERTA CRÍTICO: Cilindro de oxigênio abaixo de 15 bar.");
+            alert("🚨 ATENÇÃO: Checklist salvo! ALERTA CRÍTICO: Cilindro de oxigênio abaixo de 15 bar.");
           } else {
-            alert("✅ Checklist de Enfermagem salvo e PDF gerado no Drive!");
+            alert("✅ Checklist de Enfermagem salvo com sucesso!");
           }
           voltarPasso1();
         } else {
@@ -690,7 +691,7 @@
       }
     }
 
-    // GRAVAÇÃO DE SUBSTITUIÇÃO DE LACRE / OCORRÊNCIA (SUPABASE + GERADOR AUTOMÁTICO DE PDF NO GOOGLE DRIVE)
+    // GRAVAÇÃO SUBSTITUIÇÃO DE LACRE
     async function salvarSubstituicaoLacre(e) {
       e.preventDefault();
 
@@ -728,7 +729,7 @@
             "Observações / Detalhes": obs
           });
 
-          alert("✅ Troca de Lacre gravada e PDF gerado no Drive!");
+          alert("✅ Troca de Lacre gravada com sucesso!");
           voltarPasso1();
         } else {
           alert("❌ Erro ao salvar: " + (errSaude ? errSaude.message : errCheck.message));
