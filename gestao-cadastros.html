@@ -19,11 +19,12 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
     body { background-color: var(--bg-surface); color: #1e293b; min-height: 100vh; padding: 20px 12px; }
 
-    .container { max-width: 900px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; text-align: center; }
+    .container { max-width: 950px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; text-align: center; }
     
     .header h1 { font-size: 1.25rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .header p { font-size: 0.8rem; color: #64748b; margin-bottom: 20px; font-weight: 600; }
 
+    /* NAVEGAÇÃO DE ABAS */
     .nav-tabs { display: flex; gap: 8px; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; overflow-x: auto; }
     .tab-btn { padding: 10px 16px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.82rem; border-radius: 8px; cursor: pointer; color: var(--samu-navy); white-space: nowrap; transition: 0.2s; }
     .tab-btn.active { background: var(--samu-navy); color: white; }
@@ -39,6 +40,7 @@
 
     .btn-del { background: var(--samu-red); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer; }
 
+    /* MODAL PADRÃO */
     .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(13, 35, 58, 0.6); z-index: 999; justify-content: center; align-items: center; }
     .modal-card { background: white; border-radius: 16px; padding: 24px; width: 90%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: left; }
     .modal-card h3 { font-size: 1rem; color: var(--samu-navy); font-weight: 800; margin-bottom: 16px; text-transform: uppercase; }
@@ -62,74 +64,139 @@
       <p>Gerenciamento Integrado de Servidores, Frota, Insumos e Convênios — USB 11</p>
     </div>
 
+    <!-- ABAS NAVEGÁVEIS -->
     <div class="nav-tabs">
-      <button class="tab-btn" onclick="alert('Módulo de Servidores mantido.')">🎥 Servidores & Uniformes</button>
-      <button class="tab-btn" onclick="alert('Módulo de Frota mantido.')">🚚 Frota & Viaturas</button>
-      <button class="tab-btn active">📦 Insumos & Medicamentos</button>
-      <button class="tab-btn" onclick="alert('Módulo de Postos mantido.')">⛽ Postos de Gasolina</button>
+      <button class="tab-btn" id="btnTabServidores" onclick="alternarAba('servidores')">🎥 Servidores & Uniformes</button>
+      <button class="tab-btn" id="btnTabFrota" onclick="alternarAba('frota')">🚚 Frota & Viaturas</button>
+      <button class="tab-btn active" id="btnTabInsumos" onclick="alternarAba('insumos')">📦 Insumos & Medicamentos</button>
+      <button class="tab-btn" id="btnTabPostos" onclick="alternarAba('postos')">⛽ Postos de Gasolina</button>
     </div>
 
+    <!-- ABA 1: SERVIDORES -->
+    <div id="abaServidores" style="display:none;">
+      <div class="toolbar">
+        <span style="font-size:0.8rem; color:#64748b; font-weight:600;">Colaboradores cadastrados na tabela <b>colaboradores</b>.</span>
+        <button class="btn-add" onclick="abrirModalGenerico('modalServidor')">➕ Novo Servidor</button>
+      </div>
+      <table>
+        <thead><tr><th>Nome do Servidor</th><th>Função</th><th>Status</th><th>Ações</th></tr></thead>
+        <tbody id="tbServidores"><tr><td colspan="4">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- ABA 2: FROTA -->
+    <div id="abaFrota" style="display:none;">
+      <div class="toolbar">
+        <span style="font-size:0.8rem; color:#64748b; font-weight:600;">Viaturas cadastradas na tabela <b>operacional_viaturas</b>.</span>
+        <button class="btn-add" onclick="abrirModalGenerico('modalViatura')">➕ Nova Viatura</button>
+      </div>
+      <table>
+        <thead><tr><th>Prefixo</th><th>Placa</th><th>Modelo</th><th>Ações</th></tr></thead>
+        <tbody id="tbFrota"><tr><td colspan="4">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- ABA 3: INSUMOS -->
     <div id="abaInsumos">
       <div class="toolbar">
         <span style="font-size:0.8rem; color:#64748b; font-weight:600;">Itens cadastrados na tabela <b>estoque_mestre</b>.</span>
-        <button class="btn-add" onclick="abrirModalInsumo()">➕ Novo Insumo</button>
+        <button class="btn-add" onclick="abrirModalGenerico('modalInsumo')">➕ Novo Insumo</button>
       </div>
-
       <table>
-        <thead>
-          <tr>
-            <th>Descrição do Insumo</th>
-            <th>Categoria</th>
-            <th>Saldo Atual</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody id="tabelaInsumosBody">
-          <tr><td colspan="4" style="text-align:center; color:#64748b;">Carregando insumos do banco de dados...</td></tr>
-        </tbody>
+        <thead><tr><th>Descrição do Insumo</th><th>Categoria</th><th>Saldo Actual</th><th>Ações</th></tr></thead>
+        <tbody id="tbInsumos"><tr><td colspan="4">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- ABA 4: POSTOS -->
+    <div id="abaPostos" style="display:none;">
+      <div class="toolbar">
+        <span style="font-size:0.8rem; color:#64748b; font-weight:600;">Postos cadastrados na tabela <b>operacional_postos</b>.</span>
+        <button class="btn-add" onclick="abrirModalGenerico('modalPosto')">➕ Novo Posto</button>
+      </div>
+      <table>
+        <thead><tr><th>Nome do Posto</th><th>Cidade</th><th>Status</th><th>Ações</th></tr></thead>
+        <tbody id="tbPostos"><tr><td colspan="4">Carregando...</td></tr></tbody>
       </table>
     </div>
 
     <a href="index.html" class="btn-link-home">⬅️ Voltar ao Painel Principal</a>
   </div>
 
+  <!-- MODAL: INSUMO -->
   <div class="modal-overlay" id="modalInsumo">
     <div class="modal-card">
       <h3>📦 Cadastrar Novo Insumo</h3>
-      <form id="formNovoInsumo" onsubmit="salvarNovoInsumo(event)">
-        
-        <div class="form-group">
-          <label>Descrição do Insumo / Item:*</label>
-          <input type="text" id="ins_descricao" placeholder="Ex: Diesel S10, Arla 32, Luva P..." required>
-        </div>
-
-        <div class="form-group">
-          <label>Categoria:*</label>
+      <form onsubmit="salvarInsumo(event)">
+        <div class="form-group"><label>Descrição:*</label><input type="text" id="ins_descricao" required></div>
+        <div class="form-group"><label>Categoria:*</label>
           <select id="ins_categoria" required>
             <option value="COMBUSTIVEL">Combustível / Frota</option>
             <option value="MEDICAMENTO">Medicamento / Farmácia</option>
             <option value="CURATIVO">Curativo / Material APH</option>
-            <option value="EPI">EPI / Uniforme</option>
-            <option value="OUTROS">Outros Insumos</option>
           </select>
         </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <div class="form-group">
-            <label>Estoque Inicial:*</label>
-            <input type="number" id="ins_estoque_inicial" value="0" min="0" required>
-          </div>
-          <div class="form-group">
-            <label>Estoque Mínimo:*</label>
-            <input type="number" id="ins_estoque_minimo" value="10" min="0" required>
-          </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="form-group"><label>Estoque Inicial:*</label><input type="number" id="ins_est_inicial" value="0" required></div>
+          <div class="form-group"><label>Estoque Mínimo:*</label><input type="number" id="ins_est_minimo" value="10" required></div>
         </div>
-
         <div class="modal-actions">
-          <button type="button" class="btn-cancel" onclick="fecharModalInsumo()">Cancelar</button>
-          <button type="submit" class="btn-save">💾 Salvar no Banco</button>
+          <button type="button" class="btn-cancel" onclick="fecharModalGenerico('modalInsumo')">Cancelar</button>
+          <button type="submit" class="btn-save">💾 Salvar</button>
         </div>
+      </form>
+    </div>
+  </div>
 
+  <!-- MODAL: SERVIDOR -->
+  <div class="modal-overlay" id="modalServidor">
+    <div class="modal-card">
+      <h3>🎥 Cadastrar Servidor</h3>
+      <form onsubmit="salvarServidor(event)">
+        <div class="form-group"><label>Nome Completo:*</label><input type="text" id="srv_nome" required></div>
+        <div class="form-group"><label>Função:*</label>
+          <select id="srv_funcao" required>
+            <option value="CONDUTOR SOCORRISTA">Condutor Socorrista</option>
+            <option value="TÉCNICO DE ENFERMAGEM">Técnico de Enfermagem</option>
+            <option value="ENFERMEIRO SOCORRISTA">Enfermeiro Socorrista</option>
+            <option value="ADMINISTRADOR">Administrador / Gestor</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="fecharModalGenerico('modalServidor')">Cancelar</button>
+          <button type="submit" class="btn-save">💾 Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: VIATURA -->
+  <div class="modal-overlay" id="modalViatura">
+    <div class="modal-card">
+      <h3>🚚 Cadastrar Viatura</h3>
+      <form onsubmit="salvarViatura(event)">
+        <div class="form-group"><label>Prefixo:*</label><input type="text" id="via_prefixo" placeholder="Ex: USB 11" required></div>
+        <div class="form-group"><label>Placa:*</label><input type="text" id="via_placa" placeholder="Ex: SXT-9H65" required></div>
+        <div class="form-group"><label>Modelo / Veículo:*</label><input type="text" id="via_modelo" placeholder="Ex: M. Benz Sprinter" required></div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="fecharModalGenerico('modalViatura')">Cancelar</button>
+          <button type="submit" class="btn-save">💾 Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: POSTO -->
+  <div class="modal-overlay" id="modalPosto">
+    <div class="modal-card">
+      <h3>⛽ Cadastrar Posto Credenciado</h3>
+      <form onsubmit="salvarPosto(event)">
+        <div class="form-group"><label>Nome do Posto:*</label><input type="text" id="pst_nome" placeholder="Ex: POSTO CENTRAL" required></div>
+        <div class="form-group"><label>Cidade:*</label><input type="text" id="pst_cidade" value="Orleans" required></div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="fecharModalGenerico('modalPosto')">Cancelar</button>
+          <button type="submit" class="btn-save">💾 Salvar</button>
+        </div>
       </form>
     </div>
   </div>
@@ -140,89 +207,110 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
-    window.onload = function() {
-      carregarInsumos();
-    };
+    window.onload = function() { carregarInsumos(); };
 
+    function alternarAba(aba) {
+      ['Servidores', 'Frota', 'Insumos', 'Postos'].forEach(a => {
+        document.getElementById(`aba${a}`).style.display = 'none';
+        document.getElementById(`btnTab${a}`).classList.remove('active');
+      });
+      document.getElementById(`aba${aba.charAt(0).toUpperCase() + aba.slice(1)}`).style.display = 'block';
+      document.getElementById(`btnTab${aba.charAt(0).toUpperCase() + aba.slice(1)}`).classList.add('active');
+
+      if (aba === 'servidores') carregarServidores();
+      if (aba === 'frota') carregarFrota();
+      if (aba === 'insumos') carregarInsumos();
+      if (aba === 'postos') carregarPostos();
+    }
+
+    function abrirModalGenerico(id) { document.getElementById(id).style.display = 'flex'; }
+    function fecharModalGenerico(id) { document.getElementById(id).style.display = 'none'; }
+
+    // --- LEITURA DO BANCO ---
     async function carregarInsumos() {
-      const tbody = document.getElementById('tabelaInsumosBody');
-      try {
-        const { data, error } = await dbNuvem.from('estoque_mestre').select('*').order('descricao_insumo', { ascending: true });
-        if (error) throw error;
-
-        if (data && data.length > 0) {
-          tbody.innerHTML = '';
-          data.forEach(item => {
-            tbody.innerHTML += `
-              <tr>
-                <td><b>${item.descricao_insumo || 'Sem Descrição'}</b></td>
-                <td><span style="background:#e2e8f0; padding:4px 8px; border-radius:6px; font-weight:700; font-size:0.75rem;">${item.categoria || 'COMBUSTIVEL'}</span></td>
-                <td><b>${item.saldo_atual !== null ? item.saldo_atual : (item.estoque_inicial || 0)}</b></td>
-                <td>
-                  <button class="btn-del" onclick="excluirInsumo(${item.id})">🗑️ Excluir</button>
-                </td>
-              </tr>
-            `;
-          });
-        } else {
-          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">Nenhum insumo cadastrado no estoque_mestre. Clique em "+ Novo Insumo" para adicionar.</td></tr>';
-        }
-      } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Erro ao buscar dados do banco de dados.</td></tr>';
-      }
+      const { data } = await dbNuvem.from('estoque_mestre').select('*');
+      const tb = document.getElementById('tbInsumos');
+      if (data && data.length > 0) {
+        tb.innerHTML = '';
+        data.forEach(i => {
+          tb.innerHTML += `<tr><td><b>${i.descricao_insumo}</b></td><td>${i.categoria}</td><td>${i.saldo_atual || 0}</td><td><button class="btn-del" onclick="deletar('estoque_mestre', ${i.id}, carregarInsumos)">🗑️ Excluir</button></td></tr>`;
+        });
+      } else { tb.innerHTML = '<tr><td colspan="4">Nenhum insumo cadastrado.</td></tr>'; }
     }
 
-    function abrirModalInsumo() {
-      document.getElementById('modalInsumo').style.display = 'flex';
+    async function carregarServidores() {
+      const { data } = await dbNuvem.from('colaboradores').select('*').order('nome', {ascending: true});
+      const tb = document.getElementById('tbServidores');
+      if (data && data.length > 0) {
+        tb.innerHTML = '';
+        data.forEach(s => {
+          tb.innerHTML += `<tr><td><b>${s.nome}</b></td><td>${s.funcao || 'N/D'}</td><td>${s.status || 'ATIVO'}</td><td><button class="btn-del" onclick="deletar('colaboradores', ${s.id}, carregarServidores)">🗑️ Excluir</button></td></tr>`;
+        });
+      } else { tb.innerHTML = '<tr><td colspan="4">Nenhum servidor cadastrado.</td></tr>'; }
     }
 
-    function fecharModalInsumo() {
-      document.getElementById('modalInsumo').style.display = 'none';
-      document.getElementById('formNovoInsumo').reset();
+    async function carregarFrota() {
+      const { data } = await dbNuvem.from('operacional_viaturas').select('*');
+      const tb = document.getElementById('tbFrota');
+      if (data && data.length > 0) {
+        tb.innerHTML = '';
+        data.forEach(v => {
+          tb.innerHTML += `<tr><td><b>${v.prefixo}</b></td><td>${v.placa || '-'}</td><td>${v.modelo || '-'}</td><td><button class="btn-del" onclick="deletar('operacional_viaturas', ${v.id}, carregarFrota)">🗑️ Excluir</button></td></tr>`;
+        });
+      } else { tb.innerHTML = '<tr><td colspan="4">Nenhuma viatura cadastrada.</td></tr>'; }
     }
 
-    // SALVA USANDO EXATAMENTE OS NOMES DAS COLUNAS DO SEU SUPABASE
-    async function salvarNovoInsumo(e) {
+    async function carregarPostos() {
+      const { data } = await dbNuvem.from('operacional_postos').select('*');
+      const tb = document.getElementById('tbPostos');
+      if (data && data.length > 0) {
+        tb.innerHTML = '';
+        data.forEach(p => {
+          tb.innerHTML += `<tr><td><b>${p.nome_posto}</b></td><td>${p.cidade || 'Orleans'}</td><td>${p.status || 'ATIVO'}</td><td><button class="btn-del" onclick="deletar('operacional_postos', ${p.id}, carregarPostos)">🗑️ Excluir</button></td></tr>`;
+        });
+      } else { tb.innerHTML = '<tr><td colspan="4">Nenhum posto cadastrado.</td></tr>'; }
+    }
+
+    // --- GRAVAÇÃO NO BANCO ---
+    async function salvarInsumo(e) {
       e.preventDefault();
-
-      const desc = document.getElementById('ins_descricao').value.trim();
-      const cat = document.getElementById('ins_categoria').value;
-      const estInicial = parseInt(document.getElementById('ins_estoque_inicial').value) || 0;
-      const estMinimo = parseInt(document.getElementById('ins_estoque_minimo').value) || 0;
-
       const payload = {
-        descricao_insumo: desc,
-        categoria: cat,
-        estoque_inicial: estInicial,
-        saldo_atual: estInicial,
-        estoque_minimo: estMinimo,
+        descricao_insumo: document.getElementById('ins_descricao').value,
+        categoria: document.getElementById('ins_categoria').value,
+        estoque_inicial: parseInt(document.getElementById('ins_est_inicial').value) || 0,
+        saldo_atual: parseInt(document.getElementById('ins_est_inicial').value) || 0,
+        estoque_minimo: parseInt(document.getElementById('ins_est_minimo').value) || 0,
         status_estoque: 'REGULAR'
       };
-
-      const { error } = await dbNuvem.from('estoque_mestre').insert([payload]);
-
-      if (error) {
-        alert("❌ Erro ao salvar insumo: " + error.message);
-      } else {
-        alert("✅ Insumo cadastrado com sucesso no estoque_mestre!");
-        fecharModalInsumo();
-        carregarInsumos();
-      }
+      await dbNuvem.from('estoque_mestre').insert([payload]);
+      fecharModalGenerico('modalInsumo'); carregarInsumos();
     }
 
-    async function excluirInsumo(id) {
-      if (!confirm("Tem certeza que deseja remover este item do estoque mestre?")) return;
+    async function salvarServidor(e) {
+      e.preventDefault();
+      const payload = { nome: document.getElementById('srv_nome').value, funcao: document.getElementById('srv_funcao').value, status: 'ATIVO' };
+      await dbNuvem.from('colaboradores').insert([payload]);
+      fecharModalGenerico('modalServidor'); carregarServidores();
+    }
 
-      try {
-        const { error } = await dbNuvem.from('estoque_mestre').delete().eq('id', id);
-        if (error) {
-          alert("❌ Erro ao excluir: " + error.message);
-        } else {
-          carregarInsumos();
-        }
-      } catch (err) {
-        alert("❌ Erro de conexão com o banco.");
-      }
+    async function salvarViatura(e) {
+      e.preventDefault();
+      const payload = { prefixo: document.getElementById('via_prefixo').value, placa: document.getElementById('via_placa').value, modelo: document.getElementById('via_modelo').value };
+      await dbNuvem.from('operacional_viaturas').insert([payload]);
+      fecharModalGenerico('modalViatura'); carregarFrota();
+    }
+
+    async function salvarPosto(e) {
+      e.preventDefault();
+      const payload = { nome_posto: document.getElementById('pst_nome').value, cidade: document.getElementById('pst_cidade').value, status: 'ATIVO' };
+      await dbNuvem.from('operacional_postos').insert([payload]);
+      fecharModalGenerico('modalPosto'); carregarPostos();
+    }
+
+    async function deletar(tabela, id, callback) {
+      if (!confirm("Confirma a exclusão deste registro?")) return;
+      await dbNuvem.from(tabela).delete().eq('id', id);
+      callback();
     }
   </script>
 </body>
