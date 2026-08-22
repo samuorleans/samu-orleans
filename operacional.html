@@ -158,6 +158,13 @@
     let adminAutenticado = false;
     let senhaOficialAdmin = "";
 
+    const listaMecanicaCondutor = [
+      "Óleo do Motor", "Líquido de Arrefecimento", "Óleo de Direção",
+      "Fluido de Freio", "Motor de Arranque", "Direção e Câmbio",
+      "Ar-Condicionado (Cabine e Salão)", "Módulo Sirene e Giroflex",
+      "Limpadores e Vidros", "Faróis e Piscas"
+    ];
+
     window.onload = function() {
       carregarViaturas();
       carregarProfissionaisComPermissoes();
@@ -335,6 +342,24 @@
       }
     }
 
+    // RENDERIZA A TABELA MECÂNICA DO MÓDULO DO CONDUTOR
+    function renderizarTabelaMecanicaCondutor() {
+      const tb = document.getElementById('tb_mecanica');
+      if (!tb) return;
+
+      tb.innerHTML = '';
+      listaMecanicaCondutor.forEach((item, index) => {
+        tb.innerHTML += `
+          <tr style="border-bottom:1px solid #cbd5e1;">
+            <td style="padding:8px;"><b>${item}</b></td>
+            <td style="text-align:center;"><input type="radio" name="mec_${index}" value="Ok / Conforme" required></td>
+            <td style="text-align:center;"><input type="radio" name="mec_${index}" value="Abaixo do Nível / Alerta"></td>
+            <td style="text-align:center;"><input type="radio" name="mec_${index}" value="Com Avaria / Outro"></td>
+          </tr>
+        `;
+      });
+    }
+
     function avancarPasso2() {
       const selectP = document.getElementById('p1_profissional');
       const viatura = document.getElementById('p1_viatura').value;
@@ -377,10 +402,14 @@
         .then(html => {
           document.getElementById('conteudoFormEspecifico').innerHTML = html;
           
-          // Dispara o carregamento dos postos e dos insumos simultaneamente
           setTimeout(() => {
-            carregarPostosNoModulo();
-            carregarInsumosNoModulo();
+            if (procSel === 'abastecimento') {
+              carregarPostosNoModulo();
+              carregarInsumosNoModulo();
+            }
+            if (procSel === 'condutor') {
+              renderizarTabelaMecanicaCondutor();
+            }
           }, 150);
         });
     }
@@ -390,6 +419,7 @@
       document.getElementById('passo1').style.display = 'block';
     }
 
+    // SALVAMENTO DE ABASTECIMENTO
     async function salvarAbastecimento(e) {
       e.preventDefault();
 
@@ -414,6 +444,70 @@
         }
       } catch (err) {
         alert("❌ Erro de conexão com o banco.");
+      }
+    }
+
+    // SALVAMENTO DE CHECKLIST DO CONDUTOR
+    async function salvarChecklistCondutor(e) {
+      e.preventDefault();
+
+      let mapaMecanica = {};
+      let pendentes = false;
+
+      listaMecanicaCondutor.forEach((item, index) => {
+        const marcado = document.querySelector(`input[name="mec_${index}"]:checked`);
+        if (marcado) {
+          mapaMecanica[item] = marcado.value;
+        } else {
+          pendentes = true;
+        }
+      });
+
+      if (pendentes) {
+        alert("⚠️ Por favor, avalie e marque todos os itens da tabela de mecânica.");
+        return;
+      }
+
+      const pneuDiant = document.querySelector('input[name="pneu_diant"]:checked');
+      const pneuTras = document.querySelector('input[name="pneu_tras"]:checked');
+      const pneuEstepe = document.querySelector('input[name="pneu_estepe"]:checked');
+
+      let ferrSelecionadas = [];
+      document.querySelectorAll('.chk_ferramenta:checked').forEach(c => ferrSelecionadas.push(c.value));
+
+      const payload = {
+        viatura: document.getElementById('resumo_viatura').innerText,
+        profissional_nome: document.getElementById('resumo_profissional').innerText,
+        tipo_procedimento: 'Checklist Condutor',
+        turno_plantao: document.getElementById('cond_turno').value,
+        km_atual: parseInt(document.getElementById('cond_km').value),
+        km_proxima_troca_oleo: parseInt(document.getElementById('cond_km_oleo').value),
+        nivel_combustivel: document.getElementById('cond_comb').value,
+        nivel_arla32: document.getElementById('cond_arla').value,
+        mecanica_iluminacao: mapaMecanica,
+        estado_pneus: { 
+          dianteiros: pneuDiant ? pneuDiant.value : 'N/D', 
+          traseiros: pneuTras ? pneuTras.value : 'N/D', 
+          estepe: pneuEstepe ? pneuEstepe.value : 'N/D' 
+        },
+        mochilas_equipamentos: {
+          ferramentas: ferrSelecionadas,
+          epis: document.getElementById('cond_epi').value,
+          cilindro_portatil_2: document.getElementById('cond_cil_port2').value
+        },
+        relato_avarias: document.getElementById('cond_avarias') ? document.getElementById('cond_avarias').value.trim() : ''
+      };
+
+      try {
+        const { error } = await dbNuvem.from('operacional_checklists').insert([payload]);
+        if (!error) {
+          alert("✅ Checklist do Condutor salvo com sucesso no Supabase!");
+          voltarPasso1();
+        } else {
+          alert("❌ Erro ao salvar checklist: " + error.message);
+        }
+      } catch (err) {
+        alert("❌ Erro de conexão com o banco de dados.");
       }
     }
   </script>
