@@ -24,12 +24,10 @@
     .header h1 { font-size: 1.25rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .header p { font-size: 0.8rem; color: #64748b; margin-bottom: 20px; font-weight: 600; }
 
-    /* NAVEGAÇÃO ENTRE ABAS DE CADASTRO */
     .nav-tabs { display: flex; gap: 8px; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; overflow-x: auto; }
     .tab-btn { padding: 10px 16px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.82rem; border-radius: 8px; cursor: pointer; color: var(--samu-navy); white-space: nowrap; transition: 0.2s; }
     .tab-btn.active { background: var(--samu-navy); color: white; }
 
-    /* AÇÕES E TABELA */
     .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .btn-add { background: #16a34a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 800; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; }
     .btn-add:hover { background: #15803d; }
@@ -41,7 +39,6 @@
 
     .btn-del { background: var(--samu-red); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer; }
 
-    /* JANELA MODAL DE CADASTRO DE INSUMO */
     .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(13, 35, 58, 0.6); z-index: 999; justify-content: center; align-items: center; }
     .modal-card { background: white; border-radius: 16px; padding: 24px; width: 90%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: left; }
     .modal-card h3 { font-size: 1rem; color: var(--samu-navy); font-weight: 800; margin-bottom: 16px; text-transform: uppercase; }
@@ -65,7 +62,6 @@
       <p>Gerenciamento Integrado de Servidores, Frota, Insumos e Convênios — USB 11</p>
     </div>
 
-    <!-- NAVEGAÇÃO ENTRE ABAS -->
     <div class="nav-tabs">
       <button class="tab-btn" onclick="alert('Módulo de Servidores mantido.')">🎥 Servidores & Uniformes</button>
       <button class="tab-btn" onclick="alert('Módulo de Frota mantido.')">🚚 Frota & Viaturas</button>
@@ -73,7 +69,6 @@
       <button class="tab-btn" onclick="alert('Módulo de Postos mantido.')">⛽ Postos de Gasolina</button>
     </div>
 
-    <!-- CONTEÚDO DA ABA INSUMOS & MEDICAMENTOS -->
     <div id="abaInsumos">
       <div class="toolbar">
         <span style="font-size:0.8rem; color:#64748b; font-weight:600;">Itens cadastrados na tabela <b>estoque_mestre</b>.</span>
@@ -98,7 +93,6 @@
     <a href="index.html" class="btn-link-home">⬅️ Voltar ao Painel Principal</a>
   </div>
 
-  <!-- MODAL DE CADASTRO DE NOVO INSUMO / COMBUSTÍVEL -->
   <div class="modal-overlay" id="modalInsumo">
     <div class="modal-card">
       <h3>📦 Cadastrar Novo Insumo</h3>
@@ -150,27 +144,25 @@
       carregarInsumos();
     };
 
-    // CARREGA TODOS OS INSUMOS DO ESTOQUE_MESTRE COM LEITURA FLEXÍVEL DE COLUNAS
     async function carregarInsumos() {
       const tbody = document.getElementById('tabelaInsumosBody');
       try {
         const { data, error } = await dbNuvem.from('estoque_mestre').select('*');
-        
         if (error) throw error;
 
         if (data && data.length > 0) {
           tbody.innerHTML = '';
           data.forEach(item => {
-            // Identifica dinamicamente o nome da coluna no banco
-            const nomeExibicao = item.nome || item.item_nome || item.descricao || item.item || 'Item Sem Nome';
-            const catExibicao = item.categoria || 'COMBUSTIVEL';
-            const unidExibicao = item.unidade || 'Litro(s)';
+            // Mapeia qualquer variação de nome de coluna
+            const desc = item.descricao || item.nome || item.item_nome || item.item || 'Item Sem Nome';
+            const cat = item.categoria || item.grupo || 'COMBUSTIVEL';
+            const unid = item.unidade || item.unid_medida || 'Litro(s)';
 
             tbody.innerHTML += `
               <tr>
-                <td><b>${nomeExibicao}</b></td>
-                <td><span style="background:#e2e8f0; padding:4px 8px; border-radius:6px; font-weight:700; font-size:0.75rem;">${catExibicao}</span></td>
-                <td>${unidExibicao}</td>
+                <td><b>${desc}</b></td>
+                <td><span style="background:#e2e8f0; padding:4px 8px; border-radius:6px; font-weight:700; font-size:0.75rem;">${cat}</span></td>
+                <td>${unid}</td>
                 <td>
                   <button class="btn-del" onclick="excluirInsumo(${item.id})">🗑️ Excluir</button>
                 </td>
@@ -178,7 +170,7 @@
             `;
           });
         } else {
-          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">Nenhum insumo cadastrado na tabela estoque_mestre. Clique em "+ Novo Insumo" para adicionar.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">Nenhum insumo cadastrado no estoque_mestre. Clique em "+ Novo Insumo" para adicionar.</td></tr>';
         }
       } catch (e) {
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Erro ao buscar dados do banco de dados.</td></tr>';
@@ -194,51 +186,41 @@
       document.getElementById('formNovoInsumo').reset();
     }
 
-    // TENTA A GRAVAÇÃO FLEXÍVEL NAS COLUNAS MAIS COMUNS DA TABELA
+    // TENTA INSERIR TESTANDO AS COLUNAS VÁLIDAS DO SUPABASE
     async function salvarNovoInsumo(e) {
       e.preventDefault();
 
-      const itemNome = document.getElementById('ins_nome').value.trim();
-      const categoria = document.getElementById('ins_categoria').value;
-      const unidade = document.getElementById('ins_unidade').value;
+      const itemTexto = document.getElementById('ins_nome').value.trim();
+      const categoriaTexto = document.getElementById('ins_categoria').value;
+      const unidadeTexto = document.getElementById('ins_unidade').value;
 
-      // 1ª Tentativa: usar a coluna 'nome'
-      let payload = {
-        nome: itemNome,
-        categoria: categoria,
-        unidade: unidade
-      };
+      // Lista de tentativas para adequar ao schema real do Supabase
+      const tentativasPayloads = [
+        { descricao: itemTexto, categoria: categoriaTexto, unidade: unidadeTexto },
+        { nome: itemTexto, categoria: categoriaTexto, unidade: unidadeTexto },
+        { descricao: itemTexto },
+        { nome: itemTexto }
+      ];
 
-      let { error } = await dbNuvem.from('estoque_mestre').insert([payload]);
+      let sucesso = false;
+      let ultimoErro = "";
 
-      // 2ª Tentativa: usar a coluna 'descricao' se 'nome' não existir
-      if (error && error.message.includes('column')) {
-        payload = {
-          descricao: itemNome,
-          categoria: categoria,
-          unidade: unidade
-        };
-        const retry1 = await dbNuvem.from('estoque_mestre').insert([payload]);
-        error = retry1.error;
+      for (let payload of tentativasPayloads) {
+        const { error } = await dbNuvem.from('estoque_mestre').insert([payload]);
+        if (!error) {
+          sucesso = true;
+          break;
+        } else {
+          ultimoErro = error.message;
+        }
       }
 
-      // 3ª Tentativa: usar a coluna 'item_nome'
-      if (error && error.message.includes('column')) {
-        payload = {
-          item_nome: itemNome,
-          categoria: categoria,
-          unidade: unidade
-        };
-        const retry2 = await dbNuvem.from('estoque_mestre').insert([payload]);
-        error = retry2.error;
-      }
-
-      if (error) {
-        alert("❌ Erro ao salvar insumo: " + error.message);
-      } else {
+      if (sucesso) {
         alert("✅ Insumo cadastrado com sucesso no estoque_mestre!");
         fecharModalInsumo();
         carregarInsumos();
+      } else {
+        alert("❌ Erro ao salvar insumo: " + ultimoErro);
       }
     }
 
@@ -253,7 +235,7 @@
           carregarInsumos();
         }
       } catch (err) {
-        alert("❌ Erro ao comunicar com o banco.");
+        alert("❌ Erro de conexão com o banco.");
       }
     }
   </script>
