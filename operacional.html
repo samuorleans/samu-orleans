@@ -602,31 +602,48 @@
       }
     }
 
-    // GRAVAÇÃO SUBSTITUIÇÃO DE LACRE (COM DATA_HORA LOCAL BR)
-    async function salvarSubstituicaoLacre(e) {
-      e.preventDefault();
+   // GRAVAÇÃO DE SUBSTITUIÇÃO DE LACRE NAS TABELAS CORRESPONDENTES
+async function salvarSubstituicaoLacre(e) {
+  e.preventDefault();
 
-      const payload = {
-        data_hora: obterDataHoraBrasil(),
-        viatura: document.getElementById('resumo_viatura').innerText,
-        profissional_nome: document.getElementById('resumo_profissional').innerText,
-        numero_lacre_psicotropicos: document.getElementById('lacre_novo').value.trim(),
-        status_kit_parto: document.getElementById('lacre_motivo').value,
-        observacoes_materiais: `[TROCA DE LACRE] Rompido: ${document.getElementById('lacre_ant').value.trim()} | Motivo: ${document.getElementById('lacre_motivo').value} | Obs: ${document.getElementById('lacre_obs').value.trim()}`
-      };
+  const dataHoraBR = obterDataHoraBrasil();
+  const lacreAnt = document.getElementById('lacre_ant').value.trim();
+  const lacreNovo = document.getElementById('lacre_novo').value.trim();
+  const motivo = document.getElementById('lacre_motivo').value;
+  const obs = document.getElementById('lacre_obs') ? document.getElementById('lacre_obs').value.trim() : '';
 
-      try {
-        const { error } = await dbNuvem.from('operacional_saude_lacres').insert([payload]);
-        if (!error) {
-          alert("✅ Troca de Lacre gravada com sucesso no Supabase!");
-          voltarPasso1();
-        } else {
-          alert("❌ Erro ao salvar troca de lacre: " + error.message);
-        }
-      } catch (err) {
-        alert("❌ Erro de conexão com o banco de dados.");
-      }
+  // 1. Grava a atualização do lacre na tabela operacional_saude_lacres (campos originais)
+  const payloadSaude = {
+    data_hora: dataHoraBR,
+    viatura: document.getElementById('resumo_viatura').innerText,
+    profissional_nome: document.getElementById('resumo_profissional').innerText,
+    numero_lacre_psicotropicos: lacreNovo,
+    status_kit_parto: motivo
+  };
+
+  // 2. Grava o histórico detalhado da ocorrência na tabela operacional_checklists
+  const payloadChecklist = {
+    data_hora: dataHoraBR,
+    viatura: document.getElementById('resumo_viatura').innerText,
+    profissional_nome: document.getElementById('resumo_profissional').innerText,
+    tipo_procedimento: 'Troca de Lacre',
+    relato_avarias: `[SUBSTITUIÇÃO DE LACRE] Rompido: ${lacreAnt} | Novo: ${lacreNovo} | Motivo: ${motivo} | Obs: ${obs}`
+  };
+
+  try {
+    const { error: errSaude } = await dbNuvem.from('operacional_saude_lacres').insert([payloadSaude]);
+    const { error: errCheck } = await dbNuvem.from('operacional_checklists').insert([payloadChecklist]);
+
+    if (!errSaude && !errCheck) {
+      alert("✅ Troca de Lacre gravada com sucesso no Supabase!");
+      voltarPasso1();
+    } else {
+      alert("❌ Erro ao salvar: " + (errSaude ? errSaude.message : errCheck.message));
     }
+  } catch (err) {
+    alert("❌ Erro de conexão com o banco de dados.");
+  }
+}
   </script>
 </body>
 </html>
