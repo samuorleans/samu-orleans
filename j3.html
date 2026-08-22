@@ -186,7 +186,7 @@
       document.getElementById('div_justificativa').style.display = chk ? 'block' : 'none';
     }
 
-    /* CARREGAMENTO 100% DINÂMICO CONSULTANDO A TABELA COLABORADORES */
+    /* FILTRAGEM DINÂMICA PELA COLUNA 'funcao' DA SUA IMAGEM DO SUPABASE */
     async function carregarEquipeDoBanco() {
       const selC = document.getElementById('j3_condutor');
       const selT = document.getElementById('j3_tecnico');
@@ -194,7 +194,7 @@
       try {
         const { data: servidores, error } = await dbNuvem
           .from('colaboradores')
-          .select('nome, cargo, funcao')
+          .select('nome, funcao')
           .order('nome', { ascending: true });
 
         if (!error && servidores && servidores.length > 0) {
@@ -202,23 +202,26 @@
           selT.innerHTML = '<option value="">(Selecione ou deixe Rendição)</option>';
 
           servidores.forEach(s => {
-            const rotuloCargo = (s.cargo || s.funcao || '').toUpperCase();
-            if (rotuloCargo.includes('CONDUTOR') || rotuloCargo.includes('MOTORISTA')) {
+            const rotuloFuncao = (s.funcao || '').toUpperCase();
+
+            // Filtro dinâmico para Condutores
+            if (rotuloFuncao.includes('CONDUTOR') || rotuloFuncao.includes('MOTORISTA')) {
               selC.innerHTML += `<option value="${s.nome}">${s.nome}</option>`;
-            } else if (!rotuloCargo.includes('ADMINISTRADOR')) {
-              selT.innerHTML += `<option value="${s.nome}">${s.nome} (${s.cargo || 'Enfermagem'})</option>`;
+            } 
+            // Filtro dinâmico para Enfermagem (Técnicos e Enfermeiros)
+            else if (rotuloFuncao.includes('TÉCNICO') || rotuloFuncao.includes('TECNICO') || rotuloFuncao.includes('ENFERMEIR')) {
+              selT.innerHTML += `<option value="${s.nome}">${s.nome} (${s.funcao})</option>`;
             }
           });
         } else {
-          selC.innerHTML = '<option value="">Nenhum condutor cadastrado</option>';
-          selT.innerHTML = '<option value="">Nenhum técnico cadastrado</option>';
+          alert("Erro ao carregar colaboradores do banco de dados.");
         }
       } catch (err) {
-        alert("Erro ao conectar com a base de servidores do Supabase.");
+        alert("Erro na conexão com o banco de dados.");
       }
     }
 
-    /* PROCESSAMENTO DE RENDIÇÃO, DUPLA E TRAVA DE 24 HORAS */
+    /* PROCESSAMENTO DA ASSUNÇÃO J3 E VALIDAÇÃO */
     async function processarJ3(e) {
       e.preventDefault();
       const condutor = document.getElementById('j3_condutor').value;
@@ -233,7 +236,6 @@
       }
 
       try {
-        // 1. CONSULTA SE HÁ REGISTRO EM RENDIÇÃO OU ATIVO NAS ÚLTIMAS 24 HORAS
         const { data: ultimosPlantoes } = await dbNuvem
           .from('plantoes_j3')
           .select('*')
@@ -248,7 +250,7 @@
           plantaoAtivo = ultimosPlantoes.find(p => p.status === 'ATIVO');
         }
 
-        // TRAVA DE 24 HOURS PARA MUDANÇA DE EQUIPE COMPLETA
+        // TRAVA DE SEGURANÇA 24 HORAS
         if (plantaoAtivo && !plantaoPendente) {
           const timeUltimo = new Date(plantaoAtivo.data_confirmacao || plantaoAtivo.created_at).getTime();
           const timeAgora = new Date().getTime();
@@ -261,7 +263,7 @@
 
           if (horasDecorridas < 24 && houveAlteracaoDupla) {
             if (!ehExcepcional || !justificativa) {
-              alert(`⚠️ TRAVA OPERACIONAL DE SEGURANÇA:\n\nJá existe um plantão ativo lançado há ${horasDecorridas.toFixed(1)} horas.\n\nPara alterar a equipe antes das 24h, você OBRIGATORIAMENTE deve:\n1. Marcar a opção "Troca de última hora"\n2. Digitar a justificativa no campo abaixo.`);
+              alert(`⚠️ TRAVA OPERACIONAL DE SEGURANÇA:\n\nJá existe um plantão ativo lançado há ${horasDecorridas.toFixed(1)} horas.\n\nPara alterar a equipe antes das 24h, marque a opção "Troca de última hora" e digite a justificativa.`);
               
               document.getElementById('j3_chk_excepcional').checked = true;
               alternarJustificativa();
@@ -276,7 +278,7 @@
           return;
         }
 
-        // 2. VALIDAÇÃO DA SENHA ÚNICA
+        // VALIDAÇÃO DA SENHA ÚNICA CONSULTANDO O SUPABASE
         const { data: colaboradores } = await dbNuvem.from('colaboradores').select('*');
         let usuarioValido = null;
 
@@ -293,7 +295,6 @@
           let condutorFinal = condutor;
           let tecnicoFinal = tecnico;
 
-          // Se existia um plantão EM RENDIÇÃO aberto, realiza a fusão (Auto-Merge)
           if (plantaoPendente) {
             condutorFinal = condutor || plantaoPendente.condutor;
             tecnicoFinal = tecnico || plantaoPendente.enfermagem;
@@ -325,7 +326,7 @@
             }]);
           }
 
-          // GRAVAÇÃO DO LOG DE AUDITORIA
+          // GRAVAÇÃO DE AUDITORIA NOS LOGS
           const cpfLog = usuarioValido ? usuarioValido.cpf : '075.486.369-70';
           const nomeLog = usuarioValido ? usuarioValido.nome : `${condutorFinal} / ${tecnicoFinal}`;
 
@@ -337,7 +338,7 @@
             data_hora: new Date().toISOString()
           }]);
 
-          // TEXTO AUTOMÁTICO PARA A REGULAÇÃO (WHATSAPP)
+          // GERA MENSAGEM DO WHATSAPP DA REGULAÇÃO
           const agora = new Date().toLocaleString('pt-BR');
           const textoZapFormatado = `🚨 *PASSAGEM DE PLANTÃO J3 - USB 11*\n📅 Data/Hora: ${agora}\n🚑 Condutor: ${condutorFinal || 'Aguardando'}\n🩺 Enfermagem: ${tecnicoFinal || 'Aguardando'}\nStatus: ${statusFinal === 'ATIVO' ? 'Viatura Operacional e Equipe Confirmada' : 'Equipe em Rendição Antecipada'}.`;
           
