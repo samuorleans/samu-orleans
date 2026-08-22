@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAMU Connect — Gestão Completa de Cadastros e Parâmetros</title>
+  <title>SAMU Connect — Gestão Completa de Cadastros</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -32,11 +32,11 @@
 
     /* CARD DO FORMULÁRIO */
     .form-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 24px; }
-    .form-card h3 { font-size: 1rem; color: var(--samu-navy); margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+    .form-card h3 { font-size: 0.95rem; color: var(--samu-navy); margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 6px; text-transform: uppercase; font-weight: 800; }
 
     .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
     .form-group { display: flex; flex-direction: column; text-align: left; }
-    .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 4px; text-transform: uppercase; }
+    .form-group label { font-size: 0.72rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 4px; text-transform: uppercase; }
     .form-group input, .form-group select { padding: 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none; background: white; width: 100%; }
     .form-group input:focus, .form-group select:focus { border-color: var(--samu-blue); }
 
@@ -61,7 +61,7 @@
   <div class="container">
     <div class="header">
       <h1>⚙️ Painel do Gestor — Parâmetros & Cadastros</h1>
-      <p>Gerenciamento de Colaboradores, Frota, Insumos e Convênios — SAMU Orleans (USB 11)</p>
+      <p>Gerenciamento Integrado de Servidores, Frota, Insumos e Convênios — USB 11</p>
     </div>
 
     <!-- ABAS PRINCIPAIS DE GESTÃO -->
@@ -73,14 +73,14 @@
     </div>
 
     <!-- =================================================================== -->
-    <!-- ABA 1: CADASTRO DE COLABORADORES COMPLETO                           -->
+    <!-- ABA 1: CADASTRO DE SERVIDORES COM DADOS PESSOAIS E UNIFORMES        -->
     <!-- =================================================================== -->
     <div id="secaoColaboradores">
       <div class="form-card">
-        <h3>👤 Ficha Cadastral do Servidor / Colaborador</h3>
         <form id="formColaborador" onsubmit="salvarColaborador(event)">
           <input type="hidden" id="colab_id">
           
+          <h3>📝 Dados Pessoais & Contato</h3>
           <div class="grid-form">
             <div class="form-group">
               <label>Nome Completo:*</label>
@@ -93,7 +93,7 @@
             </div>
 
             <div class="form-group">
-              <label>Função / Cargo:*</label>
+              <label>Função:*</label>
               <select id="colab_funcao" required>
                 <option value="">Selecione a Função...</option>
                 <option value="Condutor Socorrista">Condutor Socorrista</option>
@@ -104,51 +104,32 @@
             </div>
 
             <div class="form-group">
-              <label>Senha Única do Servidor:*</label>
-              <input type="password" id="colab_senha" placeholder="••••••••" required>
-            </div>
-
-            <div class="form-group">
-              <label>Registro Profissional (COREN):</label>
-              <input type="text" id="colab_coren" placeholder="Ex: 86251B ou N/A">
-            </div>
-
-            <div class="form-group">
-              <label>CNH (Condutores):</label>
-              <input type="text" id="colab_cnh" placeholder="Ex: 5031057705 ou N/A">
+              <label>Registro (COREN/CNH):</label>
+              <input type="text" id="colab_registro" placeholder="Ex: 5031057705 ou COREN">
             </div>
 
             <div class="form-group">
               <label>Telefone / WhatsApp:</label>
-              <input type="text" id="colab_fone" placeholder="(48) 90000-0000">
-            </div>
-
-            <!-- DADOS LOGÍSTICOS E UNIFORMES -->
-            <div class="form-group">
-              <label>Tamanho Camiseta / Jaleco:</label>
-              <select id="colab_tam_camiseta">
-                <option value="P">P</option>
-                <option value="M">M</option>
-                <option value="G">G</option>
-                <option value="GG">GG</option>
-                <option value="EXG">EXG</option>
-              </select>
+              <input type="text" id="colab_fone" placeholder="(48) 98848-1903">
             </div>
 
             <div class="form-group">
-              <label>Tamanho Calça / Macacão:</label>
-              <input type="text" id="colab_tam_calca" placeholder="Ex: 42">
+              <label>E-mail:</label>
+              <input type="email" id="colab_email" placeholder="email@exemplo.com">
             </div>
 
             <div class="form-group">
-              <label>Número do Calçado / Bota:</label>
-              <input type="text" id="colab_tam_calcado" placeholder="Ex: 41">
+              <label>Senha Única do Servidor:*</label>
+              <input type="password" id="colab_senha" placeholder="••••••••" required>
             </div>
+          </div>
 
+          <h3 style="margin-top: 20px;">👕 Tamanhos de Uniformes e Equipamentos</h3>
+          <div class="grid-form">
             <div class="form-group">
-              <label>Tipo Sanguíneo / Fator RH:</label>
+              <label>Tipo Sanguíneo:</label>
               <select id="colab_sangue">
-                <option value="N/I">Não informado</option>
+                <option value="N/I">Selecione...</option>
                 <option value="A+">A+</option>
                 <option value="A-">A-</option>
                 <option value="B+">B+</option>
@@ -159,9 +140,39 @@
                 <option value="O-">O-</option>
               </select>
             </div>
+
+            <div class="form-group">
+              <label>Nome de Guerra:</label>
+              <input type="text" id="colab_nome_guerra" placeholder="Ex: FERNANDES">
+            </div>
+
+            <div class="form-group">
+              <label>Macacão:</label>
+              <input type="text" id="colab_macacao" placeholder="Ex: P, M, G...">
+            </div>
+
+            <div class="form-group">
+              <label>Camiseta:</label>
+              <input type="text" id="colab_camiseta" placeholder="Ex: M">
+            </div>
+
+            <div class="form-group">
+              <label>Jaqueta:</label>
+              <input type="text" id="colab_jaqueta" placeholder="Ex: M">
+            </div>
+
+            <div class="form-group">
+              <label>Coturno (Número):</label>
+              <input type="text" id="colab_coturno" placeholder="Ex: 39">
+            </div>
+
+            <div class="form-group">
+              <label>Capa de Chuva:</label>
+              <input type="text" id="colab_capa_chuva" placeholder="Ex: M">
+            </div>
           </div>
 
-          <button type="submit" class="btn-salvar">💾 Salvar / Atualizar Servidor no Supabase</button>
+          <button type="submit" class="btn-salvar">💾 Salvar Servidor no Supabase</button>
         </form>
       </div>
 
@@ -172,7 +183,7 @@
               <th>Nome</th>
               <th>CPF</th>
               <th>Função</th>
-              <th>COREN/CNH</th>
+              <th>Registro</th>
               <th>Telefone</th>
               <th>Ações</th>
             </tr>
@@ -198,7 +209,7 @@
             </div>
             <div class="form-group">
               <label>Placa:*</label>
-              <input type="text" id="viat_placa" placeholder="ABC-1234 ou ABC1D23" required>
+              <input type="text" id="viat_placa" placeholder="ABC-1234" required>
             </div>
             <div class="form-group">
               <label>Quilometragem Base Inicial:*</label>
@@ -293,7 +304,7 @@
   </div>
 
   <script>
-    // Conexão oficial do Supabase - SAMU Orleans
+    // Conexão oficial Supabase - SAMU Orleans
     const dbNuvem = supabase.createClient(
       "https://rcpgukslnlfptreiusff.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
@@ -303,7 +314,6 @@
       carregarColaboradoresDoBanco();
     };
 
-    // Alternador de abas de navegação
     function alternarAba(aba) {
       document.getElementById('secaoColaboradores').style.display = aba === 'colaboradores' ? 'block' : 'none';
       document.getElementById('secaoViaturas').style.display = aba === 'viaturas' ? 'block' : 'none';
@@ -317,8 +327,7 @@
     }
 
     // ===================================================================
-    // FUNÇÃO: carregarColaboradoresDoBanco()
-    // FINALIDADE: Busca todos os colaboradores cadastrados e exibe na tabela
+    // CONSULTA E CARREGAMENTO DOS COLABORADORES
     // ===================================================================
     async function carregarColaboradoresDoBanco() {
       const tbody = document.getElementById('tbodyColaboradores');
@@ -342,7 +351,7 @@
                 <td>${reg}</td>
                 <td>${s.fone || '—'}</td>
                 <td>
-                  <button class="btn-acao btn-editar" onclick="prepararEdicao('${s.id}', '${s.nome}', '${s.cpf}', '${s.funcao}', '${s.senha_unica || s.senha || ''}', '${s.coren || ''}', '${s.cnh || ''}', '${s.fone || ''}')">✏️ Editar</button>
+                  <button class="btn-acao btn-editar" onclick="prepararEdicao('${s.id}')">✏️ Editar</button>
                 </td>
               </tr>
             `;
@@ -356,42 +365,36 @@
     }
 
     // ===================================================================
-    // FUNÇÃO: salvarColaborador()
-    // FINALIDADE: Grava ou atualiza as informações do servidor no Supabase
+    // SALVAMENTO COMPLETO NO SUPABASE
     // ===================================================================
     async function salvarColaborador(e) {
       e.preventDefault();
       const id = document.getElementById('colab_id').value;
-      const nome = document.getElementById('colab_nome').value.trim();
-      const cpf = document.getElementById('colab_cpf').value.trim();
-      const funcao = document.getElementById('colab_funcao').value;
-      const senha = document.getElementById('colab_senha').value.trim();
-      const coren = document.getElementById('colab_coren').value.trim();
-      const cnh = document.getElementById('colab_cnh').value.trim();
-      const fone = document.getElementById('colab_fone').value.trim();
+      
+      const dados = {
+        nome: document.getElementById('colab_nome').value.trim(),
+        cpf: document.getElementById('colab_cpf').value.trim(),
+        funcao: document.getElementById('colab_funcao').value,
+        coren: document.getElementById('colab_registro').value.trim(),
+        cnh: document.getElementById('colab_registro').value.trim(),
+        fone: document.getElementById('colab_fone').value.trim(),
+        email: document.getElementById('colab_email').value.trim(),
+        senha_unica: document.getElementById('colab_senha').value.trim(),
+        tipo_sangue: document.getElementById('colab_sangue').value,
+        nome_guerra: document.getElementById('colab_nome_guerra').value.trim(),
+        macacao: document.getElementById('colab_macacao').value.trim(),
+        camiseta: document.getElementById('colab_camiseta').value.trim(),
+        jaqueta: document.getElementById('colab_jaqueta').value.trim(),
+        coturno: document.getElementById('colab_coturno').value.trim(),
+        capa_chuva: document.getElementById('colab_capa_chuva').value.trim()
+      };
 
       try {
         if (id) {
-          await dbNuvem.from('colaboradores').update({
-            nome: nome,
-            cpf: cpf,
-            funcao: funcao,
-            senha_unica: senha,
-            coren: coren,
-            cnh: cnh,
-            fone: fone
-          }).eq('id', id);
-          alert("✅ Servidor atualizado com sucesso!");
+          await dbNuvem.from('colaboradores').update(dados).eq('id', id);
+          alert("✅ Cadastro e uniformes atualizados com sucesso!");
         } else {
-          await dbNuvem.from('colaboradores').insert([{
-            nome: nome,
-            cpf: cpf,
-            funcao: funcao,
-            senha_unica: senha,
-            coren: coren || 'N/A',
-            cnh: cnh || 'N/A',
-            fone: fone
-          }]);
+          await dbNuvem.from('colaboradores').insert([dados]);
           alert("✅ Novo servidor cadastrado no Supabase!");
         }
 
@@ -403,16 +406,31 @@
       }
     }
 
-    function prepararEdicao(id, nome, cpf, funcao, senha, coren, cnh, fone) {
-      document.getElementById('colab_id').value = id;
-      document.getElementById('colab_nome').value = nome;
-      document.getElementById('colab_cpf').value = cpf;
-      document.getElementById('colab_funcao').value = funcao;
-      document.getElementById('colab_senha').value = senha;
-      document.getElementById('colab_coren').value = coren;
-      document.getElementById('colab_cnh').value = cnh;
-      document.getElementById('colab_fone').value = fone;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    async function prepararEdicao(id) {
+      try {
+        const { data } = await dbNuvem.from('colaboradores').select('*').eq('id', id).single();
+        if (data) {
+          document.getElementById('colab_id').value = data.id;
+          document.getElementById('colab_nome').value = data.nome || '';
+          document.getElementById('colab_cpf').value = data.cpf || '';
+          document.getElementById('colab_funcao').value = data.funcao || '';
+          document.getElementById('colab_registro').value = data.coren || data.cnh || '';
+          document.getElementById('colab_fone').value = data.fone || '';
+          document.getElementById('colab_email').value = data.email || '';
+          document.getElementById('colab_senha').value = data.senha_unica || data.senha || '';
+          document.getElementById('colab_sangue').value = data.tipo_sangue || 'N/I';
+          document.getElementById('colab_nome_guerra').value = data.nome_guerra || '';
+          document.getElementById('colab_macacao').value = data.macacao || '';
+          document.getElementById('colab_camiseta').value = data.camiseta || '';
+          document.getElementById('colab_jaqueta').value = data.jaqueta || '';
+          document.getElementById('colab_coturno').value = data.coturno || '';
+          document.getElementById('colab_capa_chuva').value = data.capa_chuva || '';
+          
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      } catch (err) {
+        alert("Erro ao buscar dados do servidor.");
+      }
     }
 
     function salvarViatura(e) { e.preventDefault(); alert("🚐 Viatura salva no cadastro!"); }
