@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAMU Connect — Acesso ao Portal</title>
+  <title>SAMU Connect — Portal Unificado USB 11</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -13,129 +13,139 @@
       --bg-surface: #f4f7fa;
       --card-bg: #ffffff;
       --text-main: #1e293b;
+      --text-muted: #64748b;
       --border: #cbd5e1;
-      --shadow: 0 10px 30px rgba(13, 35, 58, 0.1);
+      --shadow: 0 10px 30px rgba(13, 35, 58, 0.08);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
-    body { background-color: var(--bg-surface); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    body { background-color: var(--bg-surface); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px 12px; }
 
-    .login-card {
-      width: 100%; max-width: 420px; background: var(--card-bg); border-radius: 20px;
-      box-shadow: var(--shadow); border-top: 6px solid var(--samu-red); padding: 35px 28px; text-align: center;
+    .portal-container { width: 100%; max-width: 850px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    .card-box { background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); padding: 30px 25px; text-align: center; }
+    .card-public { border-top: 6px solid var(--samu-red); }
+    .card-private { border-top: 6px solid var(--samu-navy); }
+
+    .brand-logo { width: 75px; margin-bottom: 12px; }
+    h2 { font-size: 1.15rem; color: var(--samu-navy); font-weight: 800; text-transform: uppercase; margin-bottom: 6px; }
+    p.sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 22px; }
+
+    /* BOTÕES PÚBLICOS OPERACIONAIS */
+    .btn-op {
+      display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px; margin-bottom: 12px;
+      background: #f8fafc; border: 1.5px solid var(--border); border-radius: 12px; text-decoration: none;
+      color: var(--text-main); font-weight: 700; font-size: 0.88rem; transition: 0.2s; text-align: left;
     }
+    .btn-op:hover { border-color: var(--samu-blue); background: #f0f7ff; transform: translateY(-2px); }
 
-    .login-header img { width: 80px; margin-bottom: 15px; }
-    .login-header h1 { font-size: 1.3rem; color: var(--samu-navy); font-weight: 800; text-transform: uppercase; }
-    .login-header p { font-size: 0.82rem; color: #64748b; margin-top: 4px; margin-bottom: 25px; }
-
-    .form-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 18px; }
-    .form-group label { font-size: 0.78rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 6px; text-transform: uppercase; }
-    .form-group input { padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; background: #f8fafc; }
+    /* FORMULÁRIO DE LOGIN ÚNICO (SSO) */
+    .form-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 16px; }
+    .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 6px; text-transform: uppercase; }
+    .form-group input { padding: 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; background: #f8fafc; }
     .form-group input:focus { border-color: var(--samu-blue); background: white; }
 
-    .forgot-link { text-align: right; margin-top: -10px; margin-bottom: 20px; }
-    .forgot-link a { font-size: 0.8rem; color: var(--samu-blue); font-weight: 600; text-decoration: none; }
-    .forgot-link a:hover { text-decoration: underline; }
+    .forgot-link { text-align: right; margin-top: -8px; margin-bottom: 18px; }
+    .forgot-link a { font-size: 0.78rem; color: var(--samu-blue); font-weight: 600; text-decoration: none; }
 
-    .btn-login { width: 100%; background: var(--samu-navy); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
-    .btn-login:hover { background: #081726; }
+    .btn-sso { width: 100%; background: var(--samu-navy); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; cursor: pointer; transition: 0.2s; }
+    .btn-sso:hover { background: #081726; }
 
-    /* MODAL DE RECUPERAÇÃO E ALTERAÇÃO DE SENHA */
-    .modal-overlay {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(13, 35, 58, 0.65); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000;
-    }
+    /* MODAL ESQUECI A SENHA */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13,35,58,0.65); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; }
     .modal-overlay.active { display: flex; }
-    .modal-content { background: white; width: 92%; max-width: 440px; padding: 25px; border-radius: 16px; box-shadow: var(--shadow); text-align: left; }
-    .modal-content h3 { font-size: 1.1rem; color: var(--samu-navy); margin-bottom: 6px; }
-    .modal-content p { font-size: 0.82rem; color: #64748b; margin-bottom: 18px; }
-    
-    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-    .btn-secondary { background: #e2e8f0; color: #334155; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-    .btn-primary { background: #15803d; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-    .btn-verify { background: var(--samu-blue); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .modal-content { background: white; width: 92%; max-width: 420px; padding: 25px; border-radius: 16px; box-shadow: var(--shadow); text-align: left; }
+
+    @media (max-width: 768px) { .portal-container { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 
-  <div class="login-card">
-    <div class="login-header">
-      <img src="logo.png" alt="SAMU 192" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
-      <h1>SAMU CONNECT</h1>
-      <p>Portal de Acesso Operacional & Gestão</p>
+  <div class="portal-container">
+    
+    <!-- LADO ESQUERDO: ZONA PÚBLICA OPERACIONAL -->
+    <div class="card-box card-public">
+      <img src="logo.png" alt="SAMU 192" class="brand-logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
+      <h2>Acesso Operacional</h2>
+      <p class="sub">Rotinas de Plantão e Formulários de Campo (Sem Senha)</p>
+
+      <a href="operacional.html" class="btn-op">
+        <span style="font-size:1.2rem;">🚑</span>
+        <div>Checklists & Abastecimentos<br><small style="font-weight:400; color:#64748b;">Condutores e Enfermagem</small></div>
+      </a>
+
+      <a href="aph.html" class="btn-op">
+        <span style="font-size:1.2rem;">📋</span>
+        <div>Ficha APH Web Inteligente<br><small style="font-weight:400; color:#64748b;">Registro de Ocorrências e SUS</small></div>
+      </a>
+
+      <a href="lista-presenca.html" class="btn-op">
+        <span style="font-size:1.2rem;">📝</span>
+        <div>Lista de Presença em Cursos<br><small style="font-weight:400; color:#64748b;">Assinatura Digital de Treinamentos</small></div>
+      </a>
     </div>
 
-    <form id="formLogin" onsubmit="autenticarUsuario(event)">
-      <div class="form-group">
-        <label>E-mail ou CPF:*</label>
-        <input type="text" id="login_usuario" placeholder="Digite seu e-mail ou CPF..." required>
-      </div>
+    <!-- LADO DIREITO: ZONA RESTRITA (SSO — SENHA ÚNICA) -->
+    <div class="card-box card-private">
+      <img src="logo.png" alt="SAMU 192" class="brand-logo" style="filter: hue-rotate(180deg);" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
+      <h2>Portal do Servidor</h2>
+      <p class="sub">Escalas, Histórico, Trocas e Gestão (Senha Única)</p>
 
-      <div class="form-group">
-        <label>Senha de Acesso:*</label>
-        <input type="password" id="login_senha" placeholder="••••••••" required>
-      </div>
-
-      <div class="forgot-link">
-        <a href="#" onclick="abrirModalEsqueciSenha(event)">Esqueceu a senha?</a>
-      </div>
-
-      <button type="submit" class="btn-login">Entrar no Portal ➔</button>
-    </form>
-  </div>
-
-  <!-- MODAL: RECUPERAÇÃO DE SENHA POR VALIDAÇÃO FLEXÍVEL -->
-  <div class="modal-overlay" id="modalEsqueciSenha">
-    <div class="modal-content">
-      <h3>🔑 Validação para Nova Senha</h3>
-      <p>Informe seu CPF e pelo menos um dos seus registros cadastrais para redefinir sua senha.</p>
-
-      <!-- PASSO 1: CONFIRMAÇÃO DOS DADOS -->
-      <div id="passo_validacao">
+      <form id="formSSO" onsubmit="autenticarSSO(event)">
         <div class="form-group">
           <label>CPF do Servidor:*</label>
-          <input type="text" id="recup_cpf" placeholder="000.000.000-00" oninput="mascaraCPF(this)" maxlength="14" required>
+          <input type="text" id="sso_cpf" placeholder="000.000.000-00" oninput="mascaraCPF(this)" maxlength="14" required>
         </div>
 
         <div class="form-group">
-          <label>Registro Profissional (COREN ou CNH):</label>
-          <input type="text" id="recup_registro" placeholder="Ex: 862518 ou Nº da CNH">
+          <label>Senha Única:*</label>
+          <input type="password" id="sso_senha" placeholder="••••••••" required>
         </div>
 
+        <div class="forgot-link">
+          <a href="#" onclick="abrirModalRecuperacao(event)">Esqueceu sua senha única?</a>
+        </div>
+
+        <button type="submit" class="btn-sso">Acessar Área Restrita 🔐</button>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- MODAL DE REDEFINIÇÃO DE SENHA ÚNICA -->
+  <div class="modal-overlay" id="modalSSO">
+    <div class="modal-content">
+      <h3 style="color:var(--samu-navy); margin-bottom:6px;">🔑 Redefinir Senha Única</h3>
+      <p style="font-size:0.8rem; color:#64748b; margin-bottom:15px;">Confirme seu CPF e seu Registro Profissional (COREN ou CNH) para alterar sua senha única.</p>
+
+      <div id="step_valida">
         <div class="form-group">
-          <label>E-mail Cadastrado:</label>
-          <input type="email" id="recup_email" placeholder="seu.email@exemplo.com">
+          <label>CPF:*</label>
+          <input type="text" id="rec_cpf" placeholder="000.000.000-00" oninput="mascaraCPF(this)" maxlength="14">
         </div>
-
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" onclick="fecharModalEsqueciSenha()">Cancelar</button>
-          <button type="button" class="btn-verify" onclick="validarDadosServidor()">Validar Dados 🔍</button>
+        <div class="form-group">
+          <label>Registro (COREN ou CNH):*</label>
+          <input type="text" id="rec_reg" placeholder="Ex: 862518">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
+          <button type="button" class="btn-op" style="width:auto; padding:8px 15px;" onclick="fecharModalRecuperacao()">Cancelar</button>
+          <button type="button" class="btn-sso" style="width:auto; padding:8px 15px;" onclick="validarEAvancar()">Validar 🔍</button>
         </div>
       </div>
 
-      <!-- PASSO 2: CRIAÇÃO DA NOVA SENHA (APÓS VALIDAÇÃO) -->
-      <div id="passo_nova_senha" style="display: none;">
-        <div style="background:#dcfce7; color:#166534; padding:10px; border-radius:8px; font-size:0.8rem; font-weight:700; margin-bottom:15px;">
-          ✅ Identidade confirmada com sucesso! Digite sua nova senha abaixo.
-        </div>
-
+      <div id="step_senha" style="display:none;">
         <div class="form-group">
-          <label>Nova Senha:*</label>
-          <input type="password" id="nova_senha" placeholder="Mínimo de 6 caracteres" minlength="6">
+          <label>Nova Senha Única:*</label>
+          <input type="password" id="nova_s1" placeholder="Mínimo 6 caracteres" minlength="6">
         </div>
-
         <div class="form-group">
           <label>Confirme a Nova Senha:*</label>
-          <input type="password" id="confirma_senha" placeholder="Digite novamente..." minlength="6">
+          <input type="password" id="nova_s2" placeholder="Digite novamente..." minlength="6">
         </div>
-
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" onclick="fecharModalEsqueciSenha()">Cancelar</button>
-          <button type="button" class="btn-primary" onclick="salvarNovaSenhaDireta()">💾 Alterar Senha</button>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
+          <button type="button" class="btn-sso" style="background:#15803d;" onclick="salvarNovaSenhaUnica()">💾 Salvar Senha Única</button>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -146,9 +156,7 @@
     );
 
     let idServidorValidado = null;
-    let nomeServidorValidado = '';
 
-    /* MÁSCARA AUTOMÁTICA DE CPF */
     function mascaraCPF(i) {
       let v = i.value.replace(/\D/g, '');
       if (v.length <= 11) {
@@ -159,111 +167,74 @@
       i.value = v;
     }
 
-    function abrirModalEsqueciSenha(e) {
-      if (e) e.preventDefault();
-      document.getElementById('passo_validacao').style.display = 'block';
-      document.getElementById('passo_nova_senha').style.display = 'none';
-      document.getElementById('modalEsqueciSenha').classList.add('active');
-    }
-
-    function fecharModalEsqueciSenha() {
-      document.getElementById('modalEsqueciSenha').classList.remove('active');
-    }
-
-    async function autenticarUsuario(e) {
+    /* AUTENTICAÇÃO CENTRALIZADA (SSO) */
+    async function autenticarSSO(e) {
       e.preventDefault();
-      const user = document.getElementById('login_usuario').value.trim();
-      const pass = document.getElementById('login_senha').value.trim();
-
-      const { data, error } = await dbNuvem.auth.signInWithPassword({
-        email: user,
-        password: pass,
-      });
-
-      if (!error && data.user) {
-        window.location.href = 'portal.html';
-      } else {
-        alert("⚠️ Usuário ou senha incorretos. Verifique suas credenciais.");
-      }
-    }
-
-    /* VALIDAÇÃO CRUZADA DE DADOS COM SANITIZAÇÃO DE CPF */
-    async function validarDadosServidor() {
-      const cpfInput = document.getElementById('recup_cpf').value.replace(/\D/g, '').trim();
-      const regInput = document.getElementById('recup_registro').value.trim().toLowerCase();
-      const emailInput = document.getElementById('recup_email').value.trim().toLowerCase();
-
-      if (!cpfInput) {
-        alert("Por favor, preencha o seu CPF."); return;
-      }
-      if (!regInput && !emailInput) {
-        alert("Preencha pelo menos o Registro (COREN/CNH) ou o E-mail para validar sua identidade."); return;
-      }
+      const cpfLimpo = document.getElementById('sso_cpf').value.replace(/\D/g, '');
+      const senha = document.getElementById('sso_senha').value.trim();
 
       const { data, error } = await dbNuvem.from('colaboradores').select('*');
 
       if (!error && data) {
-        const servidor = data.find(c => {
-          const cpfBD = (c.cpf || '').replace(/\D/g, '').trim();
-          const emailBD = (c.email || '').trim().toLowerCase();
-          const regBD = ((c.coren || c.cnh || c.registro || '') + '').trim().toLowerCase();
-
-          const cpfValido = (cpfBD === cpfInput);
-          const emailValido = emailInput && emailBD && (emailBD === emailInput);
-          const regValido = regInput && regBD && (regBD.includes(regInput) || regInput.includes(regBD));
-
-          return cpfValido && (emailValido || regValido);
+        const usuario = data.find(c => {
+          const cBD = (c.cpf || '').replace(/\D/g, '');
+          const sBD = c.senha_unica || c.senha || 'samu192';
+          return (cBD === cpfLimpo && sBD === senha);
         });
 
-        if (servidor) {
-          idServidorValidado = servidor.id;
-          nomeServidorValidado = servidor.nome;
-          document.getElementById('passo_validacao').style.display = 'none';
-          document.getElementById('passo_nova_senha').style.display = 'block';
+        if (usuario) {
+          // Guarda a sessão única no navegador
+          sessionStorage.setItem('samu_usuario_logado', JSON.stringify({
+            id: usuario.id,
+            nome: usuario.nome,
+            cpf: usuario.cpf,
+            cargo: usuario.cargo,
+            nivel: usuario.nivel_acesso || 'SERVIDOR'
+          }));
+
+          alert(`✅ Bem-vindo(a), ${usuario.nome}!`);
+          window.location.href = 'portal.html';
         } else {
-          alert("❌ Validação Falhou!\nO CPF informado não coincide com o Registro Profissional ou E-mail cadastrado.");
+          alert("❌ CPF ou Senha Única incorretos. Tente novamente.");
         }
-      } else {
-        alert("Erro ao consultar base de dados: " + (error ? error.message : "Servidor indisponível"));
+      } else { alert("Erro ao conectar com o servidor."); }
+    }
+
+    function abrirModalRecuperacao(e) { e.preventDefault(); document.getElementById('modalSSO').classList.add('active'); }
+    function fecharModalRecuperacao() { document.getElementById('modalSSO').classList.remove('active'); }
+
+    async function validarEAvancar() {
+      const cpfL = document.getElementById('rec_cpf').value.replace(/\D/g, '');
+      const regL = document.getElementById('rec_reg').value.trim().toLowerCase();
+
+      const { data } = await dbNuvem.from('colaboradores').select('*');
+      if (data) {
+        const achou = data.find(c => {
+          const cBD = (c.cpf || '').replace(/\D/g, '');
+          const rBD = ((c.coren || c.cnh || c.registro || '') + '').toLowerCase();
+          return (cBD === cpfL && rBD.includes(regL));
+        });
+
+        if (achou) {
+          idServidorValidado = achou.id;
+          document.getElementById('step_valida').style.display = 'none';
+          document.getElementById('step_senha').style.display = 'block';
+        } else { alert("Divergência nos dados. Verifique o CPF e o Registro."); }
       }
     }
 
-    /* SALVA A NOVA SENHA NAS COLUNAS DE SENHA */
-    async function salvarNovaSenhaDireta() {
-      const s1 = document.getElementById('nova_senha').value;
-      const s2 = document.getElementById('confirma_senha').value;
+    async function salvarNovaSenhaUnica() {
+      const s1 = document.getElementById('nova_s1').value;
+      const s2 = document.getElementById('nova_s2').value;
 
-      if (!s1 || s1.length < 6) {
-        alert("A nova senha precisa ter pelo menos 6 caracteres."); return;
-      }
-      if (s1 !== s2) {
-        alert("As senhas digitadas não coincidem."); return;
-      }
+      if (!s1 || s1.length < 6 || s1 !== s2) { alert("As senhas devem ser iguais e ter no mínimo 6 caracteres."); return; }
 
-      // Tenta gravar na coluna 'senha' (ou 'senha_hash' se existir)
-      let payload = { senha: s1, ultima_alteracao_senha: new Date().toISOString() };
-
-      const { error } = await dbNuvem.from('colaboradores').update(payload).eq('id', idServidorValidado);
-
+      const { error } = await dbNuvem.from('colaboradores').update({ senha_unica: s1 }).eq('id', idServidorValidado);
       if (!error) {
-        await registrarLog('Segurança', 'Redefinição de Senha', `Senha redefinida com sucesso para ${nomeServidorValidado}.`);
-        alert(`✅ Senha alterada com sucesso para ${nomeServidorValidado}!\nSua nova senha já está ativa.`);
-        fecharModalEsqueciSenha();
-        document.getElementById('login_senha').value = s1;
-      } else {
-        alert("Erro ao salvar nova senha: " + error.message);
-      }
-    }
-
-    async function registrarLog(sistema, acao, detalhes) {
-      try {
-        await dbNuvem.from('logs_alteracoes').insert([{
-          sistema: sistema,
-          usuario_nome: nomeServidorValidado || 'Servidor',
-          acao: acao,
-          detalhes: detalhes
-        }]);
-      } catch (err) { console.error(err); }
+        alert("✅ Senha Única redefinida com sucesso!");
+        fecharModalRecuperacao();
+        document.getElementById('sso_senha').value = s1;
+      } else { alert("Erro ao salvar: " + error.message); }
     }
   </script>
 </body>
