@@ -80,7 +80,7 @@
           <tr>
             <th>Descrição do Insumo</th>
             <th>Categoria</th>
-            <th>Unidade</th>
+            <th>Saldo Atual</th>
             <th>Ações</th>
           </tr>
         </thead>
@@ -100,7 +100,7 @@
         
         <div class="form-group">
           <label>Descrição do Insumo / Item:*</label>
-          <input type="text" id="ins_nome" placeholder="Ex: Diesel S10, Arla 32, Luva P..." required>
+          <input type="text" id="ins_descricao" placeholder="Ex: Diesel S10, Arla 32, Luva P..." required>
         </div>
 
         <div class="form-group">
@@ -108,21 +108,21 @@
           <select id="ins_categoria" required>
             <option value="COMBUSTIVEL">Combustível / Frota</option>
             <option value="MEDICAMENTO">Medicamento / Farmácia</option>
-            <option value="CORATICO">Corativo / Material APH</option>
+            <option value="CURATIVO">Curativo / Material APH</option>
             <option value="EPI">EPI / Uniforme</option>
             <option value="OUTROS">Outros Insumos</option>
           </select>
         </div>
 
-        <div class="form-group">
-          <label>Unidade de Medida:*</label>
-          <select id="ins_unidade" required>
-            <option value="Litro(s)">Litro(s)</option>
-            <option value="Unidade">Unidade</option>
-            <option value="Caixa">Caixa</option>
-            <option value="Frasco">Frasco</option>
-            <option value="Par">Par</option>
-          </select>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label>Estoque Inicial:*</label>
+            <input type="number" id="ins_estoque_inicial" value="0" min="0" required>
+          </div>
+          <div class="form-group">
+            <label>Estoque Mínimo:*</label>
+            <input type="number" id="ins_estoque_minimo" value="10" min="0" required>
+          </div>
         </div>
 
         <div class="modal-actions">
@@ -147,22 +147,17 @@
     async function carregarInsumos() {
       const tbody = document.getElementById('tabelaInsumosBody');
       try {
-        const { data, error } = await dbNuvem.from('estoque_mestre').select('*');
+        const { data, error } = await dbNuvem.from('estoque_mestre').select('*').order('descricao_insumo', { ascending: true });
         if (error) throw error;
 
         if (data && data.length > 0) {
           tbody.innerHTML = '';
           data.forEach(item => {
-            // Mapeia qualquer variação de nome de coluna
-            const desc = item.descricao || item.nome || item.item_nome || item.item || 'Item Sem Nome';
-            const cat = item.categoria || item.grupo || 'COMBUSTIVEL';
-            const unid = item.unidade || item.unid_medida || 'Litro(s)';
-
             tbody.innerHTML += `
               <tr>
-                <td><b>${desc}</b></td>
-                <td><span style="background:#e2e8f0; padding:4px 8px; border-radius:6px; font-weight:700; font-size:0.75rem;">${cat}</span></td>
-                <td>${unid}</td>
+                <td><b>${item.descricao_insumo || 'Sem Descrição'}</b></td>
+                <td><span style="background:#e2e8f0; padding:4px 8px; border-radius:6px; font-weight:700; font-size:0.75rem;">${item.categoria || 'COMBUSTIVEL'}</span></td>
+                <td><b>${item.saldo_atual !== null ? item.saldo_atual : (item.estoque_inicial || 0)}</b></td>
                 <td>
                   <button class="btn-del" onclick="excluirInsumo(${item.id})">🗑️ Excluir</button>
                 </td>
@@ -186,41 +181,32 @@
       document.getElementById('formNovoInsumo').reset();
     }
 
-    // TENTA INSERIR TESTANDO AS COLUNAS VÁLIDAS DO SUPABASE
+    // SALVA USANDO EXATAMENTE OS NOMES DAS COLUNAS DO SEU SUPABASE
     async function salvarNovoInsumo(e) {
       e.preventDefault();
 
-      const itemTexto = document.getElementById('ins_nome').value.trim();
-      const categoriaTexto = document.getElementById('ins_categoria').value;
-      const unidadeTexto = document.getElementById('ins_unidade').value;
+      const desc = document.getElementById('ins_descricao').value.trim();
+      const cat = document.getElementById('ins_categoria').value;
+      const estInicial = parseInt(document.getElementById('ins_estoque_inicial').value) || 0;
+      const estMinimo = parseInt(document.getElementById('ins_estoque_minimo').value) || 0;
 
-      // Lista de tentativas para adequar ao schema real do Supabase
-      const tentativasPayloads = [
-        { descricao: itemTexto, categoria: categoriaTexto, unidade: unidadeTexto },
-        { nome: itemTexto, categoria: categoriaTexto, unidade: unidadeTexto },
-        { descricao: itemTexto },
-        { nome: itemTexto }
-      ];
+      const payload = {
+        descricao_insumo: desc,
+        categoria: cat,
+        estoque_inicial: estInicial,
+        saldo_atual: estInicial,
+        estoque_minimo: estMinimo,
+        status_estoque: 'REGULAR'
+      };
 
-      let sucesso = false;
-      let ultimoErro = "";
+      const { error } = await dbNuvem.from('estoque_mestre').insert([payload]);
 
-      for (let payload of tentativasPayloads) {
-        const { error } = await dbNuvem.from('estoque_mestre').insert([payload]);
-        if (!error) {
-          sucesso = true;
-          break;
-        } else {
-          ultimoErro = error.message;
-        }
-      }
-
-      if (sucesso) {
+      if (error) {
+        alert("❌ Erro ao salvar insumo: " + error.message);
+      } else {
         alert("✅ Insumo cadastrado com sucesso no estoque_mestre!");
         fecharModalInsumo();
         carregarInsumos();
-      } else {
-        alert("❌ Erro ao salvar insumo: " + ultimoErro);
       }
     }
 
