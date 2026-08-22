@@ -784,7 +784,7 @@
       });
     }
 
-    // GERA O ESPELHO COM O LAYOUT FIEL DOS DOIS CHECK-INS
+    // GERA O ESPELHO COM LAYOUT FIEL COMPLETO (INCLUINDO EPIs NR-32 E ALERTA OBSTÉTRICO)
     async function abrirEspelhoChecklist(data) {
       let dadosSaude = null;
       const ehEnfermagem = data.tipo_procedimento && data.tipo_procedimento.toLowerCase().includes('enfermagem');
@@ -861,6 +861,14 @@
             </table>
           `;
         }
+
+        // BLOCO ADICIONADO: EPIs DE CABINE E RODAGEM (NR 32)
+        html += `
+          <h5 style="font-size:0.78rem; color:#002b49; margin-bottom:4px;">🥽 EPIS DE CABINE E RODAGEM (NR-32 / SEGURANÇA)</h5>
+          <div style="background:#fff; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.78rem; margin-bottom:10px;">
+            <b>Status dos Equipamentos de Proteção:</b> <span style="background:#16a34a; color:white; padding:1px 6px; border-radius:8px; font-size:0.7rem; font-weight:bold;">${data.epis_cabine_status || 'Conforme e Disponíveis na Cabine'}</span>
+          </div>
+        `;
       } 
       
       // SE FOR CHECKLIST DA ENFERMAGEM
@@ -903,12 +911,24 @@
           }
           html += `</tbody></table>`;
         }
+
+        // BLOCO ADICIONADO: ALERTA CRÍTICO & PREVENÇÃO DO RISCO OBSTÉTRICO
+        const temAlerta = dadosSaude && dadosSaude.status_kit_parto && !dadosSaude.status_kit_parto.includes('Conforme');
+        html += `
+          <h5 style="font-size:0.78rem; color:#002b49; margin-bottom:4px;">🚨 ALERTA CRÍTICO & PREVENÇÃO DO RISCO OBSTÉTRICO</h5>
+          <div style="background:${temAlerta ? '#fee2e2' : '#f0fdf4'}; padding:8px; border:1px solid ${temAlerta ? '#fca5a5' : '#bbf7d0'}; border-radius:6px; font-size:0.78rem; margin-bottom:10px;">
+            <b>Existe algum material de emergência/parto faltante ou vencido?</b><br>
+            <span style="font-weight:bold; color:${temAlerta ? '#dc2626' : '#16a34a'};">
+              ${dadosSaude ? dadosSaude.status_kit_parto : 'Não, tudo conforme e dentro da validade.'}
+            </span>
+          </div>
+        `;
       }
 
       if (data.relato_avarias) {
         html += `
           <div style="background:#fff3cd; border:1px solid #ffeba2; padding:8px; border-radius:6px; font-size:0.78rem; margin-top:8px;">
-            <b>Observações / Avarias Registradas:</b><br>${data.relato_avarias}
+            <b>Observações / Avarias / Reposições Registradas:</b><br>${data.relato_avarias}
           </div>
         `;
       }
