@@ -1,1 +1,75 @@
+<h3 style="color:var(--samu-navy); font-size:1.05rem;">⛽ Registro de Abastecimento de Combustível</h3>
 
+<form id="formAbastecimento" onsubmit="salvarAbastecimento(event)">
+  <div class="form-group" style="margin-top:12px;">
+    <label>Posto Credenciado:*</label>
+    <select id="abs_posto" required>
+      <option value="">Selecione o posto...</option>
+      <option value="POSTO CENTRAL">POSTO CENTRAL</option>
+      <option value="REDE POSTOS LEÃO">REDE POSTOS LEÃO</option>
+      <option value="REDE POSTOS SÃO MARCOS">REDE POSTOS SÃO MARCOS</option>
+    </select>
+  </div>
+
+  <div class="grid-2">
+    <div class="form-group">
+      <label>Tipo de Insumo:*</label>
+      <select id="abs_insumo" required>
+        <option value="">Selecione...</option>
+        <option value="DIESEL S10">DIESEL S10</option>
+        <option value="ARLA 32">ARLA 32</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Quilometragem no Abastecimento:*</label>
+      <input type="number" id="abs_km" placeholder="Ex: 14890" required>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="form-group">
+      <label>Litros Abastecidos:*</label>
+      <input type="number" step="0.01" id="abs_litros" placeholder="Ex: 55.4" required>
+    </div>
+    <div class="form-group">
+      <label>Valor Total Pago:*</label>
+      <input type="text" id="abs_valor" placeholder="R$ 0,00" oninput="formatarMoeda(this)" required>
+    </div>
+  </div>
+
+  <div class="action-row">
+    <button type="button" class="btn-back" onclick="voltarInicio()">⬅ Voltar</button>
+    <button type="submit" class="btn-save">💾 Registrar Abastecimento</button>
+  </div>
+</form>
+
+<script>
+  function formatarMoeda(i) {
+    let v = i.value.replace(/\D/g, '');
+    v = (v / 100).toFixed(2) + '';
+    v = v.replace(".", ",");
+    v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+    i.value = "R$ " + v;
+  }
+
+  async function salvarAbastecimento(e) {
+    e.preventDefault();
+    const strValor = document.getElementById('abs_valor').value.replace('R$', '').replace('.', '').replace(',', '.').trim();
+    
+    const payload = {
+      viatura: document.getElementById('vtr_prefixo').value,
+      condutor_nome: document.getElementById('prof_nome').value,
+      posto_credenciado: document.getElementById('abs_posto').value,
+      tipo_insumo: document.getElementById('abs_insumo').value,
+      km_atual: parseInt(document.getElementById('abs_km').value),
+      litros: parseFloat(document.getElementById('abs_litros').value),
+      valor_pago: parseFloat(strValor) || 0
+    };
+
+    const { error } = await dbNuvem.from('operacional_abastecimentos').insert([payload]);
+    if (!error) {
+      await registrarLog('Operacional', 'Abastecimento', `Abastecimento de ${payload.litros}L em ${payload.viatura}.`);
+      alert('✅ Registro de abastecimento salvo com sucesso!'); location.reload();
+    } else { alert('Erro: ' + error.message); }
+  }
+</script>
