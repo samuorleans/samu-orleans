@@ -528,7 +528,7 @@
 
   <script>
     const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWVp1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
     const dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let usuarioLogado = null;
@@ -560,7 +560,7 @@
       const cpfClean = rawInput.replace(/\D/g, '');
       const senhaInput = document.getElementById('loginSenha').value.trim();
 
-      // REGRA MESTRE DE LOGIN PARA ADMIN
+      // ACESSO MESTRE ADMIN
       if ((rawInput.toLowerCase() === 'admin' || cpfClean === '00000000000') && (senhaInput === 'Admin@192Orleans' || senhaInput === 'samu192' || senhaInput === '123456')) {
         usuarioLogado = {
           id: 999999,
