@@ -31,7 +31,7 @@
 
     .alert-banner {
       background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;
-      padding: 10px; border-radius: 8px; font-size: 0.78rem; text-align: left; margin-bottom: 18px; font-weight: 600;
+      padding: 10px; border-radius: 8px; font-size: 0.78rem; text-align: left; margin-bottom: 18px; font-weight: 600; line-height: 1.4;
     }
 
     .tab-btn-group { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
@@ -43,7 +43,6 @@
     .form-group select, .form-group input { padding: 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; background: #f8fafc; width: 100%; }
     .form-group select:focus, .form-group input:focus { border-color: var(--samu-blue); background: white; }
 
-    /* ESTILIZAÇÃO EXPANDIDA E RESPONSIVA DA CAIXA EXCEPCIONAL */
     .box-excepcional { 
       background: #fef3c7; border: 1px solid #fcd34d; padding: 16px; border-radius: 12px; margin-bottom: 20px; text-align: left; width: 100%;
     }
@@ -83,7 +82,7 @@
     </div>
 
     <div class="alert-banner">
-      ℹ️ <b>USB 11 (Orleans)</b>: Plantões padrão de 24h com validação e checagem para envio à Central de Regulação (07:00 e 19:00).
+      ℹ️ <b>Rendição Operacional:</b> O servidor que chega antecipadamente pode selecionar seu nome para liberar o checklist. Ao chegar o colega de equipe, o plantão é consolidado automaticamente como 🟢 ATIVO.
     </div>
 
     <!-- NAVEGAÇÃO DE ABAS -->
@@ -96,16 +95,16 @@
     <div id="conteudoTab1">
       <form id="formJ3" onsubmit="processarJ3(event)">
         <div class="form-group">
-          <label>1. Condutor Socorrista:*</label>
-          <select id="j3_condutor" required>
-            <option value="">Carregando condutores...</option>
+          <label>1. Condutor Socorrista:</label>
+          <select id="j3_condutor">
+            <option value="">Carregando da base de dados...</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>2. Técnico / Enfermeiro:*</label>
-          <select id="j3_tecnico" required>
-            <option value="">Carregando enfermagem...</option>
+          <label>2. Técnico / Enfermeiro:</label>
+          <select id="j3_tecnico">
+            <option value="">Carregando da base de dados...</option>
           </select>
         </div>
 
@@ -122,14 +121,14 @@
 
           <div id="div_justificativa" class="area-justificativa" style="display: none;">
             <label>JUSTIFICATIVA OBRIGATÓRIA DA TROCA DE ÚLTIMA HORA:*</label>
-            <textarea id="j3_justificativa" rows="4" placeholder="Descreva aqui detalhadamente o motivo da substituição de emergência/troca em menos de 24h..."></textarea>
+            <textarea id="j3_justificativa" rows="4" placeholder="Descreva aqui detalhadamente o motivo da substituição emergencial / troca fora do horário padrão da escala..."></textarea>
           </div>
         </div>
 
         <button type="submit" class="btn-j3">💾 Confirmar e Registrar J3</button>
       </form>
 
-      <!-- CAIXA DE ATALHO PARA COPIAR A MENSAGEM DO WHATSAPP DA REGULAÇÃO -->
+      <!-- ATALHO PARA WHATSAPP DA REGULAÇÃO -->
       <div id="whatsappBox" class="whatsapp-box">
         <h4>📱 Mensagem Pronta para a Regulação (WhatsApp):</h4>
         <textarea id="textoZap" rows="4" readonly></textarea>
@@ -163,25 +162,8 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
-    const equipeCondutoresReserva = [
-      { nome: "Daniel Alexandre Fernandes", cpf: "075.486.369-70" },
-      { nome: "Lucas Vieira Mendes", cpf: "" },
-      { nome: "Márcio Becker", cpf: "" },
-      { nome: "Renato Cândido", cpf: "" },
-      { nome: "Vanderlei José Tasca", cpf: "" }
-    ];
-
-    const equipeEnfermagemReserva = [
-      { nome: "Clênio Borges", cpf: "" },
-      { nome: "Edimara Tochetto Suaya Netto", cpf: "" },
-      { nome: "Gicerléia Trindade da Rosa", cpf: "" },
-      { nome: "Luis Eduardo Formanski Vitório", cpf: "" },
-      { nome: "Rinaldo Calegario", cpf: "019.739.469-80" },
-      { nome: "Suandre Adão Machado", cpf: "" }
-    ];
-
     window.onload = function() {
-      carregarEquipe();
+      carregarEquipeDoBanco();
     };
 
     function mudarAba(aba) {
@@ -204,40 +186,39 @@
       document.getElementById('div_justificativa').style.display = chk ? 'block' : 'none';
     }
 
-    async function carregarEquipe() {
+    /* CARREGAMENTO 100% DINÂMICO CONSULTANDO A TABELA COLABORADORES */
+    async function carregarEquipeDoBanco() {
       const selC = document.getElementById('j3_condutor');
       const selT = document.getElementById('j3_tecnico');
 
       try {
-        const { data, error } = await dbNuvem.from('colaboradores').select('*');
+        const { data: servidores, error } = await dbNuvem
+          .from('colaboradores')
+          .select('nome, cargo, funcao')
+          .order('nome', { ascending: true });
 
-        if (!error && data && data.length > 0) {
-          selC.innerHTML = '<option value="">Selecione o Condutor...</option>';
-          selT.innerHTML = '<option value="">Selecione a Enfermagem...</option>';
+        if (!error && servidores && servidores.length > 0) {
+          selC.innerHTML = '<option value="">(Selecione ou deixe Rendição)</option>';
+          selT.innerHTML = '<option value="">(Selecione ou deixe Rendição)</option>';
 
-          data.forEach(c => {
-            const cargo = (c.cargo || c.funcao || '').toUpperCase();
-            if (cargo.includes('CONDUTOR') || cargo.includes('MOTORISTA')) {
-              selC.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
-            } else {
-              selT.innerHTML += `<option value="${c.nome}">${c.nome} (${c.cargo || 'Enfermagem'})</option>`;
+          servidores.forEach(s => {
+            const rotuloCargo = (s.cargo || s.funcao || '').toUpperCase();
+            if (rotuloCargo.includes('CONDUTOR') || rotuloCargo.includes('MOTORISTA')) {
+              selC.innerHTML += `<option value="${s.nome}">${s.nome}</option>`;
+            } else if (!rotuloCargo.includes('ADMINISTRADOR')) {
+              selT.innerHTML += `<option value="${s.nome}">${s.nome} (${s.cargo || 'Enfermagem'})</option>`;
             }
           });
-        } else { popularReserva(); }
-      } catch (err) { popularReserva(); }
+        } else {
+          selC.innerHTML = '<option value="">Nenhum condutor cadastrado</option>';
+          selT.innerHTML = '<option value="">Nenhum técnico cadastrado</option>';
+        }
+      } catch (err) {
+        alert("Erro ao conectar com a base de servidores do Supabase.");
+      }
     }
 
-    function popularReserva() {
-      const selC = document.getElementById('j3_condutor');
-      const selT = document.getElementById('j3_tecnico');
-      selC.innerHTML = '<option value="">Selecione o Condutor...</option>';
-      equipeCondutoresReserva.forEach(i => selC.innerHTML += `<option value="${i.nome}">${i.nome}</option>`);
-
-      selT.innerHTML = '<option value="">Selecione a Enfermagem...</option>';
-      equipeEnfermagemReserva.forEach(i => selT.innerHTML += `<option value="${i.nome}">${i.nome}</option>`);
-    }
-
-    /* PROCESSAMENTO RIGOROSO COM VALIDAÇÃO DE DUPLA E TRAVA DE 24 HOURS */
+    /* PROCESSAMENTO DE RENDIÇÃO, DUPLA E TRAVA DE 24 HORAS */
     async function processarJ3(e) {
       e.preventDefault();
       const condutor = document.getElementById('j3_condutor').value;
@@ -246,98 +227,131 @@
       const ehExcepcional = document.getElementById('j3_chk_excepcional').checked;
       const justificativa = document.getElementById('j3_justificativa').value.trim();
 
-      // VALIDAÇÃO EXPLICITA DE SELEÇÃO DA DUPLA
-      if (!condutor || condutor === "" || !tecnico || tecnico === "") {
-        alert("⚠️ ATENÇÃO: Selecione 1 Condutor E 1 Profissional de Enfermagem para registrar o J3.");
+      if (!condutor && !tecnico) {
+        alert("⚠️ Selecione pelo menos 1 integrante (Condutor ou Enfermagem) para registrar o J3.");
         return;
       }
 
       try {
-        // Consulta os plantões já gravados para verificar intervalo das 24h
+        // 1. CONSULTA SE HÁ REGISTRO EM RENDIÇÃO OU ATIVO NAS ÚLTIMAS 24 HORAS
         const { data: ultimosPlantoes } = await dbNuvem
           .from('plantoes_j3')
           .select('*')
           .order('id', { ascending: false })
           .limit(5);
 
+        let plantaoPendente = null;
+        let plantaoAtivo = null;
+
         if (ultimosPlantoes && ultimosPlantoes.length > 0) {
-          const plantaoAtivo = ultimosPlantoes.find(p => p.status === 'ATIVO') || ultimosPlantoes[0];
+          plantaoPendente = ultimosPlantoes.find(p => p.status === 'EM RENDIÇÃO');
+          plantaoAtivo = ultimosPlantoes.find(p => p.status === 'ATIVO');
+        }
 
-          if (plantaoAtivo) {
-            const timeUltimo = new Date(plantaoAtivo.data_confirmacao || plantaoAtivo.created_at).getTime();
-            const timeAgora = new Date().getTime();
-            const horasDecorridas = (timeAgora - timeUltimo) / (1000 * 60 * 60);
+        // TRAVA DE 24 HOURS PARA MUDANÇA DE EQUIPE COMPLETA
+        if (plantaoAtivo && !plantaoPendente) {
+          const timeUltimo = new Date(plantaoAtivo.data_confirmacao || plantaoAtivo.created_at).getTime();
+          const timeAgora = new Date().getTime();
+          const horasDecorridas = (timeAgora - timeUltimo) / (1000 * 60 * 60);
 
-            const houveAlteracaoDupla = (plantaoAtivo.condutor !== condutor || plantaoAtivo.enfermagem !== tecnico);
+          const houveAlteracaoDupla = (
+            (condutor && plantaoAtivo.condutor !== condutor) ||
+            (tecnico && plantaoAtivo.enfermagem !== tecnico)
+          );
 
-            // Se faz MENOS DE 24 HORAS do último J3 e a equipe MUDOU: OBRIGA JUSTIFICATIVA
-            if (horasDecorridas < 24 && houveAlteracaoDupla) {
-              if (!ehExcepcional || !justificativa) {
-                alert(`⚠️ TRAVA OPERACIONAL DE SEGURANÇA:\n\nJá existe um plantão ativo lançado há ${horasDecorridas.toFixed(1)} horas.\n\nPara substituir a equipe em menos de 24h, você OBRIGATORIAMENTE deve:\n1. Marcar a opção "Troca de última hora"\n2. Digitar a justificativa da substituição.`);
-                
-                document.getElementById('j3_chk_excepcional').checked = true;
-                alternarJustificativa();
-                document.getElementById('j3_justificativa').focus();
-                return;
-              }
+          if (horasDecorridas < 24 && houveAlteracaoDupla) {
+            if (!ehExcepcional || !justificativa) {
+              alert(`⚠️ TRAVA OPERACIONAL DE SEGURANÇA:\n\nJá existe um plantão ativo lançado há ${horasDecorridas.toFixed(1)} horas.\n\nPara alterar a equipe antes das 24h, você OBRIGATORIAMENTE deve:\n1. Marcar a opção "Troca de última hora"\n2. Digitar a justificativa no campo abaixo.`);
+              
+              document.getElementById('j3_chk_excepcional').checked = true;
+              alternarJustificativa();
+              document.getElementById('j3_justificativa').focus();
+              return;
             }
           }
         }
 
         if (ehExcepcional && !justificativa) {
-          alert("Por favor, preencha o campo de justificativa informando o motivo da troca.");
+          alert("Por favor, preencha a justificativa informando o motivo da troca.");
           return;
         }
 
-        // Validação da Senha Única
-        const { data } = await dbNuvem.from('colaboradores').select('*');
+        // 2. VALIDAÇÃO DA SENHA ÚNICA
+        const { data: colaboradores } = await dbNuvem.from('colaboradores').select('*');
         let usuarioValido = null;
 
-        if (data) {
-          const uC = data.find(c => c.nome === condutor);
-          const uT = data.find(c => c.nome === tecnico);
+        if (colaboradores) {
+          const uC = colaboradores.find(c => c.nome === condutor);
+          const uT = colaboradores.find(c => c.nome === tecnico);
+
           if (uC && (uC.senha_unica || uC.senha) === senha) usuarioValido = uC;
           else if (uT && (uT.senha_unica || uT.senha) === senha) usuarioValido = uT;
         }
 
         if (usuarioValido || senha === 'samu192' || senha === '123456') {
-          // Desativa plantão anterior
-          await dbNuvem.from('plantoes_j3').update({ status: 'ENCERRADO' }).eq('status', 'ATIVO');
+          let statusFinal = 'EM RENDIÇÃO';
+          let condutorFinal = condutor;
+          let tecnicoFinal = tecnico;
 
-          // Insere o novo plantão ativo
-          await dbNuvem.from('plantoes_j3').insert([{
-            condutor: condutor,
-            enfermagem: tecnico,
-            tipo_registro: ehExcepcional ? 'EXCEPCIONAL' : 'REGULAR',
-            justificativa: justificativa || 'Assunção de Plantão 24h',
-            status: 'ATIVO',
-            data_confirmacao: new Date().toISOString()
-          }]);
+          // Se existia um plantão EM RENDIÇÃO aberto, realiza a fusão (Auto-Merge)
+          if (plantaoPendente) {
+            condutorFinal = condutor || plantaoPendente.condutor;
+            tecnicoFinal = tecnico || plantaoPendente.enfermagem;
 
+            if (condutorFinal && tecnicoFinal && condutorFinal !== 'Pendente' && tecnicoFinal !== 'Pendente') {
+              statusFinal = 'ATIVO';
+            }
+
+            await dbNuvem.from('plantoes_j3').update({
+              condutor: condutorFinal,
+              enfermagem: tecnicoFinal,
+              status: statusFinal,
+              data_confirmacao: new Date().toISOString()
+            }).eq('id', plantaoPendente.id);
+          } else {
+            if (condutorFinal && tecnicoFinal) statusFinal = 'ATIVO';
+
+            if (statusFinal === 'ATIVO') {
+              await dbNuvem.from('plantoes_j3').update({ status: 'ENCERRADO' }).eq('status', 'ATIVO');
+            }
+
+            await dbNuvem.from('plantoes_j3').insert([{
+              condutor: condutorFinal || 'Pendente',
+              enfermagem: tecnicoFinal || 'Pendente',
+              tipo_registro: ehExcepcional ? 'EXCEPCIONAL' : 'REGULAR',
+              justificativa: justificativa || 'Assunção de Plantão',
+              status: statusFinal,
+              data_confirmacao: new Date().toISOString()
+            }]);
+          }
+
+          // GRAVAÇÃO DO LOG DE AUDITORIA
           const cpfLog = usuarioValido ? usuarioValido.cpf : '075.486.369-70';
-          const nomeLog = usuarioValido ? usuarioValido.nome : `${condutor} & ${tecnico}`;
+          const nomeLog = usuarioValido ? usuarioValido.nome : `${condutorFinal} / ${tecnicoFinal}`;
 
           await dbNuvem.from('logs_alteracoes').insert([{
             usuario_cpf: cpfLog,
             usuario_nome: nomeLog,
-            acao: ehExcepcional ? 'Assunção J3 Excepcional' : 'Assunção J3 Regular (24h)',
-            detalhes: `Equipe: Condutor (${condutor}) + Enfermagem (${tecnico}). ${justificativa ? 'Justificativa: ' + justificativa : ''}`,
+            acao: ehExcepcional ? 'Assunção J3 Excepcional' : `Assunção J3 ${statusFinal}`,
+            detalhes: `Equipe: Condutor (${condutorFinal || 'Pendente'}) + Enfermagem (${tecnicoFinal || 'Pendente'}). ${justificativa}`,
             data_hora: new Date().toISOString()
           }]);
 
-          // Gera mensagem formatada para o WhatsApp da Regulação
+          // TEXTO AUTOMÁTICO PARA A REGULAÇÃO (WHATSAPP)
           const agora = new Date().toLocaleString('pt-BR');
-          const textoZapFormatado = `🚨 *PASSAGEM DE PLANTÃO J3 - USB 11*\n📅 Data/Hora: ${agora}\n🚑 Condutor: ${condutor}\n🩺 Enfermagem: ${tecnico}\nStatus: Viatura Operacional e Equipe Confirmada.`;
+          const textoZapFormatado = `🚨 *PASSAGEM DE PLANTÃO J3 - USB 11*\n📅 Data/Hora: ${agora}\n🚑 Condutor: ${condutorFinal || 'Aguardando'}\n🩺 Enfermagem: ${tecnicoFinal || 'Aguardando'}\nStatus: ${statusFinal === 'ATIVO' ? 'Viatura Operacional e Equipe Confirmada' : 'Equipe em Rendição Antecipada'}.`;
           
           document.getElementById('textoZap').value = textoZapFormatado;
           document.getElementById('whatsappBox').style.display = 'block';
 
-          alert(`✅ J3 Confirmado com Sucesso!\n\nCondutor: ${condutor}\nEnfermagem: ${tecnico}\n\n👉 Copie a mensagem gerada para enviar à Regulação via WhatsApp.`);
+          alert(`✅ J3 Registrado com Sucesso!\nStatus: ${statusFinal}\n\n🚑 Condutor: ${condutorFinal || 'Aguardando'}\n🩺 Enfermagem: ${tecnicoFinal || 'Aguardando'}`);
           document.getElementById('j3_senha').value = '';
         } else {
           alert("❌ Senha Única incorreta.");
         }
-      } catch (err) { alert("Erro ao conectar com o banco de dados."); }
+      } catch (err) {
+        alert("Erro ao conectar com a base de dados.");
+      }
     }
 
     function copiarTextoZap() {
@@ -357,7 +371,10 @@
         if (!error && data && data.length > 0) {
           tbody.innerHTML = '';
           data.forEach(p => {
-            let badge = p.status === 'ATIVO' ? '<span style="color:#15803d; font-weight:bold;">🟢 ATIVO</span>' : '⚪ ANTERIOR';
+            let badge = '⚪ ANTERIOR';
+            if (p.status === 'ATIVO') badge = '<span style="color:#15803d; font-weight:bold;">🟢 ATIVO</span>';
+            else if (p.status === 'EM RENDIÇÃO') badge = '<span style="color:#d97706; font-weight:bold;">🟡 RENDIÇÃO</span>';
+
             const dataFmt = new Date(p.data_confirmacao || p.created_at || new Date()).toLocaleString('pt-BR');
 
             tbody.innerHTML += `
@@ -369,8 +386,12 @@
               </tr>
             `;
           });
-        } else { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>'; }
-      } catch (err) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Erro na consulta.</td></tr>'; }
+        } else {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Erro na consulta.</td></tr>';
+      }
     }
   </script>
 </body>
