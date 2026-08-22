@@ -51,7 +51,7 @@
 <body>
 
   <div class="container">
-    <!-- CABEÇALHO SAMU CONNECT COM A LOGO OFICIAL LOCAL -->
+    <!-- CABEÇALHO SAMU CONNECT COM LOGO OFICIAL -->
     <div class="header">
       <img src="logo.png" alt="SAMU 192" class="brand-logo" onerror="this.style.display='none'">
       <h1>SAMU CONNECT — CENTRAL OPERACIONAL</h1>
@@ -166,6 +166,7 @@
     async function carregarProfissionais() {
       const selP = document.getElementById('p1_profissional');
       try {
+        // BUSCA NOME E FUNÇÃO DE TODOS OS COLABORADORES DA BASE
         const { data } = await dbNuvem.from('colaboradores').select('nome, funcao, status').order('nome', { ascending: true });
         if (data && data.length > 0) {
           listaColaboradoresCache = data;
@@ -179,7 +180,7 @@
       } catch (e) {}
     }
 
-    // APLICA TRAVA E EXIBE APENAS AS OPÇÕES DA FUNÇÃO SELECIONADA
+    // FILTRA AS OPÇÕES AUTOMATICAMENTE DE ACORDO COM A FUNÇÃO DO SERVIDORE NO BANCO
     function filtrarOpcoesPorFuncao() {
       const nomeSel = document.getElementById('p1_profissional').value;
       const optCond = document.getElementById('opt_condutor');
@@ -187,7 +188,7 @@
       const optAbs = document.getElementById('opt_abastecimento');
       const optLacre = document.getElementById('opt_lacre');
 
-      // Desmarca rádios
+      // Limpa qualquer opção anteriormente marcada
       document.querySelectorAll('input[name="procedimento"]').forEach(r => r.checked = false);
 
       if (!nomeSel) {
@@ -201,21 +202,21 @@
       const colab = listaColaboradoresCache.find(c => c.nome === nomeSel);
       const funcao = colab ? (colab.funcao || '').toUpperCase() : '';
 
-      // CONDUTOR SOCORRISTA
+      // CONDUTOR SOCORRISTA -> Libera apenas Checklist Condutor e Abastecimento
       if (funcao.includes('CONDUTOR') || funcao.includes('MOTORISTA')) {
         optCond.style.display = 'flex';
         optAbs.style.display = 'flex';
         optTec.style.display = 'none';
         optLacre.style.display = 'none';
       } 
-      // TÉCNICO / ENFERMEIRO
+      // TÉCNICO / ENFERMEIRO -> Libera apenas Checklist Técnico e Troca de Lacre
       else if (funcao.includes('TÉCNICO') || funcao.includes('TECNICO') || funcao.includes('ENFERM')) {
         optTec.style.display = 'flex';
         optLacre.style.display = 'flex';
         optCond.style.display = 'none';
         optAbs.style.display = 'none';
       } 
-      // ADMIN OU OUTRO -> EXIBE TUDO
+      // COORDENAÇÃO / ADMIN -> Libera todas as opções
       else {
         optCond.style.display = 'flex';
         optTec.style.display = 'flex';
