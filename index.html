@@ -69,7 +69,7 @@
     <form id="formLogin" onsubmit="autenticarUsuario(event)">
       <div class="form-group">
         <label>E-mail ou CPF:*</label>
-        <input type="text" id="login_usuario" placeholder="Digite seu e-mail cadastrado..." required>
+        <input type="text" id="login_usuario" placeholder="Digite seu e-mail ou CPF..." required>
       </div>
 
       <div class="form-group">
@@ -85,11 +85,11 @@
     </form>
   </div>
 
-  <!-- MODAL: RECUPERAÇÃO DE SENHA POR VALIDAÇÃO CRUZADA -->
+  <!-- MODAL: RECUPERAÇÃO DE SENHA POR VALIDAÇÃO CRUZADA FLEXÍVEL -->
   <div class="modal-overlay" id="modalEsqueciSenha">
     <div class="modal-content">
-      <h3>🔑 Validação de Identidade para Nova Senha</h3>
-      <p>Confirme seus dados cadastrais para redefinir sua senha instantaneamente.</p>
+      <h3>🔑 Validação para Nova Senha</h3>
+      <p>Informe seu CPF e pelo menos um dos seus registros cadastrais para redefinir sua senha.</p>
 
       <!-- PASSO 1: CONFIRMAÇÃO DOS DADOS -->
       <div id="passo_validacao">
@@ -99,13 +99,13 @@
         </div>
 
         <div class="form-group">
-          <label>Registro Profissional (COREN ou CNH):*</label>
-          <input type="text" id="recup_registro" placeholder="Ex: 862518 ou Nº CNH" required>
+          <label>Registro Profissional (COREN ou CNH):</label>
+          <input type="text" id="recup_registro" placeholder="Ex: 862518 ou Nº da CNH">
         </div>
 
         <div class="form-group">
-          <label>E-mail Cadastrado:*</label>
-          <input type="email" id="recup_email" placeholder="seu.email@orleans.sc.gov.br" required>
+          <label>E-mail Cadastrado:</label>
+          <input type="email" id="recup_email" placeholder="seu.email@exemplo.com">
         </div>
 
         <div class="modal-actions">
@@ -176,17 +176,20 @@
       }
     }
 
-    /* VALIDAÇÃO CRUZADA TRIPLA (CPF + REGISTRO + EMAIL) */
+    /* VALIDAÇÃO CRUZADA FLEXÍVEL (CPF + REGISTRO OU EMAIL) */
     async function validarDadosServidor() {
       const cpfInput = document.getElementById('recup_cpf').value.replace(/\D/g, '').trim();
       const regInput = document.getElementById('recup_registro').value.trim().toLowerCase();
       const emailInput = document.getElementById('recup_email').value.trim().toLowerCase();
 
-      if (!cpfInput || !regInput || !emailInput) {
-        alert("Por favor, preencha todos os três campos de validação."); return;
+      if (!cpfInput) {
+        alert("Por favor, preencha o seu CPF."); return;
+      }
+      if (!regInput && !emailInput) {
+        alert("Preencha pelo menos o Registro (COREN/CNH) ou o E-mail para validar sua identidade."); return;
       }
 
-      // Busca o colaborador no Supabase
+      // Consulta a tabela de colaboradores no Supabase
       const { data, error } = await dbNuvem.from('colaboradores').select('*');
 
       if (!error && data) {
@@ -195,7 +198,14 @@
           const emailBD = (c.email || '').trim().toLowerCase();
           const regBD = ((c.coren || c.cnh || c.registro || '') + '').trim().toLowerCase();
 
-          return (cpfBD === cpfInput && emailBD === emailInput && (regBD.includes(regInput) || regInput.includes(regBD)));
+          // O CPF deve bater obrigatoriamente
+          const cpfValido = (cpfBD === cpfInput);
+
+          // E-mail ou Registro devem coincidir
+          const emailValido = emailInput && emailBD && (emailBD === emailInput);
+          const regValido = regInput && regBD && (regBD.includes(regInput) || regInput.includes(regBD));
+
+          return cpfValido && (emailValido || regValido);
         });
 
         if (servidor) {
@@ -204,10 +214,10 @@
           document.getElementById('passo_validacao').style.display = 'none';
           document.getElementById('passo_nova_senha').style.display = 'block';
         } else {
-          alert("❌ Validação Falhou!\nOs dados informados (CPF, Registro ou E-mail) não coincidem com o cadastro mestre.");
+          alert("❌ Validação Falhou!\nO CPF informado não coincide com o Registro Profissional ou E-mail cadastrado no sistema.");
         }
       } else {
-        alert("Erro ao consultar base de dados: " + (error ? error.message : "Erro de conexão"));
+        alert("Erro de conexão ao consultar base de dados: " + (error ? error.message : "Servidor indisponível"));
       }
     }
 
@@ -223,15 +233,14 @@
         alert("As senhas digitadas não coincidem."); return;
       }
 
-      // Atualiza a senha do colaborador no Supabase
       const { error } = await dbNuvem.from('colaboradores').update({
         senha_hash: s1,
         ultima_alteracao_senha: new Date().toISOString()
       }).eq('id', idServidorValidado);
 
       if (!error) {
-        await registrarLog('Segurança', 'Redefinição de Senha', `Senha alterada com sucesso após validação tripla para o servidor ${nomeServidorValidado}.`);
-        alert(`✅ Senha alterada com sucesso para ${nomeServidorValidado}!\nAgora você já pode fazer login com sua nova senha.`);
+        await registrarLog('Segurança', 'Redefinição de Senha', `Senha alterada com sucesso após validação para o servidor ${nomeServidorValidado}.`);
+        alert(`✅ Senha alterada com sucesso para ${nomeServidorValidado}!\nFaça login utilizando sua nova senha.`);
         fecharModalEsqueciSenha();
         document.getElementById('login_senha').value = s1;
       } else {
