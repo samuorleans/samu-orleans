@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAMU Connect — Módulo Operacional</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary-red: #cc0000;
+      --navy-blue: #002b49;
+      --bg-gray: #f4f6f9;
+      --border-color: #cbd5e1;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background-color: var(--bg-gray); color: #1e293b; padding: 20px 15px; display: flex; justify-content: center; min-height: 100vh; }
+    
+    .form-container {
+      width: 100%; max-width: 720px; background: white; border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08); border-top: 6px solid var(--primary-red);
+      padding: 25px; margin-bottom: 30px;
+    }
+
+    .form-header { text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+    .form-header img { width: 70px; margin-bottom: 8px; }
+    .form-header h1 { font-size: 1.15rem; color: var(--navy-blue); font-weight: 800; text-transform: uppercase; }
+    .form-header p { font-size: 0.8rem; color: #64748b; margin-top: 4px; }
+
+    .section-card { display: none; }
+    .section-card.active { display: block; }
+
+    .form-group { display: flex; flex-direction: column; margin-bottom: 14px; text-align: left; }
+    .form-group label { font-size: 0.78rem; font-weight: 700; color: var(--navy-blue); margin-bottom: 5px; text-transform: uppercase; }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; width: 100%;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    
+    .radio-option {
+      display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--border-color);
+      border-radius: 8px; margin-bottom: 8px; cursor: pointer; background: #f8fafc;
+    }
+    .radio-option input[type="radio"] { width: 18px; height: 18px; accent-color: var(--primary-red); }
+    .radio-option label { margin: 0; font-size: 0.88rem; font-weight: 600; color: #334155; cursor: pointer; text-transform: none; }
+
+    .btn-row { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
+    .btn-primary { background: var(--navy-blue); color: white; border: none; padding: 11px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .btn-secondary { background: #e2e8f0; color: #334155; border: none; padding: 11px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .btn-submit { background: #166534; color: white; border: none; padding: 11px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+
+    @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <div class="form-header">
+      <img src="logo.png" alt="SAMU 192" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
+      <h1>SAMU CONNECT — CENTRALE OPERACIONAL</h1>
+      <p>USB 11 ORLEANS — Registros e Checklists</p>
+    </div>
+
+    <form id="opForm" onsubmit="salvarFormulario(event)">
+      
+      <!-- SEÇÃO 1: SELEÇÃO INICIAL -->
+      <div id="step1" class="section-card active">
+        <div class="form-group">
+          <label>Viatura / Prefixo:*</label>
+          <select id="vtr_prefixo" required>
+            <option value="SXT-9H65 - M. BENZ SPRINTER">SXT-9H65 - M. BENZ SPRINTER</option>
+            <option value="RAJ-2I37 - M. BENZ SPRINTER">RAJ-2I37 - M. BENZ SPRINTER</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Nome do Profissional (Condutor ou Técnico):*</label>
+          <select id="prof_nome" onchange="verificarPermissoesDinámicas()" required>
+            <option value="">Escolher...</option>
+            <option value="Clênio Borges - Tec. Enfermagem (862518)">Clênio Borges - Tec. Enfermagem (862518)</option>
+            <option value="Daniel Alexandre Fernandes - Condutor">Daniel Alexandre Fernandes - Condutor</option>
+            <option value="Edimara Tochetto Suaya Netto - Enfermeira Coordenadora (110151)">Edimara Tochetto Suaya Netto - Enfermeira Coordenadora (110151)</option>
+            <option value="Gicerléia Trindade da Rosa - Tec. Enfermagem (870568)">Gicerléia Trindade da Rosa - Tec. Enfermagem (870568)</option>
+            <option value="Lucas Vieira Mendes - Condutor">Lucas Vieira Mendes - Condutor</option>
+            <option value="Luis Eduardo Formanski Vitório - Tec. Enfermagem (1551746)">Luis Eduardo Formanski Vitório - Tec. Enfermagem (1551746)</option>
+            <option value="Márcio Becker - Condutor">Márcio Becker - Condutor</option>
+            <option value="Renato Cândido - Condutor">Renato Cândido - Condutor</option>
+            <option value="Rinaldo Calegario - Tec. Enfermagem (331871)">Rinaldo Calegario - Tec. Enfermagem (331871)</option>
+            <option value="Suandre Adão Machado - Tec. Enfermagem (99894)">Suandre Adão Machado - Tec. Enfermagem (99894)</option>
+            <option value="Vanderlei José Tasca - Condutor">Vanderlei José Tasca - Condutor</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Qual procedimento deseja realizar agora?*</label>
+          
+          <div class="radio-option" id="box_condutor">
+            <input type="radio" id="opt_condutor" name="procedimento" value="CONDUTOR" checked>
+            <label for="opt_condutor">🚑 Checklist de Plantão - Condutor Socorrista</label>
+          </div>
+          
+          <div class="radio-option" id="box_tecnico">
+            <input type="radio" id="opt_tecnico" name="procedimento" value="TECNICO">
+            <label for="opt_tecnico">🩺 Checklist de Plantão - Técnico de Enfermagem</label>
+          </div>
+          
+          <div class="radio-option" id="box_abastecimento">
+            <input type="radio" id="opt_abastecimento" name="procedimento" value="ABASTECIMENTO">
+            <label for="opt_abastecimento">⛽ Registrar Abastecimento de Combustível/Arla</label>
+          </div>
+          
+          <div class="radio-option" id="box_lacre">
+            <input type="radio" id="opt_lacre" name="procedimento" value="LACRE">
+            <label for="opt_lacre">🔒 Registro de Ocorrência / Troca de Lacre (Checklist)</label>
+          </div>
+        </div>
+
+        <div class="btn-row" style="justify-content: flex-end;">
+          <button type="button" class="btn-primary" onclick="avancarPasso()">Avançar ➔</button>
+        </div>
+      </div>
+
+      <!-- SEÇÃO 2: CHECKLIST CONDUTOR -->
+      <div id="step_condutor" class="section-card">
+        <h3 style="color:var(--navy-blue); margin-bottom:12px; font-size:0.95rem;">🛠️ Checklist do Condutor Socorrista</h3>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Turno do Plantão:*</label>
+            <select id="cond_turno"><option value="Diurno (12h)">Diurno (12h)</option><option value="Noturno (12h)">Noturno (12h)</option><option value="Plantão 24h">Plantão 24h</option></select>
+          </div>
+          <div class="form-group"><label>Quilometragem Atual (Odômetro):*</label><input type="number" id="cond_km" required></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Nível de Combustível:*</label>
+            <select id="cond_comb"><option value="Tanque Cheio (4/4)">Tanque Cheio (4/4)</option><option value="3/4 Tanque">3/4 Tanque</option><option value="1/2 Tanque">1/2 Tanque</option><option value="1/4 (Reserva)">1/4 (Reserva)</option></select>
+          </div>
+          <div class="form-group">
+            <label>Nível de Arla 32:*</label>
+            <select id="cond_arla"><option value="Cheio">Cheio</option><option value="3/4 Tanque">3/4 Tanque</option><option value="1/2 Tanque">1/2 Tanque</option><option value="Reserva/Baixo">Reserva/Baixo</option><option value="Não Utiliza">Não Utiliza nesta VTR</option></select>
+          </div>
+        </div>
+        <div class="form-group"><label>Observações e Avarias do Condutor:</label><textarea id="cond_avarias" rows="3"></textarea></div>
+        <div class="btn-row">
+          <button type="button" class="btn-secondary" onclick="voltarPasso()">⬅ Voltar</button>
+          <button type="submit" class="btn-submit">💾 Salvar Checklist Condutor</button>
+        </div>
+      </div>
+
+      <!-- SEÇÃO 3: CHECKLIST TÉCNICO DE ENFERMAGEM -->
+      <div id="step_tecnico" class="section-card">
+        <h3 style="color:var(--navy-blue); margin-bottom:12px; font-size:0.95rem;">🩺 Checklist do Técnico de Enfermagem</h3>
+        <div class="grid-2">
+          <div class="form-group"><label>Cilindro Fixo 1 (2,2m³ - bar):*</label><input type="number" id="tec_cil1" required></div>
+          <div class="form-group"><label>Cilindro Fixo 2 (2,2m³ - bar):*</label><input type="number" id="tec_cil2" required></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label>Cilindro Portátil 1 (bar):</label><input type="number" id="tec_portatil"></div>
+          <div class="form-group"><label>Nº Lacre Maleta Psicotrópicos:*</label><input type="text" id="tec_lacre" required></div>
+        </div>
+        <div class="form-group"><label>Descrição de Materiais Faltantes / Reposição:</label><textarea id="tec_obs" rows="3"></textarea></div>
+        <div class="btn-row">
+          <button type="button" class="btn-secondary" onclick="voltarPasso()">⬅ Voltar</button>
+          <button type="submit" class="btn-submit">💾 Salvar Checklist Enfermagem</button>
+        </div>
+      </div>
+
+      <!-- SEÇÃO 4: ABASTECIMENTO -->
+      <div id="step_abastecimento" class="section-card">
+        <h3 style="color:var(--navy-blue); margin-bottom:12px; font-size:0.95rem;">⛽ Registro de Abastecimento</h3>
+        <div class="form-group">
+          <label>Posto de Combustível:*</label>
+          <select id="abs_posto"><option value="POSTO CENTRAL">POSTO CENTRAL</option><option value="REDE POSTOS LEÃO">REDE POSTOS LEÃO</option><option value="REDE POSTOS SÃO MARCOS">REDE POSTOS SÃO MARCOS</option></select>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label>Insumo:*</label><select id="abs_insumo"><option value="DIESEL S10">DIESEL S10</option><option value="ARLA 32">ARLA 32</option><option value="ADITIVO DIESEL">ADITIVO DIESEL</option></select></div>
+          <div class="form-group"><label>KM no Abastecimento:*</label><input type="number" id="abs_km" required></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label>Quantidade Abastecida (L):*</label><input type="number" step="0.01" id="abs_litros" required></div>
+          <div class="form-group"><label>Valor Total Pago (R$):*</label><input type="number" step="0.01" id="abs_valor" required></div>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn-secondary" onclick="voltarPasso()">⬅ Voltar</button>
+          <button type="submit" class="btn-submit">💾 Registrar Abastecimento</button>
+        </div>
+      </div>
+
+      <!-- SEÇÃO 5: TROCA DE LACRE -->
+      <div id="step_lacre" class="section-card">
+        <h3 style="color:var(--navy-blue); margin-bottom:12px; font-size:0.95rem;">🔒 Registro e Troca de Lacre</h3>
+        <div class="grid-2">
+          <div class="form-group"><label>Número do Lacre Anterior:*</label><input type="text" id="lacre_ant" required></div>
+          <div class="form-group"><label>Número do Novo Lacre:*</label><input type="text" id="lacre_novo" required></div>
+        </div>
+        <div class="form-group">
+          <label>Motivo da Substituição:*</label>
+          <select id="lacre_motivo">
+            <option value="Conferência Periódica / Rotina">Conferência Periódica / Rotina</option>
+            <option value="Avaria ou Defeito Físico no Lacre Anterior">Avaria ou Defeito Físico no Lacre Anterior</option>
+            <option value="Vencimento de Lotes / Insumos">Vencimento de Lotes / Insumos</option>
+            <option value="Outros Motivos Operacionais">Outros Motivos Operacionais</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Observações da Ocorrência:</label><textarea id="lacre_obs" rows="3"></textarea></div>
+        <div class="btn-row">
+          <button type="button" class="btn-secondary" onclick="voltarPasso()">⬅ Voltar</button>
+          <button type="submit" class="btn-submit">💾 Registrar Troca de Lacre</button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <script>
+    const dbNuvem = supabase.createClient(
+      "https://rcpgukslnlfptreiusff.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
+    );
+
+    let tipoAtual = 'CONDUTOR';
+
+    async function verificarPermissoesDinámicas() {
+      // Exemplo de consulta dinâmica à tabela operacional_permissoes
+      const { data } = await dbNuvem.from('operacional_permissoes').select('*');
+      if (data) {
+        // Exibe ou oculta opções na tela de acordo com os parâmetros do banco
+      }
+    }
+
+    function avancarPasso() {
+      const prof = document.getElementById('prof_nome').value;
+      if (!prof) { alert("Por favor, selecione o nome do profissional."); return; }
+
+      const radios = document.getElementsByName('procedimento');
+      for (let r of radios) { if (r.checked) tipoAtual = r.value; }
+
+      document.getElementById('step1').classList.remove('active');
+      if (tipoAtual === 'CONDUTOR') document.getElementById('step_condutor').classList.add('active');
+      else if (tipoAtual === 'TECNICO') document.getElementById('step_tecnico').classList.add('active');
+      else if (tipoAtual === 'ABASTECIMENTO') document.getElementById('step_abastecimento').classList.add('active');
+      else if (tipoAtual === 'LACRE') document.getElementById('step_lacre').classList.add('active');
+    }
+
+    function voltarPasso() {
+      document.querySelectorAll('.section-card').forEach(s => s.classList.remove('active'));
+      document.getElementById('step1').classList.add('active');
+    }
+
+    async function salvarFormulario(e) {
+      e.preventDefault();
+      const vtr = document.getElementById('vtr_prefixo').value;
+      const prof = document.getElementById('prof_nome').value;
+
+      if (tipoAtual === 'CONDUTOR') {
+        const payload = {
+          viatura: vtr, profissional_nome: prof, tipo_procedimento: 'Checklist Condutor',
+          turno_plantao: document.getElementById('cond_turno').value,
+          km_atual: parseInt(document.getElementById('cond_km').value),
+          nivel_combustivel: document.getElementById('cond_comb').value,
+          nivel_arla32: document.getElementById('cond_arla').value,
+          relato_avarias: document.getElementById('cond_avarias').value
+        };
+        const { error } = await dbNuvem.from('operacional_checklists').insert([payload]);
+        if (!error) {
+          await salvarLog('Operacional', 'Checklist Condutor', `Checklist realizado na VTR ${vtr} por ${prof}.`);
+          alert('✅ Checklist do Condutor salvo com sucesso!'); location.reload();
+        } else { alert('Erro: ' + error.message); }
+
+      } else if (tipoAtual === 'TECNICO') {
+        const cil1 = parseFloat(document.getElementById('tec_cil1').value) || 0;
+        const cil2 = parseFloat(document.getElementById('tec_cil2').value) || 0;
+        const alertaO2 = (cil1 < 15 || cil2 < 15);
+
+        const payload = {
+          viatura: vtr, profissional_nome: prof,
+          cilindro_fixo_1_bar: cil1, cilindro_fixo_2_bar: cil2,
+          cilindro_portatil_1_bar: parseFloat(document.getElementById('tec_portatil').value) || 0,
+          numero_lacre_psicotropicos: document.getElementById('tec_lacre').value,
+          alerta_oxigenio_critico: alertaO2
+        };
+        const { error } = await dbNuvem.from('operacional_saude_lacres').insert([payload]);
+        if (!error) {
+          await salvarLog('Operacional', 'Checklist Técnico', `Conferência efetuada na VTR ${vtr}. Lacre: ${payload.numero_lacre_psicotropicos}.`);
+          if (alertaO2) alert('🚨 ALERTA CRÍTICO: Cilindro de Oxigênio abaixo de 15 bar! Notificação registrada.');
+          else alert('✅ Checklist de Enfermagem salvo com sucesso!');
+          location.reload();
+        } else { alert('Erro: ' + error.message); }
+
+      } else if (tipoAtual === 'ABASTECIMENTO') {
+        const payload = {
+          viatura: vtr, condutor_nome: prof,
+          posto_credenciado: document.getElementById('abs_posto').value,
+          tipo_insumo: document.getElementById('abs_insumo').value,
+          km_atual: parseInt(document.getElementById('abs_km').value),
+          litros: parseFloat(document.getElementById('abs_litros').value),
+          valor_pago: parseFloat(document.getElementById('abs_valor').value)
+        };
+        const { error } = await dbNuvem.from('operacional_abastecimentos').insert([payload]);
+        if (!error) {
+          await salvarLog('Operacional', 'Abastecimento', `Abastecidos ${payload.litros}L de ${payload.tipo_insumo} na VTR ${vtr}.`);
+          alert('✅ Registro de abastecimento salvo!'); location.reload();
+        } else { alert('Erro: ' + error.message); }
+
+      } else if (tipoAtual === 'LACRE') {
+        const payload = {
+          viatura: vtr, profissional_nome: prof,
+          numero_lacre_psicotropicos: document.getElementById('lacre_novo').value
+        };
+        const { error } = await dbNuvem.from('operacional_saude_lacres').insert([payload]);
+        if (!error) {
+          await salvarLog('Operacional', 'Troca de Lacre', `Troca de lacre na VTR ${vtr}: Anterior ${document.getElementById('lacre_ant').value} -> Novo ${payload.numero_lacre_psicotropicos}.`);
+          alert('✅ Substituição de lacre registrada!'); location.reload();
+        } else { alert('Erro: ' + error.message); }
+      }
+    }
+
+    async function salvarLog(sistema, acao, detalhes) {
+      try {
+        await dbNuvem.from('logs_alteracoes').insert([{
+          sistema: sistema, usuario_nome: document.getElementById('prof_nome').value || 'Servidor',
+          acao: acao, detalhes: detalhes
+        }]);
+      } catch (err) { console.error(err); }
+    }
+  </script>
+</body>
+</html>
