@@ -18,12 +18,11 @@
         </select>
       </div>
 
-      <!-- TIPO DE COMBUSTÍVEL -->
+      <!-- TIPO DE COMBUSTÍVEL - POPULADO DINAMICAMENTE DO ESTOQUE_MESTRE -->
       <div style="display:flex; flex-direction:column;">
         <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Tipo de Insumo / Combustível:*</label>
         <select id="abs_combustivel" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
-          <option value="Diesel S10">Diesel S10</option>
-          <option value="Arla 32">Arla 32</option>
+          <option value="">Carregando insumos...</option>
         </select>
       </div>
 
@@ -54,3 +53,41 @@
     </button>
   </form>
 </div>
+
+<script>
+  // Função que busca os insumos da tabela estoque_mestre no Supabase
+  async function carregarInsumosCombustivel() {
+    const sel = document.getElementById('abs_combustivel');
+    if (!sel) return;
+
+    try {
+      // Busca insumos cadastrados na estoque_mestre
+      const { data, error } = await dbNuvem
+        .from('estoque_mestre')
+        .select('*')
+        .order('descricao_insumo', { ascending: true });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        sel.innerHTML = '<option value="">Selecione o insumo...</option>';
+        data.forEach(item => {
+          const nomeItem = item.descricao_insumo || item.descricao || item.nome || 'Item sem nome';
+          sel.innerHTML += `<option value="${nomeItem}">${nomeItem}</option>`;
+        });
+      } else {
+        sel.innerHTML = '<option value="">Nenhum insumo cadastrado</option>';
+      }
+    } catch (err) {
+      console.error("Erro ao carregar insumos:", err);
+      // Fallback de segurança mantendo o padrão do formulário
+      sel.innerHTML = `
+        <option value="Diesel S10">Diesel S10</option>
+        <option value="Arla 32">Arla 32</option>
+      `;
+    }
+  }
+
+  // Executa o carregamento assim que o módulo é inserido/carregado na tela
+  setTimeout(carregarInsumosCombustivel, 100);
+</script>
