@@ -20,7 +20,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
     body { background-color: var(--bg-surface); color: var(--text-main); min-height: 100vh; padding: 20px 12px; }
 
-    .container { max-width: 1000px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; }
+    .container { max-width: 1050px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; }
     
     .header h1 { font-size: 1.3rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; display: flex; align-items: center; gap: 8px; }
     .header p { font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 20px; }
@@ -43,6 +43,13 @@
     .link-servidor:hover { text-decoration: underline; }
 
     .btn-editar { background: #eab308; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+
+    /* BADGES DE STATUS */
+    .badge-status { padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 0.7rem; display: inline-block; }
+    .status-ativo { background: #dcfce7; color: #15803d; }
+    .status-desligado { background: #fee2e2; color: #b91c1c; }
+    .status-ferias { background: #fef3c7; color: #b45309; }
+    .status-atestado { background: #e0e7ff; color: #4338ca; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
     .modal-box { background: white; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; border-radius: 16px; padding: 24px; box-shadow: var(--shadow); position: relative; }
@@ -81,7 +88,7 @@
     <!-- ABA 1: SERVIDORES -->
     <div id="secaoColaboradores">
       <div class="action-bar">
-        <span style="font-size: 0.85rem; color:#64748b; font-weight:600;">Clique no nome do servidor para editar cadastro e uniformes.</span>
+        <span style="font-size: 0.85rem; color:#64748b; font-weight:600;">O status do servidor sincroniza automaticamente com as escalas/afastamentos.</span>
         <button class="btn-novo" onclick="abrirModalColaborador()">➕ Novo Servidor</button>
       </div>
 
@@ -92,7 +99,7 @@
               <th>Nome Completo</th>
               <th>CPF</th>
               <th>Função / Cargo</th>
-              <th>Registro</th>
+              <th>Status / Situação</th>
               <th>Telefone</th>
               <th>Ações</th>
             </tr>
@@ -193,7 +200,7 @@
         <input type="hidden" id="modal_id">
         <input type="hidden" id="modal_uniforme_id">
 
-        <div class="form-section-title">📋 Dados Pessoais & Contato (`colaboradores`)</div>
+        <div class="form-section-title">📋 Dados Pessoais & Situação Administrativa (`colaboradores`)</div>
         <div class="grid-form">
           <div class="form-group">
             <label>Nome Completo:*</label>
@@ -212,6 +219,16 @@
               <option value="Coordenador Geral / Admin">Coordenador Geral / Admin</option>
             </select>
           </div>
+
+          <!-- NOVO CAMPO: STATUS ADMINISTRATIVO FIXO -->
+          <div class="form-group">
+            <label>Situação no Sistema / Vínculo:*</label>
+            <select id="modal_status_admin" required>
+              <option value="ATIVO">🟢 ATIVO (Liberado para plantão/escala)</option>
+              <option value="DESLIGADO">🔴 DESLIGADO / INATIVO (Ocultar nos seletores)</option>
+            </select>
+          </div>
+
           <div class="form-group">
             <label>COREN:</label>
             <input type="text" id="modal_coren">
@@ -267,71 +284,46 @@
     </div>
   </div>
 
-  <!-- MODAL DE EDICAO DE VIATURAS -->
+  <!-- MODAIS DE VIATURAS E POSTOS MANTIDOS -->
   <div class="modal-overlay" id="modalViatura">
     <div class="modal-box">
       <div class="modal-header">
         <h3 id="modalViaturaTitulo">🚐 Cadastrar / Editar Viatura</h3>
         <button class="close-modal" onclick="fecharModalViatura()">&times;</button>
       </div>
-
       <form id="formModalViatura" onsubmit="salvarViaturaModal(event)">
         <input type="hidden" id="modal_viat_id">
         <div class="grid-form">
+          <div class="form-group"><label>Prefixo:*</label><input type="text" id="modal_viat_prefixo" required></div>
+          <div class="form-group"><label>Placa:*</label><input type="text" id="modal_viat_placa" required></div>
+          <div class="form-group"><label>Modelo:*</label><input type="text" id="modal_viat_modelo" required></div>
           <div class="form-group">
-            <label>Prefixo / Identificação:*</label>
-            <input type="text" id="modal_viat_prefixo" placeholder="Ex: SXT-9H65 - M. BENZ SPRINTER" required>
-          </div>
-          <div class="form-group">
-            <label>Placa:*</label>
-            <input type="text" id="modal_viat_placa" placeholder="SXT-9H65" required>
-          </div>
-          <div class="form-group">
-            <label>Modelo:*</label>
-            <input type="text" id="modal_viat_modelo" placeholder="M. Benz Sprinter" required>
-          </div>
-          <div class="form-group">
-            <label>Status Operacional:*</label>
-            <select id="modal_viat_status">
-              <option value="ATIVA">ATIVA</option>
-              <option value="RESERVA">RESERVA</option>
-              <option value="MANUTENCAO">MANUTENÇÃO</option>
-            </select>
+            <label>Status:*</label>
+            <select id="modal_viat_status"><option value="ATIVA">ATIVA</option><option value="RESERVA">RESERVA</option><option value="MANUTENCAO">MANUTENÇÃO</option></select>
           </div>
         </div>
-        <button type="submit" class="btn-salvar-modal">💾 Salvar Viatura no Banco</button>
+        <button type="submit" class="btn-salvar-modal">💾 Salvar Viatura</button>
       </form>
     </div>
   </div>
 
-  <!-- MODAL DE EDICAO DE POSTOS -->
   <div class="modal-overlay" id="modalPosto">
     <div class="modal-box">
       <div class="modal-header">
         <h3 id="modalPostoTitulo">⛽ Cadastrar / Editar Posto</h3>
         <button class="close-modal" onclick="fecharModalPosto()">&times;</button>
       </div>
-
       <form id="formModalPosto" onsubmit="salvarPostoModal(event)">
         <input type="hidden" id="modal_posto_id">
         <div class="grid-form">
-          <div class="form-group">
-            <label>Nome do Posto:*</label>
-            <input type="text" id="modal_posto_nome" placeholder="Ex: POSTO CENTRAL" required>
-          </div>
-          <div class="form-group">
-            <label>Cidade:*</label>
-            <input type="text" id="modal_posto_cidade" placeholder="Orleans" required>
-          </div>
+          <div class="form-group"><label>Nome do Posto:*</label><input type="text" id="modal_posto_nome" required></div>
+          <div class="form-group"><label>Cidade:*</label><input type="text" id="modal_posto_cidade" required></div>
           <div class="form-group">
             <label>Status:*</label>
-            <select id="modal_posto_status">
-              <option value="ATIVO">ATIVO</option>
-              <option value="INATIVO">INATIVO</option>
-            </select>
+            <select id="modal_posto_status"><option value="ATIVO">ATIVO</option><option value="INATIVO">INATIVO</option></select>
           </div>
         </div>
-        <button type="submit" class="btn-salvar-modal">💾 Salvar Posto no Banco</button>
+        <button type="submit" class="btn-salvar-modal">💾 Salvar Posto</button>
       </form>
     </div>
   </div>
@@ -362,24 +354,46 @@
       if (aba === 'insumos') carregarInsumos();
     }
 
-    /* CARREGAMENTO DE SERVIDORES */
+    /* CARREGAMENTO INTEGRADO DE SERVIDORES + AFASTAMENTOS AUTOMÁTICOS */
     async function carregarColaboradores() {
       const tbody = document.getElementById('tbodyColaboradores');
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando colaboradores...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando base e afastamentos...</td></tr>';
 
       try {
-        const { data: servidores, error } = await dbNuvem.from('colaboradores').select('*').order('nome', { ascending: true });
+        // 1. Busca todos os colaboradores
+        const { data: servidores } = await dbNuvem.from('colaboradores').select('*').order('nome', { ascending: true });
+        
+        // 2. Busca afastamentos/indisponibilidades vigentes
+        const { data: afastamentos } = await dbNuvem.from('afastamentos').select('*');
 
-        if (!error && servidores && servidores.length > 0) {
+        if (servidores && servidores.length > 0) {
           tbody.innerHTML = '';
+          
           servidores.forEach(s => {
-            const reg = s.coren || s.cnh || '—';
+            let badgeHtml = '<span class="badge-status status-ativo">🟢 ATIVO</span>';
+
+            // Verifica se o servidor tem o campo 'status' gravado como DESLIGADO no banco
+            if (s.status === 'DESLIGADO' || s.status_admin === 'DESLIGADO') {
+              badgeHtml = '<span class="badge-status status-desligado">🔴 DESLIGADO</span>';
+            } else if (afastamentos && afastamentos.length > 0) {
+              // Verifica se há licença/férias para esse colaborador
+              const af = afastamentos.find(a => a.colaborador_id === s.id || a.cpf === s.cpf);
+              if (af) {
+                const tipo = (af.tipo || af.motivo || 'LICENÇA').toUpperCase();
+                if (tipo.includes('FÉRIAS') || tipo.includes('FERIAS')) {
+                  badgeHtml = '<span class="badge-status status-ferias">🌴 FÉRIAS</span>';
+                } else {
+                  badgeHtml = `<span class="badge-status status-atestado">🏥 ${tipo}</span>`;
+                }
+              }
+            }
+
             tbody.innerHTML += `
               <tr>
                 <td><a class="link-servidor" onclick="abrirModalColaborador('${s.id}')">👤 ${s.nome}</a></td>
                 <td>${s.cpf || '—'}</td>
                 <td>${s.funcao || '—'}</td>
-                <td>${reg}</td>
+                <td>${badgeHtml}</td>
                 <td>${s.fone || '—'}</td>
                 <td>
                   <button class="btn-editar" onclick="abrirModalColaborador('${s.id}')">✏️ Editar</button>
@@ -388,94 +402,47 @@
             `;
           });
         } else { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum colaborador encontrado.</td></tr>'; }
-      } catch (err) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Erro na consulta.</td></tr>'; }
+      } catch (err) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Erro ao carregar lista.</td></tr>'; }
     }
 
-    /* CONSULTA REAL DA TABELA operacional_viaturas COM BOTÃO EDITAR */
+    /* CARREGAMENTO DE VIATURAS, POSTOS E INSUMOS */
     async function carregarViaturas() {
       const tbody = document.getElementById('tbodyViaturas');
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Consultando frota no banco...</td></tr>';
-
-      try {
-        const { data, error } = await dbNuvem.from('operacional_viaturas').select('*');
-
-        if (!error && data && data.length > 0) {
-          tbody.innerHTML = '';
-          data.forEach(v => {
-            let badgeStatus = v.status === 'ATIVA' ? '<span style="color:#16a34a; font-weight:bold;">🟢 ATIVA</span>' : v.status;
-            tbody.innerHTML += `
-              <tr>
-                <td><b>${v.prefixo || '—'}</b></td>
-                <td>${v.placa || '—'}</td>
-                <td>${v.modelo || '—'}</td>
-                <td>${badgeStatus}</td>
-                <td>
-                  <button class="btn-editar" onclick="abrirModalViatura('${v.id}')">✏️ Editar</button>
-                </td>
-              </tr>
-            `;
-          });
-        } else { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma viatura cadastrada no banco de dados.</td></tr>'; }
-      } catch (err) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Erro na consulta da frota.</td></tr>'; }
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Consultando frota...</td></tr>';
+      const { data } = await dbNuvem.from('operacional_viaturas').select('*');
+      if (data && data.length > 0) {
+        tbody.innerHTML = '';
+        data.forEach(v => {
+          tbody.innerHTML += `<tr><td><b>${v.prefixo || '—'}</b></td><td>${v.placa || '—'}</td><td>${v.modelo || '—'}</td><td>🟢 ${v.status}</td><td><button class="btn-editar" onclick="abrirModalViatura('${v.id}')">✏️ Editar</button></td></tr>`;
+        });
+      } else { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma viatura.</td></tr>'; }
     }
 
-    /* CONSULTA REAL DA TABELA operacional_postos COM BOTÃO EDITAR */
     async function carregarPostos() {
       const tbody = document.getElementById('tbodyPostos');
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando postos no banco...</td></tr>';
-
-      try {
-        const { data, error } = await dbNuvem.from('operacional_postos').select('*');
-
-        if (!error && data && data.length > 0) {
-          tbody.innerHTML = '';
-          data.forEach(p => {
-            let badgeStatus = p.status === 'ATIVO' ? '<span style="color:#16a34a; font-weight:bold;">🟢 ATIVO</span>' : p.status;
-            tbody.innerHTML += `
-              <tr>
-                <td><b>${p.nome_posto || '—'}</b></td>
-                <td>${p.cidade || 'Orleans'}</td>
-                <td>${badgeStatus}</td>
-                <td>
-                  <button class="btn-editar" onclick="abrirModalPosto('${p.id}')">✏️ Editar</button>
-                </td>
-              </tr>
-            `;
-          });
-        } else { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum posto encontrado no banco de dados.</td></tr>'; }
-      } catch (err) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Erro na consulta dos postos.</td></tr>'; }
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando postos...</td></tr>';
+      const { data } = await dbNuvem.from('operacional_postos').select('*');
+      if (data && data.length > 0) {
+        tbody.innerHTML = '';
+        data.forEach(p => {
+          tbody.innerHTML += `<tr><td><b>${p.nome_posto || '—'}</b></td><td>${p.cidade || 'Orleans'}</td><td>🟢 ${p.status}</td><td><button class="btn-editar" onclick="abrirModalPosto('${p.id}')">✏️ Editar</button></td></tr>`;
+        });
+      } else { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum posto.</td></tr>'; }
     }
 
-    /* CONSULTA REAL DA TABELA estoque_mestre SEM FALLBACK MOCK */
     async function carregarInsumos() {
       const tbody = document.getElementById('tbodyInsumos');
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Consultando estoque mestre no banco...</td></tr>';
-
-      try {
-        const { data, error } = await dbNuvem.from('estoque_mestre').select('*');
-
-        if (!error && data && data.length > 0) {
-          tbody.innerHTML = '';
-          data.forEach(i => {
-            tbody.innerHTML += `
-              <tr>
-                <td><b>${i.descricao || i.nome || i.item || '—'}</b></td>
-                <td>${i.categoria || '—'}</td>
-                <td>${i.unidade || '—'}</td>
-                <td>${i.estoque_minimo || 0}</td>
-                <td>
-                  <button class="btn-editar" onclick="alert('Edição de insumo')">✏️ Editar</button>
-                </td>
-              </tr>
-            `;
-          });
-        } else {
-          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum insumo cadastrado na tabela estoque_mestre.</td></tr>';
-        }
-      } catch (err) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Erro na consulta dos insumos.</td></tr>'; }
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Consultando estoque...</td></tr>';
+      const { data } = await dbNuvem.from('estoque_mestre').select('*');
+      if (data && data.length > 0) {
+        tbody.innerHTML = '';
+        data.forEach(i => {
+          tbody.innerHTML += `<tr><td><b>${i.descricao || i.nome || '—'}</b></td><td>${i.categoria || '—'}</td><td>${i.unidade || '—'}</td><td>${i.estoque_minimo || 0}</td><td><button class="btn-editar">✏️ Editar</button></td></tr>`;
+        });
+      } else { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum insumo no estoque mestre.</td></tr>'; }
     }
 
-    /* MODAL E CONTROLE DO SERVIDOR */
+    /* MODAL DE EDICAO DO SERVIDOR */
     async function abrirModalColaborador(id) {
       document.getElementById('formModalColab').reset();
       document.getElementById('modal_id').value = '';
@@ -491,6 +458,7 @@
             document.getElementById('modal_nome').value = c.nome || '';
             document.getElementById('modal_cpf').value = c.cpf || '';
             document.getElementById('modal_funcao').value = c.funcao || 'Condutor Socorrista';
+            document.getElementById('modal_status_admin').value = c.status === 'DESLIGADO' ? 'DESLIGADO' : 'ATIVO';
             document.getElementById('modal_coren').value = c.coren || '';
             document.getElementById('modal_cnh').value = c.cnh || '';
             document.getElementById('modal_fone').value = c.fone || '';
@@ -508,9 +476,8 @@
             document.getElementById('modal_coturno').value = u.coturno || '';
             document.getElementById('modal_capa_chuva').value = u.capa_chuva || '';
           }
-        } catch (err) { console.log("Erro ao carregar vinculo de uniformes"); }
+        } catch (err) { console.log("Erro no carregamento"); }
       }
-
       document.getElementById('modalColaborador').style.display = 'flex';
     }
 
@@ -525,6 +492,7 @@
         nome: document.getElementById('modal_nome').value.trim(),
         cpf: document.getElementById('modal_cpf').value.trim(),
         funcao: document.getElementById('modal_funcao').value,
+        status: document.getElementById('modal_status_admin').value,
         coren: document.getElementById('modal_coren').value.trim(),
         cnh: document.getElementById('modal_cnh').value.trim(),
         fone: document.getElementById('modal_fone').value.trim(),
@@ -533,7 +501,6 @@
 
       try {
         let idSalvo = colabId;
-
         if (colabId) {
           await dbNuvem.from('colaboradores').update(payloadColaborador).eq('id', colabId);
         } else {
@@ -553,20 +520,17 @@
             capa_chuva: document.getElementById('modal_capa_chuva').value.trim()
           };
 
-          if (uniformeId) {
-            await dbNuvem.from('uniformes').update(payloadUniforme).eq('id', uniformeId);
-          } else {
-            await dbNuvem.from('uniformes').insert([payloadUniforme]);
-          }
+          if (uniformeId) await dbNuvem.from('uniformes').update(payloadUniforme).eq('id', uniformeId);
+          else await dbNuvem.from('uniformes').insert([payloadUniforme]);
         }
 
-        alert("✅ Cadastro e tamanhos de uniformes salvos com sucesso!");
+        alert("✅ Cadastro e situação salvas com sucesso!");
         fecharModalColaborador();
         carregarColaboradores();
-      } catch (err) { alert("Erro ao gravar dados no Supabase."); }
+      } catch (err) { alert("Erro ao salvar no Supabase."); }
     }
 
-    /* CONTROLE MODAL VIATURAS */
+    /* CONTROLE DE MODAIS DE VIATURAS E POSTOS */
     async function abrirModalViatura(id) {
       document.getElementById('formModalViatura').reset();
       document.getElementById('modal_viat_id').value = '';
@@ -593,16 +557,12 @@
         modelo: document.getElementById('modal_viat_modelo').value.trim(),
         status: document.getElementById('modal_viat_status').value
       };
-
       if (id) await dbNuvem.from('operacional_viaturas').update(payload).eq('id', id);
       else await dbNuvem.from('operacional_viaturas').insert([payload]);
-
-      alert("✅ Viatura salva com sucesso!");
       fecharModalViatura();
       carregarViaturas();
     }
 
-    /* CONTROLE MODAL POSTOS */
     async function abrirModalPosto(id) {
       document.getElementById('formModalPosto').reset();
       document.getElementById('modal_posto_id').value = '';
@@ -627,11 +587,8 @@
         cidade: document.getElementById('modal_posto_cidade').value.trim(),
         status: document.getElementById('modal_posto_status').value
       };
-
       if (id) await dbNuvem.from('operacional_postos').update(payload).eq('id', id);
       else await dbNuvem.from('operacional_postos').insert([payload]);
-
-      alert("✅ Posto salvo com sucesso!");
       fecharModalPosto();
       carregarPostos();
     }
