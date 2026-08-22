@@ -41,18 +41,20 @@
     .btn-login { width: 100%; background: var(--samu-navy); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
     .btn-login:hover { background: #081726; }
 
-    /* MODAL DE ESQUECI A SENHA */
+    /* MODAL DE RECUPERAÇÃO E ALTERAÇÃO DE SENHA */
     .modal-overlay {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(13, 35, 58, 0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000;
+      background: rgba(13, 35, 58, 0.65); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000;
     }
     .modal-overlay.active { display: flex; }
-    .modal-content { background: white; width: 90%; max-width: 400px; padding: 25px; border-radius: 16px; box-shadow: var(--shadow); text-align: left; }
-    .modal-content h3 { font-size: 1.1rem; color: var(--samu-navy); margin-bottom: 8px; }
+    .modal-content { background: white; width: 92%; max-width: 440px; padding: 25px; border-radius: 16px; box-shadow: var(--shadow); text-align: left; }
+    .modal-content h3 { font-size: 1.1rem; color: var(--samu-navy); margin-bottom: 6px; }
     .modal-content p { font-size: 0.82rem; color: #64748b; margin-bottom: 18px; }
+    
     .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
     .btn-secondary { background: #e2e8f0; color: #334155; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-    .btn-primary { background: var(--samu-red); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .btn-primary { background: #15803d; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .btn-verify { background: var(--samu-blue); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -83,13 +85,24 @@
     </form>
   </div>
 
-  <!-- MODAL: ESQUECI MINHA SENHA -->
+  <!-- MODAL: RECUPERAÇÃO DE SENHA POR VALIDAÇÃO CRUZADA -->
   <div class="modal-overlay" id="modalEsqueciSenha">
     <div class="modal-content">
-      <h3>🔑 Recuperação de Senha</h3>
-      <p>Informe o seu e-mail cadastrado no sistema para receber as instruções de redefinição de senha.</p>
+      <h3>🔑 Validação de Identidade para Nova Senha</h3>
+      <p>Confirme seus dados cadastrais para redefinir sua senha instantaneamente.</p>
 
-      <form id="formRecuperacao" onsubmit="enviarRecuperacaoSenha(event)">
+      <!-- PASSO 1: CONFIRMAÇÃO DOS DADOS -->
+      <div id="passo_validacao">
+        <div class="form-group">
+          <label>CPF do Servidor:*</label>
+          <input type="text" id="recup_cpf" placeholder="000.000.000-00" required>
+        </div>
+
+        <div class="form-group">
+          <label>Registro Profissional (COREN ou CNH):*</label>
+          <input type="text" id="recup_registro" placeholder="Ex: 862518 ou Nº CNH" required>
+        </div>
+
         <div class="form-group">
           <label>E-mail Cadastrado:*</label>
           <input type="email" id="recup_email" placeholder="seu.email@orleans.sc.gov.br" required>
@@ -97,9 +110,32 @@
 
         <div class="modal-actions">
           <button type="button" class="btn-secondary" onclick="fecharModalEsqueciSenha()">Cancelar</button>
-          <button type="submit" class="btn-primary">Enviar Link 📩</button>
+          <button type="button" class="btn-verify" onclick="validarDadosServidor()">Validar Dados 🔍</button>
         </div>
-      </form>
+      </div>
+
+      <!-- PASSO 2: CRIAÇÃO DA NOVA SENHA (APÓS VALIDAÇÃO) -->
+      <div id="passo_nova_senha" style="display: none;">
+        <div style="background:#dcfce7; color:#166534; padding:10px; border-radius:8px; font-size:0.8rem; font-weight:700; margin-bottom:15px;">
+          ✅ Identidade confirmada com sucesso! Digite sua nova senha abaixo.
+        </div>
+
+        <div class="form-group">
+          <label>Nova Senha:*</label>
+          <input type="password" id="nova_senha" placeholder="Mínimo de 6 caracteres" minlength="6">
+        </div>
+
+        <div class="form-group">
+          <label>Confirme a Nova Senha:*</label>
+          <input type="password" id="confirma_senha" placeholder="Digite novamente..." minlength="6">
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="fecharModalEsqueciSenha()">Cancelar</button>
+          <button type="button" class="btn-primary" onclick="salvarNovaSenhaDireta()">💾 Alterar Senha</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -109,8 +145,13 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
+    let idServidorValidado = null;
+    let nomeServidorValidado = '';
+
     function abrirModalEsqueciSenha(e) {
       if (e) e.preventDefault();
+      document.getElementById('passo_validacao').style.display = 'block';
+      document.getElementById('passo_nova_senha').style.display = 'none';
       document.getElementById('modalEsqueciSenha').classList.add('active');
     }
 
@@ -123,7 +164,6 @@
       const user = document.getElementById('login_usuario').value.trim();
       const pass = document.getElementById('login_senha').value.trim();
 
-      // Autenticação Supabase
       const { data, error } = await dbNuvem.auth.signInWithPassword({
         email: user,
         password: pass,
@@ -136,20 +176,66 @@
       }
     }
 
-    async function enviarRecuperacaoSenha(e) {
-      e.preventDefault();
-      const emailInput = document.getElementById('recup_email').value.trim();
+    /* VALIDAÇÃO CRUZADA TRIPLA (CPF + REGISTRO + EMAIL) */
+    async function validarDadosServidor() {
+      const cpfInput = document.getElementById('recup_cpf').value.replace(/\D/g, '').trim();
+      const regInput = document.getElementById('recup_registro').value.trim().toLowerCase();
+      const emailInput = document.getElementById('recup_email').value.trim().toLowerCase();
 
-      const { error } = await dbNuvem.auth.resetPasswordForEmail(emailInput, {
-        redirectTo: window.location.origin + '/redefinir-senha.html',
-      });
+      if (!cpfInput || !regInput || !emailInput) {
+        alert("Por favor, preencha todos os três campos de validação."); return;
+      }
+
+      // Busca o colaborador no Supabase
+      const { data, error } = await dbNuvem.from('colaboradores').select('*');
+
+      if (!error && data) {
+        const servidor = data.find(c => {
+          const cpfBD = (c.cpf || '').replace(/\D/g, '').trim();
+          const emailBD = (c.email || '').trim().toLowerCase();
+          const regBD = ((c.coren || c.cnh || c.registro || '') + '').trim().toLowerCase();
+
+          return (cpfBD === cpfInput && emailBD === emailInput && (regBD.includes(regInput) || regInput.includes(regBD)));
+        });
+
+        if (servidor) {
+          idServidorValidado = servidor.id;
+          nomeServidorValidado = servidor.nome;
+          document.getElementById('passo_validacao').style.display = 'none';
+          document.getElementById('passo_nova_senha').style.display = 'block';
+        } else {
+          alert("❌ Validação Falhou!\nOs dados informados (CPF, Registro ou E-mail) não coincidem com o cadastro mestre.");
+        }
+      } else {
+        alert("Erro ao consultar base de dados: " + (error ? error.message : "Erro de conexão"));
+      }
+    }
+
+    /* SALVA A NOVA SENHA DIRETO NO BANCO */
+    async function salvarNovaSenhaDireta() {
+      const s1 = document.getElementById('nova_senha').value;
+      const s2 = document.getElementById('confirma_senha').value;
+
+      if (!s1 || s1.length < 6) {
+        alert("A nova senha precisa ter pelo menos 6 caracteres."); return;
+      }
+      if (s1 !== s2) {
+        alert("As senhas digitadas não coincidem."); return;
+      }
+
+      // Atualiza a senha do colaborador no Supabase
+      const { error } = await dbNuvem.from('colaboradores').update({
+        senha_hash: s1,
+        ultima_alteracao_senha: new Date().toISOString()
+      }).eq('id', idServidorValidado);
 
       if (!error) {
-        await registrarLog('Segurança / Login', 'Solicitação de Senha', `Solicitada redefinição de senha para o e-mail: ${emailInput}`);
-        alert(`✅ Instruções enviadas para ${emailInput}!\nVerifique sua caixa de entrada ou spam.`);
+        await registrarLog('Segurança', 'Redefinição de Senha', `Senha alterada com sucesso após validação tripla para o servidor ${nomeServidorValidado}.`);
+        alert(`✅ Senha alterada com sucesso para ${nomeServidorValidado}!\nAgora você já pode fazer login com sua nova senha.`);
         fecharModalEsqueciSenha();
+        document.getElementById('login_senha').value = s1;
       } else {
-        alert("Erro ao solicitar redefinição: " + error.message);
+        alert("Erro ao salvar nova senha: " + error.message);
       }
     }
 
@@ -157,7 +243,7 @@
       try {
         await dbNuvem.from('logs_alteracoes').insert([{
           sistema: sistema,
-          usuario_nome: document.getElementById('recup_email').value || 'Usuário Anônimo',
+          usuario_nome: nomeServidorValidado || 'Servidor',
           acao: acao,
           detalhes: detalhes
         }]);
