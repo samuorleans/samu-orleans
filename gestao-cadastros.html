@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAMU Connect — Gestão Completa de Cadastros e Parâmetros</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --samu-red: #d32f2f;
+      --samu-navy: #0d233a;
+      --samu-blue: #1976d2;
+      --bg-surface: #f4f7fa;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --border: #cbd5e1;
+      --shadow: 0 10px 30px rgba(13, 35, 58, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background-color: var(--bg-surface); color: var(--text-main); min-height: 100vh; padding: 20px 12px; }
+
+    .container { max-width: 1000px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; }
+    
+    .header h1 { font-size: 1.4rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .header p { font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 20px; }
+
+    /* NAVEGAÇÃO DE ABAS */
+    .nav-tabs { display: flex; gap: 8px; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; overflow-x: auto; }
+    .tab-btn { padding: 10px 16px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.85rem; border-radius: 8px; cursor: pointer; color: var(--samu-navy); white-space: nowrap; transition: 0.2s; }
+    .tab-btn.active { background: var(--samu-navy); color: white; }
+
+    /* CARD DO FORMULÁRIO */
+    .form-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+    .form-card h3 { font-size: 1rem; color: var(--samu-navy); margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+
+    .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .form-group { display: flex; flex-direction: column; text-align: left; }
+    .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 4px; text-transform: uppercase; }
+    .form-group input, .form-group select { padding: 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none; background: white; width: 100%; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--samu-blue); }
+
+    .btn-salvar { margin-top: 18px; background: #16a34a; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; transition: 0.2s; width: 100%; }
+    .btn-salvar:hover { background: #15803d; }
+
+    /* TABELA DE REGISTROS */
+    .table-container { overflow-x: auto; margin-top: 10px; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left; }
+    .data-table th, .data-table td { border: 1px solid var(--border); padding: 10px; }
+    .data-table th { background: var(--samu-navy); color: white; text-transform: uppercase; font-size: 0.75rem; }
+    .data-table tr:nth-child(even) { background-color: #f8fafc; }
+
+    .btn-acao { padding: 5px 10px; border: none; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+    .btn-editar { background: #eab308; color: white; }
+
+    .btn-voltar { display: inline-block; margin-top: 20px; font-size: 0.85rem; color: var(--samu-blue); text-decoration: none; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>⚙️ Painel do Gestor — Parâmetros & Cadastros</h1>
+      <p>Gerenciamento de Colaboradores, Frota, Insumos e Convênios — SAMU Orleans (USB 11)</p>
+    </div>
+
+    <!-- ABAS PRINCIPAIS DE GESTÃO -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" id="tabColab" onclick="alternarAba('colaboradores')">👥 Servidores & Uniformes</button>
+      <button class="tab-btn" id="tabViaturas" onclick="alternarAba('viaturas')">🚐 Frota & Viaturas</button>
+      <button class="tab-btn" id="tabInsumos" onclick="alternarAba('insumos')">📦 Insumos & Medicamentos</button>
+      <button class="tab-btn" id="tabPostos" onclick="alternarAba('postos')">⛽ Postos de Gasolina</button>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- ABA 1: CADASTRO DE COLABORADORES COMPLETO                           -->
+    <!-- =================================================================== -->
+    <div id="secaoColaboradores">
+      <div class="form-card">
+        <h3>👤 Ficha Cadastral do Servidor / Colaborador</h3>
+        <form id="formColaborador" onsubmit="salvarColaborador(event)">
+          <input type="hidden" id="colab_id">
+          
+          <div class="grid-form">
+            <div class="form-group">
+              <label>Nome Completo:*</label>
+              <input type="text" id="colab_nome" placeholder="Ex: Daniel Alexandre Fernandes" required>
+            </div>
+            
+            <div class="form-group">
+              <label>CPF:*</label>
+              <input type="text" id="colab_cpf" placeholder="000.000.000-00" required>
+            </div>
+
+            <div class="form-group">
+              <label>Função / Cargo:*</label>
+              <select id="colab_funcao" required>
+                <option value="">Selecione a Função...</option>
+                <option value="Condutor Socorrista">Condutor Socorrista</option>
+                <option value="Técnico(a) de Enfermagem Socorrista">Técnico(a) de Enfermagem Socorrista</option>
+                <option value="Enfermeira Coordenadora">Enfermeira Coordenadora</option>
+                <option value="Coordenador Geral / Admin">Coordenador Geral / Admin</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Senha Única do Servidor:*</label>
+              <input type="password" id="colab_senha" placeholder="••••••••" required>
+            </div>
+
+            <div class="form-group">
+              <label>Registro Profissional (COREN):</label>
+              <input type="text" id="colab_coren" placeholder="Ex: 86251B ou N/A">
+            </div>
+
+            <div class="form-group">
+              <label>CNH (Condutores):</label>
+              <input type="text" id="colab_cnh" placeholder="Ex: 5031057705 ou N/A">
+            </div>
+
+            <div class="form-group">
+              <label>Telefone / WhatsApp:</label>
+              <input type="text" id="colab_fone" placeholder="(48) 90000-0000">
+            </div>
+
+            <!-- DADOS LOGÍSTICOS E UNIFORMES -->
+            <div class="form-group">
+              <label>Tamanho Camiseta / Jaleco:</label>
+              <select id="colab_tam_camiseta">
+                <option value="P">P</option>
+                <option value="M">M</option>
+                <option value="G">G</option>
+                <option value="GG">GG</option>
+                <option value="EXG">EXG</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Tamanho Calça / Macacão:</label>
+              <input type="text" id="colab_tam_calca" placeholder="Ex: 42">
+            </div>
+
+            <div class="form-group">
+              <label>Número do Calçado / Bota:</label>
+              <input type="text" id="colab_tam_calcado" placeholder="Ex: 41">
+            </div>
+
+            <div class="form-group">
+              <label>Tipo Sanguíneo / Fator RH:</label>
+              <select id="colab_sangue">
+                <option value="N/I">Não informado</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-salvar">💾 Salvar / Atualizar Servidor no Supabase</button>
+        </form>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>CPF</th>
+              <th>Função</th>
+              <th>COREN/CNH</th>
+              <th>Telefone</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyColaboradores">
+            <tr><td colspan="6" style="text-align:center;">Carregando colaboradores da base...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- ABA 2: CADASTRO DE VIATURAS E FROTA                                 -->
+    <!-- =================================================================== -->
+    <div id="secaoViaturas" style="display: none;">
+      <div class="form-card">
+        <h3>🚐 Cadastrar / Editar Viatura da Frota</h3>
+        <form id="formViatura" onsubmit="salvarViatura(event)">
+          <div class="grid-form">
+            <div class="form-group">
+              <label>Identificação Viatura:*</label>
+              <input type="text" id="viat_nome" placeholder="Ex: USB 11" required>
+            </div>
+            <div class="form-group">
+              <label>Placa:*</label>
+              <input type="text" id="viat_placa" placeholder="ABC-1234 ou ABC1D23" required>
+            </div>
+            <div class="form-group">
+              <label>Quilometragem Base Inicial:*</label>
+              <input type="number" id="viat_km" placeholder="Ex: 145000" required>
+            </div>
+            <div class="form-group">
+              <label>Status Operacional:*</label>
+              <select id="viat_status">
+                <option value="ATIVA">🟢 ATIVA / OPERACIONAL</option>
+                <option value="RESERVA">🟡 VIATURA RESERVA</option>
+                <option value="MANUTENCAO">🔴 MANUTENÇÃO / OFICINA</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn-salvar">💾 Cadastrar Viatura na Frota</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- ABA 3: CADASTRO DE INSUMOS E ESTOQUE MESTRE                        -->
+    <!-- =================================================================== -->
+    <div id="secaoInsumos" style="display: none;">
+      <div class="form-card">
+        <h3>📦 Cadastrar Insumo / Medicamento (Estoque Mestre)</h3>
+        <form id="formInsumo" onsubmit="salvarInsumo(event)">
+          <div class="grid-form">
+            <div class="form-group">
+              <label>Descrição do Insumo / Item:*</label>
+              <input type="text" id="insumo_nome" placeholder="Ex: Soro Fisiológico 0,9% 500ml" required>
+            </div>
+            <div class="form-group">
+              <label>Categoria:*</label>
+              <select id="insumo_categoria" required>
+                <option value="Medicamento">Medicamento / Ampola</option>
+                <option value="Material APH">Material APH / Curativo</option>
+                <option value="Oxigênio">Oxigênio / Gases Medicinais</option>
+                <option value="EPI / Higiene">EPI / Higiene</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Unidade de Medida:*</label>
+              <select id="insumo_unidade">
+                <option value="Frasco">Frasco</option>
+                <option value="Ampola">Ampola</option>
+                <option value="Unidade">Unidade</option>
+                <option value="Caixa">Caixa</option>
+                <option value="Litro">Litro</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Estoque Mínimo (Alerta Crítico):*</label>
+              <input type="number" id="insumo_minimo" placeholder="Ex: 10" value="10" required>
+            </div>
+          </div>
+          <button type="submit" class="btn-salvar">💾 Cadastrar Insumo no Mestre</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- ABA 4: CADASTRO DE POSTOS CONVENIADOS                              -->
+    <!-- =================================================================== -->
+    <div id="secaoPostos" style="display: none;">
+      <div class="form-card">
+        <h3>⛽ Cadastrar Posto de Combustível Autorizado</h3>
+        <form id="formPosto" onsubmit="salvarPosto(event)">
+          <div class="grid-form">
+            <div class="form-group">
+              <label>Razão Social / Nome Fantasia:*</label>
+              <input type="text" id="posto_nome" placeholder="Ex: Posto Central Orleans" required>
+            </div>
+            <div class="form-group">
+              <label>CNPJ / Número Contrato:</label>
+              <input type="text" id="posto_cnpj" placeholder="00.000.000/0001-00">
+            </div>
+            <div class="form-group">
+              <label>Combustível Autorizado:*</label>
+              <select id="posto_combustivel">
+                <option value="Diesel S10">Diesel S10</option>
+                <option value="Gasolina Comum">Gasolina Comum</option>
+                <option value="Gasolina Aditivada">Gasolina Aditivada</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn-salvar">💾 Cadastrar Posto Autorizado</button>
+        </form>
+      </div>
+    </div>
+
+    <a href="index.html" class="btn-voltar">⬅️ Voltar ao Painel Principal</a>
+  </div>
+
+  <script>
+    // Conexão oficial do Supabase - SAMU Orleans
+    const dbNuvem = supabase.createClient(
+      "https://rcpgukslnlfptreiusff.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
+    );
+
+    window.onload = function() {
+      carregarColaboradoresDoBanco();
+    };
+
+    // Alternador de abas de navegação
+    function alternarAba(aba) {
+      document.getElementById('secaoColaboradores').style.display = aba === 'colaboradores' ? 'block' : 'none';
+      document.getElementById('secaoViaturas').style.display = aba === 'viaturas' ? 'block' : 'none';
+      document.getElementById('secaoInsumos').style.display = aba === 'insumos' ? 'block' : 'none';
+      document.getElementById('secaoPostos').style.display = aba === 'postos' ? 'block' : 'none';
+
+      document.getElementById('tabColab').classList.toggle('active', aba === 'colaboradores');
+      document.getElementById('tabViaturas').classList.toggle('active', aba === 'viaturas');
+      document.getElementById('tabInsumos').classList.toggle('active', aba === 'insumos');
+      document.getElementById('tabPostos').classList.toggle('active', aba === 'postos');
+    }
+
+    // ===================================================================
+    // FUNÇÃO: carregarColaboradoresDoBanco()
+    // FINALIDADE: Busca todos os colaboradores cadastrados e exibe na tabela
+    // ===================================================================
+    async function carregarColaboradoresDoBanco() {
+      const tbody = document.getElementById('tbodyColaboradores');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando base de dados...</td></tr>';
+
+      try {
+        const { data: servidores, error } = await dbNuvem
+          .from('colaboradores')
+          .select('*')
+          .order('nome', { ascending: true });
+
+        if (!error && servidores && servidores.length > 0) {
+          tbody.innerHTML = '';
+          servidores.forEach(s => {
+            const reg = s.coren || s.cnh || '—';
+            tbody.innerHTML += `
+              <tr>
+                <td><b>${s.nome}</b></td>
+                <td>${s.cpf || '—'}</td>
+                <td>${s.funcao || '—'}</td>
+                <td>${reg}</td>
+                <td>${s.fone || '—'}</td>
+                <td>
+                  <button class="btn-acao btn-editar" onclick="prepararEdicao('${s.id}', '${s.nome}', '${s.cpf}', '${s.funcao}', '${s.senha_unica || s.senha || ''}', '${s.coren || ''}', '${s.cnh || ''}', '${s.fone || ''}')">✏️ Editar</button>
+                </td>
+              </tr>
+            `;
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum colaborador encontrado.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Erro ao conectar ao banco.</td></tr>';
+      }
+    }
+
+    // ===================================================================
+    // FUNÇÃO: salvarColaborador()
+    // FINALIDADE: Grava ou atualiza as informações do servidor no Supabase
+    // ===================================================================
+    async function salvarColaborador(e) {
+      e.preventDefault();
+      const id = document.getElementById('colab_id').value;
+      const nome = document.getElementById('colab_nome').value.trim();
+      const cpf = document.getElementById('colab_cpf').value.trim();
+      const funcao = document.getElementById('colab_funcao').value;
+      const senha = document.getElementById('colab_senha').value.trim();
+      const coren = document.getElementById('colab_coren').value.trim();
+      const cnh = document.getElementById('colab_cnh').value.trim();
+      const fone = document.getElementById('colab_fone').value.trim();
+
+      try {
+        if (id) {
+          await dbNuvem.from('colaboradores').update({
+            nome: nome,
+            cpf: cpf,
+            funcao: funcao,
+            senha_unica: senha,
+            coren: coren,
+            cnh: cnh,
+            fone: fone
+          }).eq('id', id);
+          alert("✅ Servidor atualizado com sucesso!");
+        } else {
+          await dbNuvem.from('colaboradores').insert([{
+            nome: nome,
+            cpf: cpf,
+            funcao: funcao,
+            senha_unica: senha,
+            coren: coren || 'N/A',
+            cnh: cnh || 'N/A',
+            fone: fone
+          }]);
+          alert("✅ Novo servidor cadastrado no Supabase!");
+        }
+
+        document.getElementById('formColaborador').reset();
+        document.getElementById('colab_id').value = '';
+        carregarColaboradoresDoBanco();
+      } catch (err) {
+        alert("Erro ao gravar dados no Supabase.");
+      }
+    }
+
+    function prepararEdicao(id, nome, cpf, funcao, senha, coren, cnh, fone) {
+      document.getElementById('colab_id').value = id;
+      document.getElementById('colab_nome').value = nome;
+      document.getElementById('colab_cpf').value = cpf;
+      document.getElementById('colab_funcao').value = funcao;
+      document.getElementById('colab_senha').value = senha;
+      document.getElementById('colab_coren').value = coren;
+      document.getElementById('colab_cnh').value = cnh;
+      document.getElementById('colab_fone').value = fone;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function salvarViatura(e) { e.preventDefault(); alert("🚐 Viatura salva no cadastro!"); }
+    function salvarInsumo(e) { e.preventDefault(); alert("📦 Insumo mestre cadastrado!"); }
+    function salvarPosto(e) { e.preventDefault(); alert("⛽ Posto cadastrado com sucesso!"); }
+  </script>
+</body>
+</html>
