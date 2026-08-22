@@ -69,8 +69,8 @@
       background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: center; z-index: 1000;
     }
     .modal-box {
-      background: white; padding: 28px; border-radius: 12px; width: 90%; max-width: 450px;
-      text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.3); position: relative;
+      background: white; padding: 28px; border-radius: 12px; width: 90%; max-width: 480px;
+      text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.3); position: relative; max-height: 90vh; overflow-y: auto;
     }
     .modal-box h3 { color: var(--navy-blue); margin-bottom: 8px; }
     .modal-box p { font-size: 0.85rem; color: #666; margin-bottom: 18px; }
@@ -89,6 +89,14 @@
       background: #fef3c7; border: 1px solid #fcd34d; padding: 12px; border-radius: 8px; margin-top: 10px; text-align: left;
     }
     .box-excepcional label { font-size: 0.8rem; font-weight: 700; color: #92400e; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+
+    .tab-btn-group { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; }
+    .tab-btn { flex: 1; padding: 8px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.82rem; border-radius: 6px; cursor: pointer; color: var(--navy-blue); }
+    .tab-btn.active { background: var(--amber-j3); color: white; }
+
+    .table-plantao { width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left; margin-top: 10px; }
+    .table-plantao th, .table-plantao td { border: 1px solid var(--border-color); padding: 8px; }
+    .table-plantao th { background: var(--navy-blue); color: white; }
 
     #admin-section {
       display: none; margin-top: 20px; background: #ffffff; padding: 25px;
@@ -141,9 +149,9 @@
         <div>
           <div class="card-icon">🚨</div>
           <div class="card-title">Assumir Plantão / J3</div>
-          <div class="card-desc">Validação de entrada em serviço do plantão e registro de trocas emergenciais.</div>
+          <div class="card-desc">Validação de entrada em serviço da dupla (Condutor + Enfermagem) e consulta de plantões.</div>
         </div>
-        <span class="badge" style="color: var(--amber-j3);">Confirmar J3</span>
+        <span class="badge" style="color: var(--amber-j3);">Confirmar ou Consultar J3</span>
       </div>
 
       <!-- Card 4: Ocorrência APH / Atendimento a Paciente -->
@@ -239,40 +247,81 @@
     </div>
   </div>
 
-  <!-- MODAL DE CONFIRMAÇÃO DO J3 -->
+  <!-- MODAL DE CONFIRMAÇÃO E CONSULTA DO J3 -->
   <div class="modal-overlay" id="modalJ3">
     <div class="modal-box">
       <span class="close-modal" onclick="fecharModalJ3()">&times;</span>
-      <h3 style="color: var(--amber-j3);">🚨 Assunção de Plantão / Confirmação J3</h3>
-      <p>Selecione seu nome e digite sua Senha Única para confirmar a entrada em serviço.</p>
 
-      <form id="formJ3" onsubmit="confirmarJ3ComSenha(event)">
-        <div class="form-group-modal">
-          <label>Seu Nome (Servidor Escalado / Substituto):*</label>
-          <select id="j3_servidor_plantao" class="input-field" required>
-            <option value="">Carregando lista da equipe...</option>
-          </select>
-        </div>
+      <!-- ABAS DE NAVEGAÇÃO DO J3 -->
+      <div class="tab-btn-group">
+        <button class="tab-btn active" id="tab1" onclick="mudarAbaJ3(1)">🚨 Assumir Plantão J3</button>
+        <button class="tab-btn" id="tab2" onclick="mudarAbaJ3(2)">🔍 Consultar Plantões</button>
+      </div>
 
-        <div class="form-group-modal">
-          <label>Sua Senha Única:*</label>
-          <input type="password" id="j3_senha_confirmacao" class="input-field" placeholder="••••••••" required>
-        </div>
+      <!-- CONTEÚDO 1: FORMULÁRIO DE ASSUNÇÃO DA DUPLA -->
+      <div id="conteudoTab1">
+        <h3 style="color: var(--amber-j3);">Confirmação de Equipe (J3)</h3>
+        <p>A entrada em serviço exige a definição de 1 Condutor + 1 Enfermagem.</p>
 
-        <div class="box-excepcional">
-          <label>
-            <input type="checkbox" id="j3_chk_excepcional" onchange="alternarBoxJustificativa()">
-            Troca de última hora (Fora da Escala Regular)?
-          </label>
-
-          <div id="div_justificativa" style="display: none; margin-top: 10px;">
-            <label style="color:#78350f; font-size:0.72rem;">Justificativa da Substituição Excepcional:*</label>
-            <textarea id="j3_justificativa" class="input-field" rows="2" placeholder="Informe o motivo da troca de última hora..."></textarea>
+        <form id="formJ3" onsubmit="confirmarJ3ComSenha(event)">
+          
+          <div class="form-group-modal">
+            <label>1. Condutor Socorrista:*</label>
+            <select id="j3_condutor" class="input-field" required>
+              <option value="">Carregando condutores...</option>
+            </select>
           </div>
-        </div>
 
-        <button type="submit" class="btn-submit" style="background-color: var(--amber-j3);">💾 Confirmar e Assumir J3</button>
-      </form>
+          <div class="form-group-modal">
+            <label>2. Técnico / Enfermeiro:*</label>
+            <select id="j3_tecnico" class="input-field" required>
+              <option value="">Carregando equipe de enfermagem...</option>
+            </select>
+          </div>
+
+          <div class="form-group-modal">
+            <label>Senha Única do Servidor Responsável:*</label>
+            <input type="password" id="j3_senha_confirmacao" class="input-field" placeholder="••••••••" required>
+          </div>
+
+          <div class="box-excepcional">
+            <label>
+              <input type="checkbox" id="j3_chk_excepcional" onchange="alternarBoxJustificativa()">
+              Troca de última hora (Fora da Escala Regular)?
+            </label>
+
+            <div id="div_justificativa" style="display: none; margin-top: 10px;">
+              <label style="color:#78350f; font-size:0.72rem;">Justificativa da Substituição Excepcional:*</label>
+              <textarea id="j3_justificativa" class="input-field" rows="2" placeholder="Informe o motivo da troca emergencial..."></textarea>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit" style="background-color: var(--amber-j3);">💾 Formar Equipe e Assumir J3</button>
+        </form>
+      </div>
+
+      <!-- CONTEÚDO 2: TABELA DE CONSULTA DE PLANTÕES (ATUAL E ANTERIOR) -->
+      <div id="conteudoTab2" style="display: none;">
+        <h3 style="color: var(--navy-blue);">Histórico de Plantões (USB 11)</h3>
+        <p>Consulta de passagem de serviço, equipes ativas e plantão anterior.</p>
+
+        <table class="table-plantao">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Condutor</th>
+              <th>Enfermagem</th>
+              <th>Data/Hora</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyPlantaoHistorico">
+            <tr>
+              <td colspan="4" style="text-align:center;">Carregando histórico...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
     </div>
   </div>
 
@@ -282,19 +331,12 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
-    // Lista mestre reserva da equipe da USB 11
-    const equipeReserva = [
-      "Clênio Borges - Técnico de Enfermagem",
-      "Daniel Alexandre Fernandes - Condutor Socorrista",
-      "Edimara Tochetto Suaya Netto - Enfermeira Coordenadora",
-      "Gicerléia Trindade da Rosa - Técnica de Enfermagem",
-      "Lucas Vieira Mendes - Condutor Socorrista",
-      "Luis Eduardo Formanski Vitório - Técnico de Enfermagem",
-      "Márcio Becker - Condutor Socorrista",
-      "Renato Cândido - Condutor Socorrista",
-      "Rinaldo Calegario - Técnico de Enfermagem",
-      "Suandre Adão Machado - Técnico de Enfermagem",
-      "Vanderlei José Tasca - Condutor Socorrista"
+    const equipeCondutoresReserva = [
+      "Daniel Alexandre Fernandes", "Lucas Vieira Mendes", "Márcio Becker", "Renato Cândido", "Vanderlei José Tasca"
+    ];
+
+    const equipeEnfermagemReserva = [
+      "Clênio Borges", "Edimara Tochetto Suaya Netto", "Gicerléia Trindade da Rosa", "Luis Eduardo Formanski Vitório", "Rinaldo Calegario", "Suandre Adão Machado"
     ];
 
     function openGestaoModal() {
@@ -321,40 +363,64 @@
       }
     }
 
-    /* CARREGAMENTO TOTALMENTE PROTEGIDO DO MODAL J3 */
-    async function abrirModalJ3() {
-      document.getElementById('modalJ3').style.display = 'flex';
-      const selPlantao = document.getElementById('j3_servidor_plantao');
-      selPlantao.innerHTML = '<option value="">Carregando colaboradores...</option>';
-
-      try {
-        // Consulta limpa sem joins complexos
-        const { data, error } = await dbNuvem.from('colaboradores').select('*');
-
-        if (!error && data && data.length > 0) {
-          selPlantao.innerHTML = '<option value="">Selecione o seu nome...</option>';
-          data.forEach(c => {
-            const nomeUpper = (c.nome || '').toUpperCase();
-            if (!nomeUpper.includes('ADMINISTRADOR')) {
-              let rotuloCargo = c.cargo || c.funcao || 'Servidor';
-              selPlantao.innerHTML += `<option value="${c.nome}">${c.nome} - ${rotuloCargo}</option>`;
-            }
-          });
-        } else {
-          popularListaReserva();
-        }
-      } catch (err) {
-        popularListaReserva();
+    function mudarAbaJ3(aba) {
+      if (aba === 1) {
+        document.getElementById('tab1').classList.add('active');
+        document.getElementById('tab2').classList.remove('active');
+        document.getElementById('conteudoTab1').style.display = 'block';
+        document.getElementById('conteudoTab2').style.display = 'none';
+      } else {
+        document.getElementById('tab2').classList.add('active');
+        document.getElementById('tab1').classList.remove('active');
+        document.getElementById('conteudoTab1').style.display = 'none';
+        document.getElementById('conteudoTab2').style.display = 'block';
+        carregarHistoricoPlantoes();
       }
     }
 
-    function popularListaReserva() {
-      const selPlantao = document.getElementById('j3_servidor_plantao');
-      selPlantao.innerHTML = '<option value="">Selecione o seu nome...</option>';
-      equipeReserva.forEach(item => {
-        const nomeApenas = item.split(' - ')[0];
-        selPlantao.innerHTML += `<option value="${nomeApenas}">${item}</option>`;
-      });
+    /* CARREGAMENTO DA SELEÇÃO SEPARADA POR CARGO (CONDUTOR X ENFERMAGEM) */
+    async function abrirModalJ3() {
+      document.getElementById('modalJ3').style.display = 'flex';
+      mudarAbaJ3(1);
+
+      const selCondutor = document.getElementById('j3_condutor');
+      const selTecnico = document.getElementById('j3_tecnico');
+
+      selCondutor.innerHTML = '<option value="">Carregando condutores...</option>';
+      selTecnico.innerHTML = '<option value="">Carregando enfermagem...</option>';
+
+      try {
+        const { data, error } = await dbNuvem.from('colaboradores').select('*');
+
+        if (!error && data && data.length > 0) {
+          selCondutor.innerHTML = '<option value="">Selecione o Condutor...</option>';
+          selTecnico.innerHTML = '<option value="">Selecione o Enfermagem...</option>';
+
+          data.forEach(c => {
+            const cargoUpper = (c.cargo || c.funcao || '').toUpperCase();
+            if (cargoUpper.includes('CONDUTOR') || cargoUpper.includes('MOTORISTA')) {
+              selCondutor.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+            } else {
+              selTecnico.innerHTML += `<option value="${c.nome}">${c.nome} (${c.cargo || 'Enfermagem'})</option>`;
+            }
+          });
+        } else {
+          popularSelectsReserva();
+        }
+      } catch (err) {
+        popularSelectsReserva();
+      }
+    }
+
+    function popularSelectsReserva() {
+      const selCondutor = document.getElementById('j3_condutor');
+      const selTecnico = document.getElementById('j3_tecnico');
+
+      selCondutor.innerHTML = '<option value="">Selecione o Condutor...</option>';
+      equipeCondutoresReserva.forEach(n => selCondutor.innerHTML += `<option value="${n}">${n}</option>`);
+
+      selTecnico.innerHTML = '<option value="">Selecione o Enfermagem...</option>';
+      equipeEnfermagemReserva.forEach(n => selTecnico.innerHTML += `<option value="${n}">${n}</option>`);
     }
 
     function fecharModalJ3() {
@@ -371,13 +437,15 @@
 
     async function confirmarJ3ComSenha(e) {
       e.preventDefault();
-      const servidorNome = document.getElementById('j3_servidor_plantao').value;
+      const condutor = document.getElementById('j3_condutor').value;
+      const tecnico = document.getElementById('j3_tecnico').value;
       const senhaDigitada = document.getElementById('j3_senha_confirmacao').value.trim();
       const ehExcepcional = document.getElementById('j3_chk_excepcional').checked;
       const justificativa = document.getElementById('j3_justificativa').value.trim();
 
-      if (!servidorNome || !senhaDigitada) {
-        alert("Por favor, selecione seu nome e digite sua Senha Única."); return;
+      if (!condutor || !tecnico) {
+        alert("⚠️ ATENÇÃO: A viatura só pode entrar em J3 com a equipe completa (1 Condutor + 1 Enfermagem).");
+        return;
       }
 
       if (ehExcepcional && !justificativa) {
@@ -385,32 +453,71 @@
       }
 
       try {
-        const { data, error } = await dbNuvem.from('colaboradores').select('*');
+        const { data } = await dbNuvem.from('colaboradores').select('*');
         let autorizado = false;
 
-        if (!error && data) {
-          const usuario = data.find(c => c.nome === servidorNome);
-          if (usuario) {
-            const senhaBD = usuario.senha_unica || usuario.senha || 'samu192';
-            if (senhaDigitada === senhaBD) autorizado = true;
+        if (data) {
+          const uCond = data.find(c => c.nome === condutor);
+          const uTec = data.find(c => c.nome === tecnico);
+
+          if ((uCond && (uCond.senha_unica || uCond.senha) === senhaDigitada) || 
+              (uTec && (uTec.senha_unica || uTec.senha) === senhaDigitada)) {
+            autorizado = true;
           }
         }
 
         if (autorizado || senhaDigitada === 'samu192' || senhaDigitada === '123456') {
           await dbNuvem.from('logs_alteracoes').insert([{
             sistema: 'Operacional / J3',
-            usuario_nome: servidorNome,
-            acao: ehExcepcional ? 'Confirmação J3 Excepcional (Fora da Escala)' : 'Confirmação J3 Regular (Plano de Plantão)',
-            detalhes: justificativa || 'Assunção Regular de Plantão'
+            usuario_nome: `${condutor} & ${tecnico}`,
+            acao: ehExcepcional ? 'J3 Formado Excepcional' : 'J3 Formado Regular',
+            detalhes: justificativa || 'Equipe Formada com Sucesso'
           }]);
 
-          alert(`✅ J3 Confirmado com Sucesso!\nPlantão assumido por ${servidorNome}.`);
+          alert(`✅ J3 Confirmado com Sucesso!\n\nEquipe Ativa:\n🚑 Condutor: ${condutor}\n🩺 Enfermagem: ${tecnico}`);
           fecharModalJ3();
         } else {
-          alert("❌ Senha Única incorreta. Digite sua senha cadastrada.");
+          alert("❌ Senha Única incorreta de um dos integrantes cadastrados.");
         }
       } catch (err) {
-        alert("Erro ao validar confirmação do J3.");
+        alert("Erro ao validar confirmação da equipe J3.");
+      }
+    }
+
+    /* CARREGAMENTO DA TABELA DE CONSULTA DE PLANTÕES (ATUAL E ANTERIOR) */
+    async function carregarHistoricoPlantoes() {
+      const tbody = document.getElementById('tbodyPlantaoHistorico');
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando registros...</td></tr>';
+
+      try {
+        const { data, error } = await dbNuvem
+          .from('logs_alteracoes')
+          .select('*')
+          .eq('sistema', 'Operacional / J3')
+          .order('id', { ascending: false })
+          .limit(5);
+
+        if (!error && data && data.length > 0) {
+          tbody.innerHTML = '';
+          data.forEach((log, idx) => {
+            const rotuloStatus = idx === 0 ? '<span style="color:#15803d; font-weight:bold;">🟢 ATUAL</span>' : '⚪ ANTERIOR';
+            const nomes = log.usuario_nome.split('&');
+            const dataFmt = new Date(log.created_at || new Date()).toLocaleString('pt-BR');
+
+            tbody.innerHTML += `
+              <tr>
+                <td>${rotuloStatus}</td>
+                <td>${nomes[0] || '—'}</td>
+                <td>${nomes[1] || '—'}</td>
+                <td>${dataFmt}</td>
+              </tr>
+            `;
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum registro de plantão anterior encontrado.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Erro ao conectar com o banco.</td></tr>';
       }
     }
   </script>
