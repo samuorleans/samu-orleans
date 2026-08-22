@@ -68,6 +68,10 @@
     .custom-table input[type="radio"] { width: 18px; height: 18px; accent-color: var(--samu-navy); cursor: pointer; }
     .custom-table tr.unselected { background-color: #fff1f2; }
 
+    .checkbox-list { display: flex; flex-direction: column; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 10px; border: 1.5px solid var(--border); }
+    .checkbox-item { display: flex; align-items: center; gap: 10px; font-size: 0.86rem; color: var(--text-main); font-weight: 500; }
+    .checkbox-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--samu-red); cursor: pointer; }
+
     .section-header-title {
       font-size: 0.88rem; font-weight: 800; color: var(--samu-navy); background: #f1f5f9;
       padding: 10px 14px; border-radius: 8px; margin: 22px 0 14px 0; text-transform: uppercase;
@@ -159,15 +163,32 @@
         });
       }
 
-      // 2. Carrega Colaboradores Ativos
+      // 2. Carrega Colaboradores Ativos (Filtrando Administrador Geral)
       const { data: colaboradores } = await dbNuvem.from('colaboradores').select('*').order('nome');
       const selProf = document.getElementById('prof_nome');
       selProf.innerHTML = '<option value="">Selecione o seu nome...</option>';
       if (colaboradores) {
         colaboradores.forEach(c => {
-          let cargoTag = (c.cargo || '').toUpperCase().includes('CONDUTOR') ? 'CONDUTOR' : 
-                         ((c.cargo || '').toUpperCase().includes('ENFERM') ? 'TECNICO' : 'COORDENACAO');
-          selProf.innerHTML += `<option value="${c.nome} - ${c.cargo || 'Servidor'}" data-cargo="${cargoTag}">${c.nome} - ${c.cargo || 'Servidor'}</option>`;
+          const cargoUpper = (c.cargo || '').toUpperCase();
+          
+          // Oculta Administrador do Sistema da lista de checklists operacionais
+          if (!cargoUpper.includes('ADMINISTRADOR')) {
+            let cargoRotulo = 'Servidor';
+            let cargoTag = 'COORDENACAO';
+
+            if (cargoUpper.includes('CONDUTOR')) {
+              cargoRotulo = 'Condutor Socorrista';
+              cargoTag = 'CONDUTOR';
+            } else if (cargoUpper.includes('TÉCNICO') || cargoUpper.includes('TECNICO')) {
+              cargoRotulo = 'Técnico de Enfermagem';
+              cargoTag = 'TECNICO';
+            } else if (cargoUpper.includes('ENFERMEIR')) {
+              cargoRotulo = 'Enfermeira Coordenadora';
+              cargoTag = 'COORDENACAO';
+            }
+
+            selProf.innerHTML += `<option value="${c.nome} - ${cargoRotulo}" data-cargo="${cargoTag}">${c.nome} - ${cargoRotulo}</option>`;
+          }
         });
       }
     }
