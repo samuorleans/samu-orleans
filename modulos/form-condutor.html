@@ -1,216 +1,149 @@
-<h3 style="color:var(--samu-navy); font-size:1.05rem;">🛠️ Checklist de Rodagem e Mecânica — Condutor Socorrista</h3>
+<!-- ============================================================================
+     MÓDULO: Form-Condutor (`modulos/form-condutor.html`)
+     FINALIDADE: Checklist de Rodagem e Mecânica do Condutor Socorrista.
+     ============================================================================ -->
+<div class="form-card" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:20px; text-align:left;">
+  <h3 style="color:#0d233a; font-size:0.95rem; text-transform:uppercase; font-weight:800; margin-bottom:14px; display:flex; align-items:center; gap:6px;">
+    🛠️ CHECKLIST DE RODAGEM E MECÂNICA — CONDUTOR SOCORRISTA
+  </h3>
 
-<form id="formCondutor" onsubmit="salvarCondutor(event)">
-  <div class="grid-2" style="margin-top:12px;">
-    <div class="form-group">
-      <label>Turno do Plantão:*</label>
-      <select id="cond_turno" required>
+  <form id="formCondutor" onsubmit="salvarChecklistCondutor(event)">
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom:12px;">
+      <div style="display:flex; flex-direction:column;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Turno do Plantão:*</label>
+        <select id="cond_turno" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
+          <option value="">Selecione...</option>
+          <option value="Diurno (12h)">Diurno (12h)</option>
+          <option value="Noturno (12h)">Noturno (12h)</option>
+          <option value="Plantão 24h">Plantão 24h</option>
+        </select>
+      </div>
+
+      <div style="display:flex; flex-direction:column;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Quilometragem Atual (Odômetro):*</label>
+        <input type="number" id="cond_km" placeholder="Ex: 14850" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none;">
+      </div>
+
+      <div style="display:flex; flex-direction:column;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Próxima Troca de Óleo (KM):*</label>
+        <input type="number" id="cond_km_oleo" placeholder="Ex: 20000" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none;">
+      </div>
+
+      <div style="display:flex; flex-direction:column;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Nível de Combustível:*</label>
+        <select id="cond_comb" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
+          <option value="">Selecione...</option>
+          <option value="Tanque Cheio (4/4)">Tanque Cheio (4/4)</option>
+          <option value="3/4 Tanque">3/4 Tanque</option>
+          <option value="1/2 Tanque">1/2 Tanque</option>
+          <option value="1/4 (Reserva)">1/4 (Reserva)</option>
+        </select>
+      </div>
+
+      <div style="display:flex; flex-direction:column;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Nível de Arla 32:*</label>
+        <select id="cond_arla" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
+          <option value="">Selecione...</option>
+          <option value="Cheio">Cheio</option>
+          <option value="3/4 Tanque">3/4 Tanque</option>
+          <option value="1/2 Tanque">1/2 Tanque</option>
+          <option value="Reserva/Baixo">Reserva/Baixo</option>
+          <option value="Não Utiliza nesta VTR">Não Utiliza nesta VTR</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- CONDIÇÕES MECÂNICAS -->
+    <h4 style="font-size:0.8rem; font-weight:800; color:#1976d2; text-transform:uppercase; margin:16px 0 8px 0;">🔧 Condições Mecânicas e Iluminação (Obrigatório Marcar Todos)</h4>
+    <div style="overflow-x:auto; margin-bottom:16px;">
+      <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+        <thead>
+          <tr style="background:#0d233a; color:white; font-size:0.75rem; text-transform:uppercase;">
+            <th style="padding:8px; text-align:left;">Item Verificado</th>
+            <th style="padding:8px; text-align:center;">Ok / Conforme</th>
+            <th style="padding:8px; text-align:center;">Alerta / Abaixo</th>
+            <th style="padding:8px; text-align:center;">Avaria / Defeito</th>
+          </tr>
+        </thead>
+        <tbody id="tb_mecanica">
+          <tr><td colspan="4" style="text-align:center; padding:10px;">Carregando tabela de verificação...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ESTADO DOS PNEUS -->
+    <h4 style="font-size:0.8rem; font-weight:800; color:#1976d2; text-transform:uppercase; margin:16px 0 8px 0;">🛞 Condição Geral dos Pneus (Obrigatório)</h4>
+    <div style="overflow-x:auto; margin-bottom:16px;">
+      <table style="width:100%; border-collapse:collapse; font-size:0.82rem; background:white; border:1px solid #cbd5e1;">
+        <thead>
+          <tr style="background:#0d233a; color:white; font-size:0.75rem; text-transform:uppercase;">
+            <th style="padding:8px; text-align:left;">Posição</th>
+            <th style="padding:8px; text-align:center;">Bom Estado</th>
+            <th style="padding:8px; text-align:center;">Meia Vida</th>
+            <th style="padding:8px; text-align:center;">Crítico / Substituir</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #cbd5e1;">
+            <td style="padding:8px;">Pneus Dianteiros</td>
+            <td style="text-align:center;"><input type="radio" name="pneu_diant" value="Bom Estado" required></td>
+            <td style="text-align:center;"><input type="radio" name="pneu_diant" value="Meia Vida"></td>
+            <td style="text-align:center;"><input type="radio" name="pneu_diant" value="Crítico / Substituir"></td>
+          </tr>
+          <tr style="border-bottom:1px solid #cbd5e1;">
+            <td style="padding:8px;">Pneus Traseiros</td>
+            <td style="text-align:center;"><input type="radio" name="pneu_tras" value="Bom Estado" required></td>
+            <td style="text-align:center;"><input type="radio" name="pneu_tras" value="Meia Vida"></td>
+            <td style="text-align:center;"><input type="radio" name="pneu_tras" value="Crítico / Substituir"></td>
+          </tr>
+          <tr>
+            <td style="padding:8px;">Pneu Estepe</td>
+            <td style="text-align:center;"><input type="radio" name="pneu_estepe" value="Bom Estado" required></td>
+            <td style="text-align:center;"><input type="radio" name="pneu_estepe" value="Meia Vida"></td>
+            <td style="text-align:center;"><input type="radio" name="pneu_estepe" value="Crítico / Substituir"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- EQUIPAMENTOS E FERRAMENTAS -->
+    <h4 style="font-size:0.8rem; font-weight:800; color:#1976d2; text-transform:uppercase; margin:16px 0 8px 0;">🧰 Equipamentos de Salvamento e Ferramentas (POP-ALM-001)</h4>
+    <div style="display:flex; flex-direction:column; gap:8px; font-size:0.82rem; margin-bottom:16px;">
+      <label><input type="checkbox" class="chk_ferramenta" value="Cones de Sinalização e Fita Zebrada" checked> Cones de Sinalização (3 Unidades) e Fita Zebrada (1 Unidade)</label>
+      <label><input type="checkbox" class="chk_ferramenta" value="Lanternas Carregáveis" checked> Lanternas Carregáveis (2 Unidades Grande/Média)</label>
+      <label><input type="checkbox" class="chk_ferramenta" value="Kit de Ferramentas" checked> Kit de Ferramentas (Alicate, Fenda, Martelo, Chaves de Boca, Serrinha, Cabo Elétrico)</label>
+      <label><input type="checkbox" class="chk_ferramenta" value="Pés de Cabra" checked> Pés de Cabra (2 Unidades)</label>
+      <label><input type="checkbox" class="chk_ferramenta" value="Cadeira de Rodas e Maca Articulada" checked> Cadeira de Rodas e Maca Articulada</label>
+      <label><input type="checkbox" class="chk_ferramenta" value="Pranchas Longas com Tirantes" checked> Pranchas Longas com Tirantes (2 Unidades)</label>
+      <label><input type="checkbox" class="chk_ferramenta" value="Celular Operacional + Carregador" checked> Celular com Carregador Veicular</label>
+    </div>
+
+    <div style="display:flex; flex-direction:column; margin-bottom:12px;">
+      <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">EPIs de Cabine e Rodagem:*</label>
+      <select id="cond_epi" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
         <option value="">Selecione...</option>
-        <option value="Diurno (12h)">Diurno (12h)</option>
-        <option value="Noturno (12h)">Noturno (12h)</option>
-        <option value="Plantão 24h">Plantão 24h</option>
+        <option value="Sim, todos conformes e disponíveis">Sim, todos conformes e disponíveis</option>
+        <option value="Não, solicitar reposição/adequação imediata">Não, solicitar reposição/adequação imediata</option>
       </select>
     </div>
-    <div class="form-group">
-      <label>Quilometragem Atual (Odômetro):*</label>
-      <input type="number" id="cond_km" placeholder="Ex: 14850" required>
-    </div>
-  </div>
 
-  <div class="grid-2">
-    <div class="form-group">
-      <label>Próxima Troca de Óleo (KM):*</label>
-      <input type="number" id="cond_km_oleo" placeholder="Ex: 20000" required>
-    </div>
-    <div class="form-group">
-      <label>Nível de Combustível:*</label>
-      <select id="cond_comb" required>
+    <div style="display:flex; flex-direction:column; margin-bottom:12px;">
+      <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Cilindro Portátil 2 (1m³ — Reserva sob o Banco do Salão):*</label>
+      <select id="cond_cil_port2" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
         <option value="">Selecione...</option>
-        <option value="Tanque Cheio (4/4)">Tanque Cheio (4/4)</option>
-        <option value="3/4 Tanque">3/4 Tanque</option>
-        <option value="1/2 Tanque">1/2 Tanque</option>
-        <option value="1/4 (Reserva)">1/4 (Reserva)</option>
+        <option value="Lacre Íntegro / Cheio (200 bar)">Lacre Íntegro / Cheio (200 bar)</option>
+        <option value="Necessita Substituição / Vazio">Necessita Substituição / Vazio</option>
       </select>
     </div>
-  </div>
 
-  <div class="form-group">
-    <label>Nível de Arla 32:*</label>
-    <select id="cond_arla" required>
-      <option value="">Selecione...</option>
-      <option value="Cheio">Cheio</option>
-      <option value="3/4 Tanque">3/4 Tanque</option>
-      <option value="1/2 Tanque">1/2 Tanque</option>
-      <option value="Reserva/Baixo">Reserva/Baixo</option>
-      <option value="Não Utiliza nesta VTR">Não Utiliza nesta VTR</option>
-    </select>
-  </div>
-
-  <div class="section-header-title">🔧 Condições Mecânicas e Iluminação (Obrigatório Marcar Todos)</div>
-  <div class="table-container">
-    <table class="custom-table">
-      <thead>
-        <tr>
-          <th>Item Verificado</th>
-          <th>Ok / Conforme</th>
-          <th>Alerta / Abaixo</th>
-          <th>Avaria / Defeito</th>
-        </tr>
-      </thead>
-      <tbody id="tb_mecanica"></tbody>
-    </table>
-  </div>
-
-  <div class="section-header-title">🛞 Condição Geral dos Pneus (Obrigatório)</div>
-  <div class="table-container">
-    <table class="custom-table">
-      <thead>
-        <tr>
-          <th>Posição</th>
-          <th>Bom Estado</th>
-          <th>Meia Vida</th>
-          <th>Crítico / Substituir</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr id="row_pneu_diant">
-          <td>Pneus Dianteiros</td>
-          <td><input type="radio" name="pneu_diant" value="Bom Estado"></td>
-          <td><input type="radio" name="pneu_diant" value="Meia Vida"></td>
-          <td><input type="radio" name="pneu_diant" value="Crítico / Substituir"></td>
-        </tr>
-        <tr id="row_pneu_tras">
-          <td>Pneus Traseiros</td>
-          <td><input type="radio" name="pneu_tras" value="Bom Estado"></td>
-          <td><input type="radio" name="pneu_tras" value="Meia Vida"></td>
-          <td><input type="radio" name="pneu_tras" value="Crítico / Substituir"></td>
-        </tr>
-        <tr id="row_pneu_estepe">
-          <td>Pneu Estepe</td>
-          <td><input type="radio" name="pneu_estepe" value="Bom Estado"></td>
-          <td><input type="radio" name="pneu_estepe" value="Meia Vida"></td>
-          <td><input type="radio" name="pneu_estepe" value="Crítico / Substituir"></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="section-header-title">🧰 Equipamentos de Salvamento e Ferramentas (POP-ALM-001)</div>
-  <div class="checkbox-list">
-    <label class="checkbox-item"><input type="checkbox" class="chk_ferramenta" value="Cones (3) & Fita Zebrada" checked> Cones de Sinalização (3 Unidades) e Fita Zebrada (1 Unidade)</label>
-    <label class="checkbox-item"><input type="checkbox" class="chk_ferramenta" value="Lanternas Recarregáveis (2)" checked> Lanternas Carregáveis (2 Unidades Grande/Média)</label>
-    <label class="checkbox-item"><input type="checkbox" class="chk_ferramenta" value="Kit Ferramentas Completo" checked> Kit de Ferramentas (Alicate, Fenda, Martelo, Chaves de Boca, Serrinha, Cabo Elétrico)</label>
-    <label class="checkbox-item"><input type="checkbox" class="chk_ferramenta" value="Pés de Cabra (2)" checked> Pés de Cabra (2 Unidades)</label>
-    <label class="checkbox-item"><input type="checkbox" class="chk_ferramenta" value="Cadeira e Maca Articulada" checked> Cadeira de Rodas e Maca Articulada</label>
-    <label class="checkbox-item"><input type="checkbox" class="chk_ferramenta" value="Pranchas Longas com Tirantes (2)" checked> Pranchas Longas com Tirantes (2 Unidades)</label>
-    <label class="checkbox-item"><input type="checkbox" class="chk_ferramenta" value="Celular Operacional + Carregador" checked> Celular com Carregador Veicular</label>
-  </div>
-
-  <div class="form-group" style="margin-top:16px;">
-    <label>EPIs de Cabine e Rodagem (Óculos, Luvas de Vaqueta, Colete Refletivo NR-32):*</label>
-    <select id="cond_epi" required>
-      <option value="">Selecione...</option>
-      <option value="Sim, todos conformes e disponíveis">Sim, todos conformes e disponíveis</option>
-      <option value="Não, solicitar reposição/adequação imediata">Não, solicitar reposição/adequação imediata</option>
-    </select>
-  </div>
-
-  <div class="form-group">
-    <label>Cilindro Portátil 2 (1m³ — Reserva sob o Banco do Salão):*</label>
-    <select id="cond_cil_port2" required>
-      <option value="">Selecione...</option>
-      <option value="Lacre Íntegro / Cheio (200 bar)">Lacre Íntegro / Cheio (200 bar)</option>
-      <option value="Necessita Substituição / Vazio">Necessita Substituição / Vazio</option>
-    </select>
-  </div>
-
-  <div class="form-group">
-    <label>Relato de Avarias e Observações Gerais do Condutor:</label>
-    <div class="mic-wrapper">
-      <textarea id="cond_avarias" rows="3" placeholder="Digite ou toque no microfone para falar..."></textarea>
-      <button type="button" class="btn-mic" onclick="iniciarVoz('cond_avarias')">🎙️ Ouvir</button>
+    <div style="display:flex; flex-direction:column; margin-bottom:12px;">
+      <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Relato de Avarias e Observações Gerais do Condutor:</label>
+      <textarea id="cond_avarias" rows="3" placeholder="Digite observações ou relatos sobre o veículo..." style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; width:100%;"></textarea>
     </div>
-  </div>
 
-  <div class="action-row">
-    <button type="button" class="btn-back" onclick="voltarInicio()">⬅ Voltar</button>
-    <button type="submit" class="btn-save">💾 Gravar Checklist do Condutor</button>
-  </div>
-</form>
-
-<script>
-  const listaMecanica = [
-    "Óleo do Motor", "Líquido de Arrefecimento", "Óleo de Direção",
-    "Fluido de Freio", "Motor de Arranque", "Direção e Câmbio",
-    "Ar-Condicionado (Cabine e Salão)", "Módulo Sirene e Giroflex",
-    "Limpadores e Vidros", "Faróis e Piscas"
-  ];
-
-  function renderizarMecanica() {
-    const tb = document.getElementById('tb_mecanica');
-    tb.innerHTML = '';
-    listaMecanica.forEach((item, index) => {
-      tb.innerHTML += `
-        <tr id="row_mec_${index}">
-          <td>${item}</td>
-          <td><input type="radio" name="mec_${index}" value="Ok / Conforme"></td>
-          <td><input type="radio" name="mec_${index}" value="Abaixo do Nível / Alerta"></td>
-          <td><input type="radio" name="mec_${index}" value="Com Avaria / Outro"></td>
-        </tr>
-      `;
-    });
-  }
-
-  async function salvarCondutor(e) {
-    e.preventDefault();
-    let pendentes = [];
-    let mapaMecanica = {};
-
-    listaMecanica.forEach((item, index) => {
-      const marcado = document.querySelector(`input[name="mec_${index}"]:checked`);
-      const tr = document.getElementById(`row_mec_${index}`);
-      if (!marcado) { pendentes.push(item); tr.classList.add('unselected'); }
-      else { tr.classList.remove('unselected'); mapaMecanica[item] = marcado.value; }
-    });
-
-    const pneuDiant = document.querySelector('input[name="pneu_diant"]:checked');
-    const pneuTras = document.querySelector('input[name="pneu_tras"]:checked');
-    const pneuEstepe = document.querySelector('input[name="pneu_estepe"]:checked');
-
-    if (!pneuDiant || !pneuTras || !pneuEstepe) pendentes.push("Estado Geral dos Pneus");
-
-    if (pendentes.length > 0) {
-      alert(`⚠️ Preenchimento obrigatório incompleto!\nAvalie os itens destacados em vermelho.`); return;
-    }
-
-    let ferrSelecionadas = [];
-    document.querySelectorAll('.chk_ferramenta:checked').forEach(c => ferrSelecionadas.push(c.value));
-
-    const payload = {
-      viatura: document.getElementById('vtr_prefixo').value,
-      profissional_nome: document.getElementById('prof_nome').value,
-      tipo_procedimento: 'Checklist Condutor',
-      turno_plantao: document.getElementById('cond_turno').value,
-      km_atual: parseInt(document.getElementById('cond_km').value),
-      km_proxima_troca_oleo: parseInt(document.getElementById('cond_km_oleo').value),
-      nivel_combustivel: document.getElementById('cond_comb').value,
-      nivel_arla32: document.getElementById('cond_arla').value,
-      mecanica_iluminacao: mapaMecanica,
-      estado_pneus: { dianteiros: pneuDiant.value, traseiros: pneuTras.value, estepe: pneuEstepe.value },
-      mochilas_equipamentos: {
-        ferramentas: ferrSelecionadas,
-        epis: document.getElementById('cond_epi').value,
-        cilindro_portatil_2: document.getElementById('cond_cil_port2').value
-      },
-      relato_avarias: document.getElementById('cond_avarias').value
-    };
-
-    const { error } = await dbNuvem.from('operacional_checklists').insert([payload]);
-    if (!error) {
-      await registrarLog('Operacional', 'Checklist Condutor', `Checklist gravado por ${payload.profissional_nome}.`);
-      alert('✅ Checklist do Condutor salvo com sucesso!'); location.reload();
-    } else { alert('Erro: ' + error.message); }
-  }
-
-  renderizarMecanica();
-</script>
+    <button type="submit" style="margin-top:18px; background:#16a34a; color:white; border:none; padding:14px; border-radius:8px; font-weight:800; cursor:pointer; font-size:0.95rem; width:100%; transition:0.2s;">
+      💾 Gravar Checklist do Condutor no Supabase
+    </button>
+  </form>
+</div>
