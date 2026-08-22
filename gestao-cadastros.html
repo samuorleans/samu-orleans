@@ -150,22 +150,27 @@
       carregarInsumos();
     };
 
-    // CARREGA TODOS OS INSUMOS DO ESTOQUE_MESTRE
+    // CARREGA TODOS OS INSUMOS DO ESTOQUE_MESTRE COM LEITURA FLEXÍVEL DE COLUNAS
     async function carregarInsumos() {
       const tbody = document.getElementById('tabelaInsumosBody');
       try {
-        const { data, error } = await dbNuvem.from('estoque_mestre').select('*').order('item_nome', { ascending: true });
+        const { data, error } = await dbNuvem.from('estoque_mestre').select('*');
         
         if (error) throw error;
 
         if (data && data.length > 0) {
           tbody.innerHTML = '';
           data.forEach(item => {
+            // Identifica dinamicamente o nome da coluna no banco
+            const nomeExibicao = item.nome || item.item_nome || item.descricao || item.item || 'Item Sem Nome';
+            const catExibicao = item.categoria || 'COMBUSTIVEL';
+            const unidExibicao = item.unidade || 'Litro(s)';
+
             tbody.innerHTML += `
               <tr>
-                <td><b>${item.item_nome || item.nome || 'Sem Nome'}</b></td>
-                <td><span style="background:#e2e8f0; padding:4px 8px; border-radius:6px; font-weight:700; font-size:0.75rem;">${item.categoria || 'Geral'}</span></td>
-                <td>${item.unidade || 'Unidade'}</td>
+                <td><b>${nomeExibicao}</b></td>
+                <td><span style="background:#e2e8f0; padding:4px 8px; border-radius:6px; font-weight:700; font-size:0.75rem;">${catExibicao}</span></td>
+                <td>${unidExibicao}</td>
                 <td>
                   <button class="btn-del" onclick="excluirInsumo(${item.id})">🗑️ Excluir</button>
                 </td>
@@ -173,7 +178,7 @@
             `;
           });
         } else {
-          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">Nenhum insumo cadastrado na tabela estoque_mestre. Click no botão acima para adicionar.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">Nenhum insumo cadastrado na tabela estoque_mestre. Clique em "+ Novo Insumo" para adicionar.</td></tr>';
         }
       } catch (e) {
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Erro ao buscar dados do banco de dados.</td></tr>';
@@ -189,7 +194,7 @@
       document.getElementById('formNovoInsumo').reset();
     }
 
-    // GRAVA O NOVO ITEM NA TABELA estoque_mestre
+    // TENTA A GRAVAÇÃO FLEXÍVEL NAS COLUNAS MAIS COMUNS DA TABELA
     async function salvarNovoInsumo(e) {
       e.preventDefault();
 
@@ -197,28 +202,46 @@
       const categoria = document.getElementById('ins_categoria').value;
       const unidade = document.getElementById('ins_unidade').value;
 
-      try {
-        const { error } = await dbNuvem.from('estoque_mestre').insert([
-          {
-            item_nome: itemNome,
-            categoria: categoria,
-            unidade: unidade
-          }
-        ]);
+      // 1ª Tentativa: usar a coluna 'nome'
+      let payload = {
+        nome: itemNome,
+        categoria: categoria,
+        unidade: unidade
+      };
 
-        if (error) {
-          alert("❌ Erro ao salvar insumo: " + error.message);
-        } else {
-          alert("✅ Insumo cadastrado com sucesso no estoque_mestre!");
-          fecharModalInsumo();
-          carregarInsumos();
-        }
-      } catch (err) {
-        alert("❌ Erro de conexão com o banco de dados.");
+      let { error } = await dbNuvem.from('estoque_mestre').insert([payload]);
+
+      // 2ª Tentativa: usar a coluna 'descricao' se 'nome' não existir
+      if (error && error.message.includes('column')) {
+        payload = {
+          descricao: itemNome,
+          categoria: categoria,
+          unidade: unidade
+        };
+        const retry1 = await dbNuvem.from('estoque_mestre').insert([payload]);
+        error = retry1.error;
+      }
+
+      // 3ª Tentativa: usar a coluna 'item_nome'
+      if (error && error.message.includes('column')) {
+        payload = {
+          item_nome: itemNome,
+          categoria: categoria,
+          unidade: unidade
+        };
+        const retry2 = await dbNuvem.from('estoque_mestre').insert([payload]);
+        error = retry2.error;
+      }
+
+      if (error) {
+        alert("❌ Erro ao salvar insumo: " + error.message);
+      } else {
+        alert("✅ Insumo cadastrado com sucesso no estoque_mestre!");
+        fecharModalInsumo();
+        carregarInsumos();
       }
     }
 
-    // EXCLUI INSUMO DO ESTOQUE_MESTRE
     async function excluirInsumo(id) {
       if (!confirm("Tem certeza que deseja remover este item do estoque mestre?")) return;
 
