@@ -27,7 +27,12 @@
     }
 
     .j3-header h1 { font-size: 1.25rem; color: var(--samu-navy); font-weight: 800; text-transform: uppercase; }
-    .j3-header p { font-size: 0.82rem; color: #64748b; margin-top: 4px; margin-bottom: 20px; }
+    .j3-header p { font-size: 0.82rem; color: #64748b; margin-top: 4px; margin-bottom: 16px; }
+
+    .alert-banner {
+      background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;
+      padding: 10px; border-radius: 8px; font-size: 0.78rem; text-align: left; margin-bottom: 18px; font-weight: 600;
+    }
 
     .tab-btn-group { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
     .tab-btn { flex: 1; padding: 10px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.85rem; border-radius: 8px; cursor: pointer; color: var(--samu-navy); transition: 0.2s; }
@@ -49,6 +54,14 @@
     .table-plantao { width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left; margin-top: 10px; }
     .table-plantao th, .table-plantao td { border: 1px solid var(--border); padding: 8px; }
     .table-plantao th { background: var(--samu-navy); color: white; }
+
+    .whatsapp-box {
+      background: #f0fdf4; border: 1px solid #bbf7d0; padding: 14px; border-radius: 10px;
+      margin-top: 15px; text-align: left; display: none;
+    }
+    .whatsapp-box h4 { color: #166534; font-size: 0.85rem; margin-bottom: 6px; }
+    .whatsapp-box textarea { width: 100%; font-size: 0.8rem; padding: 8px; border: 1px solid #86efac; border-radius: 6px; background: #fff; resize: none; }
+    .btn-zap { margin-top: 8px; background: #25d366; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
   </style>
 </head>
 <body>
@@ -56,7 +69,11 @@
   <div class="j3-card">
     <div class="j3-header">
       <h1>🚨 Módulo de Assunção J3</h1>
-      <p>Confirmação de Plantão, Rendição e Histórico — USB 11</p>
+      <p>Confirmação de Plantão (24h/12h) & Envio para Regulação — USB 11</p>
+    </div>
+
+    <div class="alert-banner">
+      ℹ️ <b>USB 11 (Orleans)</b>: Plantões padrão de 24h com validação e checagem para envio à Central de Regulação (07:00 e 19:00).
     </div>
 
     <!-- NAVEGAÇÃO DE ABAS -->
@@ -69,14 +86,14 @@
     <div id="conteudoTab1">
       <form id="formJ3" onsubmit="processarJ3(event)">
         <div class="form-group">
-          <label>1. Condutor Socorrista:</label>
+          <label>1. Condutor Socorrista:*</label>
           <select id="j3_condutor">
             <option value="">Carregando condutores...</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>2. Técnico / Enfermeiro:</label>
+          <label>2. Técnico / Enfermeiro:*</label>
           <select id="j3_tecnico">
             <option value="">Carregando enfermagem...</option>
           </select>
@@ -100,6 +117,13 @@
 
         <button type="submit" class="btn-j3">💾 Confirmar e Registrar J3</button>
       </form>
+
+      <!-- CAIXA DE ATALHO PARA COPIAR O MENSAGEM DO WHATSAPP DA REGULAÇÃO -->
+      <div id="whatsappBox" class="whatsapp-box">
+        <h4>📱 Mensagem Pronta para a Regulação (WhatsApp):</h4>
+        <textarea id="textoZap" rows="4" readonly></textarea>
+        <button type="button" class="btn-zap" onclick="copiarTextoZap()">📋 Copiar Texto para WhatsApp</button>
+      </div>
     </div>
 
     <!-- CONTEÚDO 2: TABELA DE HISTÓRICO DE PLANTÕES -->
@@ -177,8 +201,8 @@
         const { data, error } = await dbNuvem.from('colaboradores').select('*');
 
         if (!error && data && data.length > 0) {
-          selC.innerHTML = '<option value="">(Opcional) Selecione Condutor...</option>';
-          selT.innerHTML = '<option value="">(Opcional) Selecione Enfermagem...</option>';
+          selC.innerHTML = '<option value="">Selecione o Condutor...</option>';
+          selT.innerHTML = '<option value="">Selecione a Enfermagem...</option>';
 
           data.forEach(c => {
             const cargo = (c.cargo || c.funcao || '').toUpperCase();
@@ -195,14 +219,13 @@
     function popularReserva() {
       const selC = document.getElementById('j3_condutor');
       const selT = document.getElementById('j3_tecnico');
-      selC.innerHTML = '<option value="">(Opcional) Selecione Condutor...</option>';
+      selC.innerHTML = '<option value="">Selecione o Condutor...</option>';
       equipeCondutoresReserva.forEach(i => selC.innerHTML += `<option value="${i.nome}">${i.nome}</option>`);
 
-      selT.innerHTML = '<option value="">(Opcional) Selecione Enfermagem...</option>';
+      selT.innerHTML = '<option value="">Selecione a Enfermagem...</option>';
       equipeEnfermagemReserva.forEach(i => selT.innerHTML += `<option value="${i.nome}">${i.nome}</option>`);
     }
 
-    /* CONFIRMAÇÃO DO J3 COM RENDIÇÃO ASSÍNCRONA E AUTO-MERGE */
     async function processarJ3(e) {
       e.preventDefault();
       const condutor = document.getElementById('j3_condutor').value;
@@ -211,8 +234,8 @@
       const ehExcepcional = document.getElementById('j3_chk_excepcional').checked;
       const justificativa = document.getElementById('j3_justificativa').value.trim();
 
-      if (!condutor && !tecnico) {
-        alert("⚠️ Selecione pelo menos 1 integrante (Condutor ou Enfermagem) para registrar o J3."); return;
+      if (!condutor || !tecnico) {
+        alert("⚠️ ATENÇÃO: A viatura precisa da dupla completa (Condutor + Enfermagem) para confirmar o J3."); return;
       }
       if (ehExcepcional && !justificativa) {
         alert("Informe a justificativa da troca emergencial."); return;
@@ -230,61 +253,48 @@
         }
 
         if (usuarioValido || senha === 'samu192' || senha === '123456') {
-          // Busca se há um J3 'EM RENDIÇÃO' aberto nas últimas 2 horas para fundir a dupla
-          const { data: pendentes } = await dbNuvem.from('plantoes_j3').select('*').eq('status', 'EM RENDIÇÃO').limit(1);
+          // Encerra plantão anterior e ativa o novo (Plantão de 24h / Ciclo)
+          await dbNuvem.from('plantoes_j3').update({ status: 'ENCERRADO' }).eq('status', 'ATIVO');
 
-          let statusNovo = (condutor && tecnico) ? 'ATIVO' : 'EM RENDIÇÃO';
-          let condutorFinal = condutor;
-          let tecnicoFinal = tecnico;
+          await dbNuvem.from('plantoes_j3').insert([{
+            condutor: condutor,
+            enfermagem: tecnico,
+            tipo_registro: ehExcepcional ? 'EXCEPCIONAL' : 'REGULAR',
+            justificativa: justificativa || 'Assunção de Plantão 24h',
+            status: 'ATIVO'
+          }]);
 
-          if (pendentes && pendentes.length > 0) {
-            const p = pendentes[0];
-            condutorFinal = condutor || p.condutor;
-            tecnicoFinal = tecnico || p.enfermagem;
-
-            if (condutorFinal && tecnicoFinal) statusNovo = 'ATIVO';
-
-            // Atualiza o registro existente
-            await dbNuvem.from('plantoes_j3').update({
-              condutor: condutorFinal,
-              enfermagem: tecnicoFinal,
-              status: statusNovo
-            }).eq('id', p.id);
-          } else {
-            // Desativa anteriores se a dupla estiver completa
-            if (statusNovo === 'ATIVO') {
-              await dbNuvem.from('plantoes_j3').update({ status: 'ENCERRADO' }).eq('status', 'ATIVO');
-            }
-
-            // Insere novo J3
-            await dbNuvem.from('plantoes_j3').insert([{
-              condutor: condutorFinal || 'Pendente',
-              enfermagem: tecnicoFinal || 'Pendente',
-              tipo_registro: ehExcepcional ? 'EXCEPCIONAL' : 'REGULAR',
-              justificativa: justificativa || 'Assunção de Plantão',
-              status: statusNovo
-            }]);
-          }
-
-          // Grava log auditável
           const cpfLog = usuarioValido ? usuarioValido.cpf : '075.486.369-70';
-          const nomeLog = usuarioValido ? usuarioValido.nome : `${condutorFinal} / ${tecnicoFinal}`;
+          const nomeLog = usuarioValido ? usuarioValido.nome : `${condutor} & ${tecnico}`;
 
           await dbNuvem.from('logs_alteracoes').insert([{
             usuario_cpf: cpfLog,
             usuario_nome: nomeLog,
-            acao: `J3 ${statusNovo}`,
-            detalhes: `Equipe: Condutor (${condutorFinal || 'Pendente'}) + Enfermagem (${tecnicoFinal || 'Pendente'}). ${justificativa}`,
+            acao: 'J3 ATIVO (24h)',
+            detalhes: `Equipe: Condutor (${condutor}) + Enfermagem (${tecnico}). ${justificativa}`,
             data_hora: new Date().toISOString()
           }]);
 
-          alert(`✅ J3 Registrado com Sucesso!\nStatus: ${statusNovo}\n\nCondutor: ${condutorFinal || 'Aguardando'}\nEnfermagem: ${tecnicoFinal || 'Aguardando'}`);
+          // Gera texto pronto para enviar no WhatsApp da Regulação
+          const agora = new Date().toLocaleString('pt-BR');
+          const textoZapFormatado = `🚨 *PASSAGEM DE PLANTÃO J3 - USB 11*\n📅 Data/Hora: ${agora}\n🚑 Condutor: ${condutor}\n🩺 Enfermagem: ${tecnico}\nStatus: Viatura Operacional e Equipe Confirmada.`;
+          
+          document.getElementById('textoZap').value = textoZapFormatado;
+          document.getElementById('whatsappBox').style.display = 'block';
+
+          alert(`✅ J3 Confirmado com Sucesso!\n\nCondutor: ${condutor}\nEnfermagem: ${tecnico}\n\n👉 Copie a mensagem abaixo para enviar à Regulação via WhatsApp.`);
           document.getElementById('j3_senha').value = '';
-          mudarAba(2);
         } else {
           alert("❌ Senha Única incorreta.");
         }
       } catch (err) { alert("Erro ao conectar com o banco."); }
+    }
+
+    function copiarTextoZap() {
+      const textarea = document.getElementById('textoZap');
+      textarea.select();
+      document.execCommand('copy');
+      alert("📋 Mensagem copiada com sucesso! Cole no WhatsApp da Regulação.");
     }
 
     async function carregarHistorico() {
@@ -297,10 +307,7 @@
         if (!error && data && data.length > 0) {
           tbody.innerHTML = '';
           data.forEach(p => {
-            let badge = '⚪ ANTERIOR';
-            if (p.status === 'ATIVO') badge = '<span style="color:#15803d; font-weight:bold;">🟢 ATIVO</span>';
-            else if (p.status === 'EM RENDIÇÃO') badge = '<span style="color:#d97706; font-weight:bold;">🟡 RENDIÇÃO</span>';
-
+            let badge = p.status === 'ATIVO' ? '<span style="color:#15803d; font-weight:bold;">🟢 ATIVO</span>' : '⚪ ANTERIOR';
             const dataFmt = new Date(p.data_confirmacao || p.created_at || new Date()).toLocaleString('pt-BR');
 
             tbody.innerHTML += `
