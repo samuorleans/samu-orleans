@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAMU Connect — Central Operacional</title>
+  <title>SGF-SAMU | Sistema Gestor de Frota e Operações</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --samu-navy: #0d233a;
       --samu-blue: #1976d2;
+      --samu-red: #d32f2f;
       --bg-surface: #f4f7fa;
       --card-bg: #ffffff;
       --border: #cbd5e1;
@@ -18,193 +19,227 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
     body { background-color: var(--bg-surface); color: #1e293b; min-height: 100vh; padding: 20px 12px; }
 
-    .container { max-width: 750px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; text-align: center; }
+    .container { max-width: 650px; margin: 0 auto; background: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow); border-top: 8px solid var(--samu-navy); overflow: hidden; }
     
-    .brand-logo { width: 50px; height: auto; margin-bottom: 6px; }
-    .header h1 { font-size: 1.2rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; }
-    .header p { font-size: 0.8rem; color: #64748b; margin-bottom: 20px; font-weight: 600; }
+    .header-banner { background: var(--samu-navy); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--samu-red); }
+    .header-banner h1 { font-size: 1.15rem; font-weight: 800; letter-spacing: 0.5px; }
+    .header-banner p { font-size: 0.78rem; color: #cbd5e1; margin-top: 4px; line-height: 1.3; }
 
-    /* SELETOR DE PERFIL DE ACESSO OPERACIONAL */
-    .perfil-bar { background: #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-    .perfil-bar label { font-size: 0.78rem; font-weight: 800; color: var(--samu-navy); text-transform: uppercase; }
-    .perfil-bar select { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); font-weight: 700; font-size: 0.82rem; outline: none; background: white; }
+    .form-body { padding: 24px; text-align: left; }
+    
+    .form-card-block { background: #ffffff; border: 1.5px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+    .form-card-block label.title { font-size: 0.82rem; font-weight: 800; color: var(--samu-navy); text-transform: uppercase; display: block; margin-bottom: 10px; }
+    .form-card-block label.title span { color: var(--samu-red); }
 
-    /* NAVEGAÇÃO ENTRE MÓDULOS DE CHECKLIST */
-    .nav-tabs { display: flex; gap: 8px; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; overflow-x: auto; }
-    .tab-btn { padding: 10px 14px; border: none; background: #cbd5e1; font-weight: 700; font-size: 0.82rem; border-radius: 8px; cursor: pointer; color: #475569; white-space: nowrap; transition: 0.2s; }
-    .tab-btn.active { background: var(--samu-navy); color: white; }
-    .tab-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+    .form-group input, .form-group select, .form-group textarea { padding: 11px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none; background: white; width: 100%; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--samu-blue); }
 
-    .btn-voltar { display: inline-block; margin-top: 20px; font-size: 0.85rem; color: var(--samu-blue); text-decoration: none; font-weight: 700; }
+    /* RADIO BUTTONS ESTILIZADOS COMO O GOOGLE FORMS */
+    .radio-group { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+    .radio-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: 0.2s; background: #f8fafc; }
+    .radio-option:hover { background: #e2e8f0; }
+    .radio-option input[type="radio"] { width: 18px; height: 18px; accent-color: var(--samu-navy); }
+    .radio-option span { font-size: 0.85rem; font-weight: 700; color: #334155; }
+
+    .btn-avancar { background: var(--samu-navy); color: white; border: none; padding: 12px 28px; border-radius: 8px; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
+    .btn-avancar:hover { background: #1e3a5f; }
+
+    .btn-voltar-passo { background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; margin-right: 10px; }
+
+    .btn-salvar-final { background: #16a34a; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer; width: 100%; margin-top: 10px; }
+    .btn-salvar-final:hover { background: #15803d; }
+
+    .btn-link-home { display: inline-block; margin-top: 20px; font-size: 0.85rem; color: var(--samu-blue); text-decoration: none; font-weight: 700; text-align: center; width: 100%; }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <div class="header">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Star_of_life_caucasia.svg" alt="SAMU 192" class="brand-logo">
-      <h1>SAMU CONNECT — CENTRAL OPERACIONAL</h1>
-      <p>USB 11 ORLEANS — Registros Operacionais e Checklists de Rotina</p>
+    <div class="header-banner">
+      <h1>SGF-SAMU | Sistema Gestor de Frota e Operações</h1>
+      <p>Formulário oficial de registro diário de checklists operacionais (Condutor e Enfermagem) e controle de abastecimento da frota — USB 11 Orleans</p>
     </div>
 
-    <!-- CONTROLE DE ACESSO E PERMISSÃO POR FUNÇÃO -->
-    <div class="perfil-bar">
-      <label>⚙️ Perfil / Função em Operação:</label>
-      <select id="seletorFuncaoPerfil" onchange="aplicarPermissoesPerfil()">
-        <option value="TODOS">🔓 Acesso Livre (Coordenador / Admin)</option>
-        <option value="CONDUTOR">🚚 Condutor Socorrista</option>
-        <option value="ENFERMAGEM">🩺 Técnico / Enfermeiro Socorrista</option>
-      </select>
-    </div>
+    <div class="form-body">
+      
+      <!-- =================================================================== -->
+      <!-- PASSO 1: IDENTIFICAÇÃO E SELEÇÃO DE PROCEDIMENTO (PADRÃO GOOGLE FORMS)-->
+      <!-- =================================================================== -->
+      <div id="passo1">
+        
+        <!-- SELEÇÃO DE VIATURA / PREFIXO -->
+        <div class="form-card-block">
+          <label class="title">VIATURA / PREFIXO <span>*</span></label>
+          <div class="form-group">
+            <select id="p1_viatura" required>
+              <option value="">Escolher...</option>
+            </select>
+          </div>
+        </div>
 
-    <!-- ABAS OPERACIONAIS COM HABILITAÇÃO DINÂMICA -->
-    <div class="nav-tabs">
-      <button class="tab-btn active" id="tabAbs" onclick="mudarAba('form-abastecimento.html', 'tabAbs')">⛽ Abastecimento</button>
-      <button class="tab-btn" id="tabLacres" onclick="mudarAba('form-lacre.html', 'tabLacres')">🔒 Checklist & Lacres</button>
-      <button class="tab-btn" id="tabCondutor" onclick="mudarAba('form-condutor.html', 'tabCondutor')">🚑 Conferência Condutor</button>
-      <button class="tab-btn" id="tabTecnico" onclick="mudarAba('form-tecnico.html', 'tabTecnico')">🩺 Conferência Enfermagem</button>
-    </div>
+        <!-- SELEÇÃO DO PROFISSIONAL -->
+        <div class="form-card-block">
+          <label class="title">NOME DO PROFISSIONAL (CONDUTOR OU TÉCNICO) <span>*</span></label>
+          <div class="form-group">
+            <select id="p1_profissional" required>
+              <option value="">Escolher...</option>
+            </select>
+          </div>
+        </div>
 
-    <!-- RECEPTÁCULO DO FORMULÁRIO ATIVO -->
-    <div id="conteudoModulo">
-      <p style="color:#64748b; font-size:0.85rem;">Carregando checklist operacional...</p>
-    </div>
+        <!-- SELEÇÃO DO PROCEDIMENTO DIRETREMENTE -->
+        <div class="form-card-block">
+          <label class="title">QUAL PROCEDIMENTO DESEJA REALIZAR AGORA? <span>*</span></label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="procedimento" value="condutor" checked>
+              <span>📑 Checklist de Plantão - Condutor Socorrista</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="procedimento" value="tecnico">
+              <span>🩺 Checklist de Plantão - Técnico de Enfermagem</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="procedimento" value="abastecimento">
+              <span>⛽ Registrar Abastecimento de Combustível/Arla</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="procedimento" value="lacre">
+              <span>🔒 Registro de Ocorrência / Troca de Lacre (Checklist)</span>
+            </label>
+          </div>
+        </div>
 
-    <a href="index.html" class="btn-voltar">⬅️ Voltar ao Painel Principal</a>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+          <button type="button" class="btn-avancar" onclick="avancarPasso2()">Avançar ➔</button>
+          <span style="font-size: 0.78rem; color: #94a3b8; font-weight: 600;">Página 1 de 2</span>
+        </div>
+
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- PASSO 2: EXIBIÇÃO DO FORMULÁRIO ESCOLHIDO                            -->
+      <!-- =================================================================== -->
+      <div id="passo2" style="display: none;">
+        
+        <!-- RESUMO DA IDENTIFICAÇÃO -->
+        <div style="background: #e2e8f0; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 0.82rem; font-weight: 700; color: var(--samu-navy);">
+          Viatura: <span id="resumo_viatura" style="color:var(--samu-blue);"></span> | Profissional: <span id="resumo_profissional" style="color:var(--samu-blue);"></span>
+        </div>
+
+        <div id="conteudoFormEspecifico">
+          <!-- O formulário específico (Abastecimento, Condutor, Técnico ou Lacre) carrega aqui -->
+        </div>
+
+        <div style="margin-top: 20px; text-align: left;">
+          <button type="button" class="btn-voltar-passo" onclick="voltarPasso1()">⬅️ Voltar</button>
+        </div>
+
+      </div>
+
+      <a href="index.html" class="btn-link-home">⬅️ Voltar ao Painel Principal</a>
+    </div>
   </div>
 
   <script>
-    // Conexão oficial com o Supabase
+    // Conexão com o Supabase
     const dbNuvem = supabase.createClient(
       "https://rcpgukslnlfptreiusff.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
-    let abaAtualArquivo = 'form-abastecimento.html';
-    let abaAtualTabId = 'tabAbs';
-
     window.onload = function() {
-      carregarModulo(abaAtualArquivo, abaAtualTabId);
+      carregarViaturas();
+      carregarProfissionais();
     };
 
-    // CONTROLE DE NAVEGAÇÃO COM CHECAGEM DE PERMISSÃO
-    function mudarAba(arquivoHtml, tabId) {
-      const btn = document.getElementById(tabId);
-      if (btn.classList.contains('disabled')) {
-        alert("🔒 Esta funcionalidade não está disponível para o perfil selecionado.");
-        return;
-      }
-      abaAtualArquivo = arquivoHtml;
-      abaAtualTabId = tabId;
-      carregarModulo(arquivoHtml, tabId);
-    }
-
-    // CARREGAMENTO DO MÓDULO DA PASTA MODULOS/
-    function carregarModulo(arquivoHtml, tabId) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-
-      document.getElementById('conteudoModulo').innerHTML = '<p style="color:#64748b; font-size:0.85rem;">Carregando formulário...</p>';
-
-      fetch(`modulos/${arquivoHtml}`)
-        .then(res => res.text())
-        .then(html => {
-          document.getElementById('conteudoModulo').innerHTML = html;
-          
-          setTimeout(() => {
-            if (typeof carregarViaturas === 'function') carregarViaturas();
-            if (typeof carregarCondutores === 'function') carregarCondutores();
-            if (typeof carregarPostos === 'function') carregarPostos();
-          }, 200);
-        })
-        .catch(err => {
-          document.getElementById('conteudoModulo').innerHTML = '<p style="color:red;">Erro ao carregar o formulário operacional.</p>';
-        });
-    }
-
-    // HABILITA / DESABILITA ABAS DE ACORDO COM A FUNÇÃO
-    function aplicarPermissoesPerfil() {
-      const perfil = document.getElementById('seletorFuncaoPerfil').value;
-
-      const btnAbs = document.getElementById('tabAbs');
-      const btnLacres = document.getElementById('tabLacres');
-      const btnCondutor = document.getElementById('tabCondutor');
-      const btnTecnico = document.getElementById('tabTecnico');
-
-      // Reseta bloqueios
-      [btnAbs, btnLacres, btnCondutor, btnTecnico].forEach(b => b.classList.remove('disabled'));
-
-      if (perfil === 'CONDUTOR') {
-        btnTecnico.classList.add('disabled');
-        if (abaAtualTabId === 'tabTecnico') mudarAba('form-condutor.html', 'tabCondutor');
-      } else if (perfil === 'ENFERMAGEM') {
-        btnAbs.classList.add('disabled');
-        btnCondutor.classList.add('disabled');
-        if (abaAtualTabId === 'tabAbs' || abaAtualTabId === 'tabCondutor') mudarAba('form-tecnico.html', 'tabTecnico');
-      }
-    }
-
-    // ============================================================================
-    // CONSULTAS BANCO DE DADOS SUPABASE
-    // ============================================================================
+    // 1. CARREGA VIATURAS DO BANCO
     async function carregarViaturas() {
-      const selV = document.getElementById('abs_viatura');
-      if (!selV) return;
+      const selV = document.getElementById('p1_viatura');
       try {
         const { data } = await dbNuvem.from('operacional_viaturas').select('*');
         if (data && data.length > 0) {
-          selV.innerHTML = '<option value="">Selecione a Viatura...</option>';
+          selV.innerHTML = '<option value="">Escolher...</option>';
           data.forEach(v => {
-            const label = v.placa ? `${v.prefixo || 'USB'} (${v.placa})` : v.prefixo;
-            selV.innerHTML += `<option value="${label}">${label}</option>`;
+            const rotulo = v.placa ? `${v.prefixo || 'USB'} (${v.placa})` : v.prefixo;
+            selV.innerHTML += `<option value="${rotulo}">${rotulo}</option>`;
           });
         }
       } catch (e) {}
     }
 
-    async function carregarCondutores() {
-      const selC = document.getElementById('abs_condutor');
-      if (!selC) return;
+    // 2. CARREGA TODOS OS PROFISSIONAIS ATIVOS
+    async function carregarProfissionais() {
+      const selP = document.getElementById('p1_profissional');
       try {
-        const { data } = await dbNuvem.from('colaboradores').select('nome, funcao, status').order('nome', { ascending: true });
+        const { data } = await dbNuvem.from('colaboradores').select('nome, status').order('nome', { ascending: true });
         if (data && data.length > 0) {
-          selC.innerHTML = '<option value="">Selecione o Condutor...</option>';
+          selP.innerHTML = '<option value="">Escolher...</option>';
           data.forEach(c => {
-            const f = (c.funcao || '').toUpperCase();
-            if (c.status !== 'DESLIGADO' && (f.includes('CONDUTOR') || f.includes('MOTORISTA') || f.includes('ADMIN'))) {
-              selC.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+            if (c.status !== 'DESLIGADO') {
+              selP.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
             }
           });
         }
       } catch (e) {}
     }
 
-    async function carregarPostos() {
-      const selP = document.getElementById('abs_posto');
-      if (!selP) return;
-      try {
-        const { data } = await dbNuvem.from('operacional_postos').select('nome_posto, status').eq('status', 'ATIVO');
-        if (data && data.length > 0) {
-          selP.innerHTML = '<option value="">Selecione o Posto...</option>';
-          data.forEach(p => {
-            selP.innerHTML += `<option value="${p.nome_posto}">${p.nome_posto}</option>`;
-          });
-        }
-      } catch (e) {}
+    // 3. AVANÇA PARA O PASSO 2 E CARREGA O MÓDULO ESCOLHIDO
+    function avancarPasso2() {
+      const viatura = document.getElementById('p1_viatura').value;
+      const profissional = document.getElementById('p1_profissional').value;
+
+      if (!viatura || !profissional) {
+        alert("⚠️ Por favor, selecione a Viatura e o Nome do Profissional antes de avançar.");
+        return;
+      }
+
+      const procSel = document.querySelector('input[name="procedimento"]:checked').value;
+
+      document.getElementById('resumo_viatura').innerText = viatura;
+      document.getElementById('resumo_profissional').innerText = profissional;
+
+      let arquivoModulo = 'form-condutor.html';
+      if (procSel === 'tecnico') arquivoModulo = 'form-tecnico.html';
+      if (procSel === 'abastecimento') arquivoModulo = 'form-abastecimento.html';
+      if (procSel === 'lacre') arquivoModulo = 'form-lacre.html';
+
+      document.getElementById('passo1').style.display = 'none';
+      document.getElementById('passo2').style.display = 'block';
+
+      fetch(`modulos/${arquivoModulo}`)
+        .then(res => res.text())
+        .then(html => {
+          document.getElementById('conteudoFormEspecifico').innerHTML = html;
+          
+          // Preenche automaticamente viatura e profissional no formulário interno
+          setTimeout(() => {
+            const fieldViat = document.getElementById('abs_viatura');
+            const fieldCond = document.getElementById('abs_condutor');
+            if (fieldViat) fieldViat.value = viatura;
+            if (fieldCond) fieldCond.value = profissional;
+          }, 200);
+        });
     }
 
-    // GRAVAÇÃO DO ABASTECIMENTO NO SUPABASE
+    function voltarPasso1() {
+      document.getElementById('passo2').style.display = 'none';
+      document.getElementById('passo1').style.display = 'block';
+    }
+
+    // FUNÇÃO DE GRAVAÇÃO DO ABASTECIMENTO
     async function salvarAbastecimento(e) {
       e.preventDefault();
+
       const payload = {
-        viatura: document.getElementById('abs_viatura').value,
-        condutor_nome: document.getElementById('abs_condutor').value,
-        posto_credenciado: document.getElementById('abs_posto').value,
-        tipo_insumo: document.getElementById('abs_combustivel').value,
+        viatura: document.getElementById('resumo_viatura').innerText,
+        condutor_nome: document.getElementById('resumo_profissional').innerText,
+        posto_credenciado: document.getElementById('abs_posto') ? document.getElementById('abs_posto').value : '',
+        tipo_insumo: document.getElementById('abs_combustivel') ? document.getElementById('abs_combustivel').value : 'Diesel S10',
         km_atual: parseInt(document.getElementById('abs_km').value),
         litros: parseFloat(document.getElementById('abs_litros').value),
         valor_pago: parseFloat(document.getElementById('abs_valor').value),
-        observacoes: document.getElementById('abs_obs').value.trim()
+        observacoes: document.getElementById('abs_obs') ? document.getElementById('abs_obs').value.trim() : ''
       };
 
       try {
@@ -213,7 +248,7 @@
           alert("❌ Erro ao salvar: " + error.message);
         } else {
           alert("✅ Abastecimento gravado com sucesso no Supabase!");
-          document.getElementById('formAbastecimento').reset();
+          voltarPasso1();
         }
       } catch (err) {
         alert("❌ Erro de conexão com o banco.");
