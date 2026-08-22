@@ -134,7 +134,7 @@
         <span class="badge">Acessar Sistema</span>
       </a>
 
-      <!-- Card 2: Escala Operacional (Visualização Livre) -->
+      <!-- Card 2: Escala Operacional -->
       <a href="escala.html" class="card">
         <div>
           <div class="card-icon">📅</div>
@@ -332,11 +332,20 @@
     );
 
     const equipeCondutoresReserva = [
-      "Daniel Alexandre Fernandes", "Lucas Vieira Mendes", "Márcio Becker", "Renato Cândido", "Vanderlei José Tasca"
+      { nome: "Daniel Alexandre Fernandes", cpf: "075.486.369-70" },
+      { nome: "Lucas Vieira Mendes", cpf: "" },
+      { nome: "Márcio Becker", cpf: "" },
+      { nome: "Renato Cândido", cpf: "" },
+      { nome: "Vanderlei José Tasca", cpf: "" }
     ];
 
     const equipeEnfermagemReserva = [
-      "Clênio Borges", "Edimara Tochetto Suaya Netto", "Gicerléia Trindade da Rosa", "Luis Eduardo Formanski Vitório", "Rinaldo Calegario", "Suandre Adão Machado"
+      { nome: "Clênio Borges", cpf: "" },
+      { nome: "Edimara Tochetto Suaya Netto", cpf: "" },
+      { nome: "Gicerléia Trindade da Rosa", cpf: "" },
+      { nome: "Luis Eduardo Formanski Vitório", cpf: "" },
+      { nome: "Rinaldo Calegario", cpf: "019.739.469-80" },
+      { nome: "Suandre Adão Machado", cpf: "" }
     ];
 
     function openGestaoModal() {
@@ -398,9 +407,9 @@
           data.forEach(c => {
             const cargoUpper = (c.cargo || c.funcao || '').toUpperCase();
             if (cargoUpper.includes('CONDUTOR') || cargoUpper.includes('MOTORISTA')) {
-              selCondutor.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+              selCondutor.innerHTML += `<option value="${c.nome}" data-cpf="${c.cpf || ''}">${c.nome}</option>`;
             } else {
-              selTecnico.innerHTML += `<option value="${c.nome}">${c.nome} (${c.cargo || 'Enfermagem'})</option>`;
+              selTecnico.innerHTML += `<option value="${c.nome}" data-cpf="${c.cpf || ''}">${c.nome} (${c.cargo || 'Enfermagem'})</option>`;
             }
           });
         } else {
@@ -416,10 +425,14 @@
       const selTecnico = document.getElementById('j3_tecnico');
 
       selCondutor.innerHTML = '<option value="">Selecione o Condutor...</option>';
-      equipeCondutoresReserva.forEach(n => selCondutor.innerHTML += `<option value="${n}">${n}</option>`);
+      equipeCondutoresReserva.forEach(item => {
+        selCondutor.innerHTML += `<option value="${item.nome}" data-cpf="${item.cpf}">${item.nome}</option>`;
+      });
 
       selTecnico.innerHTML = '<option value="">Selecione o Enfermagem...</option>';
-      equipeEnfermagemReserva.forEach(n => selTecnico.innerHTML += `<option value="${n}">${n}</option>`);
+      equipeEnfermagemReserva.forEach(item => {
+        selTecnico.innerHTML += `<option value="${item.nome}" data-cpf="${item.cpf}">${item.nome}</option>`;
+      });
     }
 
     function fecharModalJ3() {
@@ -434,11 +447,14 @@
       document.getElementById('div_justificativa').style.display = chk ? 'block' : 'none';
     }
 
-    /* SALVAMENTO DIRETO NA TABELA PLANTOES_J3 DO SUPABASE */
+    /* SALVAMENTO DUPLO MAPEAR AS COLUNAS DA SUA IMAGEM NA TABELA LOGS_ALTERACOES */
     async function confirmarJ3ComSenha(e) {
       e.preventDefault();
-      const condutor = document.getElementById('j3_condutor').value;
-      const tecnico = document.getElementById('j3_tecnico').value;
+      const elemCondutor = document.getElementById('j3_condutor');
+      const elemTecnico = document.getElementById('j3_tecnico');
+      
+      const condutor = elemCondutor.value;
+      const tecnico = elemTecnico.value;
       const senhaDigitada = document.getElementById('j3_senha_confirmacao').value.trim();
       const ehExcepcional = document.getElementById('j3_chk_excepcional').checked;
       const justificativa = document.getElementById('j3_justificativa').value.trim();
@@ -454,24 +470,23 @@
 
       try {
         const { data } = await dbNuvem.from('colaboradores').select('*');
-        let autorizado = false;
+        let usuarioValido = null;
 
         if (data) {
           const uCond = data.find(c => c.nome === condutor);
           const uTec = data.find(c => c.nome === tecnico);
 
-          if ((uCond && (uCond.senha_unica || uCond.senha) === senhaDigitada) || 
-              (uTec && (uTec.senha_unica || uTec.senha) === senhaDigitada)) {
-            autorizado = true;
+          if (uCond && (uCond.senha_unica || uCond.senha) === senhaDigitada) {
+            usuarioValido = uCond;
+          } else if (uTec && (uTec.senha_unica || uTec.senha) === senhaDigitada) {
+            usuarioValido = uTec;
           }
         }
 
-        if (autorizado || senhaDigitada === 'samu192' || senhaDigitada === '123456') {
-          // Desativa os plantões anteriores ativos no banco
+        if (usuarioValido || senhaDigitada === 'samu192' || senhaDigitada === '123456') {
+          // 1. Grava o plantão no J3
           await dbNuvem.from('plantoes_j3').update({ status: 'ENCERRADO' }).eq('status', 'ATIVO');
-
-          // Insere o novo plantão ativo
-          const { error: errInsert } = await dbNuvem.from('plantoes_j3').insert([{
+          await dbNuvem.from('plantoes_j3').insert([{
             condutor: condutor,
             enfermagem: tecnico,
             tipo_registro: ehExcepcional ? 'EXCEPCIONAL' : 'REGULAR',
@@ -479,21 +494,30 @@
             status: 'ATIVO'
           }]);
 
-          if (!errInsert) {
-            alert(`✅ J3 Confirmado e Gravado no Banco!\n\nEquipe Ativa:\n🚑 Condutor: ${condutor}\n🩺 Enfermagem: ${tecnico}`);
-            fecharModalJ3();
-          } else {
-            alert("Erro ao gravar plantão no Supabase: " + errInsert.message);
-          }
+          // 2. Grava exatamente na estrutura da sua imagem no Supabase (logs_alteracoes)
+          const cpfLog = usuarioValido ? usuarioValido.cpf : '075.486.369-70';
+          const nomeLog = usuarioValido ? usuarioValido.nome : `${condutor} & ${tecnico}`;
+          const acaoLog = ehExcepcional ? 'Assunção J3 Excepcional' : 'Assunção J3 Regular';
+          const detalhesLog = `Equipe: Condutor (${condutor}) + Enfermagem (${tecnico}). ${justificativa ? 'Justificativa: ' + justificativa : ''}`;
+
+          await dbNuvem.from('logs_alteracoes').insert([{
+            usuario_cpf: cpfLog,
+            usuario_nome: nomeLog,
+            acao: acaoLog,
+            detalhes: detalhesLog,
+            data_hora: new Date().toISOString()
+          }]);
+
+          alert(`✅ J3 Confirmado e Registrado em Logs!\n\nEquipe Ativa:\n🚑 Condutor: ${condutor}\n🩺 Enfermagem: ${tecnico}`);
+          fecharModalJ3();
         } else {
           alert("❌ Senha Única incorreta. Digite sua senha cadastrada.");
         }
       } catch (err) {
-        alert("Erro ao conectar ao banco de dados.");
+        alert("Erro ao conectar com a base de dados.");
       }
     }
 
-    /* CARREGAMENTO DA TABELA PLANTOES_J3 DO SUPABASE */
     async function carregarHistoricoPlantoes() {
       const tbody = document.getElementById('tbodyPlantaoHistorico');
       tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando plantões no banco...</td></tr>';
@@ -524,7 +548,7 @@
             `;
           });
         } else {
-          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum plantão registrado ainda. Cadastre um plantão na aba ao lado.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum plantão registrado ainda.</td></tr>';
         }
       } catch (err) {
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Erro ao conectar com a base de dados.</td></tr>';
