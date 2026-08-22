@@ -1,249 +1,82 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAMU Connect — Central Operacional</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --samu-red: #d32f2f;
-      --samu-navy: #0d233a;
-      --samu-blue: #1976d2;
-      --bg-surface: #f4f7fa;
-      --card-bg: #ffffff;
-      --text-main: #1e293b;
-      --border: #cbd5e1;
-      --shadow: 0 10px 30px rgba(13, 35, 58, 0.08);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { background-color: var(--bg-surface); color: var(--text-main); min-height: 100vh; padding: 20px 12px; }
-
-    .container { max-width: 650px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; text-align: center; }
-    
-    .brand-logo { width: 60px; height: auto; margin-bottom: 8px; }
-    .header h1 { font-size: 1.2rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; }
-    .header p { font-size: 0.8rem; color: #64748b; margin-top: 2px; margin-bottom: 20px; font-weight: 600; }
-
-    .form-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: left; }
-    .form-card h3 { font-size: 0.95rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
-
-    .grid-form { display: grid; grid-template-columns: 1fr; gap: 12px; }
-    @media (min-width: 480px) {
-      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    }
-
-    .form-group { display: flex; flex-direction: column; }
-    .form-group label { font-size: 0.72rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 4px; text-transform: uppercase; }
-    .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none; background: white; width: 100%; }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--samu-blue); }
-
-    .btn-salvar { margin-top: 18px; background: #16a34a; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.95rem; width: 100%; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn-salvar:hover { background: #15803d; }
-
-    .btn-voltar { display: inline-block; margin-top: 20px; font-size: 0.85rem; color: var(--samu-blue); text-decoration: none; font-weight: 700; }
-  </style>
-</head>
-<body>
-
-  <div class="container">
-    <div class="header">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Star_of_life_caucasia.svg" alt="SAMU 192" class="brand-logo">
-      <h1>SAMU CONNECT — CENTRAL OPERACIONAL</h1>
-      <p>USB 11 ORLEANS — Registros Operacionais e Checklists de Rotina</p>
-    </div>
-
-    <!-- FORMULÁRIO DE LANÇAMENTO DE ABASTECIMENTO -->
-    <div class="form-card">
-      <h3>⛽ LANÇAMENTO DE ABASTECIMENTO</h3>
+<!-- ============================================================================
+     MÓDULO: Form-Abastecimento (`modulos/form-abastecimento.html`)
+     FINALIDADE: Formulário individual para lançamento de combustível no Supabase.
+     Sincronizado com: colaboradores, operacional_viaturas, operacional_postos.
+     ============================================================================ -->
+<div class="form-card">
+  <h3 style="color:#0d233a; font-size:1rem; text-transform:uppercase; font-weight:800; margin-bottom:14px;">
+    ⛽ LANÇAMENTO DE ABASTECIMENTO
+  </h3>
+  
+  <form id="formAbastecimento" onsubmit="salvarAbastecimento(event)">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
       
-      <form id="formAbastecimento" onsubmit="salvarAbastecimento(event)">
-        <div class="grid-form">
-          
-          <div class="grid-2">
-            <!-- SELETOR DINÂMICO DE VIATURA DA TABELA operacional_viaturas -->
-            <div class="form-group">
-              <label>Viatura:*</label>
-              <select id="abs_viatura" required>
-                <option value="">Carregando viaturas...</option>
-              </select>
-            </div>
+      <!-- SELETOR DE VIATURA DA TABELA operacional_viaturas -->
+      <div style="display:flex; flex-direction:column; text-align:left;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Viatura:*</label>
+        <select id="abs_viatura" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
+          <option value="">Consultando banco...</option>
+        </select>
+      </div>
 
-            <!-- SELETOR DINÂMICO DE CONDUTORES DA TABELA colaboradores -->
-            <div class="form-group">
-              <label>Condutor Socorrista:*</label>
-              <select id="abs_condutor" required>
-                <option value="">Carregando condutores...</option>
-              </select>
-            </div>
-          </div>
+      <!-- SELETOR DE CONDUTORES DA TABELA colaboradores -->
+      <div style="display:flex; flex-direction:column; text-align:left;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Condutor Socorrista:*</label>
+        <select id="abs_condutor" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
+          <option value="">Consultando banco...</option>
+        </select>
+      </div>
 
-          <div class="grid-2">
-            <!-- SELETOR DINÂMICO DE POSTOS DA TABELA operacional_postos -->
-            <div class="form-group">
-              <label>Posto Credenciado:*</label>
-              <select id="abs_posto" required>
-                <option value="">Carregando postos...</option>
-              </select>
-            </div>
+      <!-- SELETOR DE POSTOS DA TABELA operacional_postos -->
+      <div style="display:flex; flex-direction:column; text-align:left;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Posto Credenciado:*</label>
+        <select id="abs_posto" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
+          <option value="">Consultando banco...</option>
+        </select>
+      </div>
 
-            <!-- APENAS INSUMOS REALMENTE USADOS -->
-            <div class="form-group">
-              <label>Tipo de Insumo / Combustível:*</label>
-              <select id="abs_combustivel" required>
-                <option value="Diesel S10">Diesel S10</option>
-                <option value="Arla 32">Arla 32</option>
-              </select>
-            </div>
-          </div>
+      <!-- APENAS COMBUSTÍVEIS VÁLIDOS (SEM GASOLINA COMUM) -->
+      <div style="display:flex; flex-direction:column; text-align:left;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Tipo de Insumo / Combustível:*</label>
+        <select id="abs_combustivel" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
+          <option value="Diesel S10">Diesel S10</option>
+          <option value="Arla 32">Arla 32</option>
+        </select>
+      </div>
 
-          <div class="grid-2">
-            <div class="form-group">
-              <label>KM Atual da Viatura:*</label>
-              <input type="number" id="abs_km" placeholder="Ex: 148520" required>
-            </div>
+      <div style="display:flex; flex-direction:column; text-align:left;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">KM Atual da Viatura:*</label>
+        <input type="number" id="abs_km" placeholder="Ex: 148520" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none;">
+      </div>
 
-            <div class="form-group">
-              <label>Litros Abastecidos:*</label>
-              <input type="number" step="0.01" id="abs_litros" placeholder="Ex: 55.4" required>
-            </div>
-          </div>
+      <div style="display:flex; flex-direction:column; text-align:left;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Litros Abastecidos:*</label>
+        <input type="number" step="0.01" id="abs_litros" placeholder="Ex: 55.4" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none;">
+      </div>
 
-          <div class="form-group">
-            <label>Valor Total Pago (R$):*</label>
-            <input type="number" step="0.01" id="abs_valor" placeholder="Ex: 340.50" required>
-          </div>
+      <div style="display:flex; flex-direction:column; text-align:left;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Valor Total Pago (R$):*</label>
+        <input type="number" step="0.01" id="abs_valor" placeholder="Ex: 340.50" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none;">
+      </div>
 
-          <div class="form-group">
-            <label>Observações / Nota Fiscal:</label>
-            <textarea id="abs_obs" rows="2" placeholder="Nº da nota fiscal ou observações adicionais..."></textarea>
-          </div>
-
-        </div>
-
-        <button type="submit" class="btn-salvar">💾 Confirmar e Gravar no Supabase</button>
-      </form>
     </div>
 
-    <a href="index.html" class="btn-voltar">⬅️ Voltar ao Painel Principal</a>
-  </div>
+    <div style="display:flex; flex-direction:column; text-align:left; margin-top:12px;">
+      <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Observações / Nota Fiscal:</label>
+      <textarea id="abs_obs" rows="2" placeholder="Nº da nota fiscal ou observações adicionais..." style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; width:100%;"></textarea>
+    </div>
 
-  <script>
-    // ============================================================================
-    // CONEXÃO COM O BANCO DE DADOS SUPABASE
-    // ============================================================================
-    const dbNuvem = supabase.createClient(
-      "https://rcpgukslnlfptreiusff.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
-    );
+    <button type="submit" style="margin-top:18px; background:#16a34a; color:white; border:none; padding:14px; border-radius:8px; font-weight:800; cursor:pointer; font-size:0.95rem; width:100%; transition:0.2s;">
+      💾 Confirmar e Gravar no Supabase
+    </button>
+  </form>
+</div>
 
-    window.onload = function() {
-      carregarViaturas();
-      carregarCondutores();
-      carregarPostos();
-    };
-
-    // ============================================================================
-    // FUNÇÃO: carregarViaturas()
-    // FINALIDADE: Busca viaturas ativas na tabela 'operacional_viaturas'
-    // ============================================================================
-    async function carregarViaturas() {
-      const selV = document.getElementById('abs_viatura');
-      try {
-        const { data, error } = await dbNuvem.from('operacional_viaturas').select('*');
-        if (!error && data && data.length > 0) {
-          selV.innerHTML = '<option value="">Selecione a Viatura...</option>';
-          data.forEach(v => {
-            const rotulo = v.placa ? `${v.prefixo || 'USB'} (${v.placa})` : v.prefixo;
-            selV.innerHTML += `<option value="${rotulo}">${rotulo}</option>`;
-          });
-        } else {
-          selV.innerHTML = `
-            <option value="USB 11 (RLB-2J19)">USB 11 (RLB-2J19)</option>
-            <option value="USB 11 (RESERVA)">USB 11 (RESERVA)</option>
-          `;
-        }
-      } catch (err) {
-        selV.innerHTML = '<option value="USB 11">USB 11</option>';
-      }
-    }
-
-    // ============================================================================
-    // FUNÇÃO: carregarCondutores()
-    // FINALIDADE: Busca os condutores cadastrados na tabela 'colaboradores'
-    // ============================================================================
-    async function carregarCondutores() {
-      const selC = document.getElementById('abs_condutor');
-      try {
-        const { data, error } = await dbNuvem.from('colaboradores').select('nome, funcao, status').order('nome', { ascending: true });
-        if (!error && data && data.length > 0) {
-          selC.innerHTML = '<option value="">Selecione o Condutor...</option>';
-          data.forEach(c => {
-            const func = (c.funcao || '').toUpperCase();
-            if (c.status !== 'DESLIGADO' && (func.includes('CONDUTOR') || func.includes('MOTORISTA') || func.includes('ADMIN'))) {
-              selC.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
-            }
-          });
-        }
-      } catch (err) {
-        selC.innerHTML = '<option value="">Erro ao carregar condutores</option>';
-      }
-    }
-
-    // ============================================================================
-    // FUNÇÃO: carregarPostos()
-    // FINALIDADE: Busca os postos de combustível na tabela 'operacional_postos'
-    // ============================================================================
-    async function carregarPostos() {
-      const selP = document.getElementById('abs_posto');
-      try {
-        const { data, error } = await dbNuvem.from('operacional_postos').select('nome_posto, status').eq('status', 'ATIVO');
-        if (!error && data && data.length > 0) {
-          selP.innerHTML = '<option value="">Selecione o Posto...</option>';
-          data.forEach(p => {
-            selP.innerHTML += `<option value="${p.nome_posto}">${p.nome_posto}</option>`;
-          });
-        } else {
-          selP.innerHTML = '<option value="">Nenhum posto ativo encontrado</option>';
-        }
-      } catch (err) {
-        selP.innerHTML = '<option value="">Erro ao carregar postos</option>';
-      }
-    }
-
-    // ============================================================================
-    // FUNÇÃO: salvarAbastecimento()
-    // FINALIDADE: Grava os dados respeitando exatamente as colunas da tabela
-    //             'operacional_abastecimentos' no Supabase
-    // ============================================================================
-    async function salvarAbastecimento(e) {
-      e.preventDefault();
-
-      const payload = {
-        viatura: document.getElementById('abs_viatura').value,
-        condutor_nome: document.getElementById('abs_condutor').value,
-        posto_credenciado: document.getElementById('abs_posto').value,
-        tipo_insumo: document.getElementById('abs_combustivel').value,
-        km_atual: parseInt(document.getElementById('abs_km').value),
-        litros: parseFloat(document.getElementById('abs_litros').value),
-        valor_pago: parseFloat(document.getElementById('abs_valor').value),
-        observacoes: document.getElementById('abs_obs').value.trim()
-      };
-
-      try {
-        const { data, error } = await dbNuvem.from('operacional_abastecimentos').insert([payload]);
-
-        if (error) {
-          alert("❌ Erro ao salvar no banco: " + error.message);
-        } else {
-          alert("✅ Abastecimento registrado com sucesso no Supabase!");
-          document.getElementById('formAbastecimento').reset();
-        }
-      } catch (err) {
-        alert("❌ Erro ao conectar ao banco de dados.");
-      }
-    }
-  </script>
-</body>
-</html>
+<script>
+  // Inicialização e Carga dos Seletores Dinâmicos
+  setTimeout(() => {
+    if (typeof carregarViaturas === 'function') carregarViaturas();
+    if (typeof carregarCondutores === 'function') carregarCondutores();
+    if (typeof carregarPostos === 'function') carregarPostos();
+  }, 300);
+</script>
