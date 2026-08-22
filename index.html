@@ -282,7 +282,7 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
-    // Lista mestre de reserva da equipe USB 11
+    // Lista mestre reserva da equipe da USB 11
     const equipeReserva = [
       "Clênio Borges - Técnico de Enfermagem",
       "Daniel Alexandre Fernandes - Condutor Socorrista",
@@ -321,13 +321,14 @@
       }
     }
 
-    /* CARREGAMENTO RESILIENTE DO MODAL DE J3 */
+    /* CARREGAMENTO TOTALMENTE PROTEGIDO DO MODAL J3 */
     async function abrirModalJ3() {
       document.getElementById('modalJ3').style.display = 'flex';
       const selPlantao = document.getElementById('j3_servidor_plantao');
       selPlantao.innerHTML = '<option value="">Carregando colaboradores...</option>';
 
       try {
+        // Consulta limpa sem joins complexos
         const { data, error } = await dbNuvem.from('colaboradores').select('*');
 
         if (!error && data && data.length > 0) {
@@ -335,22 +336,25 @@
           data.forEach(c => {
             const nomeUpper = (c.nome || '').toUpperCase();
             if (!nomeUpper.includes('ADMINISTRADOR')) {
-              selPlantao.innerHTML += `<option value="${c.nome}">${c.nome} - ${c.cargo || c.funcao || 'Servidor'}</option>`;
+              let rotuloCargo = c.cargo || c.funcao || 'Servidor';
+              selPlantao.innerHTML += `<option value="${c.nome}">${c.nome} - ${rotuloCargo}</option>`;
             }
           });
         } else {
-          // Fallback seguro usando a lista da equipe
-          selPlantao.innerHTML = '<option value="">Selecione o seu nome...</option>';
-          equipeReserva.forEach(item => {
-            selPlantao.innerHTML += `<option value="${item.split(' - ')[0]}">${item}</option>`;
-          });
+          popularListaReserva();
         }
       } catch (err) {
-        selPlantao.innerHTML = '<option value="">Selecione o seu nome...</option>';
-        equipeReserva.forEach(item => {
-          selPlantao.innerHTML += `<option value="${item.split(' - ')[0]}">${item}</option>`;
-        });
+        popularListaReserva();
       }
+    }
+
+    function popularListaReserva() {
+      const selPlantao = document.getElementById('j3_servidor_plantao');
+      selPlantao.innerHTML = '<option value="">Selecione o seu nome...</option>';
+      equipeReserva.forEach(item => {
+        const nomeApenas = item.split(' - ')[0];
+        selPlantao.innerHTML += `<option value="${nomeApenas}">${item}</option>`;
+      });
     }
 
     function fecharModalJ3() {
@@ -392,7 +396,6 @@
           }
         }
 
-        // Caso a senha padrão genérica seja usada ou a validação passe
         if (autorizado || senhaDigitada === 'samu192' || senhaDigitada === '123456') {
           await dbNuvem.from('logs_alteracoes').insert([{
             sistema: 'Operacional / J3',
@@ -407,7 +410,7 @@
           alert("❌ Senha Única incorreta. Digite sua senha cadastrada.");
         }
       } catch (err) {
-        alert("Erro de conexão ao validar o J3.");
+        alert("Erro ao validar confirmação do J3.");
       }
     }
   </script>
