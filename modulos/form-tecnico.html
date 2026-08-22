@@ -1,139 +1,89 @@
-<h3 style="color:var(--samu-navy); font-size:1.05rem;">🩺 Checklist de Equipamentos, Mochilas e Gases — Enfermagem</h3>
+<!-- ============================================================================
+     MÓDULO: Form-Técnico (`modulos/form-tecnico.html`)
+     FINALIDADE: Checklist de Equipamentos, Mochilas e Gases — Enfermagem.
+     ============================================================================ -->
+<div class="form-card" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:20px; text-align:left;">
+  <h3 style="color:#0d233a; font-size:0.95rem; text-transform:uppercase; font-weight:800; margin-bottom:14px; display:flex; align-items:center; gap:6px;">
+    🩺 CHECKLIST DE EQUIPAMENTOS, MOCHILAS E GASES — ENFERMAGEM
+  </h3>
 
-<form id="formTecnico" onsubmit="salvarTecnico(event)">
-  <div class="grid-2" style="margin-top:12px;">
-    <div class="form-group">
-      <label>Turno do Plantão:*</label>
-      <select id="tec_turno" required>
+  <form id="formTecnico" onsubmit="salvarChecklistTecnico(event)">
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom:12px;">
+      <div style="display:flex; flex-direction:column;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Turno do Plantão:*</label>
+        <select id="tec_turno" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
+          <option value="">Selecione...</option>
+          <option value="Diurno (12h)">Diurno (12h)</option>
+          <option value="Noturno (12h)">Noturno (12h)</option>
+          <option value="Plantão 24h">Plantão 24h</option>
+        </select>
+      </div>
+
+      <div style="display:flex; flex-direction:column;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Nº Lacre Maleta Psicotrópicos (Portaria 344/98):*</label>
+        <input type="text" id="tec_lacre" placeholder="Ex: 123456" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none;">
+      </div>
+    </div>
+
+    <!-- MEDIÇÃO DE GASES MEDICINAIS -->
+    <h4 style="font-size:0.8rem; font-weight:800; color:#1976d2; text-transform:uppercase; margin:16px 0 8px 0;">💨 Medição de Gases Medicinais (Pressão em bar)</h4>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom:16px;">
+      <div style="display:flex; flex-direction:column;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Cilindro Fixo 1 (2,2m³ - bar):*</label>
+        <input type="number" id="tec_cil1" placeholder="Ex: 150" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none;">
+      </div>
+      <div style="display:flex; flex-direction:column;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Cilindro Fixo 2 (2,2m³ - bar):*</label>
+        <input type="number" id="tec_cil2" placeholder="Ex: 150" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none;">
+      </div>
+      <div style="display:flex; flex-direction:column;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Cilindro Portátil 1 (1m³ - Em Uso - bar):*</label>
+        <input type="number" id="tec_portatil" placeholder="Ex: 200" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none;">
+      </div>
+      <div style="display:flex; flex-direction:column;">
+        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Cilindro Ar Comprimido Fixo (bar):*</label>
+        <input type="number" id="tec_ar_comp" placeholder="Ex: 150" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none;">
+      </div>
+    </div>
+
+    <!-- CONFERÊNCIA DE MOCHILAS E EQUIPAMENTOS -->
+    <h4 style="font-size:0.8rem; font-weight:800; color:#1976d2; text-transform:uppercase; margin:16px 0 8px 0;">🎒 Conferência das Mochilas e Equipamentos Médicos (POP-ALM-001 / POP-EQP-001)</h4>
+    <div style="overflow-x:auto; margin-bottom:16px;">
+      <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+        <thead>
+          <tr style="background:#0d233a; color:white; font-size:0.75rem; text-transform:uppercase;">
+            <th style="padding:8px; text-align:left;">Equipamento / Mochila</th>
+            <th style="padding:8px; text-align:center;">Confere / Completo</th>
+            <th style="padding:8px; text-align:center;">Necessita Reposição</th>
+            <th style="padding:8px; text-align:center;">Avaria / Defeito</th>
+          </tr>
+        </thead>
+        <tbody id="tb_mochilas">
+          <tr><td colspan="4" style="text-align:center; padding:10px;">Carregando mochilas e equipamentos...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ALERTA CRÍTICO -->
+    <h4 style="font-size:0.8rem; font-weight:800; color:#d32f2f; text-transform:uppercase; margin:16px 0 8px 0;">🚨 Alerta Crítico & Prevenção do Risco Obstétrico</h4>
+    
+    <div style="display:flex; flex-direction:column; margin-bottom:12px;">
+      <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">ALERTA CRÍTICO: Existe algum material de emergência FALTANDO ou VENCIDO?*</label>
+      <select id="tec_alerta_critico" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
         <option value="">Selecione...</option>
-        <option value="Diurno (12h)">Diurno (12h)</option>
-        <option value="Noturno (12h)">Noturno (12h)</option>
-        <option value="Plantão 24h">Plantão 24h</option>
+        <option value="Não, tudo conforme">Não, tudo conforme</option>
+        <option value="SIM - Descrever abaixo">SIM - Descrever abaixo</option>
       </select>
     </div>
-    <div class="form-group">
-      <label>Número Lacre Maleta Psicotrópicos (Rastreabilidade COREN / Portaria 344/98):*</label>
-      <input type="text" id="tec_lacre" placeholder="Ex: 123456" required>
+
+    <div style="display:flex; flex-direction:column; margin-bottom:12px;">
+      <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Descrição de Materiais Faltantes / Reposição Necessária:</label>
+      <textarea id="tec_obs" rows="3" placeholder="Descreva detalhadamente os materiais faltantes ou vencidos..." style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; width:100%;"></textarea>
     </div>
-  </div>
 
-  <div class="section-header-title">💨 Medição de Gases Medicinais (Pressão em bar)</div>
-  <div class="grid-2">
-    <div class="form-group"><label>Cilindro Fixo 1 (2,2m³ - bar):*</label><input type="number" id="tec_cil1" placeholder="Ex: 150" required></div>
-    <div class="form-group"><label>Cilindro Fixo 2 (2,2m³ - bar):*</label><input type="number" id="tec_cil2" placeholder="Ex: 150" required></div>
-  </div>
-  <div class="grid-2">
-    <div class="form-group"><label>Cilindro Portátil 1 (1m³ - Em Uso - bar):*</label><input type="number" id="tec_portatil" placeholder="Ex: 200" required></div>
-    <div class="form-group"><label>Cilindro Ar Comprimido Fixo (bar):*</label><input type="number" id="tec_ar_comp" placeholder="Ex: 150" required></div>
-  </div>
-
-  <div class="section-header-title">🎒 Conferência das Mochilas e Equipamentos Médicos (POP-ALM-001 / POP-EQP-001)</div>
-  <div class="table-container">
-    <table class="custom-table">
-      <thead>
-        <tr>
-          <th>Equipamento / Mochila</th>
-          <th>Confere / Completo</th>
-          <th>Necessita Reposição</th>
-          <th>Avaria / Defeito</th>
-        </tr>
-      </thead>
-      <tbody id="tb_mochilas"></tbody>
-    </table>
-  </div>
-
-  <div class="section-header-title">🚨 Alerta Crítico & Prevenção do Risco Obstétrico</div>
-  <div class="form-group">
-    <label>ALERTA CRÍTICO: Existe algum material de emergência FALTANDO ou VENCIDO?*</label>
-    <select id="tec_alerta_critico" required>
-      <option value="">Selecione...</option>
-      <option value="Não, tudo conforme">Não, tudo conforme</option>
-      <option value="SIM - Descrever abaixo">SIM - Descrever abaixo</option>
-    </select>
-  </div>
-
-  <div class="form-group">
-    <label>Descrição de Materiais Faltantes / Reposição Necessária:</label>
-    <div class="mic-wrapper">
-      <textarea id="tec_obs" rows="3" placeholder="Descreva detalhadamente os materiais faltantes ou vencidos..."></textarea>
-      <button type="button" class="btn-mic" onclick="iniciarVoz('tec_obs')">🎙️ Ouvir</button>
-    </div>
-  </div>
-
-  <div class="action-row">
-    <button type="button" class="btn-back" onclick="voltarInicio()">⬅ Voltar</button>
-    <button type="submit" class="btn-save">💾 Gravar Checklist de Enfermagem</button>
-  </div>
-</form>
-
-<script>
-  const listaMochilasEnf = [
-    "Mochila Azul - Vias Aéreas (POP-ALM-001)",
-    "Mochila Laranja - Trauma (POP-ALM-001)",
-    "Mochila Verde - Medicamentos (POP-ALM-001)",
-    "Mochila Vermelha - Acesso Venoso & Soluções (POP-ALM-001)",
-    "Mochila Amarela - Sinais Vitais & Glicosímetro (POP-ALM-001)",
-    "DEA / Monitor Multiparâmetros Mindray (POP-ALM-001)",
-    "Aspirador Portátil & Vidro de Aspiração (POP-ALM-001)",
-    "Compressor Thorácico Autopulse / Baterias (POP-EQP-001)",
-    "Kit Parto Iminente Confirmado Estéril (Prevenção Risco Obstétrico)",
-    "Salão & Compartimentos de Insumos (POP-ALM-001)"
-  ];
-
-  function renderizarMochilasEnf() {
-    const tb = document.getElementById('tb_mochilas');
-    tb.innerHTML = '';
-    listaMochilasEnf.forEach((item, index) => {
-      tb.innerHTML += `
-        <tr id="row_moch_${index}">
-          <td>${item}</td>
-          <td><input type="radio" name="moch_${index}" value="Confere / Completo"></td>
-          <td><input type="radio" name="moch_${index}" value="Necessita Reposição"></td>
-          <td><input type="radio" name="moch_${index}" value="Avaria / Defeito"></td>
-        </tr>
-      `;
-    });
-  }
-
-  async function salvarTecnico(e) {
-    e.preventDefault();
-    let pendentes = [];
-    let mapaMochilas = {};
-
-    listaMochilasEnf.forEach((item, index) => {
-      const marcado = document.querySelector(`input[name="moch_${index}"]:checked`);
-      const tr = document.getElementById(`row_moch_${index}`);
-      if (!marcado) { pendentes.push(item); tr.classList.add('unselected'); }
-      else { tr.classList.remove('unselected'); mapaMochilas[item] = marcado.value; }
-    });
-
-    if (pendentes.length > 0) {
-      alert(`⚠️ Preenchimento obrigatório incompleto!\nAvalie as mochilas e equipamentos em vermelho.`); return;
-    }
-
-    const cil1 = parseFloat(document.getElementById('tec_cil1').value);
-    const cil2 = parseFloat(document.getElementById('tec_cil2').value);
-
-    const payload = {
-      viatura: document.getElementById('vtr_prefixo').value,
-      profissional_nome: document.getElementById('prof_nome').value,
-      cilindro_fixo_1_bar: cil1,
-      cilindro_fixo_2_bar: cil2,
-      cilindro_portatil_1_bar: parseFloat(document.getElementById('tec_portatil').value) || 0,
-      cilindro_ar_comprimido_bar: parseFloat(document.getElementById('tec_ar_comp').value) || 0,
-      numero_lacre_psicotropicos: document.getElementById('tec_lacre').value,
-      status_kit_parto: document.getElementById('tec_alerta_critico').value,
-      alerta_oxigenio_critico: (cil1 < 15 || cil2 < 15)
-    };
-
-    const { error } = await dbNuvem.from('operacional_saude_lacres').insert([payload]);
-    if (!error) {
-      await registrarLog('Operacional', 'Checklist Enfermagem', `Conferência realizada por ${payload.profissional_nome}. Lacre: ${payload.numero_lacre_psicotropicos}.`);
-      if (payload.alerta_oxigenio_critico) alert('🚨 ALERTA CRÍTICO: Cilindro de Oxigênio abaixo de 15 bar registrado!');
-      else alert('✅ Checklist de Enfermagem salvo com sucesso!');
-      location.reload();
-    } else { alert('Erro: ' + error.message); }
-  }
-
-  renderizarMochilasEnf();
-</script>
+    <button type="submit" style="margin-top:18px; background:#16a34a; color:white; border:none; padding:14px; border-radius:8px; font-weight:800; cursor:pointer; font-size:0.95rem; width:100%; transition:0.2s;">
+      💾 Gravar Checklist de Enfermagem no Supabase
+    </button>
+  </form>
+</div>
