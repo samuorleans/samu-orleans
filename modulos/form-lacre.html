@@ -1,1 +1,49 @@
+<h3 style="color:var(--samu-navy); font-size:1.05rem;">🔒 Registro de Substituição de Lacre de Segurança</h3>
 
+<form id="formLacre" onsubmit="salvarLacre(event)">
+  <div class="grid-2" style="margin-top:12px;">
+    <div class="form-group"><label>Número Lacre Rompido:*</label><input type="text" id="lacre_ant" required></div>
+    <div class="form-group"><label>Número Novo Lacre Aplicado:*</label><input type="text" id="lacre_novo" required></div>
+  </div>
+
+  <div class="form-group">
+    <label>Motivo da Substituição:*</label>
+    <select id="lacre_motivo" required>
+      <option value="">Selecione o motivo...</option>
+      <option value="Conferência Periódica / Rotina">Conferência Periódica / Rotina</option>
+      <option value="Avaria ou Defeito Físico no Lacre Anterior">Avaria ou Defeito Físico no Lacre Anterior</option>
+      <option value="Vencimento de Lotes / Insumos">Vencimento de Lotes / Insumos</option>
+      <option value="Outros Motivos Operacionais">Outros Motivos Operacionais</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Observações da Ocorrência:</label>
+    <div class="mic-wrapper">
+      <textarea id="lacre_obs" rows="3" placeholder="Digite ou toque no microfone para falar..."></textarea>
+      <button type="button" class="btn-mic" onclick="iniciarVoz('lacre_obs')">🎙️ Ouvir</button>
+    </div>
+  </div>
+
+  <div class="action-row">
+    <button type="button" class="btn-back" onclick="voltarInicio()">⬅ Voltar</button>
+    <button type="submit" class="btn-save">💾 Registrar Troca de Lacre</button>
+  </div>
+</form>
+
+<script>
+  async function salvarLacre(e) {
+    e.preventDefault();
+    const payload = {
+      viatura: document.getElementById('vtr_prefixo').value,
+      profissional_nome: document.getElementById('prof_nome').value,
+      numero_lacre_psicotropicos: document.getElementById('lacre_novo').value
+    };
+
+    const { error } = await dbNuvem.from('operacional_saude_lacres').insert([payload]);
+    if (!error) {
+      await registrarLog('Operacional', 'Troca de Lacre', `Substituição de lacre registrada em ${payload.viatura}.`);
+      alert('✅ Registro de substituição de lacre salvo com sucesso!'); location.reload();
+    } else { alert('Erro: ' + error.message); }
+  }
+</script>
