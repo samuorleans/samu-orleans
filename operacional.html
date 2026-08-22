@@ -155,7 +155,7 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
-    // NOVA URL DO WEB APP DO GOOGLE APPS SCRIPT
+    // ENDEREÇO DO WEB APP DO GOOGLE APPS SCRIPT
     const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwRrYiZpuZ259euUlDJy83L2zD3UiyElgRBJQtQ_4ucrwZEoQuSYf-YXMTX_sOIzqyn/exec";
 
     let adminAutenticado = false;
@@ -198,7 +198,7 @@
       return `${ano}-${mes}-${dia}T${horas}:${minutos}:${segundos}`;
     }
 
-    // DISPARO SEGURO COMPATÍVEL COM GOOGLE APPS SCRIPT
+    // ENVIAR DADOS AO GOOGLE APPS SCRIPT PARA CRIAÇÃO DO PDF NO DRIVE
     async function dispararEnvioGoogleDrive(tipoProc, respostasMap) {
       try {
         const formData = new URLSearchParams();
@@ -217,7 +217,7 @@
           body: formData.toString()
         });
       } catch (err) {
-        console.error("Erro ao enviar dados para o Google Apps Script:", err);
+        console.error("Erro no Apps Script:", err);
       }
     }
 
@@ -466,21 +466,24 @@
       document.getElementById('passo1').style.display = 'block';
     }
 
-    // GRAVAÇÃO ABASTECIMENTO
+    // GRAVAÇÃO ABASTECIMENTO (DUPLO SALVAMENTO + APPS SCRIPT DRIVE)
     async function salvarAbastecimento(e) {
       e.preventDefault();
 
+      const viatura = document.getElementById('resumo_viatura').innerText;
+      const profissional = document.getElementById('resumo_profissional').innerText;
       const posto = document.getElementById('abs_posto') ? document.getElementById('abs_posto').value : '';
       const insumo = document.getElementById('abs_combustivel') ? document.getElementById('abs_combustivel').value : 'Diesel S10';
       const kmAtual = parseInt(document.getElementById('abs_km').value) || 0;
       const litros = parseFloat(document.getElementById('abs_litros').value) || 0;
       const valor = parseFloat(document.getElementById('abs_valor').value) || 0;
       const obs = document.getElementById('abs_obs') ? document.getElementById('abs_obs').value.trim() : '';
+      const dataHoraBR = obterDataHoraBrasil();
 
-      const payload = {
-        data_hora: obterDataHoraBrasil(),
-        viatura: document.getElementById('resumo_viatura').innerText,
-        condutor_nome: document.getElementById('resumo_profissional').innerText,
+      const payloadAbs = {
+        data_hora: dataHoraBR,
+        viatura: viatura,
+        condutor_nome: profissional,
         posto_credenciado: posto,
         tipo_insumo: insumo,
         km_atual: kmAtual,
@@ -489,12 +492,22 @@
         observacoes: obs
       };
 
+      const payloadChecklist = {
+        data_hora: dataHoraBR,
+        viatura: viatura,
+        profissional_nome: profissional,
+        tipo_procedimento: 'Registro de Abastecimento',
+        relato_avarias: `[ABASTECIMENTO] Posto: ${posto} | Insumo: ${insumo} | KM: ${kmAtual} | Litros: ${litros}L | Valor: R$ ${valor} | Obs: ${obs}`
+      };
+
       try {
-        const { error } = await dbNuvem.from('operacional_abastecimentos').insert([payload]);
-        if (error) {
-          alert("❌ Erro ao salvar: " + error.message);
+        const { error: err1 } = await dbNuvem.from('operacional_abastecimentos').insert([payloadAbs]);
+        const { error: err2 } = await dbNuvem.from('operacional_checklists').insert([payloadChecklist]);
+
+        if (err1 || err2) {
+          alert("❌ Erro ao salvar abastecimento: " + (err1 ? err1.message : err2.message));
         } else {
-          dispararEnvioGoogleDrive("Registro de Abastecimento", {
+          await dispararEnvioGoogleDrive("Registro de Abastecimento", {
             "Posto Credenciado": posto,
             "Tipo de Insumo": insumo,
             "Quilometragem no Posto (KM)": kmAtual,
@@ -503,11 +516,11 @@
             "Observações": obs
           });
 
-          alert("✅ Abastecimento gravado e PDF enviado para processamento no Drive!");
+          alert("✅ Abastecimento gravado e enviado para o Google Drive!");
           voltarPasso1();
         }
       } catch (err) {
-        alert("❌ Erro de conexão com o banco.");
+        alert("❌ Erro de conexão com o banco de dados.");
       }
     }
 
@@ -589,7 +602,7 @@
             respDrive["Mecânica - " + key] = val;
           }
 
-          dispararEnvioGoogleDrive("Checklist Condutor", respDrive);
+          await dispararEnvioGoogleDrive("Checklist Condutor", respDrive);
 
           alert("✅ Checklist do Condutor salvo com sucesso!");
           voltarPasso1();
@@ -675,7 +688,7 @@
             respDrive[key] = val;
           }
 
-          dispararEnvioGoogleDrive("Checklist Técnico Enfermagem", respDrive);
+          await dispararEnvioGoogleDrive("Checklist Técnico Enfermagem", respDrive);
 
           if (payloadSaude.alerta_oxigenio_critico) {
             alert("🚨 ATENÇÃO: Checklist salvo! ALERTA CRÍTICO: Cilindro de oxigênio abaixo de 15 bar.");
@@ -691,7 +704,7 @@
       }
     }
 
-    // GRAVAÇÃO SUBSTITUIÇÃO DE LACRE
+    // GRAVAÇÃO SUBSTITUIÇÃO DE LACRE NAS TABELAS CORRESPONDENTES
     async function salvarSubstituicaoLacre(e) {
       e.preventDefault();
 
@@ -722,7 +735,7 @@
         const { error: errCheck } = await dbNuvem.from('operacional_checklists').insert([payloadChecklist]);
 
         if (!errSaude && !errCheck) {
-          dispararEnvioGoogleDrive("Registro de Ocorrência / Troca de Lacre", {
+          await dispararEnvioGoogleDrive("Registro de Ocorrência / Troca de Lacre", {
             "Nº Lacre Rompido": lacreAnt,
             "Nº Lacre Novo Colocado": lacreNovo,
             "Motivo da Troca": motivo,
