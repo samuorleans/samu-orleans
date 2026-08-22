@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SAMU Connect — Central Operacional</title>
-  <!-- SDK OFICIAL SUPABASE DA CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -25,10 +24,16 @@
     .header h1 { font-size: 1.2rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; }
     .header p { font-size: 0.8rem; color: #64748b; margin-bottom: 20px; font-weight: 600; }
 
-    /* NAVEGAÇÃO DE ABAS OPERACIONAIS */
+    /* SELETOR DE PERFIL DE ACESSO OPERACIONAL */
+    .perfil-bar { background: #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .perfil-bar label { font-size: 0.78rem; font-weight: 800; color: var(--samu-navy); text-transform: uppercase; }
+    .perfil-bar select { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); font-weight: 700; font-size: 0.82rem; outline: none; background: white; }
+
+    /* NAVEGAÇÃO ENTRE MÓDULOS DE CHECKLIST */
     .nav-tabs { display: flex; gap: 8px; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; overflow-x: auto; }
-    .tab-btn { padding: 10px 14px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.82rem; border-radius: 8px; cursor: pointer; color: var(--samu-navy); white-space: nowrap; transition: 0.2s; }
+    .tab-btn { padding: 10px 14px; border: none; background: #cbd5e1; font-weight: 700; font-size: 0.82rem; border-radius: 8px; cursor: pointer; color: #475569; white-space: nowrap; transition: 0.2s; }
     .tab-btn.active { background: var(--samu-navy); color: white; }
+    .tab-btn.disabled { opacity: 0.4; cursor: not-allowed; }
 
     .btn-voltar { display: inline-block; margin-top: 20px; font-size: 0.85rem; color: var(--samu-blue); text-decoration: none; font-weight: 700; }
   </style>
@@ -42,17 +47,27 @@
       <p>USB 11 ORLEANS — Registros Operacionais e Checklists de Rotina</p>
     </div>
 
-    <!-- NAVEGAÇÃO ENTRE OS MÓDULOS DA PASTA MODULOS/ -->
-    <div class="nav-tabs">
-      <button class="tab-btn active" id="tabAbs" onclick="carregarModulo('form-abastecimento.html', 'tabAbs')">⛽ Abastecimento</button>
-      <button class="tab-btn" id="tabLacres" onclick="carregarModulo('form-lacre.html', 'tabLacres')">🔒 Checklist & Lacres</button>
-      <button class="tab-btn" id="tabCondutor" onclick="carregarModulo('form-condutor.html', 'tabCondutor')">🚑 Conferência Condutor</button>
-      <button class="tab-btn" id="tabTecnico" onclick="carregarModulo('form-tecnico.html', 'tabTecnico')">🩺 Conferência Enfermagem</button>
+    <!-- CONTROLE DE ACESSO E PERMISSÃO POR FUNÇÃO -->
+    <div class="perfil-bar">
+      <label>⚙️ Perfil / Função em Operação:</label>
+      <select id="seletorFuncaoPerfil" onchange="aplicarPermissoesPerfil()">
+        <option value="TODOS">🔓 Acesso Livre (Coordenador / Admin)</option>
+        <option value="CONDUTOR">🚚 Condutor Socorrista</option>
+        <option value="ENFERMAGEM">🩺 Técnico / Enfermeiro Socorrista</option>
+      </select>
     </div>
 
-    <!-- RECEPTÁCULO DINÂMICO ONDE OS MÓDULOS SÃO CARREGADOS -->
+    <!-- ABAS OPERACIONAIS COM HABILITAÇÃO DINÂMICA -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" id="tabAbs" onclick="mudarAba('form-abastecimento.html', 'tabAbs')">⛽ Abastecimento</button>
+      <button class="tab-btn" id="tabLacres" onclick="mudarAba('form-lacre.html', 'tabLacres')">🔒 Checklist & Lacres</button>
+      <button class="tab-btn" id="tabCondutor" onclick="mudarAba('form-condutor.html', 'tabCondutor')">🚑 Conferência Condutor</button>
+      <button class="tab-btn" id="tabTecnico" onclick="mudarAba('form-tecnico.html', 'tabTecnico')">🩺 Conferência Enfermagem</button>
+    </div>
+
+    <!-- RECEPTÁCULO DO FORMULÁRIO ATIVO -->
     <div id="conteudoModulo">
-      <p style="color:#64748b; font-size:0.85rem;">Carregando formulário operacional...</p>
+      <p style="color:#64748b; font-size:0.85rem;">Carregando checklist operacional...</p>
     </div>
 
     <a href="index.html" class="btn-voltar">⬅️ Voltar ao Painel Principal</a>
@@ -65,15 +80,28 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
+    let abaAtualArquivo = 'form-abastecimento.html';
+    let abaAtualTabId = 'tabAbs';
+
     window.onload = function() {
-      // Carrega o módulo inicial de abastecimento
-      carregarModulo('form-abastecimento.html', 'tabAbs');
+      carregarModulo(abaAtualArquivo, abaAtualTabId);
     };
 
-    // FUNÇÃO QUE CARREGA OS ARQUIVOS DA PASTA MODULOS/ DINAMICAMENTE
+    // CONTROLE DE NAVEGAÇÃO COM CHECAGEM DE PERMISSÃO
+    function mudarAba(arquivoHtml, tabId) {
+      const btn = document.getElementById(tabId);
+      if (btn.classList.contains('disabled')) {
+        alert("🔒 Esta funcionalidade não está disponível para o perfil selecionado.");
+        return;
+      }
+      abaAtualArquivo = arquivoHtml;
+      abaAtualTabId = tabId;
+      carregarModulo(arquivoHtml, tabId);
+    }
+
+    // CARREGAMENTO DO MÓDULO DA PASTA MODULOS/
     function carregarModulo(arquivoHtml, tabId) {
-      // Atualiza o estilo das abas
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
 
       document.getElementById('conteudoModulo').innerHTML = '<p style="color:#64748b; font-size:0.85rem;">Carregando formulário...</p>';
@@ -83,7 +111,6 @@
         .then(html => {
           document.getElementById('conteudoModulo').innerHTML = html;
           
-          // Dispara o preenchimento automático dos seletores do Supabase
           setTimeout(() => {
             if (typeof carregarViaturas === 'function') carregarViaturas();
             if (typeof carregarCondutores === 'function') carregarCondutores();
@@ -91,12 +118,34 @@
           }, 200);
         })
         .catch(err => {
-          document.getElementById('conteudoModulo').innerHTML = '<p style="color:red;">Erro ao carregar o módulo operacional.</p>';
+          document.getElementById('conteudoModulo').innerHTML = '<p style="color:red;">Erro ao carregar o formulário operacional.</p>';
         });
     }
 
+    // HABILITA / DESABILITA ABAS DE ACORDO COM A FUNÇÃO
+    function aplicarPermissoesPerfil() {
+      const perfil = document.getElementById('seletorFuncaoPerfil').value;
+
+      const btnAbs = document.getElementById('tabAbs');
+      const btnLacres = document.getElementById('tabLacres');
+      const btnCondutor = document.getElementById('tabCondutor');
+      const btnTecnico = document.getElementById('tabTecnico');
+
+      // Reseta bloqueios
+      [btnAbs, btnLacres, btnCondutor, btnTecnico].forEach(b => b.classList.remove('disabled'));
+
+      if (perfil === 'CONDUTOR') {
+        btnTecnico.classList.add('disabled');
+        if (abaAtualTabId === 'tabTecnico') mudarAba('form-condutor.html', 'tabCondutor');
+      } else if (perfil === 'ENFERMAGEM') {
+        btnAbs.classList.add('disabled');
+        btnCondutor.classList.add('disabled');
+        if (abaAtualTabId === 'tabAbs' || abaAtualTabId === 'tabCondutor') mudarAba('form-tecnico.html', 'tabTecnico');
+      }
+    }
+
     // ============================================================================
-    // FUNÇÕES DE BUSCA NO SUPABASE PARA OS MÓDULOS OPERACIONAIS
+    // CONSULTAS BANCO DE DADOS SUPABASE
     // ============================================================================
     async function carregarViaturas() {
       const selV = document.getElementById('abs_viatura');
@@ -144,7 +193,7 @@
       } catch (e) {}
     }
 
-    // GRAVAÇÃO DE ABASTECIMENTO
+    // GRAVAÇÃO DO ABASTECIMENTO NO SUPABASE
     async function salvarAbastecimento(e) {
       e.preventDefault();
       const payload = {
@@ -167,7 +216,7 @@
           document.getElementById('formAbastecimento').reset();
         }
       } catch (err) {
-        alert("❌ Erro ao conectar ao banco.");
+        alert("❌ Erro de conexão com o banco.");
       }
     }
   </script>
