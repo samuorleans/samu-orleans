@@ -155,8 +155,8 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
-    // ENDEREÇO DO WEB APP DO GOOGLE APPS SCRIPT
-    const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwRrYiZpuZ259euUlDJy83L2zD3UiyElgRBJQtQ_4ucrwZEoQuSYf-YXMTX_sOIzqyn/exec";
+    // ENDEREÇO DO WEB APP DO GOOGLE APPS SCRIPT ATUALIZADO
+    const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyQdLDoigigMzoQbUqaTIi13IdjLNDCS8njuN3uNBc6tqf5m03CFVYCRT9dP_G0BgjX/exec";
 
     let adminAutenticado = false;
     let senhaOficialAdmin = "";
@@ -198,27 +198,49 @@
       return `${ano}-${mes}-${dia}T${horas}:${minutos}:${segundos}`;
     }
 
-    // ENVIAR DADOS AO GOOGLE APPS SCRIPT PARA CRIAÇÃO DO PDF NO DRIVE
-    async function dispararEnvioGoogleDrive(tipoProc, respostasMap) {
-      try {
-        const formData = new URLSearchParams();
-        formData.append("viatura", document.getElementById('resumo_viatura') ? document.getElementById('resumo_viatura').innerText : 'VTR');
-        formData.append("profissional_nome", document.getElementById('resumo_profissional') ? document.getElementById('resumo_profissional').innerText : 'Profissional');
-        formData.append("tipo_procedimento", tipoProc);
-
-        for (const [key, val] of Object.entries(respostasMap)) {
-          formData.append(key, val);
+    // DISPARO SEGURO COMPATÍVEL COM GOOGLE APPS SCRIPT VIA FORMULÁRIO OCULTO
+    function dispararEnvioGoogleDrive(tipoProc, respostasMap) {
+      return new Promise((resolve) => {
+        let iframe = document.getElementById("hidden_iframe_gscript");
+        if (!iframe) {
+          iframe = document.createElement("iframe");
+          iframe.id = "hidden_iframe_gscript";
+          iframe.name = "hidden_iframe_gscript";
+          iframe.style.display = "none";
+          document.body.appendChild(iframe);
         }
 
-        await fetch(URL_GOOGLE_SCRIPT, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: formData.toString()
-        });
-      } catch (err) {
-        console.error("Erro no Apps Script:", err);
-      }
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = URL_GOOGLE_SCRIPT;
+        form.target = "hidden_iframe_gscript";
+
+        const viatura = document.getElementById('resumo_viatura') ? document.getElementById('resumo_viatura').innerText : 'VTR';
+        const profissional = document.getElementById('resumo_profissional') ? document.getElementById('resumo_profissional').innerText : 'Profissional';
+
+        const campos = {
+          viatura: viatura,
+          profissional_nome: profissional,
+          tipo_procedimento: tipoProc,
+          ...respostasMap
+        };
+
+        for (const key in campos) {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = key;
+          input.value = campos[key];
+          form.appendChild(input);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+
+        setTimeout(() => {
+          document.body.removeChild(form);
+          resolve();
+        }, 1000);
+      });
     }
 
     async function carregarViaturas() {
