@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAMU 192 - Portal do Servidor e Capacitações</title>
+  <title>SAMU 192 - Portal do Servidor e Gestão Integrada</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -44,7 +44,7 @@
     .app-layout { display: none; min-height: 100vh; flex-direction: row; width: 100%; }
 
     /* SIDEBAR */
-    .sidebar { width: 250px; background: var(--navy-blue); color: white; padding: 20px 15px; display: flex; flex-direction: column; flex-shrink: 0; }
+    .sidebar { width: 260px; background: var(--navy-blue); color: white; padding: 20px 15px; display: flex; flex-direction: column; flex-shrink: 0; }
     .brand-header { display: flex; align-items: center; gap: 10px; margin-bottom: 25px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .brand-header img { width: 38px; height: auto; }
     .brand-title { font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
@@ -102,7 +102,7 @@
 
     /* MODAL */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
-    .modal-card { background: white; padding: 22px; border-radius: 14px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .modal-card { background: white; padding: 22px; border-radius: 14px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
     .modal-title { font-size: 1rem; color: var(--navy-blue); font-weight: 800; }
 
@@ -118,7 +118,6 @@
       .page-header { flex-direction: column; align-items: flex-start; gap: 8px; }
     }
 
-    /* REGRAS DE IMPRESSÃO - FORMATO A4 RETRATO SEM CORTES */
     @media print {
       @page { size: A4 portrait; margin: 8mm; }
       body { background: white; color: #000; font-size: 8pt; width: 100%; }
@@ -131,11 +130,6 @@
       .data-table { width: 100% !important; border-collapse: collapse !important; font-size: 8pt !important; table-layout: auto !important; }
       .data-table th, .data-table td { border: 1px solid #000 !important; padding: 4px 6px !important; white-space: normal !important; word-break: break-word !important; }
       .data-table th { background-color: #f1f5f9 !important; color: #000 !important; -webkit-print-color-adjust: exact; }
-      
-      .table-resumo { width: 100% !important; max-width: 100% !important; font-size: 8pt !important; }
-      .table-resumo td { border: 1px solid #000 !important; padding: 4px 6px !important; }
-      .status-atingido { background-color: #c8e6c9 !important; -webkit-print-color-adjust: exact; }
-      .status-andamento { background-color: #fff9c4 !important; -webkit-print-color-adjust: exact; }
     }
   </style>
 </head>
@@ -160,7 +154,7 @@
         <button type="submit" class="btn-login">Acessar Sistema</button>
       </form>
 
-      <a class="link-forgot" onclick="abrirModalRecuperacao()">Esqueceu sua senha?</a>
+      <a class="link-forgot" onclick="alert('Entre em contato com a Coordenação para redefinir sua senha.')">Esqueceu sua senha?</a>
       <div id="loginError" style="color:#dc2626; font-size:0.8rem; margin-top:12px; font-weight:600; display:none;">Usuário ou Senha incorretos!</div>
     </div>
   </div>
@@ -182,6 +176,7 @@
         <div class="nav-item" onclick="switchTab('tabMeusCursos', this)">🎓 Minhas Capacitações</div>
         <div class="nav-item" id="btnAdminServidores" style="display:none;" onclick="switchTab('tabAdminServidores', this)">⚙️ Gestão de Servidores</div>
         <div class="nav-item" id="btnAdminCursos" style="display:none;" onclick="switchTab('tabAdminCursos', this)">📊 Relatório Cursos (Admin)</div>
+        <div class="nav-item" id="btnAdminChecklists" style="display:none;" onclick="switchTab('tabAdminChecklists', this)">🛠️ Frotas & Checklists</div>
         <div class="nav-item" id="btnAdminLogs" style="display:none;" onclick="switchTab('tabAdminLogs', this)">📜 Logs de Alterações</div>
       </nav>
 
@@ -197,11 +192,11 @@
 
     <main class="main-content">
       
-      <!-- CABEÇALHO EXCLUSIVO PARA IMPRESSÃO EM A4 RETRATO -->
+      <!-- CABEÇALHO IMPRESSÃO -->
       <div class="relatorio-header-print">
         <h2>ESTADO DE SANTA CATARINA — MUNICÍPIO DE ORLEANS</h2>
         <h3>SAMU 192 — UNIDADE DE SUPORTE BÁSICO (USB 11 ORLEANS)</h3>
-        <p style="font-size:8.5pt; font-weight:bold; margin-top:3px;">RELATÓRIO DE CAPACITAÇÕES E CUMPRIMENTO DA PORTARIA 2048/2002</p>
+        <p style="font-size:8.5pt; font-weight:bold; margin-top:3px;">RELATÓRIO OFICIAL DE AUDITORIA E GESTÃO INTEGRADA</p>
       </div>
 
       <!-- ABA 1: PERFIL DO SERVIDOR -->
@@ -237,7 +232,7 @@
         </div>
       </div>
 
-      <!-- ABA 2: MINHAS CAPACITAÇÕES (SISTEMA CONFORME PORTARIA 2048) -->
+      <!-- ABA 2: MINHAS CAPACITAÇÕES -->
       <div id="tabMeusCursos" class="tab-pane" style="display:none;">
         <div class="page-header">
           <div class="page-title">Histórico de Capacitações e Metas</div>
@@ -247,16 +242,13 @@
           </div>
         </div>
 
-        <!-- QUADRO DE RESUMO CONFORME PORTARIA 2048 -->
         <div class="card-panel">
           <h3 style="color:var(--navy-blue); margin-bottom:10px; font-size:0.9rem;">📊 RESUMO DE CARGA HORÁRIA (PORTARIA 2048/2002)</h3>
-          
           <table class="table-resumo">
             <tbody></tbody>
           </table>
         </div>
 
-        <!-- TABELA DE HISTÓRICO DO SERVIDOR -->
         <div class="card-panel">
           <h3 style="color:var(--navy-blue); margin-bottom:12px; font-size:0.9rem;">📋 HISTÓRICO DE CURSOS REGISTRADOS</h3>
           <div class="table-wrapper">
@@ -275,7 +267,7 @@
         </div>
       </div>
 
-      <!-- ABA 3: GESTÃO DE SERVIDORES (ADMINISTRADOR) -->
+      <!-- ABA 3: GESTÃO DE SERVIDORES (ADMIN) -->
       <div id="tabAdminServidores" class="tab-pane" style="display:none;">
         <div class="page-header">
           <div class="page-title">Painel do Quadro de Servidores</div>
@@ -310,14 +302,13 @@
         </div>
       </div>
 
-      <!-- ABA 4: RELATÓRIO E FILTROS ADMIN (SISTEMA COMPLETO) -->
+      <!-- ABA 4: RELATÓRIO CURSOS (ADMIN) -->
       <div id="tabAdminCursos" class="tab-pane" style="display:none;">
         <div class="page-header">
           <div class="page-title">Relatório Geral de Capacitações (Portaria 2048)</div>
           <button class="btn-primary" onclick="window.print()">🖨️ Imprimir Relatório A4</button>
         </div>
 
-        <!-- PAINEL DE FILTROS DO ADMINISTRADOR -->
         <div class="card-panel no-print">
           <div class="grid-filter">
             <div class="form-group">
@@ -343,7 +334,6 @@
           </div>
         </div>
 
-        <!-- QUADRO DE RESUMO ADMIN -->
         <div class="card-panel">
           <h3 style="color:var(--navy-blue); margin-bottom:10px; font-size:0.9rem;">📊 RESUMO DE AUDITORIA DE CARGA HORÁRIA</h3>
           <table class="table-resumo">
@@ -351,7 +341,6 @@
           </table>
         </div>
 
-        <!-- TABELA DE RESULTADOS DO FILTRO -->
         <div class="card-panel">
           <div class="table-wrapper">
             <table class="data-table">
@@ -371,7 +360,35 @@
         </div>
       </div>
 
-      <!-- ABA 5: LOGS DE AUDITORIA (ADMINISTRADOR) -->
+      <!-- ABA 5: FROTAS & CHECKLISTS OPERACIONAIS (NOVA ABA INTEGRADA) -->
+      <div id="tabAdminChecklists" class="tab-pane" style="display:none;">
+        <div class="page-header">
+          <div class="page-title">Histórico de Checklists Operacionais e Viatura</div>
+          <button class="btn-primary" onclick="carregarRelatorioChecklistsAdmin()">🔄 Atualizar Dados</button>
+        </div>
+
+        <div class="card-panel">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Data/Hora</th>
+                  <th>Viatura</th>
+                  <th>Profissional</th>
+                  <th>Procedimento</th>
+                  <th>Detalhes</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+              <tbody id="tbAdminChecklists">
+                <tr><td colspan="6" style="text-align:center;">Carregando registros de checklist...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA 6: LOGS DE AUDITORIA -->
       <div id="tabAdminLogs" class="tab-pane" style="display:none;">
         <div class="page-header">
           <div class="page-title">Histórico de Alterações e Auditoria</div>
@@ -396,7 +413,22 @@
     </main>
   </div>
 
-  <!-- MODAL DE EDIÇÃO DE COLABORADOR -->
+  <!-- MODAL DE ESPELHO GRÁFICO DO CHECKLIST -->
+  <div id="modalChecklistEspelho" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">📄 ESPELHO DO CHECKLIST OPERACIONAL</div>
+        <button style="background:none; border:none; font-size:1.2rem; cursor:pointer;" onclick="fecharModalChecklist()">✕</button>
+      </div>
+      <div id="conteudoChecklistEspelho"></div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:15px;" class="no-print">
+        <button class="btn-action-sm" onclick="fecharModalChecklist()">Fechar</button>
+        <button class="btn-primary" onclick="window.print()">🖨️ Imprimir Ficha</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDIÇÃO DE SERVIDORES -->
   <div id="editModal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
@@ -501,9 +533,11 @@
       if (ehAdmin) {
         document.getElementById('btnAdminServidores').style.display = 'flex';
         document.getElementById('btnAdminCursos').style.display = 'flex';
+        document.getElementById('btnAdminChecklists').style.display = 'flex';
         document.getElementById('btnAdminLogs').style.display = 'flex';
         carregarServidoresAdmin();
         carregarLogsAuditoria();
+        carregarRelatorioChecklistsAdmin();
       }
 
       await carregarMeusCursos();
@@ -736,6 +770,99 @@
 
       const tabelaResumoAdminBody = document.querySelector("#tabAdminCursos .table-resumo tbody");
       if (tabelaResumoAdminBody) tabelaResumoAdminBody.innerHTML = htmlResumoAdmin;
+    }
+
+    // CARREGA E EXIBE O HISTÓRICO DE CHECKLISTS DA UNIDADE
+    async function carregarRelatorioChecklistsAdmin() {
+      const tb = document.getElementById("tbAdminChecklists");
+      if (!tb) return;
+
+      const { data: listCheck, error } = await dbNuvem
+        .from('operacional_checklists')
+        .select('*')
+        .order('data_hora', { ascending: false });
+
+      if (error || !listCheck || listCheck.length === 0) {
+        tb.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#64748b; padding:15px;">Nenhum checklist registrado até o momento.</td></tr>`;
+        return;
+      }
+
+      tb.innerHTML = '';
+      listCheck.forEach((c) => {
+        const dataFmt = c.data_hora ? new Date(c.data_hora).toLocaleString('pt-BR') : '-';
+        const jsonStr = JSON.stringify(c).replace(/'/g, "&#39;");
+
+        tb.innerHTML += `
+          <tr>
+            <td><b>${dataFmt}</b></td>
+            <td><b>${c.viatura || '-'}</b></td>
+            <td>${c.profissional_nome || '-'}</td>
+            <td><span class="badge-role role-user">${c.tipo_procedimento || 'Checklist'}</span></td>
+            <td>${c.relato_avarias ? c.relato_avarias.substring(0, 40) + '...' : 'Sem avarias'}</td>
+            <td><button class="btn-action-sm" onclick='abrirEspelhoChecklist(${jsonStr})'>👁️ Ver Espelho</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    function abrirEspelhoChecklist(data) {
+      let html = `
+        <div style="background:#f8fafc; padding:12px; border-radius:8px; display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.82rem; margin-bottom:14px; border:1px solid #cbd5e1;">
+          <div><b>Viatura:</b> ${data.viatura || 'N/D'}</div>
+          <div><b>Profissional:</b> ${data.profissional_nome || 'N/D'}</div>
+          <div><b>Data/Hora:</b> ${data.data_hora ? new Date(data.data_hora).toLocaleString('pt-BR') : 'N/D'}</div>
+          <div><b>Procedimento:</b> ${data.tipo_procedimento || 'Checklist'}</div>
+        </div>
+      `;
+
+      const mapaItens = data.mecanica_iluminacao || data.mochilas_equipamentos;
+      if (mapaItens) {
+        html += `
+          <h4 style="color:#002b49; font-size:0.85rem; margin-bottom:8px; text-transform:uppercase;">Itens Verificados e Status</h4>
+          <table style="width:100%; border-collapse:collapse; font-size:0.82rem; margin-bottom:14px;">
+            <thead>
+              <tr style="background:#002b49; color:white;">
+                <th style="padding:6px; text-align:left;">Item</th>
+                <th style="padding:6px; text-align:center;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        for (const [item, status] of Object.entries(mapaItens)) {
+          let bgBg = '#16a34a';
+          if (status.includes('Alerta') || status.includes('Reposição') || status.includes('Meia')) bgBg = '#d97706';
+          if (status.includes('Avaria') || status.includes('Defeito') || status.includes('Crítico')) bgBg = '#dc2626';
+
+          html += `
+            <tr style="border-bottom:1px solid #e2e8f0;">
+              <td style="padding:6px;"><b>${item}</b></td>
+              <td style="padding:6px; text-align:center;">
+                <span style="background:${bgBg}; color:white; padding:2px 8px; border-radius:10px; font-size:0.75rem; font-weight:bold;">
+                  ${status}
+                </span>
+              </td>
+            </tr>
+          `;
+        }
+
+        html += `</tbody></table>`;
+      }
+
+      if (data.relato_avarias) {
+        html += `
+          <div style="background:#fff3cd; border:1px solid #ffeba2; padding:10px; border-radius:8px; font-size:0.82rem;">
+            <b>Observações / Avarias Registradas:</b><br>${data.relato_avarias}
+          </div>
+        `;
+      }
+
+      document.getElementById('conteudoChecklistEspelho').innerHTML = html;
+      document.getElementById('modalChecklistEspelho').style.display = 'flex';
+    }
+
+    function fecharModalChecklist() {
+      document.getElementById('modalChecklistEspelho').style.display = 'none';
     }
 
     async function carregarLogsAuditoria() {
