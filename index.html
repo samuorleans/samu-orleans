@@ -196,7 +196,7 @@
 
     </div>
 
-    <!-- SEÇÃO 2: ÁREA RESTRITA / GESTÃO (LIBERADA APÓS SENHA) -->
+    <!-- SEÇÃO 2: ÁREA RESTRITA / GESTÃO -->
     <div id="admin-section">
       <h2 class="section-title" style="border-bottom-color: var(--navy-blue);">📊 Banco de Dados & Gestão de Frotas/Materiais</h2>
       <div class="grid-container">
@@ -447,7 +447,7 @@
       document.getElementById('div_justificativa').style.display = chk ? 'block' : 'none';
     }
 
-    /* SALVAMENTO DUPLO MAPEAR AS COLUNAS DA SUA IMAGEM NA TABELA LOGS_ALTERACOES */
+    /* CONFIRMAÇÃO DO J3 COM TRAVA DE TROCA EM MESMO TURNO DE PLANTÃO */
     async function confirmarJ3ComSenha(e) {
       e.preventDefault();
       const elemCondutor = document.getElementById('j3_condutor');
@@ -464,11 +464,37 @@
         return;
       }
 
-      if (ehExcepcional && !justificativa) {
-        alert("Para trocas de última hora fora da escala, informe a justificativa."); return;
-      }
-
       try {
+        // Consulta o último plantão ativo registrado na base
+        const { data: plantoesAtivos } = await dbNuvem
+          .from('plantoes_j3')
+          .select('*')
+          .eq('status', 'ATIVO')
+          .order('id', { ascending: false })
+          .limit(1);
+
+        if (plantoesAtivos && plantoesAtivos.length > 0) {
+          const ultimoP = plantoesAtivos[0];
+          const tempoDecorridoHoras = (new Date() - new Date(ultimoP.data_confirmacao || ultimoP.created_at)) / (1000 * 60 * 60);
+
+          // Se o plantão foi gravado há menos de 12 horas e houve mudança de condutor ou técnico
+          const houveMudancaEquipe = (ultimoP.condutor !== condutor || ultimoP.enfermagem !== tecnico);
+
+          if (tempoDecorridoHoras < 12 && houveMudancaEquipe && !ehExcepcional) {
+            alert("⚠️ BLOQUEIO OPERACIONAL:\nJá existe um plantão de J3 ativo para esta janela de horário.\n\nPara alterar a equipe no mesmo turno, você OBRIGATORIAMENTE deve marcar a caixa 'Troca de última hora' e descrever a justificativa.");
+            document.getElementById('j3_chk_excepcional').checked = true;
+            alternarBoxJustificativa();
+            document.getElementById('j3_justificativa').focus();
+            return;
+          }
+        }
+
+        if (ehExcepcional && !justificativa) {
+          alert("Por favor, preencha a justificativa da substituição emergencial.");
+          return;
+        }
+
+        // Validação da Senha Única
         const { data } = await dbNuvem.from('colaboradores').select('*');
         let usuarioValido = null;
 
@@ -484,7 +510,7 @@
         }
 
         if (usuarioValido || senhaDigitada === 'samu192' || senhaDigitada === '123456') {
-          // 1. Grava o plantão no J3
+          // 1. Desativa plantão anterior e ativa o novo J3
           await dbNuvem.from('plantoes_j3').update({ status: 'ENCERRADO' }).eq('status', 'ATIVO');
           await dbNuvem.from('plantoes_j3').insert([{
             condutor: condutor,
@@ -494,7 +520,7 @@
             status: 'ATIVO'
           }]);
 
-          // 2. Grava exatamente na estrutura da sua imagem no Supabase (logs_alteracoes)
+          // 2. Grava log auditável
           const cpfLog = usuarioValido ? usuarioValido.cpf : '075.486.369-70';
           const nomeLog = usuarioValido ? usuarioValido.nome : `${condutor} & ${tecnico}`;
           const acaoLog = ehExcepcional ? 'Assunção J3 Excepcional' : 'Assunção J3 Regular';
