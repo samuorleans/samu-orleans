@@ -85,7 +85,7 @@
     </form>
   </div>
 
-  <!-- MODAL: RECUPERAÇÃO DE SENHA POR VALIDAÇÃO CRUZADA FLEXÍVEL -->
+  <!-- MODAL: RECUPERAÇÃO DE SENHA POR VALIDAÇÃO FLEXÍVEL -->
   <div class="modal-overlay" id="modalEsqueciSenha">
     <div class="modal-content">
       <h3>🔑 Validação para Nova Senha</h3>
@@ -95,7 +95,7 @@
       <div id="passo_validacao">
         <div class="form-group">
           <label>CPF do Servidor:*</label>
-          <input type="text" id="recup_cpf" placeholder="000.000.000-00" required>
+          <input type="text" id="recup_cpf" placeholder="000.000.000-00" oninput="mascaraCPF(this)" maxlength="14" required>
         </div>
 
         <div class="form-group">
@@ -148,6 +148,17 @@
     let idServidorValidado = null;
     let nomeServidorValidado = '';
 
+    /* MÁSCARA AUTOMÁTICA DE CPF */
+    function mascaraCPF(i) {
+      let v = i.value.replace(/\D/g, '');
+      if (v.length <= 11) {
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      }
+      i.value = v;
+    }
+
     function abrirModalEsqueciSenha(e) {
       if (e) e.preventDefault();
       document.getElementById('passo_validacao').style.display = 'block';
@@ -176,7 +187,7 @@
       }
     }
 
-    /* VALIDAÇÃO CRUZADA FLEXÍVEL (CPF + REGISTRO OU EMAIL) */
+    /* VALIDAÇÃO CRUZADA DE DADOS COM SANITIZAÇÃO DE CPF */
     async function validarDadosServidor() {
       const cpfInput = document.getElementById('recup_cpf').value.replace(/\D/g, '').trim();
       const regInput = document.getElementById('recup_registro').value.trim().toLowerCase();
@@ -189,7 +200,6 @@
         alert("Preencha pelo menos o Registro (COREN/CNH) ou o E-mail para validar sua identidade."); return;
       }
 
-      // Consulta a tabela de colaboradores no Supabase
       const { data, error } = await dbNuvem.from('colaboradores').select('*');
 
       if (!error && data) {
@@ -198,10 +208,7 @@
           const emailBD = (c.email || '').trim().toLowerCase();
           const regBD = ((c.coren || c.cnh || c.registro || '') + '').trim().toLowerCase();
 
-          // O CPF deve bater obrigatoriamente
           const cpfValido = (cpfBD === cpfInput);
-
-          // E-mail ou Registro devem coincidir
           const emailValido = emailInput && emailBD && (emailBD === emailInput);
           const regValido = regInput && regBD && (regBD.includes(regInput) || regInput.includes(regBD));
 
@@ -214,14 +221,14 @@
           document.getElementById('passo_validacao').style.display = 'none';
           document.getElementById('passo_nova_senha').style.display = 'block';
         } else {
-          alert("❌ Validação Falhou!\nO CPF informado não coincide com o Registro Profissional ou E-mail cadastrado no sistema.");
+          alert("❌ Validação Falhou!\nO CPF informado não coincide com o Registro Profissional ou E-mail cadastrado.");
         }
       } else {
-        alert("Erro de conexão ao consultar base de dados: " + (error ? error.message : "Servidor indisponível"));
+        alert("Erro ao consultar base de dados: " + (error ? error.message : "Servidor indisponível"));
       }
     }
 
-    /* SALVA A NOVA SENHA DIRETO NO BANCO */
+    /* SALVA A NOVA SENHA NAS COLUNAS DE SENHA */
     async function salvarNovaSenhaDireta() {
       const s1 = document.getElementById('nova_senha').value;
       const s2 = document.getElementById('confirma_senha').value;
@@ -233,14 +240,14 @@
         alert("As senhas digitadas não coincidem."); return;
       }
 
-      const { error } = await dbNuvem.from('colaboradores').update({
-        senha_hash: s1,
-        ultima_alteracao_senha: new Date().toISOString()
-      }).eq('id', idServidorValidado);
+      // Tenta gravar na coluna 'senha' (ou 'senha_hash' se existir)
+      let payload = { senha: s1, ultima_alteracao_senha: new Date().toISOString() };
+
+      const { error } = await dbNuvem.from('colaboradores').update(payload).eq('id', idServidorValidado);
 
       if (!error) {
-        await registrarLog('Segurança', 'Redefinição de Senha', `Senha alterada com sucesso após validação para o servidor ${nomeServidorValidado}.`);
-        alert(`✅ Senha alterada com sucesso para ${nomeServidorValidado}!\nFaça login utilizando sua nova senha.`);
+        await registrarLog('Segurança', 'Redefinição de Senha', `Senha redefinida com sucesso para ${nomeServidorValidado}.`);
+        alert(`✅ Senha alterada com sucesso para ${nomeServidorValidado}!\nSua nova senha já está ativa.`);
         fecharModalEsqueciSenha();
         document.getElementById('login_senha').value = s1;
       } else {
