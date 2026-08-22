@@ -34,7 +34,6 @@
     .form-group input, .form-group select, .form-group textarea { padding: 11px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none; background: white; width: 100%; }
     .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--samu-blue); }
 
-    /* CAMPO DE SENHA ADMIN ESCONDIDO POR PADRÃO */
     #boxSenhaAdmin { display: none; background: #f1f5f9; border: 1.5px dashed var(--samu-blue); border-radius: 8px; padding: 12px; margin-top: 10px; }
 
     .radio-group { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
@@ -82,7 +81,6 @@
             </select>
           </div>
 
-          <!-- CAMPO DE VALIDAÇÃO DE SENHA QUANDO SELECIONAR ADMIN/COORDENADOR -->
           <div id="boxSenhaAdmin">
             <label style="font-size: 0.72rem; font-weight: 800; color: var(--samu-navy); text-transform: uppercase; display: block; margin-bottom: 4px;">
               🔑 Autenticação de Gestão / Admin (Digite a Senha):
@@ -138,7 +136,7 @@
         </div>
 
         <div id="conteudoFormEspecifico">
-          <!-- Carregamento dinâmico da pasta modulos/ -->
+          <!-- O MÓDULO LIMPO É CARREGADO AQUI -->
         </div>
 
         <div style="margin-top: 20px; text-align: left;">
@@ -208,7 +206,6 @@
       } catch (e) {}
     }
 
-    // VERIFICA SE O SELECIONADO É ADMIN/COORDENADOR E EXIGE SENHA
     function verificarAcessoProfissional() {
       const selectP = document.getElementById('p1_profissional');
       const selectedOption = selectP.options[selectP.selectedIndex];
@@ -222,11 +219,8 @@
       const inputSenha = document.getElementById('input_senha_admin');
       inputSenha.value = '';
 
-      // SE FOR ADMIN OU COORDENADOR
       if (nomeUpper.includes('ADMIN') || funcao.includes('ADMIN') || funcao.includes('COORDENAD')) {
         boxSenha.style.display = 'block';
-        
-        // Bloqueia procedimentos até autenticar
         document.getElementById('opt_condutor').style.display = 'none';
         document.getElementById('opt_tecnico').style.display = 'none';
         document.getElementById('opt_abastecimento').style.display = 'none';
@@ -240,7 +234,7 @@
     function validarSenhaAdmin() {
       const digitada = document.getElementById('input_senha_admin').value.trim();
       if (!digitada) {
-        alert("⚠️ Por favor, digite a senha de autenticação.");
+        alert("⚠️ Digite a senha de autenticação.");
         return;
       }
 
@@ -249,13 +243,12 @@
         adminAutenticado = true;
         document.getElementById('boxSenhaAdmin').style.display = 'none';
         
-        // Exibe todas as opções
         document.getElementById('opt_condutor').style.display = 'flex';
         document.getElementById('opt_tecnico').style.display = 'flex';
         document.getElementById('opt_abastecimento').style.display = 'flex';
         document.getElementById('opt_lacre').style.display = 'flex';
       } else {
-        alert("❌ Senha incorreta. Acesso não liberado.");
+        alert("❌ Senha incorreta.");
       }
     }
 
@@ -282,6 +275,33 @@
         optTec.style.display = 'flex';
         optAbs.style.display = 'flex';
         optLacre.style.display = 'flex';
+      }
+    }
+
+    // BUSCA AUTOMÁTICA E PREENCHIMENTO DOS POSTOS AO CARREGAR O MÓDULO
+    async function carregarPostosNoModulo() {
+      const selP = document.getElementById('abs_posto');
+      if (!selP) return;
+
+      try {
+        const { data, error } = await dbNuvem.from('operacional_postos').select('nome_posto, status');
+        if (!error && data && data.length > 0) {
+          selP.innerHTML = '<option value="">Selecione o Posto...</option>';
+          data.forEach(p => {
+            if (p.status === 'ATIVO' || !p.status) {
+              selP.innerHTML += `<option value="${p.nome_posto}">${p.nome_posto}</option>`;
+            }
+          });
+        } else {
+          selP.innerHTML = `
+            <option value="">Selecione o Posto...</option>
+            <option value="POSTO CENTRAL">POSTO CENTRAL</option>
+            <option value="REDE POSTOS LEÃO">REDE POSTOS LEÃO</option>
+            <option value="REDE POSTOS SÃO MARCOS">REDE POSTOS SÃO MARCOS</option>
+          `;
+        }
+      } catch (err) {
+        selP.innerHTML = '<option value="">Erro ao carregar postos</option>';
       }
     }
 
@@ -327,12 +347,10 @@
         .then(html => {
           document.getElementById('conteudoFormEspecifico').innerHTML = html;
           
+          // Dispara a busca dos postos após injetar o formulário na tela
           setTimeout(() => {
-            const fieldViat = document.getElementById('abs_viatura');
-            const fieldCond = document.getElementById('abs_condutor');
-            if (fieldViat) fieldViat.value = viatura;
-            if (fieldCond) fieldCond.value = profissional;
-          }, 200);
+            carregarPostosNoModulo();
+          }, 150);
         });
     }
 
