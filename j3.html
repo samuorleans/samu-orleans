@@ -118,7 +118,7 @@
         <button type="submit" class="btn-j3">💾 Confirmar e Registrar J3</button>
       </form>
 
-      <!-- CAIXA DE ATALHO PARA COPIAR O MENSAGEM DO WHATSAPP DA REGULAÇÃO -->
+      <!-- CAIXA DE ATALHO PARA COPIAR A MENSAGEM DO WHATSAPP DA REGULAÇÃO -->
       <div id="whatsappBox" class="whatsapp-box">
         <h4>📱 Mensagem Pronta para a Regulação (WhatsApp):</h4>
         <textarea id="textoZap" rows="4" readonly></textarea>
@@ -226,6 +226,7 @@
       equipeEnfermagemReserva.forEach(i => selT.innerHTML += `<option value="${i.nome}">${i.nome}</option>`);
     }
 
+    /* PROCESSAMENTO DO J3 COM TRAVA DE TROCA ANTES DE 24 HORAS */
     async function processarJ3(e) {
       e.preventDefault();
       const condutor = document.getElementById('j3_condutor').value;
@@ -237,11 +238,42 @@
       if (!condutor || !tecnico) {
         alert("⚠️ ATENÇÃO: A viatura precisa da dupla completa (Condutor + Enfermagem) para confirmar o J3."); return;
       }
-      if (ehExcepcional && !justificativa) {
-        alert("Informe a justificativa da troca emergencial."); return;
-      }
 
       try {
+        // 1. CHECAGEM DE TRAVA DE 24 HORAS: Busca o último plantão ATIVO no banco
+        const { data: plantoesAtivos } = await dbNuvem
+          .from('plantoes_j3')
+          .select('*')
+          .eq('status', 'ATIVO')
+          .order('id', { ascending: false })
+          .limit(1);
+
+        if (plantoesAtivos && plantoesAtivos.length > 0) {
+          const ultimoP = plantoesAtivos[0];
+          const dataUltimo = new Date(ultimoP.data_confirmacao || ultimoP.created_at);
+          const diferencaHoras = (new Date() - dataUltimo) / (1000 * 60 * 60);
+
+          // Verifica se houve alteração na dupla de condutor ou enfermagem
+          const houveAlteracaoEquipe = (ultimoP.condutor !== condutor || ultimoP.enfermagem !== tecnico);
+
+          // Se tiver passado menos de 24 horas E a equipe for diferente: EXIGE JUSTIFICATIVA
+          if (diferencaHoras < 24 && houveAlteracaoEquipe) {
+            if (!ehExcepcional || !justificativa) {
+              alert("⚠️ BLOQUEIO OPERACIONAL:\n\nExiste um plantão ativo registrado nas últimas 24 horas.\n\nPara alterar a equipe antes do término das 24h, marque a caixa 'Troca de última hora' e descreva a justificativa obrigatoriamente.");
+              
+              document.getElementById('j3_chk_excepcional').checked = true;
+              alternarJustificativa();
+              document.getElementById('j3_justificativa').focus();
+              return;
+            }
+          }
+        }
+
+        if (ehExcepcional && !justificativa) {
+          alert("Informe a justificativa da troca emergencial."); return;
+        }
+
+        // 2. Validação da Senha Única
         const { data } = await dbNuvem.from('colaboradores').select('*');
         let usuarioValido = null;
 
@@ -253,9 +285,10 @@
         }
 
         if (usuarioValido || senha === 'samu192' || senha === '123456') {
-          // Encerra plantão anterior e ativa o novo (Plantão de 24h / Ciclo)
+          // Encerra plantão anterior ativo
           await dbNuvem.from('plantoes_j3').update({ status: 'ENCERRADO' }).eq('status', 'ATIVO');
 
+          // Insere o novo J3 ativo
           await dbNuvem.from('plantoes_j3').insert([{
             condutor: condutor,
             enfermagem: tecnico,
@@ -270,12 +303,12 @@
           await dbNuvem.from('logs_alteracoes').insert([{
             usuario_cpf: cpfLog,
             usuario_nome: nomeLog,
-            acao: 'J3 ATIVO (24h)',
-            detalhes: `Equipe: Condutor (${condutor}) + Enfermagem (${tecnico}). ${justificativa}`,
+            acao: ehExcepcional ? 'Assunção J3 Excepcional' : 'Assunção J3 Regular (24h)',
+            detalhes: `Equipe: Condutor (${condutor}) + Enfermagem (${tecnico}). ${justificativa ? 'Justificativa: ' + justificativa : ''}`,
             data_hora: new Date().toISOString()
           }]);
 
-          // Gera texto pronto para enviar no WhatsApp da Regulação
+          // Gera mensagem formatada para WhatsApp da Regulação
           const agora = new Date().toLocaleString('pt-BR');
           const textoZapFormatado = `🚨 *PASSAGEM DE PLANTÃO J3 - USB 11*\n📅 Data/Hora: ${agora}\n🚑 Condutor: ${condutor}\n🩺 Enfermagem: ${tecnico}\nStatus: Viatura Operacional e Equipe Confirmada.`;
           
