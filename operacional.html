@@ -183,7 +183,7 @@
       carregarProfissionaisComPermissoes();
     };
 
-    // FUNÇÃO AJUSTADA PARA PEGAR O HORÁRIO LOCAL DO COMPUTADOR (BRASÍLIA)
+    // RETORNA O TIMESTAMP EXATO NO HORÁRIO LOCAL DO BRASIL (SEM DESLOCAMENTO UTC)
     function obterDataHoraBrasil() {
       const agora = new Date();
       const ano = agora.getFullYear();
@@ -596,6 +596,32 @@
           voltarPasso1();
         } else {
           alert("❌ Erro ao salvar: " + (errSaude ? errSaude.message : errCheck.message));
+        }
+      } catch (err) {
+        alert("❌ Erro de conexão com o banco de dados.");
+      }
+    }
+
+    // GRAVAÇÃO SUBSTITUIÇÃO DE LACRE (COM DATA_HORA LOCAL BR)
+    async function salvarSubstituicaoLacre(e) {
+      e.preventDefault();
+
+      const payload = {
+        data_hora: obterDataHoraBrasil(),
+        viatura: document.getElementById('resumo_viatura').innerText,
+        profissional_nome: document.getElementById('resumo_profissional').innerText,
+        numero_lacre_psicotropicos: document.getElementById('lacre_novo').value.trim(),
+        status_kit_parto: document.getElementById('lacre_motivo').value,
+        observacoes_materiais: `[TROCA DE LACRE] Rompido: ${document.getElementById('lacre_ant').value.trim()} | Motivo: ${document.getElementById('lacre_motivo').value} | Obs: ${document.getElementById('lacre_obs').value.trim()}`
+      };
+
+      try {
+        const { error } = await dbNuvem.from('operacional_saude_lacres').insert([payload]);
+        if (!error) {
+          alert("✅ Troca de Lacre gravada com sucesso no Supabase!");
+          voltarPasso1();
+        } else {
+          alert("❌ Erro ao salvar troca de lacre: " + error.message);
         }
       } catch (err) {
         alert("❌ Erro de conexão com o banco de dados.");
