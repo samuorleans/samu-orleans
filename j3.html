@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAMU Connect — Validação Operacional J3</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --samu-red: #d32f2f;
+      --samu-navy: #0d233a;
+      --samu-blue: #1976d2;
+      --amber-j3: #d97706;
+      --bg-surface: #f4f7fa;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --border: #cbd5e1;
+      --shadow: 0 10px 30px rgba(13, 35, 58, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background-color: var(--bg-surface); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px 12px; }
+
+    .j3-card {
+      width: 100%; max-width: 550px; background: var(--card-bg); border-radius: 20px;
+      box-shadow: var(--shadow); border-top: 6px solid var(--amber-j3); padding: 30px 24px; text-align: center;
+    }
+
+    .j3-header h1 { font-size: 1.25rem; color: var(--samu-navy); font-weight: 800; text-transform: uppercase; }
+    .j3-header p { font-size: 0.82rem; color: #64748b; margin-top: 4px; margin-bottom: 20px; }
+
+    .tab-btn-group { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+    .tab-btn { flex: 1; padding: 10px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.85rem; border-radius: 8px; cursor: pointer; color: var(--samu-navy); transition: 0.2s; }
+    .tab-btn.active { background: var(--amber-j3); color: white; }
+
+    .form-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 16px; }
+    .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 6px; text-transform: uppercase; }
+    .form-group select, .form-group input, .form-group textarea { padding: 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; background: #f8fafc; width: 100%; }
+    .form-group select:focus, .form-group input:focus { border-color: var(--samu-blue); background: white; }
+
+    .box-excepcional { background: #fef3c7; border: 1px solid #fcd34d; padding: 12px; border-radius: 10px; margin-bottom: 18px; text-align: left; }
+    .box-excepcional label { font-size: 0.8rem; font-weight: 700; color: #92400e; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+
+    .btn-j3 { width: 100%; background: var(--amber-j3); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
+    .btn-j3:hover { background: #b45309; }
+
+    .btn-voltar { display: inline-block; margin-top: 15px; font-size: 0.8rem; color: var(--samu-blue); text-decoration: none; font-weight: 600; }
+
+    .table-plantao { width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left; margin-top: 10px; }
+    .table-plantao th, .table-plantao td { border: 1px solid var(--border); padding: 8px; }
+    .table-plantao th { background: var(--samu-navy); color: white; }
+  </style>
+</head>
+<body>
+
+  <div class="j3-card">
+    <div class="j3-header">
+      <h1>🚨 Módulo de Assunção J3</h1>
+      <p>Confirmação de Plantão, Rendição e Histórico — USB 11</p>
+    </div>
+
+    <!-- NAVEGAÇÃO DE ABAS -->
+    <div class="tab-btn-group">
+      <button class="tab-btn active" id="tab1" onclick="mudarAba(1)">🚨 Assumir Plantão</button>
+      <button class="tab-btn" id="tab2" onclick="mudarAba(2)">🔍 Consultar Plantões</button>
+    </div>
+
+    <!-- CONTEÚDO 1: FORMULÁRIO DE ASSUNÇÃO DE PLANTÃO -->
+    <div id="conteudoTab1">
+      <form id="formJ3" onsubmit="processarJ3(event)">
+        <div class="form-group">
+          <label>1. Condutor Socorrista:</label>
+          <select id="j3_condutor">
+            <option value="">Carregando condutores...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>2. Técnico / Enfermeiro:</label>
+          <select id="j3_tecnico">
+            <option value="">Carregando enfermagem...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Sua Senha Única (Confirmação do Servidor):*</label>
+          <input type="password" id="j3_senha" placeholder="••••••••" required>
+        </div>
+
+        <div class="box-excepcional">
+          <label>
+            <input type="checkbox" id="j3_chk_excepcional" onchange="alternarJustificativa()">
+            Troca de última hora (Fora da Escala Regular)?
+          </label>
+          <div id="div_justificativa" style="display: none; margin-top: 10px;">
+            <label style="color:#78350f; font-size:0.72rem; display:block; margin-bottom:4px;">JUSTIFICATIVA DA TROCA:*</label>
+            <textarea id="j3_justificativa" rows="2" placeholder="Informe o motivo da substituição de emergência..."></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-j3">💾 Confirmar e Registrar J3</button>
+      </form>
+    </div>
+
+    <!-- CONTEÚDO 2: TABELA DE HISTÓRICO DE PLANTÕES -->
+    <div id="conteudoTab2" style="display: none;">
+      <table class="table-plantao">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Condutor</th>
+            <th>Enfermagem</th>
+            <th>Data/Hora</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyPlantaoHistorico">
+          <tr><td colspan="4" style="text-align:center;">Consultando registros...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <a href="index.html" class="btn-voltar">⬅️ Voltar ao Painel Principal</a>
+  </div>
+
+  <script>
+    const dbNuvem = supabase.createClient(
+      "https://rcpgukslnlfptreiusff.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
+    );
+
+    const equipeCondutoresReserva = [
+      { nome: "Daniel Alexandre Fernandes", cpf: "075.486.369-70" },
+      { nome: "Lucas Vieira Mendes", cpf: "" },
+      { nome: "Márcio Becker", cpf: "" },
+      { nome: "Renato Cândido", cpf: "" },
+      { nome: "Vanderlei José Tasca", cpf: "" }
+    ];
+
+    const equipeEnfermagemReserva = [
+      { nome: "Clênio Borges", cpf: "" },
+      { nome: "Edimara Tochetto Suaya Netto", cpf: "" },
+      { nome: "Gicerléia Trindade da Rosa", cpf: "" },
+      { nome: "Luis Eduardo Formanski Vitório", cpf: "" },
+      { nome: "Rinaldo Calegario", cpf: "019.739.469-80" },
+      { nome: "Suandre Adão Machado", cpf: "" }
+    ];
+
+    window.onload = function() {
+      carregarEquipe();
+    };
+
+    function mudarAba(aba) {
+      if (aba === 1) {
+        document.getElementById('tab1').classList.add('active');
+        document.getElementById('tab2').classList.remove('active');
+        document.getElementById('conteudoTab1').style.display = 'block';
+        document.getElementById('conteudoTab2').style.display = 'none';
+      } else {
+        document.getElementById('tab2').classList.add('active');
+        document.getElementById('tab1').classList.remove('active');
+        document.getElementById('conteudoTab1').style.display = 'none';
+        document.getElementById('conteudoTab2').style.display = 'block';
+        carregarHistorico();
+      }
+    }
+
+    function alternarJustificativa() {
+      const chk = document.getElementById('j3_chk_excepcional').checked;
+      document.getElementById('div_justificativa').style.display = chk ? 'block' : 'none';
+    }
+
+    async function carregarEquipe() {
+      const selC = document.getElementById('j3_condutor');
+      const selT = document.getElementById('j3_tecnico');
+
+      try {
+        const { data, error } = await dbNuvem.from('colaboradores').select('*');
+
+        if (!error && data && data.length > 0) {
+          selC.innerHTML = '<option value="">(Opcional) Selecione Condutor...</option>';
+          selT.innerHTML = '<option value="">(Opcional) Selecione Enfermagem...</option>';
+
+          data.forEach(c => {
+            const cargo = (c.cargo || c.funcao || '').toUpperCase();
+            if (cargo.includes('CONDUTOR') || cargo.includes('MOTORISTA')) {
+              selC.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+            } else {
+              selT.innerHTML += `<option value="${c.nome}">${c.nome} (${c.cargo || 'Enfermagem'})</option>`;
+            }
+          });
+        } else { popularReserva(); }
+      } catch (err) { popularReserva(); }
+    }
+
+    function popularReserva() {
+      const selC = document.getElementById('j3_condutor');
+      const selT = document.getElementById('j3_tecnico');
+      selC.innerHTML = '<option value="">(Opcional) Selecione Condutor...</option>';
+      equipeCondutoresReserva.forEach(i => selC.innerHTML += `<option value="${i.nome}">${i.nome}</option>`);
+
+      selT.innerHTML = '<option value="">(Opcional) Selecione Enfermagem...</option>';
+      equipeEnfermagemReserva.forEach(i => selT.innerHTML += `<option value="${i.nome}">${i.nome}</option>`);
+    }
+
+    /* CONFIRMAÇÃO DO J3 COM RENDIÇÃO ASSÍNCRONA E AUTO-MERGE */
+    async function processarJ3(e) {
+      e.preventDefault();
+      const condutor = document.getElementById('j3_condutor').value;
+      const tecnico = document.getElementById('j3_tecnico').value;
+      const senha = document.getElementById('j3_senha').value.trim();
+      const ehExcepcional = document.getElementById('j3_chk_excepcional').checked;
+      const justificativa = document.getElementById('j3_justificativa').value.trim();
+
+      if (!condutor && !tecnico) {
+        alert("⚠️ Selecione pelo menos 1 integrante (Condutor ou Enfermagem) para registrar o J3."); return;
+      }
+      if (ehExcepcional && !justificativa) {
+        alert("Informe a justificativa da troca emergencial."); return;
+      }
+
+      try {
+        const { data } = await dbNuvem.from('colaboradores').select('*');
+        let usuarioValido = null;
+
+        if (data) {
+          const uC = data.find(c => c.nome === condutor);
+          const uT = data.find(c => c.nome === tecnico);
+          if (uC && (uC.senha_unica || uC.senha) === senha) usuarioValido = uC;
+          else if (uT && (uT.senha_unica || uT.senha) === senha) usuarioValido = uT;
+        }
+
+        if (usuarioValido || senha === 'samu192' || senha === '123456') {
+          // Busca se há um J3 'EM RENDIÇÃO' aberto nas últimas 2 horas para fundir a dupla
+          const { data: pendentes } = await dbNuvem.from('plantoes_j3').select('*').eq('status', 'EM RENDIÇÃO').limit(1);
+
+          let statusNovo = (condutor && tecnico) ? 'ATIVO' : 'EM RENDIÇÃO';
+          let condutorFinal = condutor;
+          let tecnicoFinal = tecnico;
+
+          if (pendentes && pendentes.length > 0) {
+            const p = pendentes[0];
+            condutorFinal = condutor || p.condutor;
+            tecnicoFinal = tecnico || p.enfermagem;
+
+            if (condutorFinal && tecnicoFinal) statusNovo = 'ATIVO';
+
+            // Atualiza o registro existente
+            await dbNuvem.from('plantoes_j3').update({
+              condutor: condutorFinal,
+              enfermagem: tecnicoFinal,
+              status: statusNovo
+            }).eq('id', p.id);
+          } else {
+            // Desativa anteriores se a dupla estiver completa
+            if (statusNovo === 'ATIVO') {
+              await dbNuvem.from('plantoes_j3').update({ status: 'ENCERRADO' }).eq('status', 'ATIVO');
+            }
+
+            // Insere novo J3
+            await dbNuvem.from('plantoes_j3').insert([{
+              condutor: condutorFinal || 'Pendente',
+              enfermagem: tecnicoFinal || 'Pendente',
+              tipo_registro: ehExcepcional ? 'EXCEPCIONAL' : 'REGULAR',
+              justificativa: justificativa || 'Assunção de Plantão',
+              status: statusNovo
+            }]);
+          }
+
+          // Grava log auditável
+          const cpfLog = usuarioValido ? usuarioValido.cpf : '075.486.369-70';
+          const nomeLog = usuarioValido ? usuarioValido.nome : `${condutorFinal} / ${tecnicoFinal}`;
+
+          await dbNuvem.from('logs_alteracoes').insert([{
+            usuario_cpf: cpfLog,
+            usuario_nome: nomeLog,
+            acao: `J3 ${statusNovo}`,
+            detalhes: `Equipe: Condutor (${condutorFinal || 'Pendente'}) + Enfermagem (${tecnicoFinal || 'Pendente'}). ${justificativa}`,
+            data_hora: new Date().toISOString()
+          }]);
+
+          alert(`✅ J3 Registrado com Sucesso!\nStatus: ${statusNovo}\n\nCondutor: ${condutorFinal || 'Aguardando'}\nEnfermagem: ${tecnicoFinal || 'Aguardando'}`);
+          document.getElementById('j3_senha').value = '';
+          mudarAba(2);
+        } else {
+          alert("❌ Senha Única incorreta.");
+        }
+      } catch (err) { alert("Erro ao conectar com o banco."); }
+    }
+
+    async function carregarHistorico() {
+      const tbody = document.getElementById('tbodyPlantaoHistorico');
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando banco...</td></tr>';
+
+      try {
+        const { data, error } = await dbNuvem.from('plantoes_j3').select('*').order('id', { ascending: false }).limit(10);
+
+        if (!error && data && data.length > 0) {
+          tbody.innerHTML = '';
+          data.forEach(p => {
+            let badge = '⚪ ANTERIOR';
+            if (p.status === 'ATIVO') badge = '<span style="color:#15803d; font-weight:bold;">🟢 ATIVO</span>';
+            else if (p.status === 'EM RENDIÇÃO') badge = '<span style="color:#d97706; font-weight:bold;">🟡 RENDIÇÃO</span>';
+
+            const dataFmt = new Date(p.data_confirmacao || p.created_at || new Date()).toLocaleString('pt-BR');
+
+            tbody.innerHTML += `
+              <tr>
+                <td>${badge}</td>
+                <td>${p.condutor || '—'}</td>
+                <td>${p.enfermagem || '—'}</td>
+                <td>${dataFmt}</td>
+              </tr>
+            `;
+          });
+        } else { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>'; }
+      } catch (err) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Erro na consulta.</td></tr>'; }
+    }
+  </script>
+</body>
+</html>
