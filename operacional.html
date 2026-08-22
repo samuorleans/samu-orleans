@@ -67,6 +67,7 @@
       border-radius: 10px; margin-bottom: 10px; cursor: pointer; background: #ffffff; transition: 0.2s;
     }
     .radio-card:hover { border-color: var(--samu-blue); background: #f0f7ff; }
+    .radio-card.disabled { opacity: 0.4; pointer-events: none; background: #f1f5f9; }
     .radio-card input[type="radio"] { width: 18px; height: 18px; accent-color: var(--samu-red); }
     .radio-card label { margin: 0; font-size: 0.9rem; font-weight: 600; color: var(--text-main); cursor: pointer; }
 
@@ -102,7 +103,7 @@
         <div class="form-group">
           <label>Viatura / Prefixo:*</label>
           <select id="vtr_prefixo" required>
-            <option value="">Escolha a viatura...</option>
+            <option value="">Selecione a viatura...</option>
             <option value="SXT-9H65 - M. BENZ SPRINTER">SXT-9H65 - M. BENZ SPRINTER</option>
             <option value="RAJ-2I37 - M. BENZ SPRINTER">RAJ-2I37 - M. BENZ SPRINTER</option>
           </select>
@@ -110,37 +111,37 @@
 
         <div class="form-group">
           <label>Nome do Profissional (Condutor ou Técnico):*</label>
-          <select id="prof_nome" required>
+          <select id="prof_nome" onchange="aplicarFiltroPerfil()" required>
             <option value="">Selecione o seu nome...</option>
-            <option value="Clênio Borges - Tec. Enfermagem (862518)">Clênio Borges - Tec. Enfermagem (862518)</option>
-            <option value="Daniel Alexandre Fernandes - Condutor">Daniel Alexandre Fernandes - Condutor</option>
-            <option value="Edimara Tochetto Suaya Netto - Enfermeira Coordenadora (110151)">Edimara Tochetto Suaya Netto - Enfermeira Coordenadora (110151)</option>
-            <option value="Gicerléia Trindade da Rosa - Tec. Enfermagem (870568)">Gicerléia Trindade da Rosa - Tec. Enfermagem (870568)</option>
-            <option value="Lucas Vieira Mendes - Condutor">Lucas Vieira Mendes - Condutor</option>
-            <option value="Luis Eduardo Formanski Vitório - Tec. Enfermagem (1551746)">Luis Eduardo Formanski Vitório - Tec. Enfermagem (1551746)</option>
-            <option value="Márcio Becker - Condutor">Márcio Becker - Condutor</option>
-            <option value="Renato Cândido - Condutor">Renato Cândido - Condutor</option>
-            <option value="Rinaldo Calegario - Tec. Enfermagem (331871)">Rinaldo Calegario - Tec. Enfermagem (331871)</option>
-            <option value="Suandre Adão Machado - Tec. Enfermagem (99894)">Suandre Adão Machado - Tec. Enfermagem (99894)</option>
-            <option value="Vanderlei José Tasca - Condutor">Vanderlei José Tasca - Condutor</option>
+            <option value="Clênio Borges - Tec. Enfermagem (862518)" data-cargo="TECNICO">Clênio Borges - Tec. Enfermagem (862518)</option>
+            <option value="Daniel Alexandre Fernandes - Condutor" data-cargo="CONDUTOR">Daniel Alexandre Fernandes - Condutor</option>
+            <option value="Edimara Tochetto Suaya Netto - Enfermeira Coordenadora (110151)" data-cargo="COORDENACAO">Edimara Tochetto Suaya Netto - Enfermeira Coordenadora (110151)</option>
+            <option value="Gicerléia Trindade da Rosa - Tec. Enfermagem (870568)" data-cargo="TECNICO">Gicerléia Trindade da Rosa - Tec. Enfermagem (870568)</option>
+            <option value="Lucas Vieira Mendes - Condutor" data-cargo="CONDUTOR">Lucas Vieira Mendes - Condutor</option>
+            <option value="Luis Eduardo Formanski Vitório - Tec. Enfermagem (1551746)" data-cargo="TECNICO">Luis Eduardo Formanski Vitório - Tec. Enfermagem (1551746)</option>
+            <option value="Márcio Becker - Condutor" data-cargo="CONDUTOR">Márcio Becker - Condutor</option>
+            <option value="Renato Cândido - Condutor" data-cargo="CONDUTOR">Renato Cândido - Condutor</option>
+            <option value="Rinaldo Calegario - Tec. Enfermagem (331871)" data-cargo="TECNICO">Rinaldo Calegario - Tec. Enfermagem (331871)</option>
+            <option value="Suandre Adão Machado - Tec. Enfermagem (99894)" data-cargo="TECNICO">Suandre Adão Machado - Tec. Enfermagem (99894)</option>
+            <option value="Vanderlei José Tasca - Condutor" data-cargo="CONDUTOR">Vanderlei José Tasca - Condutor</option>
           </select>
         </div>
 
         <div class="form-group">
           <label>Qual procedimento deseja realizar agora?*</label>
-          <div class="radio-card">
+          <div class="radio-card" id="card_opt_condutor">
             <input type="radio" id="opt_condutor" name="procedimento" value="CONDUTOR">
             <label for="opt_condutor">🚑 Checklist de Plantão — Condutor Socorrista</label>
           </div>
-          <div class="radio-card">
+          <div class="radio-card" id="card_opt_tecnico">
             <input type="radio" id="opt_tecnico" name="procedimento" value="TECNICO">
             <label for="opt_tecnico">🩺 Checklist de Plantão — Técnico de Enfermagem</label>
           </div>
-          <div class="radio-card">
+          <div class="radio-card" id="card_opt_abastecimento">
             <input type="radio" id="opt_abastecimento" name="procedimento" value="ABASTECIMENTO">
             <label for="opt_abastecimento">⛽ Registro de Abastecimento de Combustível/Arla</label>
           </div>
-          <div class="radio-card">
+          <div class="radio-card" id="card_opt_lacre">
             <input type="radio" id="opt_lacre" name="procedimento" value="LACRE">
             <label for="opt_lacre">🔒 Registro de Ocorrência / Substituição de Lacre</label>
           </div>
@@ -158,7 +159,7 @@
         <div class="grid-2" style="margin-top:12px;">
           <div class="form-group">
             <label>Turno do Plantão:*</label>
-            <select id="cond_turno" required>
+            <select id="cond_turno">
               <option value="">Selecione...</option>
               <option value="Diurno (12h)">Diurno (12h)</option>
               <option value="Noturno (12h)">Noturno (12h)</option>
@@ -263,24 +264,65 @@
         </div>
       </div>
 
-      <!-- ETAPA 3: CHECKLIST TÉCNICO DE ENFERMAGEM -->
+      <!-- ETAPA 3: CHECKLIST TÉCNICO DE ENFERMAGEM (COMPLETO - GOOGLE FORMS) -->
       <div id="etapa_tecnico" class="section-card">
-        <h3 style="color:var(--samu-navy); font-size:1.05rem;">🩺 Checklist de Equipamentos e Gases — Enfermagem</h3>
+        <h3 style="color:var(--samu-navy); font-size:1.05rem;">🩺 Checklist de Equipamentos, Mochilas e Gases — Enfermagem</h3>
         
         <div class="grid-2" style="margin-top:12px;">
-          <div class="form-group"><label>Cilindro Fixo 1 (2,2m³ — bar):*</label><input type="number" id="tec_cil1" placeholder="Ex: 150"></div>
-          <div class="form-group"><label>Cilindro Fixo 2 (2,2m³ — bar):*</label><input type="number" id="tec_cil2" placeholder="Ex: 150"></div>
+          <div class="form-group">
+            <label>Turno do Plantão:*</label>
+            <select id="tec_turno">
+              <option value="">Selecione...</option>
+              <option value="Diurno (12h)">Diurno (12h)</option>
+              <option value="Noturno (12h)">Noturno (12h)</option>
+              <option value="Plantão 24h">Plantão 24h</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Número Lacre Maleta Psicotrópicos:*</label>
+            <input type="text" id="tec_lacre" placeholder="Ex: 123456">
+          </div>
         </div>
 
+        <div class="section-header-title">💨 Medição de Gases Medicinais (Pressão em bar)</div>
         <div class="grid-2">
-          <div class="form-group"><label>Cilindro Portátil 1 (bar):*</label><input type="number" id="tec_portatil" placeholder="Ex: 200"></div>
-          <div class="form-group"><label>Número Lacre Maleta Psicotrópicos:*</label><input type="text" id="tec_lacre" placeholder="Ex: 123456"></div>
+          <div class="form-group"><label>Cilindro Fixo 1 (2,2m³ - bar):*</label><input type="number" id="tec_cil1" placeholder="Ex: 150"></div>
+          <div class="form-group"><label>Cilindro Fixo 2 (2,2m³ - bar):*</label><input type="number" id="tec_cil2" placeholder="Ex: 150"></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label>Cilindro Portátil 1 (1m³ - Em Uso - bar):*</label><input type="number" id="tec_portatil" placeholder="Ex: 200"></div>
+          <div class="form-group"><label>Cilindro Ar Comprimido Fixo (bar):*</label><input type="number" id="tec_ar_comp" placeholder="Ex: 150"></div>
+        </div>
+
+        <div class="section-header-title">🎒 Conferência das Mochilas e Equipamentos Médicos (POP-ALM-001 / POP-EQP-001)</div>
+        <div class="table-container">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Equipamento / Mochila</th>
+                <th>Confere / Completo</th>
+                <th>Necessita Reposição</th>
+                <th>Avaria / Defeito</th>
+              </tr>
+            </thead>
+            <tbody id="tb_mochilas"></tbody>
+          </table>
+        </div>
+
+        <div class="section-header-title">🚨 Alerta Crítico & Risco Obstétrico</div>
+        <div class="form-group">
+          <label>Existe algum material de emergência FALTANDO ou VENCIDO?*</label>
+          <select id="tec_alerta_critico">
+            <option value="">Selecione...</option>
+            <option value="Não, tudo conforme">Não, tudo conforme</option>
+            <option value="SIM - Descrever abaixo">SIM - Descrever abaixo</option>
+          </select>
         </div>
 
         <div class="form-group">
-          <label>Relatório de Insumos Faltantes ou Observações:</label>
+          <label>Descrição de Materiais Faltantes / Reposição Necessária:</label>
           <div class="mic-wrapper">
-            <textarea id="tec_obs" rows="3" placeholder="Digite ou toque no microfone para falar..."></textarea>
+            <textarea id="tec_obs" rows="3" placeholder="Descreva os itens faltantes, lotes ou validades..."></textarea>
             <button type="button" class="btn-mic" onclick="iniciarVoz('tec_obs')">🎙️ Ouvir</button>
           </div>
         </div>
@@ -312,7 +354,10 @@
 
         <div class="grid-2">
           <div class="form-group"><label>Litros Abastecidos:*</label><input type="number" step="0.01" id="abs_litros" placeholder="Ex: 55.4"></div>
-          <div class="form-group"><label>Valor Total Pago (R$):*</label><input type="number" step="0.01" id="abs_valor" placeholder="Ex: 340.00"></div>
+          <div class="form-group">
+            <label>Valor Total Pago:*</label>
+            <input type="text" id="abs_valor" placeholder="R$ 0,00" oninput="formatarMoeda(this)">
+          </div>
         </div>
 
         <div class="action-row">
@@ -373,6 +418,19 @@
       "Limpador de Para-brisa e Vidros", "Faróis, Lanternas e Piscas"
     ];
 
+    const listaMochilasEnf = [
+      "Mochila Azul - Vias Aéreas",
+      "Mochila Laranja - Trauma",
+      "Mochila Verde - Medicamentos",
+      "Mochila Vermelha - Acesso Venoso & Soluções",
+      "Mochila Amarela - Sinais Vitais & Glicosímetro",
+      "DEA / Monitor Multiparâmetros Mindray",
+      "Aspirador Portátil & Vidro de Aspiração",
+      "Compressor Thorácico Autopulse / Baterias",
+      "Kit Parto Iminente (Prevenção Risco Obstétrico)",
+      "Salão & Compartimentos de Insumos"
+    ];
+
     function renderizarMecanica() {
       const tb = document.getElementById('tb_mecanica');
       tb.innerHTML = '';
@@ -386,6 +444,57 @@
           </tr>
         `;
       });
+    }
+
+    function renderizarMochilasEnf() {
+      const tb = document.getElementById('tb_mochilas');
+      tb.innerHTML = '';
+      listaMochilasEnf.forEach((item, index) => {
+        tb.innerHTML += `
+          <tr id="row_moch_${index}">
+            <td>${item}</td>
+            <td><input type="radio" name="moch_${index}" value="Confere / Completo"></td>
+            <td><input type="radio" name="moch_${index}" value="Necessita Reposição"></td>
+            <td><input type="radio" name="moch_${index}" value="Avaria / Defeito"></td>
+          </tr>
+        `;
+      });
+    }
+
+    /* MÁSCARA AUTOMÁTICA EM MOEDA (R$) */
+    function formatarMoeda(i) {
+      let v = i.value.replace(/\D/g, '');
+      v = (v / 100).toFixed(2) + '';
+      v = v.replace(".", ",");
+      v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+      i.value = "R$ " + v;
+    }
+
+    /* FILTRO DINÂMICO DE PERFIL / CARGO */
+    function aplicarFiltroPerfil() {
+      const sel = document.getElementById('prof_nome');
+      const opt = sel.options[sel.selectedIndex];
+      const cargo = opt ? opt.getAttribute('data-cargo') : '';
+
+      const cCond = document.getElementById('card_opt_condutor');
+      const cTec = document.getElementById('card_opt_tecnico');
+      const cAbs = document.getElementById('card_opt_abastecimento');
+      const cLac = document.getElementById('card_opt_lacre');
+
+      // Limpa marcações anteriores
+      document.querySelectorAll('input[name="procedimento"]').forEach(r => r.checked = false);
+
+      if (cargo === 'CONDUTOR') {
+        cCond.classList.remove('disabled'); cAbs.classList.remove('disabled');
+        cTec.classList.add('disabled'); cLac.classList.add('disabled');
+      } else if (cargo === 'TECNICO') {
+        cTec.classList.remove('disabled'); cLac.classList.remove('disabled');
+        cCond.classList.add('disabled'); cAbs.classList.add('disabled');
+      } else {
+        // Coordenação / Admin - Acesso total
+        cCond.classList.remove('disabled'); cAbs.classList.remove('disabled');
+        cTec.classList.remove('disabled'); cLac.classList.remove('disabled');
+      }
     }
 
     /* RECONHECIMENTO DE VOZ (SPEECH-TO-TEXT) */
@@ -452,11 +561,9 @@
           const marcado = document.querySelector(`input[name="mec_${index}"]:checked`);
           const tr = document.getElementById(`row_mec_${index}`);
           if (!marcado) {
-            pendentes.push(item);
-            tr.classList.add('unselected');
+            pendentes.push(item); tr.classList.add('unselected');
           } else {
-            tr.classList.remove('unselected');
-            mapaMecanica[item] = marcado.value;
+            tr.classList.remove('unselected'); mapaMecanica[item] = marcado.value;
           }
         });
 
@@ -467,14 +574,11 @@
         if (!pneuDiant || !pneuTras || !pneuEstepe) pendentes.push("Estado Geral dos Pneus");
 
         if (pendentes.length > 0) {
-          alert(`⚠️ Preenchimento obrigatório incompleto!\nVocê deixou de avaliar os seguintes itens:\n- ${pendentes.join('\n- ')}`);
-          return;
+          alert(`⚠️ Preenchimento obrigatório incompleto!\nAvalie os itens marcados em vermelho.`); return;
         }
 
         const payload = {
-          viatura: vtr,
-          profissional_nome: prof,
-          tipo_procedimento: 'Checklist Condutor',
+          viatura: vtr, profissional_nome: prof, tipo_procedimento: 'Checklist Condutor',
           turno_plantao: document.getElementById('cond_turno').value,
           km_atual: parseInt(document.getElementById('cond_km').value),
           km_proxima_troca_oleo: parseInt(document.getElementById('cond_km_oleo').value),
@@ -487,40 +591,52 @@
 
         const { error } = await dbNuvem.from('operacional_checklists').insert([payload]);
         if (!error) {
-          alert('✅ Checklist do Condutor salvo com sucesso!');
-          location.reload();
+          alert('✅ Checklist do Condutor salvo com sucesso!'); location.reload();
         } else { alert('Erro: ' + error.message); }
 
       } else if (procedimentoAtual === 'TECNICO') {
+        let pendentes = [];
+        let mapaMochilas = {};
+
+        listaMochilasEnf.forEach((item, index) => {
+          const marcado = document.querySelector(`input[name="moch_${index}"]:checked`);
+          const tr = document.getElementById(`row_moch_${index}`);
+          if (!marcado) {
+            pendentes.push(item); tr.classList.add('unselected');
+          } else {
+            tr.classList.remove('unselected'); mapaMochilas[item] = marcado.value;
+          }
+        });
+
+        if (pendentes.length > 0) {
+          alert(`⚠️ Preenchimento obrigatório incompleto!\nAvalie as mochilas e equipamentos em vermelho.`); return;
+        }
+
         const cil1 = parseFloat(document.getElementById('tec_cil1').value);
         const cil2 = parseFloat(document.getElementById('tec_cil2').value);
-        const lacre = document.getElementById('tec_lacre').value;
-
-        if (isNaN(cil1) || isNaN(cil2) || !lacre) {
-          alert("Por favor, preencha todos os campos obrigatórios do checklist de enfermagem."); return;
-        }
 
         const payload = {
           viatura: vtr, profissional_nome: prof,
           cilindro_fixo_1_bar: cil1, cilindro_fixo_2_bar: cil2,
           cilindro_portatil_1_bar: parseFloat(document.getElementById('tec_portatil').value) || 0,
-          numero_lacre_psicotropicos: lacre,
+          cilindro_ar_comprimido_bar: parseFloat(document.getElementById('tec_ar_comp').value) || 0,
+          numero_lacre_psicotropicos: document.getElementById('tec_lacre').value,
           alerta_oxigenio_critico: (cil1 < 15 || cil2 < 15)
         };
         const { error } = await dbNuvem.from('operacional_saude_lacres').insert([payload]);
         if (!error) {
-          alert('✅ Checklist de Enfermagem salvo com sucesso!');
-          location.reload();
+          alert('✅ Checklist de Enfermagem salvo com sucesso!'); location.reload();
         } else { alert('Erro: ' + error.message); }
 
       } else if (procedimentoAtual === 'ABASTECIMENTO') {
+        const strValor = document.getElementById('abs_valor').value.replace('R$', '').replace('.', '').replace(',', '.').trim();
         const payload = {
           viatura: vtr, condutor_nome: prof,
           posto_credenciado: document.getElementById('abs_posto').value,
           tipo_insumo: document.getElementById('abs_insumo').value,
           km_atual: parseInt(document.getElementById('abs_km').value),
           litros: parseFloat(document.getElementById('abs_litros').value),
-          valor_pago: parseFloat(document.getElementById('abs_valor').value)
+          valor_pago: parseFloat(strValor) || 0
         };
         const { error } = await dbNuvem.from('operacional_abastecimentos').insert([payload]);
         if (!error) {
@@ -540,6 +656,7 @@
     }
 
     renderizarMecanica();
+    renderizarMochilasEnf();
   </script>
 </body>
 </html>
