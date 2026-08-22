@@ -21,7 +21,7 @@
 
     .container { max-width: 650px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; text-align: center; }
     
-    .brand-logo { width: 50px; height: auto; margin-bottom: 6px; }
+    .brand-logo { max-width: 90px; height: auto; margin-bottom: 8px; }
     .header h1 { font-size: 1.2rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; }
     .header p { font-size: 0.8rem; color: #64748b; margin-bottom: 20px; font-weight: 600; }
 
@@ -51,9 +51,9 @@
 <body>
 
   <div class="container">
-    <!-- CABEÇALHO ORIGINAL SAMU CONNECT -->
+    <!-- CABEÇALHO SAMU CONNECT COM A LOGO OFICIAL LOCAL -->
     <div class="header">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Star_of_life_caucasia.svg" alt="SAMU 192" class="brand-logo">
+      <img src="logo.png" alt="SAMU 192" class="brand-logo" onerror="this.style.display='none'">
       <h1>SAMU CONNECT — CENTRAL OPERACIONAL</h1>
       <p>USB 11 ORLEANS — Registros Operacionais e Checklists de Rotina</p>
     </div>
@@ -75,7 +75,7 @@
         <div class="form-card-block">
           <label class="title">NOME DO PROFISSIONAL (CONDUTOR OU TÉCNICO) <span>*</span></label>
           <div class="form-group">
-            <select id="p1_profissional" required>
+            <select id="p1_profissional" required onchange="filtrarOpcoesPorFuncao()">
               <option value="">Escolher...</option>
             </select>
           </div>
@@ -83,23 +83,28 @@
 
         <div class="form-card-block">
           <label class="title">QUAL PROCEDIMENTO DESEJA REALIZAR AGORA? <span>*</span></label>
-          <div class="radio-group">
-            <label class="radio-option">
+          <div class="radio-group" id="containerProcedimentos">
+            
+            <label class="radio-option" id="opt_condutor">
               <input type="radio" name="procedimento" value="condutor">
               <span>📑 Checklist de Plantão - Condutor Socorrista</span>
             </label>
-            <label class="radio-option">
+
+            <label class="radio-option" id="opt_tecnico">
               <input type="radio" name="procedimento" value="tecnico">
               <span>🩺 Checklist de Plantão - Técnico de Enfermagem</span>
             </label>
-            <label class="radio-option">
+
+            <label class="radio-option" id="opt_abastecimento">
               <input type="radio" name="procedimento" value="abastecimento">
               <span>⛽ Registrar Abastecimento de Combustível/Arla</span>
             </label>
-            <label class="radio-option">
+
+            <label class="radio-option" id="opt_lacre">
               <input type="radio" name="procedimento" value="lacre">
               <span>🔒 Registro de Ocorrência / Troca de Lacre (Checklist)</span>
             </label>
+
           </div>
         </div>
 
@@ -137,6 +142,8 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
+    let listaColaboradoresCache = [];
+
     window.onload = function() {
       carregarViaturas();
       carregarProfissionais();
@@ -159,14 +166,62 @@
     async function carregarProfissionais() {
       const selP = document.getElementById('p1_profissional');
       try {
-        const { data } = await dbNuvem.from('colaboradores').select('nome').order('nome', { ascending: true });
+        const { data } = await dbNuvem.from('colaboradores').select('nome, funcao, status').order('nome', { ascending: true });
         if (data && data.length > 0) {
+          listaColaboradoresCache = data;
           selP.innerHTML = '<option value="">Escolher...</option>';
           data.forEach(c => {
-            selP.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+            if (c.status !== 'DESLIGADO') {
+              selP.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+            }
           });
         }
       } catch (e) {}
+    }
+
+    // APLICA TRAVA E EXIBE APENAS AS OPÇÕES DA FUNÇÃO SELECIONADA
+    function filtrarOpcoesPorFuncao() {
+      const nomeSel = document.getElementById('p1_profissional').value;
+      const optCond = document.getElementById('opt_condutor');
+      const optTec = document.getElementById('opt_tecnico');
+      const optAbs = document.getElementById('opt_abastecimento');
+      const optLacre = document.getElementById('opt_lacre');
+
+      // Desmarca rádios
+      document.querySelectorAll('input[name="procedimento"]').forEach(r => r.checked = false);
+
+      if (!nomeSel) {
+        optCond.style.display = 'flex';
+        optTec.style.display = 'flex';
+        optAbs.style.display = 'flex';
+        optLacre.style.display = 'flex';
+        return;
+      }
+
+      const colab = listaColaboradoresCache.find(c => c.nome === nomeSel);
+      const funcao = colab ? (colab.funcao || '').toUpperCase() : '';
+
+      // CONDUTOR SOCORRISTA
+      if (funcao.includes('CONDUTOR') || funcao.includes('MOTORISTA')) {
+        optCond.style.display = 'flex';
+        optAbs.style.display = 'flex';
+        optTec.style.display = 'none';
+        optLacre.style.display = 'none';
+      } 
+      // TÉCNICO / ENFERMEIRO
+      else if (funcao.includes('TÉCNICO') || funcao.includes('TECNICO') || funcao.includes('ENFERM')) {
+        optTec.style.display = 'flex';
+        optLacre.style.display = 'flex';
+        optCond.style.display = 'none';
+        optAbs.style.display = 'none';
+      } 
+      // ADMIN OU OUTRO -> EXIBE TUDO
+      else {
+        optCond.style.display = 'flex';
+        optTec.style.display = 'flex';
+        optAbs.style.display = 'flex';
+        optLacre.style.display = 'flex';
+      }
     }
 
     function avancarPasso2() {
