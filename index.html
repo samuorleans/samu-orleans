@@ -125,7 +125,7 @@
         </div>
         <div class="form-group">
           <label>Registro (COREN ou CNH):*</label>
-          <input type="text" id="rec_reg" placeholder="Ex: 862518">
+          <input type="text" id="rec_reg" placeholder="Ex: 5031057705">
         </div>
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
           <button type="button" class="btn-op" style="width:auto; padding:8px 15px;" onclick="fecharModalRecuperacao()">Cancelar</button>
@@ -183,7 +183,6 @@
         });
 
         if (usuario) {
-          // Guarda a sessão única no navegador
           sessionStorage.setItem('samu_usuario_logado', JSON.stringify({
             id: usuario.id,
             nome: usuario.nome,
@@ -203,23 +202,36 @@
     function abrirModalRecuperacao(e) { e.preventDefault(); document.getElementById('modalSSO').classList.add('active'); }
     function fecharModalRecuperacao() { document.getElementById('modalSSO').classList.remove('active'); }
 
+    /* VALIDAÇÃO APRIMORADA CONSULTANDO MULTI-COLUNAS DE REGISTRO */
     async function validarEAvancar() {
-      const cpfL = document.getElementById('rec_cpf').value.replace(/\D/g, '');
-      const regL = document.getElementById('rec_reg').value.trim().toLowerCase();
+      const cpfL = document.getElementById('rec_cpf').value.replace(/\D/g, '').trim();
+      const regL = document.getElementById('rec_reg').value.replace(/\D/g, '').trim();
 
-      const { data } = await dbNuvem.from('colaboradores').select('*');
-      if (data) {
+      if (!cpfL || !regL) {
+        alert("Preencha o CPF e o Registro para realizar a validação."); return;
+      }
+
+      const { data, error } = await dbNuvem.from('colaboradores').select('*');
+
+      if (!error && data) {
         const achou = data.find(c => {
-          const cBD = (c.cpf || '').replace(/\D/g, '');
-          const rBD = ((c.coren || c.cnh || c.registro || '') + '').toLowerCase();
-          return (cBD === cpfL && rBD.includes(regL));
+          const cpfBD = (c.cpf || '').replace(/\D/g, '').trim();
+          
+          // Concatena todos os campos possíveis onde o registro pode estar salvo
+          const regBD = ((c.registro || '') + (c.cnh || '') + (c.coren || '') + (c.registro_profissional || '')).replace(/\D/g, '').trim();
+
+          return (cpfBD === cpfL && (regBD.includes(regL) || regL.includes(regBD)));
         });
 
         if (achou) {
           idServidorValidado = achou.id;
           document.getElementById('step_valida').style.display = 'none';
           document.getElementById('step_senha').style.display = 'block';
-        } else { alert("Divergência nos dados. Verifique o CPF e o Registro."); }
+        } else {
+          alert("❌ Divergência nos dados. Verifique o CPF e o Registro digitados.");
+        }
+      } else {
+        alert("Erro ao consultar base de dados.");
       }
     }
 
@@ -227,9 +239,15 @@
       const s1 = document.getElementById('nova_s1').value;
       const s2 = document.getElementById('nova_s2').value;
 
-      if (!s1 || s1.length < 6 || s1 !== s2) { alert("As senhas devem ser iguais e ter no mínimo 6 caracteres."); return; }
+      if (!s1 || s1.length < 6 || s1 !== s2) {
+        alert("As senhas devem ser iguais e ter no mínimo 6 caracteres."); return;
+      }
 
-      const { error } = await dbNuvem.from('colaboradores').update({ senha_unica: s1 }).eq('id', idServidorValidado);
+      const { error } = await dbNuvem.from('colaboradores').update({
+        senha_unica: s1,
+        senha: s1
+      }).eq('id', idServidorValidado);
+
       if (!error) {
         alert("✅ Senha Única redefinida com sucesso!");
         fecharModalRecuperacao();
