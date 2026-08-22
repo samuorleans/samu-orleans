@@ -95,7 +95,7 @@
     .role-user { background: #e0f2fe; color: #0369a1; }
     .badge-ch { background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 12px; font-weight: bold; }
 
-    /* CABEÇALHO IMPRESSÃO */
+    /* CABEÇALHO IMPRESSÃO OFICIAL */
     .relatorio-header-print { display: none; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 8px; text-align: center; }
     .relatorio-header-print h2 { font-size: 11pt; text-transform: uppercase; margin: 0; color: #000; font-weight: 800; }
     .relatorio-header-print h3 { font-size: 9.5pt; text-transform: uppercase; margin: 2px 0; color: #000; }
@@ -111,7 +111,7 @@
       @page { size: A4 portrait; margin: 8mm; }
       body { background: white !important; color: #000 !important; font-size: 8.5pt !important; width: 100% !important; }
       
-      .sidebar, .no-print, .search-input, .grid-filter, .login-wrapper, .modal-header button { display: none !important; }
+      .sidebar, .no-print, .search-input, .grid-filter, .login-wrapper, .modal-header button, .page-header { display: none !important; }
       .app-layout { display: block !important; }
       .main-content { padding: 0 !important; overflow: visible !important; }
       .card-panel { border: none !important; box-shadow: none !important; padding: 0 !important; margin-bottom: 12pt !important; }
@@ -198,7 +198,7 @@
 
       <!-- ABA 1: PERFIL DO SERVIDOR -->
       <div id="tabMeuPerfil" class="tab-pane">
-        <div class="page-header">
+        <div class="page-header no-print">
           <div class="page-title">Meu Perfil e Cadastro de Insumos</div>
         </div>
 
@@ -225,13 +225,13 @@
             <div class="form-group"><label>Coturno (Número):</label><input type="text" id="uCoturno"></div>
             <div class="form-group"><label>Capa de Chuva:</label><input type="text" id="uCapaChuva"></div>
           </div>
-          <button class="btn-primary" style="margin-top:12px; background:#166534;" onclick="salvarTudoPerfil()">💾 Salvar Alterações</button>
+          <button class="btn-primary no-print" style="margin-top:12px; background:#166534;" onclick="salvarTudoPerfil()">💾 Salvar Alterações</button>
         </div>
       </div>
 
       <!-- ABA 2: MINHAS CAPACITAÇÕES -->
       <div id="tabMeusCursos" class="tab-pane" style="display:none;">
-        <div class="page-header">
+        <div class="page-header no-print">
           <div class="page-title">Histórico de Capacitações e Metas</div>
           <div style="display:flex; gap:8px;">
             <a href="cursos.html" target="_blank" class="btn-primary" style="text-decoration:none;">➕ Novo Lançamento</a>
@@ -266,13 +266,13 @@
 
       <!-- ABA 3: GESTÃO DE SERVIDORES (ADMIN) -->
       <div id="tabAdminServidores" class="tab-pane" style="display:none;">
-        <div class="page-header">
+        <div class="page-header no-print">
           <div class="page-title">Painel do Quadro de Servidores</div>
           <button class="btn-primary" onclick="abrirModalNovoServidor()">➕ Novo Colaborador</button>
         </div>
 
         <div class="card-panel">
-          <div class="action-bar">
+          <div class="action-bar no-print">
             <input type="text" class="search-input" id="searchServidores" placeholder="🔍 Buscar por Nome ou CPF..." onkeyup="filtrarTabelaServidores()">
           </div>
 
@@ -290,7 +290,7 @@
                   <th>Jaqueta</th>
                   <th>Capa Chuva</th>
                   <th>Perfil</th>
-                  <th>Ações</th>
+                  <th class="no-print">Ações</th>
                 </tr>
               </thead>
               <tbody id="adminServidoresTable"></tbody>
@@ -301,7 +301,7 @@
 
       <!-- ABA 4: RELATÓRIO CURSOS (ADMIN) -->
       <div id="tabAdminCursos" class="tab-pane" style="display:none;">
-        <div class="page-header">
+        <div class="page-header no-print">
           <div class="page-title">Relatório Geral de Capacitações (Portaria 2048)</div>
           <button class="btn-primary" onclick="window.print()">🖨️ Imprimir Relatório A4</button>
         </div>
@@ -359,7 +359,7 @@
 
       <!-- ABA 5: FROTAS & CHECKLISTS OPERACIONAIS -->
       <div id="tabAdminChecklists" class="tab-pane" style="display:none;">
-        <div class="page-header">
+        <div class="page-header no-print">
           <div class="page-title">Histórico de Checklists Operacionais e Viatura</div>
           <button class="btn-primary" onclick="carregarRelatorioChecklistsAdmin()">🔄 Atualizar Dados</button>
         </div>
@@ -374,7 +374,7 @@
                   <th>Profissional</th>
                   <th>Procedimento</th>
                   <th>Detalhes</th>
-                  <th>Ação</th>
+                  <th class="no-print">Ação</th>
                 </tr>
               </thead>
               <tbody id="tbAdminChecklists">
@@ -387,7 +387,7 @@
 
       <!-- ABA 6: LOGS DE ALTERAÇÕES E AUDITORIA -->
       <div id="tabAdminLogs" class="tab-pane" style="display:none;">
-        <div class="page-header">
+        <div class="page-header no-print">
           <div class="page-title">Histórico de Alterações e Auditoria</div>
           <button class="btn-primary" onclick="carregarLogsAuditoria()">🔄 Atualizar Logs</button>
         </div>
@@ -860,7 +860,7 @@
             <td>${c.profissional_nome || '-'}</td>
             <td><span class="badge-role role-user">${c.tipo_procedimento || 'Checklist'}</span></td>
             <td>${c.relato_avarias ? c.relato_avarias.substring(0, 30) + '...' : 'Sem avarias'}</td>
-            <td><button class="btn-action-sm" onclick='abrirEspelhoChecklist(${jsonStr})'>👁️ Ver Espelho</button></td>
+            <td class="no-print"><button class="btn-action-sm" onclick='abrirEspelhoChecklist(${jsonStr})'>👁️ Ver Espelho</button></td>
           </tr>
         `;
       });
@@ -1139,7 +1139,7 @@
             <td>${u.jaqueta || '-'}</td>
             <td>${u.capa_chuva || '-'}</td>
             <td><span class="badge-role ${isRoleAdmin ? 'role-admin' : 'role-user'}">${s.perfil || 'servidor'}</span></td>
-            <td><button class="btn-action-sm" onclick="abrirModalEdicao(${s.id})">✏️ Editar</button></td>
+            <td class="no-print"><button class="btn-action-sm" onclick="abrirModalEdicao(${s.id})">✏️ Editar</button></td>
           </tr>
         `;
       });
@@ -1166,7 +1166,7 @@
             <td>${u.jaqueta || '-'}</td>
             <td>${u.capa_chuva || '-'}</td>
             <td><span class="badge-role ${s.perfil === 'admin' ? 'role-admin' : 'role-user'}">${s.perfil || 'servidor'}</span></td>
-            <td><button class="btn-action-sm" onclick="abrirModalEdicao(${s.id})">✏️ Editar</button></td>
+            <td class="no-print"><button class="btn-action-sm" onclick="abrirModalEdicao(${s.id})">✏️ Editar</button></td>
           </tr>
         `;
       });
