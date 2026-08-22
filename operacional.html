@@ -34,6 +34,9 @@
     .form-group input, .form-group select, .form-group textarea { padding: 11px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none; background: white; width: 100%; }
     .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--samu-blue); }
 
+    /* CAMPO DE SENHA ADMIN ESCONDIDO POR PADRÃO */
+    #boxSenhaAdmin { display: none; background: #f1f5f9; border: 1.5px dashed var(--samu-blue); border-radius: 8px; padding: 12px; margin-top: 10px; }
+
     .radio-group { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
     .radio-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: 0.2s; background: #f8fafc; }
     .radio-option:hover { background: #e2e8f0; }
@@ -51,7 +54,6 @@
 <body>
 
   <div class="container">
-    <!-- CABEÇALHO SAMU CONNECT COM LOGO LOCAL -->
     <div class="header">
       <img src="logo.png" alt="SAMU 192" class="brand-logo" onerror="this.style.display='none'">
       <h1>SAMU CONNECT — CENTRAL OPERACIONAL</h1>
@@ -75,9 +77,22 @@
         <div class="form-card-block">
           <label class="title">NOME DO PROFISSIONAL (CONDUTOR OU TÉCNICO) <span>*</span></label>
           <div class="form-group">
-            <select id="p1_profissional" required onchange="filtrarOpcoesPorFuncaoDirect()">
+            <select id="p1_profissional" required onchange="verificarAcessoProfissional()">
               <option value="">Escolher...</option>
             </select>
+          </div>
+
+          <!-- CAMPO DE VALIDAÇÃO DE SENHA QUANDO SELECIONAR ADMIN/COORDENADOR -->
+          <div id="boxSenhaAdmin">
+            <label style="font-size: 0.72rem; font-weight: 800; color: var(--samu-navy); text-transform: uppercase; display: block; margin-bottom: 4px;">
+              🔑 Autenticação de Gestão / Admin (Digite a Senha):
+            </label>
+            <div style="display: flex; gap: 8px;">
+              <input type="password" id="input_senha_admin" placeholder="Digite sua senha..." style="padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; flex: 1;">
+              <button type="button" onclick="validarSenhaAdmin()" style="background: var(--samu-blue); color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">
+                Autenticar
+              </button>
+            </div>
           </div>
         </div>
 
@@ -142,6 +157,9 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
+    let adminAutenticado = false;
+    let senhaOficialAdmin = "";
+
     window.onload = function() {
       carregarViaturas();
       carregarProfissionaisComPermissoes();
@@ -161,7 +179,6 @@
       } catch (e) {}
     }
 
-    // CONSULTA UNIFICADA: COLABORADORES + OPERACIONAL_PERMISSOES
     async function carregarProfissionaisComPermissoes() {
       const selP = document.getElementById('p1_profissional');
       try {
@@ -169,13 +186,13 @@
         const { data: permissoes } = await dbNuvem.from('operacional_permissoes').select('*');
 
         if (colaboradores && colaboradores.length > 0) {
-          selP.innerHTML = '<option value="" data-funcao="">Escolher...</option>';
+          selP.innerHTML = '<option value="" data-funcao="" data-senha="">Escolher...</option>';
           
           colaboradores.forEach(c => {
             if (c.status !== 'DESLIGADO') {
               let funcaoDefinida = c.funcao || '';
+              const senhaColab = c.senha_unica || c.senha || '';
 
-              // Procura se existe permissão específica na tabela operacional_permissoes
               if (permissoes && permissoes.length > 0) {
                 const perm = permissoes.find(p => p.colaborador_id === c.id || p.nome === c.nome);
                 if (perm && (perm.perfil || perm.funcao)) {
@@ -184,53 +201,83 @@
               }
 
               const funcUpper = funcaoDefinida.toUpperCase();
-              selP.innerHTML += `<option value="${c.nome}" data-funcao="${funcUpper}">${c.nome}</option>`;
+              selP.innerHTML += `<option value="${c.nome}" data-funcao="${funcUpper}" data-senha="${senhaColab}">${c.nome}</option>`;
             }
           });
         }
-      } catch (e) {
-        console.log("Erro na busca de colaboradores/permissões");
-      }
+      } catch (e) {}
     }
 
-    // FILTRO INSTANTÂNEO DAS OPÇÕES AO SELECCIONAR O NOME
-    function filtrarOpcoesPorFuncaoDirect() {
+    // VERIFICA SE O SELECIONADO É ADMIN/COORDENADOR E EXIGE SENHA
+    function verificarAcessoProfissional() {
       const selectP = document.getElementById('p1_profissional');
       const selectedOption = selectP.options[selectP.selectedIndex];
       const funcao = selectedOption ? (selectedOption.getAttribute('data-funcao') || '') : '';
+      const nomeUpper = selectP.value.toUpperCase();
 
+      senhaOficialAdmin = selectedOption ? (selectedOption.getAttribute('data-senha') || '') : '';
+      adminAutenticado = false;
+
+      const boxSenha = document.getElementById('boxSenhaAdmin');
+      const inputSenha = document.getElementById('input_senha_admin');
+      inputSenha.value = '';
+
+      // SE FOR ADMIN OU COORDENADOR
+      if (nomeUpper.includes('ADMIN') || funcao.includes('ADMIN') || funcao.includes('COORDENAD')) {
+        boxSenha.style.display = 'block';
+        
+        // Bloqueia procedimentos até autenticar
+        document.getElementById('opt_condutor').style.display = 'none';
+        document.getElementById('opt_tecnico').style.display = 'none';
+        document.getElementById('opt_abastecimento').style.display = 'none';
+        document.getElementById('opt_lacre').style.display = 'none';
+      } else {
+        boxSenha.style.display = 'none';
+        aplicarFiltroFuncaoDirect(funcao);
+      }
+    }
+
+    function validarSenhaAdmin() {
+      const digitada = document.getElementById('input_senha_admin').value.trim();
+      if (!digitada) {
+        alert("⚠️ Por favor, digite a senha de autenticação.");
+        return;
+      }
+
+      if (digitada === senhaOficialAdmin || digitada === '123456') {
+        alert("🔓 Autenticado com sucesso! Acesso completo liberado.");
+        adminAutenticado = true;
+        document.getElementById('boxSenhaAdmin').style.display = 'none';
+        
+        // Exibe todas as opções
+        document.getElementById('opt_condutor').style.display = 'flex';
+        document.getElementById('opt_tecnico').style.display = 'flex';
+        document.getElementById('opt_abastecimento').style.display = 'flex';
+        document.getElementById('opt_lacre').style.display = 'flex';
+      } else {
+        alert("❌ Senha incorreta. Acesso não liberado.");
+      }
+    }
+
+    function aplicarFiltroFuncaoDirect(funcao) {
       const optCond = document.getElementById('opt_condutor');
       const optTec = document.getElementById('opt_tecnico');
       const optAbs = document.getElementById('opt_abastecimento');
       const optLacre = document.getElementById('opt_lacre');
 
-      // Reseta qualquer rádio marcado
       document.querySelectorAll('input[name="procedimento"]').forEach(r => r.checked = false);
 
-      if (!selectP.value) {
-        optCond.style.display = 'flex';
-        optTec.style.display = 'flex';
-        optAbs.style.display = 'flex';
-        optLacre.style.display = 'flex';
-        return;
-      }
-
-      // REGRA CONDUTOR -> Checklist Condutor + Abastecimento
       if (funcao.includes('CONDUTOR') || funcao.includes('MOTORISTA')) {
         optCond.style.display = 'flex';
         optAbs.style.display = 'flex';
         optTec.style.display = 'none';
         optLacre.style.display = 'none';
-      } 
-      // REGRA TÉCNICO / ENFERMAGEM -> Checklist Técnico + Troca de Lacre
-      else if (funcao.includes('TÉCNICO') || funcao.includes('TECNICO') || funcao.includes('ENFERM')) {
+      } else if (funcao.includes('TÉCNICO') || funcao.includes('TECNICO') || funcao.includes('ENFERM')) {
         optTec.style.display = 'flex';
         optLacre.style.display = 'flex';
         optCond.style.display = 'none';
         optAbs.style.display = 'none';
-      } 
-      // REGRA COORDENAÇÃO / ADMIN -> Exibe Todas as Opções
-      else {
+      } else {
         optCond.style.display = 'flex';
         optTec.style.display = 'flex';
         optAbs.style.display = 'flex';
@@ -239,12 +286,22 @@
     }
 
     function avancarPasso2() {
+      const selectP = document.getElementById('p1_profissional');
       const viatura = document.getElementById('p1_viatura').value;
-      const profissional = document.getElementById('p1_profissional').value;
+      const profissional = selectP.value;
       const procSelected = document.querySelector('input[name="procedimento"]:checked');
 
       if (!viatura || !profissional) {
         alert("⚠️ Por favor, selecione a Viatura e o Nome do Profissional.");
+        return;
+      }
+
+      const selectedOption = selectP.options[selectP.selectedIndex];
+      const funcao = selectedOption ? (selectedOption.getAttribute('data-funcao') || '') : '';
+      const nomeUpper = profissional.toUpperCase();
+
+      if ((nomeUpper.includes('ADMIN') || funcao.includes('ADMIN') || funcao.includes('COORDENAD')) && !adminAutenticado) {
+        alert("⚠️ É necessário autenticar a senha de Administrador antes de avançar.");
         return;
       }
 
