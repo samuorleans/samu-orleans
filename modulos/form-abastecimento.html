@@ -1,42 +1,25 @@
 <!-- ============================================================================
      MÓDULO: Form-Abastecimento (`modulos/form-abastecimento.html`)
-     FINALIDADE: Formulário individual para lançamento de combustível no Supabase.
-     Sincronizado com: colaboradores, operacional_viaturas, operacional_postos.
+     FINALIDADE: Formulário enxuto de abastecimento (viatura e condutor herdados).
      ============================================================================ -->
-<div class="form-card">
-  <h3 style="color:#0d233a; font-size:1rem; text-transform:uppercase; font-weight:800; margin-bottom:14px;">
+<div class="form-card" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:20px; text-align:left;">
+  <h3 style="color:#0d233a; font-size:0.95rem; text-transform:uppercase; font-weight:800; margin-bottom:14px; display:flex; align-items:center; gap:6px;">
     ⛽ LANÇAMENTO DE ABASTECIMENTO
   </h3>
   
   <form id="formAbastecimento" onsubmit="salvarAbastecimento(event)">
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
       
-      <!-- SELETOR DE VIATURA DA TABELA operacional_viaturas -->
-      <div style="display:flex; flex-direction:column; text-align:left;">
-        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Viatura:*</label>
-        <select id="abs_viatura" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
-          <option value="">Consultando banco...</option>
-        </select>
-      </div>
-
-      <!-- SELETOR DE CONDUTORES DA TABELA colaboradores -->
-      <div style="display:flex; flex-direction:column; text-align:left;">
-        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Condutor Socorrista:*</label>
-        <select id="abs_condutor" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
-          <option value="">Consultando banco...</option>
-        </select>
-      </div>
-
       <!-- SELETOR DE POSTOS DA TABELA operacional_postos -->
-      <div style="display:flex; flex-direction:column; text-align:left;">
+      <div style="display:flex; flex-direction:column;">
         <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Posto Credenciado:*</label>
         <select id="abs_posto" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
-          <option value="">Consultando banco...</option>
+          <option value="">Carregando postos...</option>
         </select>
       </div>
 
-      <!-- APENAS COMBUSTÍVEIS VÁLIDOS (SEM GASOLINA COMUM) -->
-      <div style="display:flex; flex-direction:column; text-align:left;">
+      <!-- TIPO DE COMBUSTÍVEL -->
+      <div style="display:flex; flex-direction:column;">
         <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Tipo de Insumo / Combustível:*</label>
         <select id="abs_combustivel" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:white;">
           <option value="Diesel S10">Diesel S10</option>
@@ -44,24 +27,24 @@
         </select>
       </div>
 
-      <div style="display:flex; flex-direction:column; text-align:left;">
+      <div style="display:flex; flex-direction:column;">
         <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">KM Atual da Viatura:*</label>
         <input type="number" id="abs_km" placeholder="Ex: 148520" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none;">
       </div>
 
-      <div style="display:flex; flex-direction:column; text-align:left;">
+      <div style="display:flex; flex-direction:column;">
         <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Litros Abastecidos:*</label>
         <input type="number" step="0.01" id="abs_litros" placeholder="Ex: 55.4" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none;">
       </div>
 
-      <div style="display:flex; flex-direction:column; text-align:left;">
-        <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Valor Total Pago (R$):*</label>
-        <input type="number" step="0.01" id="abs_valor" placeholder="Ex: 340.50" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none;">
-      </div>
-
     </div>
 
-    <div style="display:flex; flex-direction:column; text-align:left; margin-top:12px;">
+    <div style="display:flex; flex-direction:column; margin-top:12px;">
+      <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Valor Total Pago (R$):*</label>
+      <input type="number" step="0.01" id="abs_valor" placeholder="Ex: 340.50" required style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none;">
+    </div>
+
+    <div style="display:flex; flex-direction:column; margin-top:12px;">
       <label style="font-size:0.72rem; font-weight:700; color:#0d233a; margin-bottom:4px; text-transform:uppercase;">Observações / Nota Fiscal:</label>
       <textarea id="abs_obs" rows="2" placeholder="Nº da nota fiscal ou observações adicionais..." style="padding:10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; width:100%;"></textarea>
     </div>
@@ -71,12 +54,3 @@
     </button>
   </form>
 </div>
-
-<script>
-  // Inicialização e Carga dos Seletores Dinâmicos
-  setTimeout(() => {
-    if (typeof carregarViaturas === 'function') carregarViaturas();
-    if (typeof carregarCondutores === 'function') carregarCondutores();
-    if (typeof carregarPostos === 'function') carregarPostos();
-  }, 300);
-</script>
