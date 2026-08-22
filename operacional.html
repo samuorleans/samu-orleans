@@ -144,7 +144,7 @@
 
     window.onload = function() {
       carregarViaturas();
-      carregarProfissionais();
+      carregarProfissionaisComPermissoes();
     };
 
     async function carregarViaturas() {
@@ -161,24 +161,39 @@
       } catch (e) {}
     }
 
-    async function carregarProfissionais() {
+    // CONSULTA UNIFICADA: COLABORADORES + OPERACIONAL_PERMISSOES
+    async function carregarProfissionaisComPermissoes() {
       const selP = document.getElementById('p1_profissional');
       try {
-        // Grava o atributo data-funcao diretamente no <option>
-        const { data } = await dbNuvem.from('colaboradores').select('nome, funcao, status').order('nome', { ascending: true });
-        if (data && data.length > 0) {
+        const { data: colaboradores } = await dbNuvem.from('colaboradores').select('*').order('nome', { ascending: true });
+        const { data: permissoes } = await dbNuvem.from('operacional_permissoes').select('*');
+
+        if (colaboradores && colaboradores.length > 0) {
           selP.innerHTML = '<option value="" data-funcao="">Escolher...</option>';
-          data.forEach(c => {
+          
+          colaboradores.forEach(c => {
             if (c.status !== 'DESLIGADO') {
-              const funcLimpa = (c.funcao || '').toUpperCase();
-              selP.innerHTML += `<option value="${c.nome}" data-funcao="${funcLimpa}">${c.nome}</option>`;
+              let funcaoDefinida = c.funcao || '';
+
+              // Procura se existe permissão específica na tabela operacional_permissoes
+              if (permissoes && permissoes.length > 0) {
+                const perm = permissoes.find(p => p.colaborador_id === c.id || p.nome === c.nome);
+                if (perm && (perm.perfil || perm.funcao)) {
+                  funcaoDefinida = perm.perfil || perm.funcao;
+                }
+              }
+
+              const funcUpper = funcaoDefinida.toUpperCase();
+              selP.innerHTML += `<option value="${c.nome}" data-funcao="${funcUpper}">${c.nome}</option>`;
             }
           });
         }
-      } catch (e) {}
+      } catch (e) {
+        console.log("Erro na busca de colaboradores/permissões");
+      }
     }
 
-    // LER A FUNÇÃO DIRETAMENTE DO OPTION SELECIONADO E OCULTAR/EXIBIR OPÇÕES
+    // FILTRO INSTANTÂNEO DAS OPÇÕES AO SELECCIONAR O NOME
     function filtrarOpcoesPorFuncaoDirect() {
       const selectP = document.getElementById('p1_profissional');
       const selectedOption = selectP.options[selectP.selectedIndex];
@@ -189,7 +204,7 @@
       const optAbs = document.getElementById('opt_abastecimento');
       const optLacre = document.getElementById('opt_lacre');
 
-      // Reseta rádios marcados
+      // Reseta qualquer rádio marcado
       document.querySelectorAll('input[name="procedimento"]').forEach(r => r.checked = false);
 
       if (!selectP.value) {
@@ -200,21 +215,21 @@
         return;
       }
 
-      // CONDUTOR -> Checklist Condutor e Abastecimento
+      // REGRA CONDUTOR -> Checklist Condutor + Abastecimento
       if (funcao.includes('CONDUTOR') || funcao.includes('MOTORISTA')) {
         optCond.style.display = 'flex';
         optAbs.style.display = 'flex';
         optTec.style.display = 'none';
         optLacre.style.display = 'none';
       } 
-      // TÉCNICO / ENFERMEIRO -> Checklist Técnico e Troca de Lacre
+      // REGRA TÉCNICO / ENFERMAGEM -> Checklist Técnico + Troca de Lacre
       else if (funcao.includes('TÉCNICO') || funcao.includes('TECNICO') || funcao.includes('ENFERM')) {
         optTec.style.display = 'flex';
         optLacre.style.display = 'flex';
         optCond.style.display = 'none';
         optAbs.style.display = 'none';
       } 
-      // COORDENAÇÃO / ADMIN -> Exibe Tudo
+      // REGRA COORDENAÇÃO / ADMIN -> Exibe Todas as Opções
       else {
         optCond.style.display = 'flex';
         optTec.style.display = 'flex';
