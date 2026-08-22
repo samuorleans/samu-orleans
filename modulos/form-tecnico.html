@@ -1,1 +1,120 @@
+<h3 style="color:var(--samu-navy); font-size:1.05rem;">🩺 Checklist de Equipamentos, Mochilas e Gases — Enfermagem</h3>
 
+<form id="formTecnico" onsubmit="salvarTecnico(event)">
+  <div class="grid-2" style="margin-top:12px;">
+    <div class="form-group">
+      <label>Turno do Plantão:*</label>
+      <select id="tec_turno" required>
+        <option value="">Selecione...</option>
+        <option value="Diurno (12h)">Diurno (12h)</option>
+        <option value="Noturno (12h)">Noturno (12h)</option>
+        <option value="Plantão 24h">Plantão 24h</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Número Lacre Maleta Psicotrópicos:*</label>
+      <input type="text" id="tec_lacre" placeholder="Ex: 123456" required>
+    </div>
+  </div>
+
+  <div class="section-header-title">💨 Medição de Gases Medicinais (Pressão em bar)</div>
+  <div class="grid-2">
+    <div class="form-group"><label>Cilindro Fixo 1 (2,2m³ - bar):*</label><input type="number" id="tec_cil1" placeholder="Ex: 150" required></div>
+    <div class="form-group"><label>Cilindro Fixo 2 (2,2m³ - bar):*</label><input type="number" id="tec_cil2" placeholder="Ex: 150" required></div>
+  </div>
+  <div class="grid-2">
+    <div class="form-group"><label>Cilindro Portátil 1 (1m³ - Em Uso - bar):*</label><input type="number" id="tec_portatil" placeholder="Ex: 200" required></div>
+    <div class="form-group"><label>Cilindro Ar Comprimido Fixo (bar):*</label><input type="number" id="tec_ar_comp" placeholder="Ex: 150" required></div>
+  </div>
+
+  <div class="section-header-title">🎒 Conferência das Mochilas e Equipamentos Médicos (POP-ALM-001)</div>
+  <div class="table-container">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Equipamento / Mochila</th>
+          <th>Confere / Completo</th>
+          <th>Necessita Reposição</th>
+          <th>Avaria / Defeito</th>
+        </tr>
+      </thead>
+      <tbody id="tb_mochilas"></tbody>
+    </table>
+  </div>
+
+  <div class="form-group">
+    <label>Descrição de Materiais Faltantes ou Observações:</label>
+    <div class="mic-wrapper">
+      <textarea id="tec_obs" rows="3" placeholder="Descreva os itens faltantes, lotes ou validades..."></textarea>
+      <button type="button" class="btn-mic" onclick="iniciarVoz('tec_obs')">🎙️ Ouvir</button>
+    </div>
+  </div>
+
+  <div class="action-row">
+    <button type="button" class="btn-back" onclick="voltarInicio()">⬅ Voltar</button>
+    <button type="submit" class="btn-save">💾 Gravar Checklist de Enfermagem</button>
+  </div>
+</form>
+
+<script>
+  const listaMochilasEnf = [
+    "Mochila Azul - Vias Aéreas", "Mochila Laranja - Trauma", "Mochila Verde - Medicamentos",
+    "Mochila Vermelha - Acesso Venoso & Soluções", "Mochila Amarela - Sinais Vitais & Glicosímetro",
+    "DEA / Monitor Multiparâmetros Mindray", "Aspirador Portátil & Vidro de Aspiração",
+    "Compressor Thorácico Autopulse / Baterias", "Kit Parto Iminente (Prevenção Risco Obstétrico)",
+    "Salão & Compartimentos de Insumos"
+  ];
+
+  function renderizarMochilasEnf() {
+    const tb = document.getElementById('tb_mochilas');
+    tb.innerHTML = '';
+    listaMochilasEnf.forEach((item, index) => {
+      tb.innerHTML += `
+        <tr id="row_moch_${index}">
+          <td>${item}</td>
+          <td><input type="radio" name="moch_${index}" value="Confere / Completo"></td>
+          <td><input type="radio" name="moch_${index}" value="Necessita Reposição"></td>
+          <td><input type="radio" name="moch_${index}" value="Avaria / Defeito"></td>
+        </tr>
+      `;
+    });
+  }
+
+  async function salvarTecnico(e) {
+    e.preventDefault();
+    let pendentes = [];
+    let mapaMochilas = {};
+
+    listaMochilasEnf.forEach((item, index) => {
+      const marcado = document.querySelector(`input[name="moch_${index}"]:checked`);
+      const tr = document.getElementById(`row_moch_${index}`);
+      if (!marcado) { pendentes.push(item); tr.classList.add('unselected'); }
+      else { tr.classList.remove('unselected'); mapaMochilas[item] = marcado.value; }
+    });
+
+    if (pendentes.length > 0) {
+      alert(`⚠️ Preenchimento obrigatório incompleto!\nAvalie os itens destacados em vermelho.`); return;
+    }
+
+    const cil1 = parseFloat(document.getElementById('tec_cil1').value);
+    const cil2 = parseFloat(document.getElementById('tec_cil2').value);
+
+    const payload = {
+      viatura: document.getElementById('vtr_prefixo').value,
+      profissional_nome: document.getElementById('prof_nome').value,
+      cilindro_fixo_1_bar: cil1, cilindro_fixo_2_bar: cil2,
+      cilindro_portatil_1_bar: parseFloat(document.getElementById('tec_portatil').value) || 0,
+      cilindro_ar_comprimido_bar: parseFloat(document.getElementById('tec_ar_comp').value) || 0,
+      numero_lacre_psicotropicos: document.getElementById('tec_lacre').value,
+      alerta_oxigenio_critico: (cil1 < 15 || cil2 < 15)
+    };
+
+    const { error } = await dbNuvem.from('operacional_saude_lacres').insert([payload]);
+    if (!error) {
+      await registrarLog('Operacional', 'Checklist Enfermagem', `Conferência realizada por ${payload.profissional_nome}.`);
+      alert('✅ Checklist de Enfermagem salvo com sucesso!'); location.reload();
+    } else { alert('Erro: ' + error.message); }
+  }
+
+  renderizarMochilasEnf();
+</script>
