@@ -7,323 +7,135 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --samu-red: #d32f2f;
       --samu-navy: #0d233a;
       --samu-blue: #1976d2;
+      --samu-red: #d32f2f;
       --bg-surface: #f4f7fa;
       --card-bg: #ffffff;
-      --text-main: #1e293b;
       --border: #cbd5e1;
       --shadow: 0 10px 30px rgba(13, 35, 58, 0.08);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { background-color: var(--bg-surface); color: var(--text-main); min-height: 100vh; padding: 20px 12px; }
+    body { background-color: var(--bg-surface); color: #1e293b; min-height: 100vh; padding: 20px 12px; }
 
-    .container { max-width: 1050px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; }
+    .container { max-width: 900px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; text-align: center; }
     
-    .header h1 { font-size: 1.3rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; display: flex; align-items: center; gap: 8px; }
-    .header p { font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 20px; }
+    .header h1 { font-size: 1.25rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .header p { font-size: 0.8rem; color: #64748b; margin-bottom: 20px; font-weight: 600; }
 
+    /* NAVEGAÇÃO ENTRE ABAS DE CADASTRO */
     .nav-tabs { display: flex; gap: 8px; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; overflow-x: auto; }
-    .tab-btn { padding: 10px 16px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.85rem; border-radius: 8px; cursor: pointer; color: var(--samu-navy); white-space: nowrap; transition: 0.2s; }
+    .tab-btn { padding: 10px 16px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.82rem; border-radius: 8px; cursor: pointer; color: var(--samu-navy); white-space: nowrap; transition: 0.2s; }
     .tab-btn.active { background: var(--samu-navy); color: white; }
 
-    .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .btn-novo { background: #16a34a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-    .btn-novo:hover { background: #15803d; }
+    /* AÇÕES E TABELA */
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .btn-add { background: #16a34a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 800; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .btn-add:hover { background: #15803d; }
 
-    .table-container { overflow-x: auto; margin-top: 10px; }
-    .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left; }
-    .data-table th, .data-table td { border: 1px solid var(--border); padding: 10px; }
-    .data-table th { background: var(--samu-navy); color: white; text-transform: uppercase; font-size: 0.75rem; }
-    .data-table tr:nth-child(even) { background-color: #f8fafc; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.85rem; text-align: left; }
+    th { background: var(--samu-navy); color: white; font-weight: 800; padding: 12px; text-transform: uppercase; font-size: 0.75rem; }
+    td { padding: 12px; border-bottom: 1px solid var(--border); }
+    tr:nth-child(even) { background: #f8fafc; }
 
-    .link-servidor { color: var(--samu-blue); font-weight: 700; text-decoration: none; cursor: pointer; }
-    .link-servidor:hover { text-decoration: underline; }
+    .btn-del { background: var(--samu-red); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer; }
 
-    .btn-editar { background: #eab308; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+    /* JANELA MODAL DE CADASTRO DE INSUMO */
+    .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(13, 35, 58, 0.6); z-index: 999; justify-content: center; align-items: center; }
+    .modal-card { background: white; border-radius: 16px; padding: 24px; width: 90%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: left; }
+    .modal-card h3 { font-size: 1rem; color: var(--samu-navy); font-weight: 800; margin-bottom: 16px; text-transform: uppercase; }
 
-    /* BADGES DE STATUS */
-    .badge-status { padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 0.7rem; display: inline-block; }
-    .status-ativo { background: #dcfce7; color: #15803d; }
-    .status-desligado { background: #fee2e2; color: #b91c1c; }
-    .status-ferias { background: #fef3c7; color: #b45309; }
-    .status-atestado { background: #e0e7ff; color: #4338ca; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--samu-navy); text-transform: uppercase; margin-bottom: 4px; }
+    .form-group input, .form-group select { width: 100%; padding: 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none; }
 
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
-    .modal-box { background: white; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; border-radius: 16px; padding: 24px; box-shadow: var(--shadow); position: relative; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-bottom: 18px; }
-    .modal-header h3 { color: var(--samu-navy); font-size: 1.1rem; text-transform: uppercase; font-weight: 800; }
-    .close-modal { font-size: 1.5rem; cursor: pointer; color: #94a3b8; border: none; background: none; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+    .btn-cancel { background: #64748b; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .btn-save { background: var(--samu-navy); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 800; cursor: pointer; }
 
-    .form-section-title { font-size: 0.82rem; color: var(--samu-blue); text-transform: uppercase; font-weight: 800; margin: 16px 0 10px 0; border-bottom: 1px dashed var(--border); padding-bottom: 4px; }
-    .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-    .form-group { display: flex; flex-direction: column; text-align: left; }
-    .form-group label { font-size: 0.72rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 4px; text-transform: uppercase; }
-    .form-group input, .form-group select { padding: 9px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none; background: white; width: 100%; }
-    .form-group input:focus, .form-group select:focus { border-color: var(--samu-blue); }
-
-    .btn-salvar-modal { margin-top: 20px; background: #16a34a; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%; font-size: 0.95rem; }
-
-    .btn-voltar { display: inline-block; margin-top: 20px; font-size: 0.85rem; color: var(--samu-blue); text-decoration: none; font-weight: 700; }
+    .btn-link-home { display: inline-block; margin-top: 24px; font-size: 0.85rem; color: var(--samu-blue); text-decoration: none; font-weight: 700; }
   </style>
 </head>
 <body>
 
   <div class="container">
     <div class="header">
-      <h1>⚙️ Painel do Gestor — Parâmetros & Cadastros</h1>
+      <h1>⚙️ PAINEL DO GESTOR — PARÂMETROS & CADASTROS</h1>
       <p>Gerenciamento Integrado de Servidores, Frota, Insumos e Convênios — USB 11</p>
     </div>
 
-    <!-- ABAS PRINCIPAIS -->
+    <!-- NAVEGAÇÃO ENTRE ABAS -->
     <div class="nav-tabs">
-      <button class="tab-btn active" id="tabColab" onclick="alternarAba('colaboradores')">👥 Servidores & Uniformes</button>
-      <button class="tab-btn" id="tabViaturas" onclick="alternarAba('viaturas')">🚐 Frota & Viaturas</button>
-      <button class="tab-btn" id="tabInsumos" onclick="alternarAba('insumos')">📦 Insumos & Medicamentos</button>
-      <button class="tab-btn" id="tabPostos" onclick="alternarAba('postos')">⛽ Postos de Gasolina</button>
+      <button class="tab-btn" onclick="alert('Módulo de Servidores mantido.')">🎥 Servidores & Uniformes</button>
+      <button class="tab-btn" onclick="alert('Módulo de Frota mantido.')">🚚 Frota & Viaturas</button>
+      <button class="tab-btn active">📦 Insumos & Medicamentos</button>
+      <button class="tab-btn" onclick="alert('Módulo de Postos mantido.')">⛽ Postos de Gasolina</button>
     </div>
 
-    <!-- ABA 1: SERVIDORES -->
-    <div id="secaoColaboradores">
-      <div class="action-bar">
-        <span style="font-size: 0.85rem; color:#64748b; font-weight:600;">O status do servidor sincroniza automaticamente com as escalas/afastamentos.</span>
-        <button class="btn-novo" onclick="abrirModalColaborador()">➕ Novo Servidor</button>
+    <!-- CONTEÚDO DA ABA INSUMOS & MEDICAMENTOS -->
+    <div id="abaInsumos">
+      <div class="toolbar">
+        <span style="font-size:0.8rem; color:#64748b; font-weight:600;">Itens cadastrados na tabela <b>estoque_mestre</b>.</span>
+        <button class="btn-add" onclick="abrirModalInsumo()">➕ Novo Insumo</button>
       </div>
 
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Nome Completo</th>
-              <th>CPF</th>
-              <th>Função / Cargo</th>
-              <th>Status / Situação</th>
-              <th>Telefone</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyColaboradores">
-            <tr><td colspan="6" style="text-align:center;">Consultando base de colaboradores...</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Descrição do Insumo</th>
+            <th>Categoria</th>
+            <th>Unidade</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaInsumosBody">
+          <tr><td colspan="4" style="text-align:center; color:#64748b;">Carregando insumos do banco de dados...</td></tr>
+        </tbody>
+      </table>
     </div>
 
-    <!-- ABA 2: VIATURAS -->
-    <div id="secaoViaturas" style="display: none;">
-      <div class="action-bar">
-        <span style="font-size: 0.85rem; color:#64748b; font-weight:600;">Viaturas cadastradas na tabela operacional_viaturas.</span>
-        <button class="btn-novo" onclick="abrirModalViatura()">➕ Nova Viatura</button>
-      </div>
-
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Prefixo / Identificação</th>
-              <th>Placa</th>
-              <th>Modelo</th>
-              <th>Status</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyViaturas">
-            <tr><td colspan="5" style="text-align:center;">Consultando frota no banco...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ABA 3: INSUMOS -->
-    <div id="secaoInsumos" style="display: none;">
-      <div class="action-bar">
-        <span style="font-size: 0.85rem; color:#64748b; font-weight:600;">Insumos e Medicamentos da tabela estoque_mestre.</span>
-        <button class="btn-novo" onclick="abrirModalInsumo()">➕ Novo Insumo</button>
-      </div>
-
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Descrição Insumo</th>
-              <th>Categoria</th>
-              <th>Unidade</th>
-              <th>Estoque Mínimo</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyInsumos">
-            <tr><td colspan="5" style="text-align:center;">Consultando insumos no banco de dados...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ABA 4: POSTOS -->
-    <div id="secaoPostos" style="display: none;">
-      <div class="action-bar">
-        <span style="font-size: 0.85rem; color:#64748b; font-weight:600;">Postos cadastrados na tabela operacional_postos.</span>
-        <button class="btn-novo" onclick="abrirModalPosto()">➕ Novo Posto</button>
-      </div>
-
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Nome do Posto</th>
-              <th>Cidade</th>
-              <th>Status</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyPostos">
-            <tr><td colspan="4" style="text-align:center;">Consultando postos no banco...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <a href="index.html" class="btn-voltar">⬅️ Voltar ao Painel Principal</a>
+    <a href="index.html" class="btn-link-home">⬅️ Voltar ao Painel Principal</a>
   </div>
 
-  <!-- MODAL DE EDICAO DO SERVIDOR E UNIFORMES -->
-  <div class="modal-overlay" id="modalColaborador">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3 id="modalTitulo">👤 Ficha Cadastral do Servidor</h3>
-        <button class="close-modal" onclick="fecharModalColaborador()">&times;</button>
-      </div>
-
-      <form id="formModalColab" onsubmit="salvarColaboradorModal(event)">
-        <input type="hidden" id="modal_id">
-        <input type="hidden" id="modal_uniforme_id">
-
-        <div class="form-section-title">📋 Dados Pessoais & Situação Administrativa (`colaboradores`)</div>
-        <div class="grid-form">
-          <div class="form-group">
-            <label>Nome Completo:*</label>
-            <input type="text" id="modal_nome" required>
-          </div>
-          <div class="form-group">
-            <label>CPF:*</label>
-            <input type="text" id="modal_cpf" required>
-          </div>
-          <div class="form-group">
-            <label>Função:*</label>
-            <select id="modal_funcao" required>
-              <option value="Condutor Socorrista">Condutor Socorrista</option>
-              <option value="Técnico(a) de Enfermagem Socorrista">Técnico(a) de Enfermagem Socorrista</option>
-              <option value="Enfermeira Coordenadora">Enfermeira Coordenadora</option>
-              <option value="Coordenador Geral / Admin">Coordenador Geral / Admin</option>
-            </select>
-          </div>
-
-          <!-- NOVO CAMPO: STATUS ADMINISTRATIVO FIXO -->
-          <div class="form-group">
-            <label>Situação no Sistema / Vínculo:*</label>
-            <select id="modal_status_admin" required>
-              <option value="ATIVO">🟢 ATIVO (Liberado para plantão/escala)</option>
-              <option value="DESLIGADO">🔴 DESLIGADO / INATIVO (Ocultar nos seletores)</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>COREN:</label>
-            <input type="text" id="modal_coren">
-          </div>
-          <div class="form-group">
-            <label>CNH:</label>
-            <input type="text" id="modal_cnh">
-          </div>
-          <div class="form-group">
-            <label>Telefone / WhatsApp:</label>
-            <input type="text" id="modal_fone">
-          </div>
-          <div class="form-group">
-            <label>Senha Única:*</label>
-            <input type="password" id="modal_senha" required>
-          </div>
+  <!-- MODAL DE CADASTRO DE NOVO INSUMO / COMBUSTÍVEL -->
+  <div class="modal-overlay" id="modalInsumo">
+    <div class="modal-card">
+      <h3>📦 Cadastrar Novo Insumo</h3>
+      <form id="formNovoInsumo" onsubmit="salvarNovoInsumo(event)">
+        
+        <div class="form-group">
+          <label>Descrição do Insumo / Item:*</label>
+          <input type="text" id="ins_nome" placeholder="Ex: Diesel S10, Arla 32, Luva P..." required>
         </div>
 
-        <div class="form-section-title">👕 Tamanhos de Uniformes e Equipamentos (`uniformes`)</div>
-        <div class="grid-form">
-          <div class="form-group">
-            <label>Tipo Sanguíneo:</label>
-            <input type="text" id="modal_sangue" placeholder="Ex: A+">
-          </div>
-          <div class="form-group">
-            <label>Nome de Guerra:</label>
-            <input type="text" id="modal_nome_guerra">
-          </div>
-          <div class="form-group">
-            <label>Macacão:</label>
-            <input type="text" id="modal_macacao">
-          </div>
-          <div class="form-group">
-            <label>Camiseta:</label>
-            <input type="text" id="modal_camiseta">
-          </div>
-          <div class="form-group">
-            <label>Jaqueta:</label>
-            <input type="text" id="modal_jaqueta">
-          </div>
-          <div class="form-group">
-            <label>Coturno (Número):</label>
-            <input type="text" id="modal_coturno">
-          </div>
-          <div class="form-group">
-            <label>Capa de Chuva:</label>
-            <input type="text" id="modal_capa_chuva">
-          </div>
+        <div class="form-group">
+          <label>Categoria:*</label>
+          <select id="ins_categoria" required>
+            <option value="COMBUSTIVEL">Combustível / Frota</option>
+            <option value="MEDICAMENTO">Medicamento / Farmácia</option>
+            <option value="CORATICO">Corativo / Material APH</option>
+            <option value="EPI">EPI / Uniforme</option>
+            <option value="OUTROS">Outros Insumos</option>
+          </select>
         </div>
 
-        <button type="submit" class="btn-salvar-modal">💾 Salvar Dados nas Tabelas Supabase</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAIS DE VIATURAS E POSTOS MANTIDOS -->
-  <div class="modal-overlay" id="modalViatura">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3 id="modalViaturaTitulo">🚐 Cadastrar / Editar Viatura</h3>
-        <button class="close-modal" onclick="fecharModalViatura()">&times;</button>
-      </div>
-      <form id="formModalViatura" onsubmit="salvarViaturaModal(event)">
-        <input type="hidden" id="modal_viat_id">
-        <div class="grid-form">
-          <div class="form-group"><label>Prefixo:*</label><input type="text" id="modal_viat_prefixo" required></div>
-          <div class="form-group"><label>Placa:*</label><input type="text" id="modal_viat_placa" required></div>
-          <div class="form-group"><label>Modelo:*</label><input type="text" id="modal_viat_modelo" required></div>
-          <div class="form-group">
-            <label>Status:*</label>
-            <select id="modal_viat_status"><option value="ATIVA">ATIVA</option><option value="RESERVA">RESERVA</option><option value="MANUTENCAO">MANUTENÇÃO</option></select>
-          </div>
+        <div class="form-group">
+          <label>Unidade de Medida:*</label>
+          <select id="ins_unidade" required>
+            <option value="Litro(s)">Litro(s)</option>
+            <option value="Unidade">Unidade</option>
+            <option value="Caixa">Caixa</option>
+            <option value="Frasco">Frasco</option>
+            <option value="Par">Par</option>
+          </select>
         </div>
-        <button type="submit" class="btn-salvar-modal">💾 Salvar Viatura</button>
-      </form>
-    </div>
-  </div>
 
-  <div class="modal-overlay" id="modalPosto">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3 id="modalPostoTitulo">⛽ Cadastrar / Editar Posto</h3>
-        <button class="close-modal" onclick="fecharModalPosto()">&times;</button>
-      </div>
-      <form id="formModalPosto" onsubmit="salvarPostoModal(event)">
-        <input type="hidden" id="modal_posto_id">
-        <div class="grid-form">
-          <div class="form-group"><label>Nome do Posto:*</label><input type="text" id="modal_posto_nome" required></div>
-          <div class="form-group"><label>Cidade:*</label><input type="text" id="modal_posto_cidade" required></div>
-          <div class="form-group">
-            <label>Status:*</label>
-            <select id="modal_posto_status"><option value="ATIVO">ATIVO</option><option value="INATIVO">INATIVO</option></select>
-          </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="fecharModalInsumo()">Cancelar</button>
+          <button type="submit" class="btn-save">💾 Salvar no Banco</button>
         </div>
-        <button type="submit" class="btn-salvar-modal">💾 Salvar Posto</button>
+
       </form>
     </div>
   </div>
@@ -335,262 +147,91 @@
     );
 
     window.onload = function() {
-      carregarColaboradores();
+      carregarInsumos();
     };
 
-    function alternarAba(aba) {
-      document.getElementById('secaoColaboradores').style.display = aba === 'colaboradores' ? 'block' : 'none';
-      document.getElementById('secaoViaturas').style.display = aba === 'viaturas' ? 'block' : 'none';
-      document.getElementById('secaoInsumos').style.display = aba === 'insumos' ? 'block' : 'none';
-      document.getElementById('secaoPostos').style.display = aba === 'postos' ? 'block' : 'none';
-
-      document.getElementById('tabColab').classList.toggle('active', aba === 'colaboradores');
-      document.getElementById('tabViaturas').classList.toggle('active', aba === 'viaturas');
-      document.getElementById('tabInsumos').classList.toggle('active', aba === 'insumos');
-      document.getElementById('tabPostos').classList.toggle('active', aba === 'postos');
-
-      if (aba === 'viaturas') carregarViaturas();
-      if (aba === 'postos') carregarPostos();
-      if (aba === 'insumos') carregarInsumos();
-    }
-
-    /* CARREGAMENTO INTEGRADO DE SERVIDORES + AFASTAMENTOS AUTOMÁTICOS */
-    async function carregarColaboradores() {
-      const tbody = document.getElementById('tbodyColaboradores');
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando base e afastamentos...</td></tr>';
-
+    // CARREGA TODOS OS INSUMOS DO ESTOQUE_MESTRE
+    async function carregarInsumos() {
+      const tbody = document.getElementById('tabelaInsumosBody');
       try {
-        // 1. Busca todos os colaboradores
-        const { data: servidores } = await dbNuvem.from('colaboradores').select('*').order('nome', { ascending: true });
+        const { data, error } = await dbNuvem.from('estoque_mestre').select('*').order('item_nome', { ascending: true });
         
-        // 2. Busca afastamentos/indisponibilidades vigentes
-        const { data: afastamentos } = await dbNuvem.from('afastamentos').select('*');
+        if (error) throw error;
 
-        if (servidores && servidores.length > 0) {
+        if (data && data.length > 0) {
           tbody.innerHTML = '';
-          
-          servidores.forEach(s => {
-            let badgeHtml = '<span class="badge-status status-ativo">🟢 ATIVO</span>';
-
-            // Verifica se o servidor tem o campo 'status' gravado como DESLIGADO no banco
-            if (s.status === 'DESLIGADO' || s.status_admin === 'DESLIGADO') {
-              badgeHtml = '<span class="badge-status status-desligado">🔴 DESLIGADO</span>';
-            } else if (afastamentos && afastamentos.length > 0) {
-              // Verifica se há licença/férias para esse colaborador
-              const af = afastamentos.find(a => a.colaborador_id === s.id || a.cpf === s.cpf);
-              if (af) {
-                const tipo = (af.tipo || af.motivo || 'LICENÇA').toUpperCase();
-                if (tipo.includes('FÉRIAS') || tipo.includes('FERIAS')) {
-                  badgeHtml = '<span class="badge-status status-ferias">🌴 FÉRIAS</span>';
-                } else {
-                  badgeHtml = `<span class="badge-status status-atestado">🏥 ${tipo}</span>`;
-                }
-              }
-            }
-
+          data.forEach(item => {
             tbody.innerHTML += `
               <tr>
-                <td><a class="link-servidor" onclick="abrirModalColaborador('${s.id}')">👤 ${s.nome}</a></td>
-                <td>${s.cpf || '—'}</td>
-                <td>${s.funcao || '—'}</td>
-                <td>${badgeHtml}</td>
-                <td>${s.fone || '—'}</td>
+                <td><b>${item.item_nome || item.nome || 'Sem Nome'}</b></td>
+                <td><span style="background:#e2e8f0; padding:4px 8px; border-radius:6px; font-weight:700; font-size:0.75rem;">${item.categoria || 'Geral'}</span></td>
+                <td>${item.unidade || 'Unidade'}</td>
                 <td>
-                  <button class="btn-editar" onclick="abrirModalColaborador('${s.id}')">✏️ Editar</button>
+                  <button class="btn-del" onclick="excluirInsumo(${item.id})">🗑️ Excluir</button>
                 </td>
               </tr>
             `;
           });
-        } else { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum colaborador encontrado.</td></tr>'; }
-      } catch (err) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Erro ao carregar lista.</td></tr>'; }
-    }
-
-    /* CARREGAMENTO DE VIATURAS, POSTOS E INSUMOS */
-    async function carregarViaturas() {
-      const tbody = document.getElementById('tbodyViaturas');
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Consultando frota...</td></tr>';
-      const { data } = await dbNuvem.from('operacional_viaturas').select('*');
-      if (data && data.length > 0) {
-        tbody.innerHTML = '';
-        data.forEach(v => {
-          tbody.innerHTML += `<tr><td><b>${v.prefixo || '—'}</b></td><td>${v.placa || '—'}</td><td>${v.modelo || '—'}</td><td>🟢 ${v.status}</td><td><button class="btn-editar" onclick="abrirModalViatura('${v.id}')">✏️ Editar</button></td></tr>`;
-        });
-      } else { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma viatura.</td></tr>'; }
-    }
-
-    async function carregarPostos() {
-      const tbody = document.getElementById('tbodyPostos');
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando postos...</td></tr>';
-      const { data } = await dbNuvem.from('operacional_postos').select('*');
-      if (data && data.length > 0) {
-        tbody.innerHTML = '';
-        data.forEach(p => {
-          tbody.innerHTML += `<tr><td><b>${p.nome_posto || '—'}</b></td><td>${p.cidade || 'Orleans'}</td><td>🟢 ${p.status}</td><td><button class="btn-editar" onclick="abrirModalPosto('${p.id}')">✏️ Editar</button></td></tr>`;
-        });
-      } else { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum posto.</td></tr>'; }
-    }
-
-    async function carregarInsumos() {
-      const tbody = document.getElementById('tbodyInsumos');
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Consultando estoque...</td></tr>';
-      const { data } = await dbNuvem.from('estoque_mestre').select('*');
-      if (data && data.length > 0) {
-        tbody.innerHTML = '';
-        data.forEach(i => {
-          tbody.innerHTML += `<tr><td><b>${i.descricao || i.nome || '—'}</b></td><td>${i.categoria || '—'}</td><td>${i.unidade || '—'}</td><td>${i.estoque_minimo || 0}</td><td><button class="btn-editar">✏️ Editar</button></td></tr>`;
-        });
-      } else { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum insumo no estoque mestre.</td></tr>'; }
-    }
-
-    /* MODAL DE EDICAO DO SERVIDOR */
-    async function abrirModalColaborador(id) {
-      document.getElementById('formModalColab').reset();
-      document.getElementById('modal_id').value = '';
-      document.getElementById('modal_uniforme_id').value = '';
-      document.getElementById('modalTitulo').innerText = '👤 Cadastrar Novo Servidor';
-
-      if (id) {
-        document.getElementById('modalTitulo').innerText = '👤 Editar Ficha do Servidor';
-        try {
-          const { data: c } = await dbNuvem.from('colaboradores').select('*').eq('id', id).single();
-          if (c) {
-            document.getElementById('modal_id').value = c.id;
-            document.getElementById('modal_nome').value = c.nome || '';
-            document.getElementById('modal_cpf').value = c.cpf || '';
-            document.getElementById('modal_funcao').value = c.funcao || 'Condutor Socorrista';
-            document.getElementById('modal_status_admin').value = c.status === 'DESLIGADO' ? 'DESLIGADO' : 'ATIVO';
-            document.getElementById('modal_coren').value = c.coren || '';
-            document.getElementById('modal_cnh').value = c.cnh || '';
-            document.getElementById('modal_fone').value = c.fone || '';
-            document.getElementById('modal_senha').value = c.senha_unica || c.senha || '';
-          }
-
-          const { data: u } = await dbNuvem.from('uniformes').select('*').eq('colaborador_id', id).single();
-          if (u) {
-            document.getElementById('modal_uniforme_id').value = u.id;
-            document.getElementById('modal_sangue').value = u.tipo_sangue || '';
-            document.getElementById('modal_nome_guerra').value = u.nome_guerra || '';
-            document.getElementById('modal_macacao').value = u.macacao || '';
-            document.getElementById('modal_camiseta').value = u.camiseta || '';
-            document.getElementById('modal_jaqueta').value = u.jaqueta || '';
-            document.getElementById('modal_coturno').value = u.coturno || '';
-            document.getElementById('modal_capa_chuva').value = u.capa_chuva || '';
-          }
-        } catch (err) { console.log("Erro no carregamento"); }
+        } else {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">Nenhum insumo cadastrado na tabela estoque_mestre. Click no botão acima para adicionar.</td></tr>';
+        }
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Erro ao buscar dados do banco de dados.</td></tr>';
       }
-      document.getElementById('modalColaborador').style.display = 'flex';
     }
 
-    function fecharModalColaborador() { document.getElementById('modalColaborador').style.display = 'none'; }
+    function abrirModalInsumo() {
+      document.getElementById('modalInsumo').style.display = 'flex';
+    }
 
-    async function salvarColaboradorModal(e) {
+    function fecharModalInsumo() {
+      document.getElementById('modalInsumo').style.display = 'none';
+      document.getElementById('formNovoInsumo').reset();
+    }
+
+    // GRAVA O NOVO ITEM NA TABELA estoque_mestre
+    async function salvarNovoInsumo(e) {
       e.preventDefault();
-      const colabId = document.getElementById('modal_id').value;
-      const uniformeId = document.getElementById('modal_uniforme_id').value;
 
-      const payloadColaborador = {
-        nome: document.getElementById('modal_nome').value.trim(),
-        cpf: document.getElementById('modal_cpf').value.trim(),
-        funcao: document.getElementById('modal_funcao').value,
-        status: document.getElementById('modal_status_admin').value,
-        coren: document.getElementById('modal_coren').value.trim(),
-        cnh: document.getElementById('modal_cnh').value.trim(),
-        fone: document.getElementById('modal_fone').value.trim(),
-        senha_unica: document.getElementById('modal_senha').value.trim()
-      };
+      const itemNome = document.getElementById('ins_nome').value.trim();
+      const categoria = document.getElementById('ins_categoria').value;
+      const unidade = document.getElementById('ins_unidade').value;
 
       try {
-        let idSalvo = colabId;
-        if (colabId) {
-          await dbNuvem.from('colaboradores').update(payloadColaborador).eq('id', colabId);
+        const { error } = await dbNuvem.from('estoque_mestre').insert([
+          {
+            item_nome: itemNome,
+            categoria: categoria,
+            unidade: unidade
+          }
+        ]);
+
+        if (error) {
+          alert("❌ Erro ao salvar insumo: " + error.message);
         } else {
-          const { data: novoc } = await dbNuvem.from('colaboradores').insert([payloadColaborador]).select();
-          if (novoc && novoc.length > 0) idSalvo = novoc[0].id;
+          alert("✅ Insumo cadastrado com sucesso no estoque_mestre!");
+          fecharModalInsumo();
+          carregarInsumos();
         }
-
-        if (idSalvo) {
-          const payloadUniforme = {
-            colaborador_id: idSalvo,
-            tipo_sangue: document.getElementById('modal_sangue').value.trim(),
-            nome_guerra: document.getElementById('modal_nome_guerra').value.trim(),
-            macacao: document.getElementById('modal_macacao').value.trim(),
-            camiseta: document.getElementById('modal_camiseta').value.trim(),
-            jaqueta: document.getElementById('modal_jaqueta').value.trim(),
-            coturno: document.getElementById('modal_coturno').value.trim(),
-            capa_chuva: document.getElementById('modal_capa_chuva').value.trim()
-          };
-
-          if (uniformeId) await dbNuvem.from('uniformes').update(payloadUniforme).eq('id', uniformeId);
-          else await dbNuvem.from('uniformes').insert([payloadUniforme]);
-        }
-
-        alert("✅ Cadastro e situação salvas com sucesso!");
-        fecharModalColaborador();
-        carregarColaboradores();
-      } catch (err) { alert("Erro ao salvar no Supabase."); }
-    }
-
-    /* CONTROLE DE MODAIS DE VIATURAS E POSTOS */
-    async function abrirModalViatura(id) {
-      document.getElementById('formModalViatura').reset();
-      document.getElementById('modal_viat_id').value = '';
-      if (id) {
-        const { data } = await dbNuvem.from('operacional_viaturas').select('*').eq('id', id).single();
-        if (data) {
-          document.getElementById('modal_viat_id').value = data.id;
-          document.getElementById('modal_viat_prefixo').value = data.prefixo || '';
-          document.getElementById('modal_viat_placa').value = data.placa || '';
-          document.getElementById('modal_viat_modelo').value = data.modelo || '';
-          document.getElementById('modal_viat_status').value = data.status || 'ATIVA';
-        }
+      } catch (err) {
+        alert("❌ Erro de conexão com o banco de dados.");
       }
-      document.getElementById('modalViatura').style.display = 'flex';
-    }
-    function fecharModalViatura() { document.getElementById('modalViatura').style.display = 'none'; }
-
-    async function salvarViaturaModal(e) {
-      e.preventDefault();
-      const id = document.getElementById('modal_viat_id').value;
-      const payload = {
-        prefixo: document.getElementById('modal_viat_prefixo').value.trim(),
-        placa: document.getElementById('modal_viat_placa').value.trim(),
-        modelo: document.getElementById('modal_viat_modelo').value.trim(),
-        status: document.getElementById('modal_viat_status').value
-      };
-      if (id) await dbNuvem.from('operacional_viaturas').update(payload).eq('id', id);
-      else await dbNuvem.from('operacional_viaturas').insert([payload]);
-      fecharModalViatura();
-      carregarViaturas();
     }
 
-    async function abrirModalPosto(id) {
-      document.getElementById('formModalPosto').reset();
-      document.getElementById('modal_posto_id').value = '';
-      if (id) {
-        const { data } = await dbNuvem.from('operacional_postos').select('*').eq('id', id).single();
-        if (data) {
-          document.getElementById('modal_posto_id').value = data.id;
-          document.getElementById('modal_posto_nome').value = data.nome_posto || '';
-          document.getElementById('modal_posto_cidade').value = data.cidade || 'Orleans';
-          document.getElementById('modal_posto_status').value = data.status || 'ATIVO';
+    // EXCLUI INSUMO DO ESTOQUE_MESTRE
+    async function excluirInsumo(id) {
+      if (!confirm("Tem certeza que deseja remover este item do estoque mestre?")) return;
+
+      try {
+        const { error } = await dbNuvem.from('estoque_mestre').delete().eq('id', id);
+        if (error) {
+          alert("❌ Erro ao excluir: " + error.message);
+        } else {
+          carregarInsumos();
         }
+      } catch (err) {
+        alert("❌ Erro ao comunicar com o banco.");
       }
-      document.getElementById('modalPosto').style.display = 'flex';
-    }
-    function fecharModalPosto() { document.getElementById('modalPosto').style.display = 'none'; }
-
-    async function salvarPostoModal(e) {
-      e.preventDefault();
-      const id = document.getElementById('modal_posto_id').value;
-      const payload = {
-        nome_posto: document.getElementById('modal_posto_nome').value.trim(),
-        cidade: document.getElementById('modal_posto_cidade').value.trim(),
-        status: document.getElementById('modal_posto_status').value
-      };
-      if (id) await dbNuvem.from('operacional_postos').update(payload).eq('id', id);
-      else await dbNuvem.from('operacional_postos').insert([payload]);
-      fecharModalPosto();
-      carregarPostos();
     }
   </script>
 </body>
