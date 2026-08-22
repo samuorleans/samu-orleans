@@ -165,10 +165,29 @@
       "Limpadores e Vidros", "Faróis e Piscas"
     ];
 
+    const listaMochilasEnf = [
+      "Mochila Azul - Vias Aéreas (POP-ALM-001)",
+      "Mochila Laranja - Trauma (POP-ALM-001)",
+      "Mochila Verde - Medicamentos (POP-ALM-001)",
+      "Mochila Vermelha - Acesso Venoso & Soluções (POP-ALM-001)",
+      "Mochila Amarela - Sinais Vitais & Glicosímetro (POP-ALM-001)",
+      "DEA / Monitor Multiparâmetros Mindray (POP-ALM-001)",
+      "Aspirador Portátil & Vidro de Aspiração (POP-ALM-001)",
+      "Compressor Thorácico Autopulse / Baterias (POP-EQP-001)",
+      "Kit Parto Iminente Confirmado Estéril (Prevenção Risco Obstétrico)",
+      "Salão & Compartimentos de Insumos (POP-ALM-001)"
+    ];
+
     window.onload = function() {
       carregarViaturas();
       carregarProfissionaisComPermissoes();
     };
+
+    // OBTÉM HORÁRIO ATUAL DO BRASIL (UTC-3)
+    function obterDataHoraBrasil() {
+      const agora = new Date();
+      return new Date(agora.getTime() - (agora.getTimezoneOffset() * 60000)).toISOString();
+    }
 
     async function carregarViaturas() {
       const selV = document.getElementById('p1_viatura');
@@ -285,7 +304,6 @@
       }
     }
 
-    // BUSCA AUTOMÁTICA DOS POSTOS DA TABELA operacional_postos
     async function carregarPostosNoModulo() {
       const selP = document.getElementById('abs_posto');
       if (!selP) return;
@@ -299,20 +317,10 @@
               selP.innerHTML += `<option value="${p.nome_posto}">${p.nome_posto}</option>`;
             }
           });
-        } else {
-          selP.innerHTML = `
-            <option value="">Selecione o Posto...</option>
-            <option value="POSTO CENTRAL">POSTO CENTRAL</option>
-            <option value="REDE POSTOS LEÃO">REDE POSTOS LEÃO</option>
-            <option value="REDE POSTOS SÃO MARCOS">REDE POSTOS SÃO MARCOS</option>
-          `;
         }
-      } catch (err) {
-        selP.innerHTML = '<option value="">Erro ao carregar postos</option>';
-      }
+      } catch (err) {}
     }
 
-    // BUSCA AUTOMÁTICA DOS INSUMOS DA TABELA estoque_mestre
     async function carregarInsumosNoModulo() {
       const selC = document.getElementById('abs_combustivel');
       if (!selC) return;
@@ -326,23 +334,10 @@
               selC.innerHTML += `<option value="${i.descricao_insumo}">${i.descricao_insumo}</option>`;
             }
           });
-        } else {
-          selC.innerHTML = `
-            <option value="">Selecione o Insumo...</option>
-            <option value="Diesel S10">Diesel S10</option>
-            <option value="Arla">Arla</option>
-          `;
         }
-      } catch (err) {
-        selC.innerHTML = `
-          <option value="">Selecione o Insumo...</option>
-          <option value="Diesel S10">Diesel S10</option>
-          <option value="Arla">Arla</option>
-        `;
-      }
+      } catch (err) {}
     }
 
-    // RENDERIZA A TABELA MECÂNICA DO MÓDULO DO CONDUTOR
     function renderizarTabelaMecanicaCondutor() {
       const tb = document.getElementById('tb_mecanica');
       if (!tb) return;
@@ -355,6 +350,23 @@
             <td style="text-align:center;"><input type="radio" name="mec_${index}" value="Ok / Conforme" required></td>
             <td style="text-align:center;"><input type="radio" name="mec_${index}" value="Abaixo do Nível / Alerta"></td>
             <td style="text-align:center;"><input type="radio" name="mec_${index}" value="Com Avaria / Outro"></td>
+          </tr>
+        `;
+      });
+    }
+
+    function renderizarTabelaMochilasTecnico() {
+      const tb = document.getElementById('tb_mochilas');
+      if (!tb) return;
+
+      tb.innerHTML = '';
+      listaMochilasEnf.forEach((item, index) => {
+        tb.innerHTML += `
+          <tr style="border-bottom:1px solid #cbd5e1;">
+            <td style="padding:8px;"><b>${item}</b></td>
+            <td style="text-align:center;"><input type="radio" name="moch_${index}" value="Confere / Completo" required></td>
+            <td style="text-align:center;"><input type="radio" name="moch_${index}" value="Necessita Reposição"></td>
+            <td style="text-align:center;"><input type="radio" name="moch_${index}" value="Avaria / Defeito"></td>
           </tr>
         `;
       });
@@ -410,6 +422,9 @@
             if (procSel === 'condutor') {
               renderizarTabelaMecanicaCondutor();
             }
+            if (procSel === 'tecnico') {
+              renderizarTabelaMochilasTecnico();
+            }
           }, 150);
         });
     }
@@ -419,11 +434,12 @@
       document.getElementById('passo1').style.display = 'block';
     }
 
-    // SALVAMENTO DE ABASTECIMENTO
+    // GRAVAÇÃO ABASTECIMENTO (COM DATA_HORA BRT)
     async function salvarAbastecimento(e) {
       e.preventDefault();
 
       const payload = {
+        data_hora: obterDataHoraBrasil(),
         viatura: document.getElementById('resumo_viatura').innerText,
         condutor_nome: document.getElementById('resumo_profissional').innerText,
         posto_credenciado: document.getElementById('abs_posto') ? document.getElementById('abs_posto').value : '',
@@ -447,7 +463,7 @@
       }
     }
 
-    // SALVAMENTO DE CHECKLIST DO CONDUTOR
+    // GRAVAÇÃO CHECKLIST CONDUTOR (COM DATA_HORA BRT)
     async function salvarChecklistCondutor(e) {
       e.preventDefault();
 
@@ -476,6 +492,7 @@
       document.querySelectorAll('.chk_ferramenta:checked').forEach(c => ferrSelecionadas.push(c.value));
 
       const payload = {
+        data_hora: obterDataHoraBrasil(),
         viatura: document.getElementById('resumo_viatura').innerText,
         profissional_nome: document.getElementById('resumo_profissional').innerText,
         tipo_procedimento: 'Checklist Condutor',
@@ -505,6 +522,64 @@
           voltarPasso1();
         } else {
           alert("❌ Erro ao salvar checklist: " + error.message);
+        }
+      } catch (err) {
+        alert("❌ Erro de conexão com o banco de dados.");
+      }
+    }
+
+    // GRAVAÇÃO CHECKLIST TÉCNICO (COM DATA_HORA BRT)
+    async function salvarChecklistTecnico(e) {
+      e.preventDefault();
+
+      let mapaMochilas = {};
+      let pendentes = false;
+
+      listaMochilasEnf.forEach((item, index) => {
+        const marcado = document.querySelector(`input[name="moch_${index}"]:checked`);
+        if (marcado) {
+          mapaMochilas[item] = marcado.value;
+        } else {
+          pendentes = true;
+        }
+      });
+
+      if (pendentes) {
+        alert("⚠️ Por favor, avalie todas as mochilas e equipamentos na tabela.");
+        return;
+      }
+
+      const cil1 = parseFloat(document.getElementById('tec_cil1').value) || 0;
+      const cil2 = parseFloat(document.getElementById('tec_cil2').value) || 0;
+
+      const payload = {
+        data_hora: obterDataHoraBrasil(),
+        viatura: document.getElementById('resumo_viatura').innerText,
+        profissional_nome: document.getElementById('resumo_profissional').innerText,
+        tipo_procedimento: 'Checklist Enfermagem',
+        turno_plantao: document.getElementById('tec_turno').value,
+        numero_lacre_psicotropicos: document.getElementById('tec_lacre').value,
+        cilindro_fixo_1_bar: cil1,
+        cilindro_fixo_2_bar: cil2,
+        cilindro_portatil_1_bar: parseFloat(document.getElementById('tec_portatil').value) || 0,
+        cilindro_ar_comprimido_bar: parseFloat(document.getElementById('tec_ar_comp').value) || 0,
+        conferencia_mochilas: mapaMochilas,
+        status_alerta_critico: document.getElementById('tec_alerta_critico').value,
+        observacoes_materiais: document.getElementById('tec_obs') ? document.getElementById('tec_obs').value.trim() : '',
+        alerta_oxigenio_critico: (cil1 < 15 || cil2 < 15)
+      };
+
+      try {
+        const { error } = await dbNuvem.from('operacional_saude_lacres').insert([payload]);
+        if (!error) {
+          if (payload.alerta_oxigenio_critico) {
+            alert("🚨 ATENÇÃO: Checklist salvo! ALERTA CRÍTICO: Cilindros de oxigênio abaixo de 15 bar.");
+          } else {
+            alert("✅ Checklist de Enfermagem salvo com sucesso no Supabase!");
+          }
+          voltarPasso1();
+        } else {
+          alert("❌ Erro ao salvar: " + error.message);
         }
       } catch (err) {
         alert("❌ Erro de conexão com o banco de dados.");
