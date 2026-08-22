@@ -19,9 +19,16 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
     body { background-color: var(--bg-surface); color: #1e293b; min-height: 100vh; padding: 20px 12px; }
 
-    .container { max-width: 650px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; text-align: center; }
+    .container { max-width: 750px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; text-align: center; }
+    
+    .brand-logo { width: 50px; height: auto; margin-bottom: 6px; }
     .header h1 { font-size: 1.2rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; }
     .header p { font-size: 0.8rem; color: #64748b; margin-bottom: 20px; font-weight: 600; }
+
+    /* NAVEGAÇÃO DE ABAS OPERACIONAIS */
+    .nav-tabs { display: flex; gap: 8px; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; overflow-x: auto; }
+    .tab-btn { padding: 10px 14px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.82rem; border-radius: 8px; cursor: pointer; color: var(--samu-navy); white-space: nowrap; transition: 0.2s; }
+    .tab-btn.active { background: var(--samu-navy); color: white; }
 
     .btn-voltar { display: inline-block; margin-top: 20px; font-size: 0.85rem; color: var(--samu-blue); text-decoration: none; font-weight: 700; }
   </style>
@@ -30,11 +37,20 @@
 
   <div class="container">
     <div class="header">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Star_of_life_caucasia.svg" alt="SAMU 192" class="brand-logo">
       <h1>SAMU CONNECT — CENTRAL OPERACIONAL</h1>
       <p>USB 11 ORLEANS — Registros Operacionais e Checklists de Rotina</p>
     </div>
 
-    <!-- CARREGAMENTO DINÂMICO DO MÓDULO DE ABASTECIMENTO -->
+    <!-- NAVEGAÇÃO ENTRE OS MÓDULOS DA PASTA MODULOS/ -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" id="tabAbs" onclick="carregarModulo('form-abastecimento.html', 'tabAbs')">⛽ Abastecimento</button>
+      <button class="tab-btn" id="tabLacres" onclick="carregarModulo('form-lacre.html', 'tabLacres')">🔒 Checklist & Lacres</button>
+      <button class="tab-btn" id="tabCondutor" onclick="carregarModulo('form-condutor.html', 'tabCondutor')">🚑 Conferência Condutor</button>
+      <button class="tab-btn" id="tabTecnico" onclick="carregarModulo('form-tecnico.html', 'tabTecnico')">🩺 Conferência Enfermagem</button>
+    </div>
+
+    <!-- RECEPTÁCULO DINÂMICO ONDE OS MÓDULOS SÃO CARREGADOS -->
     <div id="conteudoModulo">
       <p style="color:#64748b; font-size:0.85rem;">Carregando formulário operacional...</p>
     </div>
@@ -43,28 +59,45 @@
   </div>
 
   <script>
-    // Conexão oficial do Supabase
+    // Conexão oficial com o Supabase
     const dbNuvem = supabase.createClient(
       "https://rcpgukslnlfptreiusff.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
     window.onload = function() {
-      // Carrega o módulo do arquivo modulos/form-abastecimento.html
-      fetch('modulos/form-abastecimento.html')
+      // Carrega o módulo inicial de abastecimento
+      carregarModulo('form-abastecimento.html', 'tabAbs');
+    };
+
+    // FUNÇÃO QUE CARREGA OS ARQUIVOS DA PASTA MODULOS/ DINAMICAMENTE
+    function carregarModulo(arquivoHtml, tabId) {
+      // Atualiza o estilo das abas
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+
+      document.getElementById('conteudoModulo').innerHTML = '<p style="color:#64748b; font-size:0.85rem;">Carregando formulário...</p>';
+
+      fetch(`modulos/${arquivoHtml}`)
         .then(res => res.text())
         .then(html => {
           document.getElementById('conteudoModulo').innerHTML = html;
-          carregarViaturas();
-          carregarCondutores();
-          carregarPostos();
+          
+          // Dispara o preenchimento automático dos seletores do Supabase
+          setTimeout(() => {
+            if (typeof carregarViaturas === 'function') carregarViaturas();
+            if (typeof carregarCondutores === 'function') carregarCondutores();
+            if (typeof carregarPostos === 'function') carregarPostos();
+          }, 200);
         })
         .catch(err => {
-          document.getElementById('conteudoModulo').innerHTML = '<p style="color:red;">Erro ao carregar o módulo.</p>';
+          document.getElementById('conteudoModulo').innerHTML = '<p style="color:red;">Erro ao carregar o módulo operacional.</p>';
         });
-    };
+    }
 
-    // FUNÇÕES DE BUSCA NO BANCO DE DADOS
+    // ============================================================================
+    // FUNÇÕES DE BUSCA NO SUPABASE PARA OS MÓDULOS OPERACIONAIS
+    // ============================================================================
     async function carregarViaturas() {
       const selV = document.getElementById('abs_viatura');
       if (!selV) return;
@@ -111,7 +144,7 @@
       } catch (e) {}
     }
 
-    // GRAVAÇÃO NA TABELA operacional_abastecimentos
+    // GRAVAÇÃO DE ABASTECIMENTO
     async function salvarAbastecimento(e) {
       e.preventDefault();
       const payload = {
