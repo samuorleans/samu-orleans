@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SAMU Orleans - Portal Operacional</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --primary-red: #cc0000;
@@ -17,99 +16,245 @@
       --amber-j3: #d97706;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-    body { background-color: var(--bg-gray); color: var(--text-main); padding-bottom: 40px; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-gray);
+      color: var(--text-main);
+      padding-bottom: 40px;
+    }
 
     .topbar {
-      background-color: var(--navy-blue); color: white; padding: 12px 24px;
-      display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      background-color: var(--navy-blue);
+      color: white;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
-    .topbar-brand { font-weight: 700; font-size: 1.1rem; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+
+    .topbar-brand {
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .btn-admin-login {
-      background-color: var(--primary-red); color: white; border: none; padding: 8px 16px;
-      border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;
+      background-color: var(--primary-red);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.2s;
     }
-    .btn-admin-login:hover { background-color: var(--dark-red); }
+
+    .btn-admin-login:hover {
+      background-color: var(--dark-red);
+    }
 
     .hero {
       background: linear-gradient(135deg, var(--navy-blue), var(--dark-red));
-      color: white; text-align: center; padding: 35px 20px; margin-bottom: 30px;
+      color: white;
+      text-align: center;
+      padding: 35px 20px;
+      margin-bottom: 30px;
     }
-    .hero h1 { font-size: 1.8rem; margin-bottom: 8px; }
-    .hero p { font-size: 0.95rem; opacity: 0.9; }
 
-    .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+    .hero h1 {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+    }
+
+    .hero p {
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
     .section-title {
-      font-size: 1.2rem; color: var(--navy-blue); margin-bottom: 16px; padding-bottom: 8px;
-      border-bottom: 2px solid var(--primary-red); display: flex; align-items: center; gap: 8px;
+      font-size: 1.2rem;
+      color: var(--navy-blue);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--primary-red);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .grid-container {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 20px; margin-bottom: 40px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
     }
 
     .card {
-      background: var(--card-bg); border-radius: 10px; padding: 22px; text-align: center;
-      text-decoration: none; color: var(--text-main); border-top: 4px solid var(--primary-red);
-      box-shadow: 0 3px 8px rgba(0,0,0,0.06); transition: transform 0.2s ease, box-shadow 0.2s ease;
-      display: flex; flex-direction: column; justify-content: space-between; cursor: pointer;
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 22px;
+      text-align: center;
+      text-decoration: none;
+      color: var(--text-main);
+      border-top: 4px solid var(--primary-red);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
     }
-    .card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.12); border-top-color: var(--navy-blue); }
-    .card-icon { font-size: 2.2rem; margin-bottom: 12px; }
-    .card-title { font-weight: 700; font-size: 1.05rem; color: var(--navy-blue); margin-bottom: 8px; }
-    .card-desc { font-size: 0.85rem; color: #666; line-height: 1.4; }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+      border-top-color: var(--navy-blue);
+    }
+
+    .card-icon {
+      font-size: 2.2rem;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--navy-blue);
+      margin-bottom: 8px;
+    }
+
+    .card-desc {
+      font-size: 0.85rem;
+      color: #666;
+      line-height: 1.4;
+    }
+
     .badge {
-      display: inline-block; margin-top: 14px; padding: 6px 12px; background-color: var(--bg-gray);
-      border-radius: 12px; font-size: 0.75rem; font-weight: 600; color: var(--primary-red);
+      display: inline-block;
+      margin-top: 14px;
+      padding: 6px 12px;
+      background-color: var(--bg-gray);
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--primary-red);
     }
 
     .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: center; z-index: 1000;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
     }
+
     .modal-box {
-      background: white; padding: 28px; border-radius: 12px; width: 90%; max-width: 520px;
-      text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.3); position: relative; max-height: 90vh; overflow-y: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 380px;
+      text-align: center;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+      position: relative;
     }
-    .modal-box h3 { color: var(--navy-blue); margin-bottom: 8px; }
-    .modal-box p { font-size: 0.85rem; color: #666; margin-bottom: 18px; }
 
-    .form-group-modal { text-align: left; margin-bottom: 14px; }
-    .form-group-modal label { font-size: 0.75rem; font-weight: 700; color: var(--navy-blue); text-transform: uppercase; display: block; margin-bottom: 4px; }
-    .input-field { width: 100%; padding: 11px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; outline: none; background: #fff; }
-    .input-field:focus { border-color: var(--navy-blue); }
-
-    .btn-submit { width: 100%; padding: 12px; background-color: var(--primary-red); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; margin-top: 10px; }
-    .btn-submit:hover { background-color: var(--dark-red); }
-
-    .close-modal { position: absolute; top: 12px; right: 15px; font-size: 1.3rem; cursor: pointer; color: #999; }
-
-    .box-excepcional {
-      background: #fef3c7; border: 1px solid #fcd34d; padding: 12px; border-radius: 8px; margin-top: 10px; text-align: left;
+    .modal-box h3 {
+      color: var(--navy-blue);
+      margin-bottom: 10px;
     }
-    .box-excepcional label { font-size: 0.8rem; font-weight: 700; color: #92400e; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 
-    .tab-btn-group { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; }
-    .tab-btn { flex: 1; padding: 8px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.82rem; border-radius: 6px; cursor: pointer; color: var(--navy-blue); }
-    .tab-btn.active { background: var(--amber-j3); color: white; }
+    .modal-box p {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
 
-    .table-plantao { width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left; margin-top: 10px; }
-    .table-plantao th, .table-plantao td { border: 1px solid var(--border-color); padding: 8px; }
-    .table-plantao th { background: var(--navy-blue); color: white; }
+    .input-field {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.95rem;
+      text-align: center;
+      outline: none;
+    }
+
+    .input-field:focus {
+      border-color: var(--navy-blue);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background-color: var(--primary-red);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-submit:hover {
+      background-color: var(--dark-red);
+    }
+
+    .error-msg {
+      color: var(--primary-red);
+      font-size: 0.8rem;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 12px;
+      right: 15px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #999;
+    }
 
     #admin-section {
-      display: none; margin-top: 20px; background: #ffffff; padding: 25px;
-      border-radius: 10px; border-left: 5px solid var(--navy-blue); box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      display: none;
+      margin-top: 20px;
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 10px;
+      border-left: 5px solid var(--navy-blue);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
   </style>
 </head>
 <body>
 
-  <!-- Topbar com botão de Gestão -->
+  <!-- Topbar com botão de Acesso Restrito à Gestão -->
   <div class="topbar">
     <div class="topbar-brand">🚑 SAMU ORLEANS</div>
-    <button class="btn-admin-login" id="auth-btn" onclick="openGestaoModal()">🔒 Gestão / Coordenação</button>
+    <button class="btn-admin-login" id="auth-btn" onclick="openLoginModal()">🔒 Gestão / Coordenação</button>
   </div>
 
   <!-- Cabeçalho Principal -->
@@ -134,27 +279,27 @@
         <span class="badge">Acessar Sistema</span>
       </a>
 
-      <!-- Card 2: Escala Operacional -->
+      <!-- Card 2: Escalas Operacionais -->
       <a href="escala.html" class="card">
         <div>
           <div class="card-icon">📅</div>
           <div class="card-title">Escalas Operacionais</div>
-          <div class="card-desc">Consulta livre da escala de plantão da equipe da USB 11.</div>
+          <div class="card-desc">Módulo integrado de consulta e gestão de escalas de plantão.</div>
         </div>
-        <span class="badge">Visualizar Escala</span>
+        <span class="badge">Acessar Sistema</span>
       </a>
 
-      <!-- Card 3: Assunção de Plantão / Confirmação do J3 Diário -->
-      <div onclick="abrirModalJ3()" class="card" style="border-top-color: var(--amber-j3);">
+      <!-- Card 3: Assunção de Plantão / J3 (Aponta diretamente para o j3.html) -->
+      <a href="j3.html" class="card" style="border-top-color: var(--amber-j3);">
         <div>
           <div class="card-icon">🚨</div>
           <div class="card-title">Assumir Plantão / J3</div>
-          <div class="card-desc">Validação de entrada em serviço da dupla (Condutor + Enfermagem) e consulta de plantões.</div>
+          <div class="card-desc">Validação de entrada em serviço, rendição antecipada e consulta de equipes.</div>
         </div>
-        <span class="badge" style="color: var(--amber-j3);">Confirmar ou Consultar J3</span>
-      </div>
+        <span class="badge" style="color: var(--amber-j3);">Acessar Módulo J3</span>
+      </a>
 
-      <!-- Card 4: Ocorrência APH / Atendimento a Paciente -->
+      <!-- Card 4: Ocorrência APH / Paciente -->
       <a href="https://forms.gle/k5EQAVoTJhe8DQHZ8" target="_blank" class="card">
         <div>
           <div class="card-icon">🩺</div>
@@ -164,7 +309,7 @@
         <span class="badge">Acessar Formulário</span>
       </a>
 
-      <!-- Card 5: Controle de Cursos -->
+      <!-- Card 5: Cursos & Capacitações -->
       <a href="cursos.html" class="card">
         <div>
           <div class="card-icon">🎓</div>
@@ -174,7 +319,7 @@
         <span class="badge">Acessar Módulo</span>
       </a>
 
-      <!-- Card 6: Gerador de Lista de Presença -->
+      <!-- Card 6: Lista de Presença -->
       <a href="lista-presenca.html" class="card">
         <div>
           <div class="card-icon">📝</div>
@@ -196,7 +341,7 @@
 
     </div>
 
-    <!-- SEÇÃO 2: ÁREA RESTRITA / GESTÃO -->
+    <!-- SEÇÃO 2: ÁREA RESTRITA / GESTÃO (LIBERADA APÓS SENHA) -->
     <div id="admin-section">
       <h2 class="section-title" style="border-bottom-color: var(--navy-blue);">📊 Banco de Dados & Gestão de Frotas/Materiais</h2>
       <div class="grid-container">
@@ -236,350 +381,54 @@
 
   </div>
 
-  <!-- MODAL DE SENHA DA GESTÃO -->
-  <div class="modal-overlay" id="gestaoModal">
+  <!-- MODAL DE SENHA DE ACESSO À GESTÃO -->
+  <div class="modal-overlay" id="loginModal">
     <div class="modal-box">
-      <span class="close-modal" onclick="closeGestaoModal()">&times;</span>
-      <h3>Acesso Restrito à Gestão</h3>
-      <p>Digite a senha da coordenação/gestão para liberar os bancos de dados.</p>
-      <input type="password" id="passInputGestao" class="input-field" placeholder="Digite a senha de gestão">
-      <button class="btn-submit" onclick="validarSenhaGestao()">Entrar na Gestão</button>
-    </div>
-  </div>
-
-  <!-- MODAL DE CONFIRMAÇÃO E CONSULTA DO J3 -->
-  <div class="modal-overlay" id="modalJ3">
-    <div class="modal-box">
-      <span class="close-modal" onclick="fecharModalJ3()">&times;</span>
-
-      <!-- ABAS DE NAVEGAÇÃO DO J3 -->
-      <div class="tab-btn-group">
-        <button class="tab-btn active" id="tab1" onclick="mudarAbaJ3(1)">🚨 Assumir Plantão J3</button>
-        <button class="tab-btn" id="tab2" onclick="mudarAbaJ3(2)">🔍 Consultar Plantões</button>
-      </div>
-
-      <!-- CONTEÚDO 1: FORMULÁRIOS DE ASSUNÇÃO DA DUPLA -->
-      <div id="conteudoTab1">
-        <h3 style="color: var(--amber-j3);">Confirmação de Equipe (J3)</h3>
-        <p>A entrada em serviço exige a definição de 1 Condutor + 1 Enfermagem.</p>
-
-        <form id="formJ3" onsubmit="confirmarJ3ComSenha(event)">
-          
-          <div class="form-group-modal">
-            <label>1. Condutor Socorrista:*</label>
-            <select id="j3_condutor" class="input-field" required>
-              <option value="">Carregando condutores...</option>
-            </select>
-          </div>
-
-          <div class="form-group-modal">
-            <label>2. Técnico / Enfermeiro:*</label>
-            <select id="j3_tecnico" class="input-field" required>
-              <option value="">Carregando equipe de enfermagem...</option>
-            </select>
-          </div>
-
-          <div class="form-group-modal">
-            <label>Senha Única do Servidor Responsável:*</label>
-            <input type="password" id="j3_senha_confirmacao" class="input-field" placeholder="••••••••" required>
-          </div>
-
-          <div class="box-excepcional">
-            <label>
-              <input type="checkbox" id="j3_chk_excepcional" onchange="alternarBoxJustificativa()">
-              Troca de última hora (Fora da Escala Regular)?
-            </label>
-
-            <div id="div_justificativa" style="display: none; margin-top: 10px;">
-              <label style="color:#78350f; font-size:0.72rem;">Justificativa da Substituição Excepcional:*</label>
-              <textarea id="j3_justificativa" class="input-field" rows="2" placeholder="Informe o motivo da troca emergencial..."></textarea>
-            </div>
-          </div>
-
-          <button type="submit" class="btn-submit" style="background-color: var(--amber-j3);">💾 Formar Equipe e Assumir J3</button>
-        </form>
-      </div>
-
-      <!-- CONTEÚDO 2: TABELA DE CONSULTA DE PLANTÕES -->
-      <div id="conteudoTab2" style="display: none;">
-        <h3 style="color: var(--navy-blue);">Histórico de Plantões (USB 11)</h3>
-        <p>Consulta de passagem de serviço, equipes ativas e plantões anteriores.</p>
-
-        <table class="table-plantao">
-          <thead>
-            <tr>
-              <th>Status</th>
-              <th>Condutor</th>
-              <th>Enfermagem</th>
-              <th>Data/Hora</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyPlantaoHistorico">
-            <tr>
-              <td colspan="4" style="text-align:center;">Carregando histórico...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
+      <span class="close-modal" onclick="closeLoginModal()">&times;</span>
+      <h3>Acesso Restrito</h3>
+      <p>Digite a senha da coordenação/gestão para liberar os sistemas e bancos de dados.</p>
+      <input type="password" id="passInput" class="input-field" placeholder="Digite a senha">
+      <button class="btn-submit" onclick="validatePassword()">Entrar</button>
+      <div class="error-msg" id="errorMsg">Senha incorreta. Tente novamente.</div>
     </div>
   </div>
 
   <script>
-    const dbNuvem = supabase.createClient(
-      "https://rcpgukslnlfptreiusff.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
-    );
+    const SENHA_ADMIN = "samu192";
 
-    const equipeCondutoresReserva = [
-      { nome: "Daniel Alexandre Fernandes", cpf: "075.486.369-70" },
-      { nome: "Lucas Vieira Mendes", cpf: "" },
-      { nome: "Márcio Becker", cpf: "" },
-      { nome: "Renato Cândido", cpf: "" },
-      { nome: "Vanderlei José Tasca", cpf: "" }
-    ];
-
-    const equipeEnfermagemReserva = [
-      { nome: "Clênio Borges", cpf: "" },
-      { nome: "Edimara Tochetto Suaya Netto", cpf: "" },
-      { nome: "Gicerléia Trindade da Rosa", cpf: "" },
-      { nome: "Luis Eduardo Formanski Vitório", cpf: "" },
-      { nome: "Rinaldo Calegario", cpf: "019.739.469-80" },
-      { nome: "Suandre Adão Machado", cpf: "" }
-    ];
-
-    function openGestaoModal() {
-      document.getElementById('gestaoModal').style.display = 'flex';
-      document.getElementById('passInputGestao').focus();
+    function openLoginModal() {
+      document.getElementById('loginModal').style.display = 'flex';
+      document.getElementById('passInput').focus();
     }
 
-    function closeGestaoModal() {
-      document.getElementById('gestaoModal').style.display = 'none';
-      document.getElementById('passInputGestao').value = '';
+    function closeLoginModal() {
+      document.getElementById('loginModal').style.display = 'none';
+      document.getElementById('errorMsg').style.display = 'none';
+      document.getElementById('passInput').value = '';
     }
 
-    function validarSenhaGestao() {
-      const input = document.getElementById('passInputGestao').value.trim();
-      if (input === 'samu192' || input === '123456') {
-        closeGestaoModal();
+    function validatePassword() {
+      const input = document.getElementById('passInput').value;
+      const errorMsg = document.getElementById('errorMsg');
+
+      if (input === SENHA_ADMIN || input === "123456") {
+        closeLoginModal();
         document.getElementById('admin-section').style.display = 'block';
-        document.getElementById('auth-btn').innerText = "🔓 Gestão Liberada";
+        document.getElementById('auth-btn').innerHTML = "🔓 Gestão Liberada";
         document.getElementById('auth-btn').style.backgroundColor = "#28a745";
         document.getElementById('auth-btn').onclick = null;
+        
         document.getElementById('admin-section').scrollIntoView({ behavior: 'smooth' });
       } else {
-        alert("Senha de gestão incorreta.");
+        errorMsg.style.display = 'block';
       }
     }
 
-    function mudarAbaJ3(aba) {
-      if (aba === 1) {
-        document.getElementById('tab1').classList.add('active');
-        document.getElementById('tab2').classList.remove('active');
-        document.getElementById('conteudoTab1').style.display = 'block';
-        document.getElementById('conteudoTab2').style.display = 'none';
-      } else {
-        document.getElementById('tab2').classList.add('active');
-        document.getElementById('tab1').classList.remove('active');
-        document.getElementById('conteudoTab1').style.display = 'none';
-        document.getElementById('conteudoTab2').style.display = 'block';
-        carregarHistoricoPlantoes();
+    document.getElementById("passInput").addEventListener("keyup", function(event) {
+      if (event.key === "Enter") {
+        validatePassword();
       }
-    }
-
-    async function abrirModalJ3() {
-      document.getElementById('modalJ3').style.display = 'flex';
-      mudarAbaJ3(1);
-
-      const selCondutor = document.getElementById('j3_condutor');
-      const selTecnico = document.getElementById('j3_tecnico');
-
-      selCondutor.innerHTML = '<option value="">Carregando condutores...</option>';
-      selTecnico.innerHTML = '<option value="">Carregando enfermagem...</option>';
-
-      try {
-        const { data, error } = await dbNuvem.from('colaboradores').select('*');
-
-        if (!error && data && data.length > 0) {
-          selCondutor.innerHTML = '<option value="">Selecione o Condutor...</option>';
-          selTecnico.innerHTML = '<option value="">Selecione o Enfermagem...</option>';
-
-          data.forEach(c => {
-            const cargoUpper = (c.cargo || c.funcao || '').toUpperCase();
-            if (cargoUpper.includes('CONDUTOR') || cargoUpper.includes('MOTORISTA')) {
-              selCondutor.innerHTML += `<option value="${c.nome}" data-cpf="${c.cpf || ''}">${c.nome}</option>`;
-            } else {
-              selTecnico.innerHTML += `<option value="${c.nome}" data-cpf="${c.cpf || ''}">${c.nome} (${c.cargo || 'Enfermagem'})</option>`;
-            }
-          });
-        } else {
-          popularSelectsReserva();
-        }
-      } catch (err) {
-        popularSelectsReserva();
-      }
-    }
-
-    function popularSelectsReserva() {
-      const selCondutor = document.getElementById('j3_condutor');
-      const selTecnico = document.getElementById('j3_tecnico');
-
-      selCondutor.innerHTML = '<option value="">Selecione o Condutor...</option>';
-      equipeCondutoresReserva.forEach(item => {
-        selCondutor.innerHTML += `<option value="${item.nome}" data-cpf="${item.cpf}">${item.nome}</option>`;
-      });
-
-      selTecnico.innerHTML = '<option value="">Selecione o Enfermagem...</option>';
-      equipeEnfermagemReserva.forEach(item => {
-        selTecnico.innerHTML += `<option value="${item.nome}" data-cpf="${item.cpf}">${item.nome}</option>`;
-      });
-    }
-
-    function fecharModalJ3() {
-      document.getElementById('modalJ3').style.display = 'none';
-      document.getElementById('j3_senha_confirmacao').value = '';
-      document.getElementById('j3_chk_excepcional').checked = false;
-      document.getElementById('div_justificativa').style.display = 'none';
-    }
-
-    function alternarBoxJustificativa() {
-      const chk = document.getElementById('j3_chk_excepcional').checked;
-      document.getElementById('div_justificativa').style.display = chk ? 'block' : 'none';
-    }
-
-    /* CONFIRMAÇÃO DO J3 COM TRAVA DE TROCA EM MESMO TURNO DE PLANTÃO */
-    async function confirmarJ3ComSenha(e) {
-      e.preventDefault();
-      const elemCondutor = document.getElementById('j3_condutor');
-      const elemTecnico = document.getElementById('j3_tecnico');
-      
-      const condutor = elemCondutor.value;
-      const tecnico = elemTecnico.value;
-      const senhaDigitada = document.getElementById('j3_senha_confirmacao').value.trim();
-      const ehExcepcional = document.getElementById('j3_chk_excepcional').checked;
-      const justificativa = document.getElementById('j3_justificativa').value.trim();
-
-      if (!condutor || !tecnico) {
-        alert("⚠️ ATENÇÃO: A viatura só pode entrar em J3 com a equipe completa (1 Condutor + 1 Enfermagem).");
-        return;
-      }
-
-      try {
-        // Consulta o último plantão ativo registrado na base
-        const { data: plantoesAtivos } = await dbNuvem
-          .from('plantoes_j3')
-          .select('*')
-          .eq('status', 'ATIVO')
-          .order('id', { ascending: false })
-          .limit(1);
-
-        if (plantoesAtivos && plantoesAtivos.length > 0) {
-          const ultimoP = plantoesAtivos[0];
-          const tempoDecorridoHoras = (new Date() - new Date(ultimoP.data_confirmacao || ultimoP.created_at)) / (1000 * 60 * 60);
-
-          // Se o plantão foi gravado há menos de 12 horas e houve mudança de condutor ou técnico
-          const houveMudancaEquipe = (ultimoP.condutor !== condutor || ultimoP.enfermagem !== tecnico);
-
-          if (tempoDecorridoHoras < 12 && houveMudancaEquipe && !ehExcepcional) {
-            alert("⚠️ BLOQUEIO OPERACIONAL:\nJá existe um plantão de J3 ativo para esta janela de horário.\n\nPara alterar a equipe no mesmo turno, você OBRIGATORIAMENTE deve marcar a caixa 'Troca de última hora' e descrever a justificativa.");
-            document.getElementById('j3_chk_excepcional').checked = true;
-            alternarBoxJustificativa();
-            document.getElementById('j3_justificativa').focus();
-            return;
-          }
-        }
-
-        if (ehExcepcional && !justificativa) {
-          alert("Por favor, preencha a justificativa da substituição emergencial.");
-          return;
-        }
-
-        // Validação da Senha Única
-        const { data } = await dbNuvem.from('colaboradores').select('*');
-        let usuarioValido = null;
-
-        if (data) {
-          const uCond = data.find(c => c.nome === condutor);
-          const uTec = data.find(c => c.nome === tecnico);
-
-          if (uCond && (uCond.senha_unica || uCond.senha) === senhaDigitada) {
-            usuarioValido = uCond;
-          } else if (uTec && (uTec.senha_unica || uTec.senha) === senhaDigitada) {
-            usuarioValido = uTec;
-          }
-        }
-
-        if (usuarioValido || senhaDigitada === 'samu192' || senhaDigitada === '123456') {
-          // 1. Desativa plantão anterior e ativa o novo J3
-          await dbNuvem.from('plantoes_j3').update({ status: 'ENCERRADO' }).eq('status', 'ATIVO');
-          await dbNuvem.from('plantoes_j3').insert([{
-            condutor: condutor,
-            enfermagem: tecnico,
-            tipo_registro: ehExcepcional ? 'EXCEPCIONAL' : 'REGULAR',
-            justificativa: justificativa || 'Assunção Regular de Plantão',
-            status: 'ATIVO'
-          }]);
-
-          // 2. Grava log auditável
-          const cpfLog = usuarioValido ? usuarioValido.cpf : '075.486.369-70';
-          const nomeLog = usuarioValido ? usuarioValido.nome : `${condutor} & ${tecnico}`;
-          const acaoLog = ehExcepcional ? 'Assunção J3 Excepcional' : 'Assunção J3 Regular';
-          const detalhesLog = `Equipe: Condutor (${condutor}) + Enfermagem (${tecnico}). ${justificativa ? 'Justificativa: ' + justificativa : ''}`;
-
-          await dbNuvem.from('logs_alteracoes').insert([{
-            usuario_cpf: cpfLog,
-            usuario_nome: nomeLog,
-            acao: acaoLog,
-            detalhes: detalhesLog,
-            data_hora: new Date().toISOString()
-          }]);
-
-          alert(`✅ J3 Confirmado e Registrado em Logs!\n\nEquipe Ativa:\n🚑 Condutor: ${condutor}\n🩺 Enfermagem: ${tecnico}`);
-          fecharModalJ3();
-        } else {
-          alert("❌ Senha Única incorreta. Digite sua senha cadastrada.");
-        }
-      } catch (err) {
-        alert("Erro ao conectar com a base de dados.");
-      }
-    }
-
-    async function carregarHistoricoPlantoes() {
-      const tbody = document.getElementById('tbodyPlantaoHistorico');
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando plantões no banco...</td></tr>';
-
-      try {
-        const { data, error } = await dbNuvem
-          .from('plantoes_j3')
-          .select('*')
-          .order('id', { ascending: false })
-          .limit(10);
-
-        if (!error && data && data.length > 0) {
-          tbody.innerHTML = '';
-          data.forEach((p, idx) => {
-            const rotuloStatus = p.status === 'ATIVO' || idx === 0 
-              ? '<span style="color:#15803d; font-weight:bold;">🟢 ATIVO</span>' 
-              : '⚪ ANTERIOR';
-
-            const dataFmt = new Date(p.data_confirmacao || p.created_at || new Date()).toLocaleString('pt-BR');
-
-            tbody.innerHTML += `
-              <tr>
-                <td>${rotuloStatus}</td>
-                <td>${p.condutor || '—'}</td>
-                <td>${p.enfermagem || '—'}</td>
-                <td>${dataFmt}</td>
-              </tr>
-            `;
-          });
-        } else {
-          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum plantão registrado ainda.</td></tr>';
-        }
-      } catch (err) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Erro ao conectar com a base de dados.</td></tr>';
-      }
-    }
+    });
   </script>
 </body>
 </html>
