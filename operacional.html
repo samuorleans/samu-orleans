@@ -41,49 +41,21 @@
       border-color: var(--samu-blue); background: white; box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.1);
     }
 
-    .mic-wrapper { position: relative; width: 100%; }
-    .btn-mic {
-      position: absolute; right: 10px; top: 10px; background: #e2e8f0; border: none; padding: 6px 12px;
-      border-radius: 6px; font-size: 0.75rem; font-weight: 700; color: var(--samu-navy); cursor: pointer; display: flex; align-items: center; gap: 5px;
-    }
-    .btn-mic.recording { background: var(--samu-red); color: white; animation: pulse 1s infinite; }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
-
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
     .radio-card {
       display: flex; align-items: center; gap: 12px; padding: 14px; border: 1.5px solid var(--border);
       border-radius: 10px; margin-bottom: 10px; cursor: pointer; background: #ffffff; transition: 0.2s;
     }
     .radio-card:hover { border-color: var(--samu-blue); background: #f0f7ff; }
-    .radio-card.disabled { opacity: 0.35; pointer-events: none; background: #f1f5f9; }
+    .radio-card.disabled { opacity: 0.3; pointer-events: none; background: #e2e8f0; filter: grayscale(1); }
     .radio-card input[type="radio"] { width: 18px; height: 18px; accent-color: var(--samu-red); cursor: pointer; }
     .radio-card label { margin: 0; font-size: 0.9rem; font-weight: 600; color: var(--text-main); cursor: pointer; }
-
-    .table-container { overflow-x: auto; margin-bottom: 15px; border-radius: 10px; border: 1.5px solid var(--border); }
-    .custom-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
-    .custom-table th, .custom-table td { border-bottom: 1px solid var(--border); padding: 10px 12px; text-align: center; }
-    .custom-table th { background: #f8fafc; color: var(--samu-navy); font-weight: 700; text-transform: uppercase; font-size: 0.75rem; }
-    .custom-table td:first-child { text-align: left; font-weight: 600; color: var(--text-main); }
-    .custom-table input[type="radio"] { width: 18px; height: 18px; accent-color: var(--samu-navy); cursor: pointer; }
-    .custom-table tr.unselected { background-color: #fff1f2; }
-
-    .checkbox-list { display: flex; flex-direction: column; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 10px; border: 1.5px solid var(--border); }
-    .checkbox-item { display: flex; align-items: center; gap: 10px; font-size: 0.86rem; color: var(--text-main); font-weight: 500; }
-    .checkbox-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--samu-red); cursor: pointer; }
-
-    .section-header-title {
-      font-size: 0.88rem; font-weight: 800; color: var(--samu-navy); background: #f1f5f9;
-      padding: 10px 14px; border-radius: 8px; margin: 22px 0 14px 0; text-transform: uppercase;
-      border-left: 4px solid var(--samu-blue); display: flex; align-items: center; justify-content: space-between;
-    }
 
     .action-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 30px; }
     .btn-main { background: var(--samu-navy); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
     .btn-back { background: #e2e8f0; color: #334155; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
     .btn-save { background: #15803d; color: white; border: none; padding: 13px 24px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.92rem; }
 
-    @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } .action-row { flex-direction: column; } }
+    @media (max-width: 600px) { .action-row { flex-direction: column; } }
   </style>
 </head>
 <body>
@@ -151,7 +123,10 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
-    /* CONSULTA CADASTROS MESTRES NO SUPABASE */
+    /* MAPEAMENTO DA EQUIPE USB 11 */
+    const condutoresNomes = ["DANIEL ALEXANDRE FERNANDES", "LUCAS VIEIRA MENDES", "MÁRCIO BECKER", "MARCIO BECKER", "RENATO CÂNDIDO", "RENATO CANDIDO", "VANDERLEI JOSÉ TASCA", "VANDERLEI JOSE TASCA"];
+    const tecnicosNomes = ["CLÊNIO BORGES", "CLENIO BORGES", "GICERLÉIA TRINDADE DA ROSA", "GICERLEIA TRINDADE DA ROSA", "LUIS EDUARDO FORMANSKI VITÓRIO", "LUIS EDUARDO FORMANSKI VITORIO", "RINALDO CALEGARIO", "SUANDRE ADÃO MACHADO", "SUANDRE ADAO MACHADO"];
+
     async function carregarListasIniciais() {
       // 1. Carrega Viaturas Ativas
       const { data: viaturas } = await dbNuvem.from('operacional_viaturas').select('*').eq('status', 'ATIVA');
@@ -163,26 +138,28 @@
         });
       }
 
-      // 2. Carrega Colaboradores Ativos (Filtrando Administrador Geral)
+      // 2. Carrega Colaboradores
       const { data: colaboradores } = await dbNuvem.from('colaboradores').select('*').order('nome');
       const selProf = document.getElementById('prof_nome');
       selProf.innerHTML = '<option value="">Selecione o seu nome...</option>';
+
       if (colaboradores) {
         colaboradores.forEach(c => {
-          const cargoUpper = (c.cargo || '').toUpperCase();
-          
-          // Oculta Administrador do Sistema da lista de checklists operacionais
-          if (!cargoUpper.includes('ADMINISTRADOR')) {
+          const nomeUpper = (c.nome || '').toUpperCase().trim();
+          const strCargo = ((c.cargo || c.funcao || '') + '').toUpperCase();
+
+          // Ignora o perfil de Administrador do Sistema na lista operacional
+          if (!nomeUpper.includes('ADMINISTRADOR') && !strCargo.includes('ADMINISTRADOR')) {
             let cargoRotulo = 'Servidor';
             let cargoTag = 'COORDENACAO';
 
-            if (cargoUpper.includes('CONDUTOR')) {
+            if (condutoresNomes.includes(nomeUpper) || strCargo.includes('CONDUTOR')) {
               cargoRotulo = 'Condutor Socorrista';
               cargoTag = 'CONDUTOR';
-            } else if (cargoUpper.includes('TÉCNICO') || cargoUpper.includes('TECNICO')) {
+            } else if (tecnicosNomes.includes(nomeUpper) || strCargo.includes('TÉCNICO') || strCargo.includes('TECNICO')) {
               cargoRotulo = 'Técnico de Enfermagem';
               cargoTag = 'TECNICO';
-            } else if (cargoUpper.includes('ENFERMEIR')) {
+            } else if (nomeUpper.includes('EDIMARA') || strCargo.includes('ENFERMEIR') || strCargo.includes('COORDENADORA')) {
               cargoRotulo = 'Enfermeira Coordenadora';
               cargoTag = 'COORDENACAO';
             }
@@ -193,7 +170,7 @@
       }
     }
 
-    /* FILTRO DINÂMICO DE ACESSO POR CATEGORIA */
+    /* FILTRO DINÂMICO DE ACESSO COM TRAVA DE SEGURANÇA */
     function aplicarFiltroPerfil() {
       const sel = document.getElementById('prof_nome');
       const cargo = sel.options[sel.selectedIndex]?.getAttribute('data-cargo');
@@ -203,6 +180,7 @@
       const cAbs = document.getElementById('card_abastecimento');
       const cLac = document.getElementById('card_lacre');
 
+      // Limpa seleções de radio anteriores
       document.querySelectorAll('input[name="procedimento"]').forEach(r => r.checked = false);
 
       if (cargo === 'CONDUTOR') {
@@ -212,6 +190,7 @@
         cTec.classList.remove('disabled'); cLac.classList.remove('disabled');
         cCond.classList.add('disabled'); cAbs.classList.add('disabled');
       } else {
+        // Coordenação / Enfermeira — Habilita todos os acessos
         cCond.classList.remove('disabled'); cAbs.classList.remove('disabled');
         cTec.classList.remove('disabled'); cLac.classList.remove('disabled');
       }
@@ -224,7 +203,7 @@
       const moduloUrl = document.querySelector('input[name="procedimento"]:checked')?.value;
 
       if (!vtr || !prof || !moduloUrl) {
-        alert("Por favor, preencha a Viatura, seu Nome e o Procedimento desejado."); return;
+        alert("Por favor, selecione a Viatura, seu Nome e o Procedimento desejado."); return;
       }
 
       try {
@@ -235,11 +214,10 @@
         const container = document.getElementById('area_modulo');
         container.innerHTML = html;
 
-        // Avalia e executa os scripts internos do módulo
         const scripts = container.getElementsByTagName('script');
         for (let s of scripts) { eval(s.innerText); }
       } catch (err) {
-        alert("Erro ao carregar o módulo selecionado. Verifique se os arquivos da pasta 'modulos/' foram salvos no GitHub.");
+        alert("Erro ao carregar o módulo selecionado. Verifique os arquivos da pasta 'modulos/'.");
       }
     }
 
