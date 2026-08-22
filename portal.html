@@ -93,6 +93,7 @@
     .badge-role { padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
     .role-admin { background: #fee2e2; color: #991b1b; }
     .role-user { background: #e0f2fe; color: #0369a1; }
+    .role-fuel { background: #fef3c7; color: #92400e; }
     .badge-ch { background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 12px; font-weight: bold; }
 
     /* CABEÇALHO IMPRESSÃO OFICIAL (SÓ PARA RELATÓRIOS) */
@@ -527,7 +528,7 @@
 
   <script>
     const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWVp1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
     const dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let usuarioLogado = null;
@@ -854,49 +855,72 @@
       const tb = document.getElementById("tbAdminChecklists");
       if (!tb) return;
 
-      const { data: listCheck, error } = await dbNuvem
-        .from('operacional_checklists')
-        .select('*')
-        .order('data_hora', { ascending: false });
+      const { data: listCheck } = await dbNuvem.from('operacional_checklists').select('*');
+      const { data: listAbs } = await dbNuvem.from('operacional_abastecimentos').select('*');
 
-      if (error || !listCheck || listCheck.length === 0) {
-        tb.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#64748b; padding:15px;">Nenhum checklist registrado até o momento.</td></tr>`;
+      let listaUnificada = [];
+
+      if (listCheck) {
+        listCheck.forEach(item => {
+          if (item.tipo_procedimento !== 'Registro de Abastecimento' && !(item.relato_avarias && item.relato_avarias.includes('[ABASTECIMENTO]'))) {
+            listaUnificada.push({
+              origem: 'checklist',
+              data_hora: item.data_hora,
+              viatura: item.viatura,
+              profissional_nome: item.profissional_nome,
+              tipo_procedimento: item.tipo_procedimento || 'Checklist',
+              detalhes: item.relato_avarias || 'Sem avarias',
+              raw: item
+            });
+          }
+        });
+      }
+
+      if (listAbs) {
+        listAbs.forEach(item => {
+          listaUnificada.push({
+            origem: 'abastecimento',
+            data_hora: item.data_hora,
+            viatura: item.viatura,
+            profissional_nome: item.condutor_nome,
+            tipo_procedimento: 'REGISTRO DE ABASTECIMENTO',
+            detalhes: `Posto: ${item.posto_credenciado || '-'} | Insumo: ${item.tipo_insumo || 'Diesel'} | ${item.litros || 0}L | R$ ${item.valor_pago || 0}`,
+            raw: item
+          });
+        });
+      }
+
+      listaUnificada.sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora));
+
+      tb.innerHTML = '';
+      if (listaUnificada.length === 0) {
+        tb.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#64748b; padding:15px;">Nenhum registro localizado no histórico.</td></tr>`;
         return;
       }
 
-      tb.innerHTML = '';
-      listCheck.forEach((c) => {
+      listaUnificada.forEach((c) => {
         const dataFmt = c.data_hora ? new Date(c.data_hora).toLocaleString('pt-BR') : '-';
         const jsonStr = JSON.stringify(c).replace(/'/g, "&#39;");
+        const badgeClass = c.origem === 'abastecimento' ? 'role-fuel' : 'role-user';
 
         tb.innerHTML += `
           <tr>
             <td><b>${dataFmt}</b></td>
             <td><b>${c.viatura || '-'}</b></td>
             <td>${c.profissional_nome || '-'}</td>
-            <td><span class="badge-role role-user">${c.tipo_procedimento || 'Checklist'}</span></td>
-            <td>${c.relato_avarias ? c.relato_avarias.substring(0, 30) + '...' : 'Sem avarias'}</td>
+            <td><span class="badge-role ${badgeClass}">${c.tipo_procedimento}</span></td>
+            <td>${c.detalhes.length > 45 ? c.detalhes.substring(0, 45) + '...' : c.detalhes}</td>
             <td class="no-print"><button class="btn-action-sm" onclick='abrirEspelhoChecklist(${jsonStr})'>👁️ Ver Espelho</button></td>
           </tr>
         `;
       });
     }
 
-    async function abrirEspelhoChecklist(data) {
+    async function abrirEspelhoChecklist(itemUnificado) {
       document.body.classList.add('modal-open-print');
-      
-      let dadosSaude = null;
-      const ehEnfermagem = data.tipo_procedimento && data.tipo_procedimento.toLowerCase().includes('enfermagem');
 
-      if (ehEnfermagem) {
-        const { data: saude } = await dbNuvem
-          .from('operacional_saude_lacres')
-          .select('*')
-          .eq('viatura', data.viatura)
-          .eq('data_hora', data.data_hora)
-          .maybeSingle();
-        dadosSaude = saude;
-      }
+      const data = itemUnificado.raw;
+      const ehAbastecimento = itemUnificado.origem === 'abastecimento';
 
       let html = `
         <div style="text-align:center; border-bottom:2px solid #002b49; padding-bottom:8px; margin-bottom:12px;">
@@ -906,129 +930,90 @@
 
         <div style="background:#f8fafc; padding:10px; border-radius:8px; display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; margin-bottom:12px; border:1px solid #cbd5e1;">
           <div><b>Viatura:</b> ${data.viatura || 'N/D'}</div>
-          <div><b>Profissional:</b> ${data.profissional_nome || 'N/D'}</div>
+          <div><b>Profissional:</b> ${data.profissional_nome || data.condutor_nome || 'N/D'}</div>
           <div><b>Data/Hora:</b> ${data.data_hora ? new Date(data.data_hora).toLocaleString('pt-BR') : 'N/D'}</div>
-          <div><b>Procedimento:</b> ${data.tipo_procedimento || 'Checklist'}</div>
+          <div><b>Procedimento:</b> ${ehAbastecimento ? '⛽ Registro de Abastecimento' : (data.tipo_procedimento || 'Checklist')}</div>
         </div>
       `;
 
-      if (!ehEnfermagem) {
+      if (ehAbastecimento) {
         html += `
-          <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase; border-bottom:1px solid #002b49; padding-bottom:3px;">🚚 CHECKLIST DE RODAGEM E MECÂNICA — CONDUTOR SOCORRISTA</h4>
-          
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.78rem; margin-bottom:10px; background:#fff; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
-            <div><b>Turno do Plantão:</b> ${data.turno_plantao || 'Plantão 24h'}</div>
-            <div><b>Quilometragem Atual (KM):</b> ${data.km_atual || '15505'} km</div>
-            <div><b>Próxima Troca de Óleo:</b> ${data.km_proxima_troca_oleo || '20000'} km</div>
-            <div><b>Nível de Combustível:</b> ${data.nivel_combustivel || 'Tanque Cheio (4/4)'}</div>
-            <div><b>Nível de Arla 32:</b> ${data.nivel_arla32 || 'Cheio'}</div>
-            <div><b>Cilindro Portátil 2L (1m³):</b> ${data.cilindro_portatil_bar || 200} bar</div>
-          </div>
-        `;
-
-        if (data.mecanica_iluminacao) {
-          html += `
-            <h5 style="font-size:0.78rem; color:#002b49; margin-bottom:4px;">⚙️ CONDIÇÕES MECÂNICAS E ILUMINAÇÃO</h5>
-            <table style="width:100%; border-collapse:collapse; font-size:0.78rem; margin-bottom:10px;">
-              <thead>
-                <tr style="background:#002b49; color:white;">
-                  <th style="padding:4px; text-align:left;">Item Verificado</th>
-                  <th style="padding:4px; text-align:center;">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-          `;
-          for (const [item, status] of Object.entries(data.mecanica_iluminacao)) {
-            html += `<tr style="border-bottom:1px solid #cbd5e1;"><td style="padding:4px;"><b>${item}</b></td><td style="padding:4px; text-align:center;"><span style="background:#16a34a; color:white; padding:1px 6px; border-radius:8px; font-size:0.7rem; font-weight:bold;">${status}</span></td></tr>`;
-          }
-          html += `</tbody></table>`;
-        }
-
-        if (data.estado_pneus) {
-          html += `
-            <h5 style="font-size:0.78rem; color:#002b49; margin-bottom:4px;">🛞 CONDIÇÃO GERAL DOS PNEUS</h5>
-            <table style="width:100%; border-collapse:collapse; font-size:0.78rem; margin-bottom:10px;">
-              <thead>
-                <tr style="background:#002b49; color:white;"><th style="padding:4px; text-align:left;">Posição</th><th style="padding:4px; text-align:center;">Estado Identificado</th></tr>
-              </thead>
-              <tbody>
-                <tr style="border-bottom:1px solid #cbd5e1;"><td style="padding:4px;"><b>Pneus Dianteiros</b></td><td style="padding:4px; text-align:center;"><span style="background:#16a34a; color:white; padding:1px 6px; border-radius:8px; font-size:0.7rem; font-weight:bold;">${data.estado_pneus.dianteiros || 'Bom Estado'}</span></td></tr>
-                <tr style="border-bottom:1px solid #cbd5e1;"><td style="padding:4px;"><b>Pneus Traseiros</b></td><td style="padding:4px; text-align:center;"><span style="background:#16a34a; color:white; padding:1px 6px; border-radius:8px; font-size:0.7rem; font-weight:bold;">${data.estado_pneus.traseiros || 'Bom Estado'}</span></td></tr>
-                <tr style="border-bottom:1px solid #cbd5e1;"><td style="padding:4px;"><b>Pneu Estepe</b></td><td style="padding:4px; text-align:center;"><span style="background:#16a34a; color:white; padding:1px 6px; border-radius:8px; font-size:0.7rem; font-weight:bold;">${data.estado_pneus.estepe || 'Bom Estado'}</span></td></tr>
-              </tbody>
-            </table>
-          `;
-        }
-
-        html += `
-          <h5 style="font-size:0.78rem; color:#002b49; margin-bottom:4px;">🥽 EPIS DE CABINE E RODAGEM (NR-32 / SEGURANÇA)</h5>
-          <div style="background:#fff; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.78rem; margin-bottom:10px;">
-            <b>Status dos Equipamentos de Proteção:</b> <span style="background:#16a34a; color:white; padding:1px 6px; border-radius:8px; font-size:0.7rem; font-weight:bold;">${data.epis_cabine_status || 'Conforme e Disponíveis na Cabine'}</span>
+          <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:8px; text-transform:uppercase; border-bottom:1px solid #002b49; padding-bottom:3px;">⛽ COMPROVANTE OFICIAL DE REABASTECIMENTO</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:0.82rem; margin-bottom:12px; background:#fff; padding:12px; border:1px solid #cbd5e1; border-radius:6px;">
+            <div><b>Posto Credenciado:</b> ${data.posto_credenciado || 'N/D'}</div>
+            <div><b>Tipo de Insumo:</b> ${data.tipo_insumo || 'Diesel S10'}</div>
+            <div><b>Quilometragem Atual:</b> ${data.km_atual || 0} KM</div>
+            <div><b>Litros Abastecidos:</b> ${data.litros || 0} Litros</div>
+            <div><b>Valor Total Pago:</b> R$ ${data.valor_pago || 0}</div>
           </div>
         `;
       } else {
-        html += `
-          <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase; border-bottom:1px solid #002b49; padding-bottom:3px;">🩺 CHECKLIST DE EQUIPAMENTOS, MOCHILAS E GASES — ENFERMAGEM</h4>
-          
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.78rem; margin-bottom:10px; background:#e0f2fe; padding:8px; border:1px solid #bae6fd; border-radius:6px;">
-            <div><b>Turno do Plantão:</b> ${data.turno_plantao || 'Plantão 24h'}</div>
-            <div><b>Nº Lacre Maleta Psicotrópicos:</b> <b>${dadosSaude ? dadosSaude.numero_lacre_psicotropicos : '499'}</b></div>
-          </div>
+        const ehEnfermagem = data.tipo_procedimento && data.tipo_procedimento.toLowerCase().includes('enfermagem');
+        let dadosSaude = null;
 
-          <h5 style="font-size:0.78rem; color:#002b49; margin-bottom:4px;">💨 MEDIÇÃO DE GASES MEDICINAIS (PRESSÃO EM BAR)</h5>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.78rem; margin-bottom:10px; background:#fff; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
-            <div><b>Cilindro Fixo 1 (2,2m³):</b> ${dadosSaude ? dadosSaude.cilindro_fixo_1_bar : '150'} bar</div>
-            <div><b>Cilindro Fixo 2 (2,2m³):</b> ${dadosSaude ? dadosSaude.cilindro_fixo_2_bar : '150'} bar</div>
-            <div><b>Cilindro Portátil 1 (1m³):</b> ${dadosSaude ? dadosSaude.cilindro_portatil_1_bar : '200'} bar</div>
-            <div><b>Cilindro Ar Comprimido Fixo:</b> ${dadosSaude ? dadosSaude.cilindro_ar_comprimido_bar : '150'} bar</div>
-          </div>
-        `;
-
-        if (data.mochilas_equipamentos) {
-          html += `
-            <h5 style="font-size:0.78rem; color:#002b49; margin-bottom:4px;">🎒 CONFERÊNCIA DAS MOCHILAS E EQUIPAMENTOS MÉDICOS</h5>
-            <table style="width:100%; border-collapse:collapse; font-size:0.78rem; margin-bottom:10px;">
-              <thead>
-                <tr style="background:#002b49; color:white;">
-                  <th style="padding:4px; text-align:left;">Equipamento / Mochila</th>
-                  <th style="padding:4px; text-align:center;">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-          `;
-          for (const [item, status] of Object.entries(data.mochilas_equipamentos)) {
-            let bgBg = '#16a34a';
-            if (status.includes('Alerta') || status.includes('Reposição') || status.includes('Necessita')) bgBg = '#d97706';
-            if (status.includes('Avaria') || status.includes('Defeito')) bgBg = '#dc2626';
-
-            html += `<tr style="border-bottom:1px solid #cbd5e1;"><td style="padding:4px;"><b>${item}</b></td><td style="padding:4px; text-align:center;"><span style="background:${bgBg}; color:white; padding:1px 6px; border-radius:8px; font-size:0.7rem; font-weight:bold;">${status}</span></td></tr>`;
-          }
-          html += `</tbody></table>`;
+        if (ehEnfermagem) {
+          const { data: saude } = await dbNuvem
+            .from('operacional_saude_lacres')
+            .select('*')
+            .eq('viatura', data.viatura)
+            .eq('data_hora', data.data_hora)
+            .maybeSingle();
+          dadosSaude = saude;
         }
 
-        const temAlerta = dadosSaude && dadosSaude.status_kit_parto && !dadosSaude.status_kit_parto.includes('Conforme');
-        html += `
-          <h5 style="font-size:0.78rem; color:#002b49; margin-bottom:4px;">🚨 ALERTA CRÍTICO & PREVENÇÃO DO RISCO OBSTÉTRICO</h5>
-          <div style="background:${temAlerta ? '#fee2e2' : '#f0fdf4'}; padding:8px; border:1px solid ${temAlerta ? '#fca5a5' : '#bbf7d0'}; border-radius:6px; font-size:0.78rem; margin-bottom:10px;">
-            <b>Existe algum material de emergência/parto faltante ou vencido?</b><br>
-            <span style="font-weight:bold; color:${temAlerta ? '#dc2626' : '#16a34a'};">
-              ${dadosSaude ? dadosSaude.status_kit_parto : 'Não, tudo conforme e dentro da validade.'}
-            </span>
-          </div>
-        `;
+        if (!ehEnfermagem) {
+          html += `
+            <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase; border-bottom:1px solid #002b49; padding-bottom:3px;">🚚 CHECKLIST DE RODAGEM E MECÂNICA — CONDUTOR SOCORRISTA</h4>
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.78rem; margin-bottom:10px; background:#fff; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
+              <div><b>Turno do Plantão:</b> ${data.turno_plantao || 'Plantão 24h'}</div>
+              <div><b>Quilometragem Atual (KM):</b> ${data.km_atual || '-'} km</div>
+              <div><b>Próxima Troca de Óleo:</b> ${data.km_proxima_troca_oleo || '-'} km</div>
+              <div><b>Nível de Combustível:</b> ${data.nivel_combustivel || '-'}</div>
+              <div><b>Nível de Arla 32:</b> ${data.nivel_arla32 || '-'}</div>
+            </div>
+          `;
+
+          if (data.mecanica_iluminacao) {
+            html += `
+              <h5 style="font-size:0.78rem; color:#002b49; margin-bottom:4px;">⚙️ CONDIÇÕES MECÂNICAS E ILUMINAÇÃO</h5>
+              <table style="width:100%; border-collapse:collapse; font-size:0.78rem; margin-bottom:10px;">
+                <thead>
+                  <tr style="background:#002b49; color:white;">
+                    <th style="padding:4px; text-align:left;">Item Verificado</th>
+                    <th style="padding:4px; text-align:center;">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+            `;
+            for (const [item, status] of Object.entries(data.mecanica_iluminacao)) {
+              html += `<tr style="border-bottom:1px solid #cbd5e1;"><td style="padding:4px;"><b>${item}</b></td><td style="padding:4px; text-align:center;"><span style="background:#16a34a; color:white; padding:1px 6px; border-radius:8px; font-size:0.7rem; font-weight:bold;">${status}</span></td></tr>`;
+            }
+            html += `</tbody></table>`;
+          }
+        } else {
+          html += `
+            <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase; border-bottom:1px solid #002b49; padding-bottom:3px;">🩺 CHECKLIST DE EQUIPAMENTOS E GASES — ENFERMAGEM</h4>
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.78rem; margin-bottom:10px; background:#e0f2fe; padding:8px; border:1px solid #bae6fd; border-radius:6px;">
+              <div><b>Turno do Plantão:</b> ${data.turno_plantao || 'Plantão 24h'}</div>
+              <div><b>Nº Lacre Maleta Psicotrópicos:</b> <b>${dadosSaude ? dadosSaude.numero_lacre_psicotropicos : '-'}</b></div>
+            </div>
+          `;
+        }
       }
 
-      if (data.relato_avarias) {
+      if (data.observacoes || data.relato_avarias) {
         html += `
           <div style="background:#fff3cd; border:1px solid #ffeba2; padding:8px; border-radius:6px; font-size:0.78rem; margin-top:8px;">
-            <b>Observações / Avarias / Reposições Registradas:</b><br>${data.relato_avarias}
+            <b>Observações / Avarias Registradas:</b><br>${data.observacoes || data.relato_avarias}
           </div>
         `;
       }
 
       html += `
         <div style="margin-top:30px; border-top:1px solid #000; width:240px; margin-left:auto; margin-right:auto; text-align:center; font-size:0.75rem; padding-top:4px;">
-          Assinatura do Profissional Responsável<br><b>${data.profissional_nome || ''}</b>
+          Assinatura do Profissional Responsável<br><b>${data.profissional_nome || data.condutor_nome || ''}</b>
         </div>
       `;
 
@@ -1306,10 +1291,13 @@
       document.querySelectorAll('.tab-pane').forEach(t => t.style.display = 'none');
       document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
       document.getElementById(tabId).style.display = 'block';
-      element.classList.add('active');
+      if (element) element.classList.add('active');
 
       if (tabId === 'tabAdminLogs') {
         carregarLogsAuditoria();
+      }
+      if (tabId === 'tabAdminChecklists') {
+        carregarRelatorioChecklistsAdmin();
       }
     }
 
