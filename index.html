@@ -3,149 +3,286 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAMU Connect — Portal Unificado USB 11</title>
+  <title>SAMU Orleans - Portal Operacional</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --samu-red: #d32f2f;
-      --samu-navy: #0d233a;
-      --samu-blue: #1976d2;
-      --bg-surface: #f4f7fa;
+      --primary-red: #cc0000;
+      --dark-red: #990000;
+      --navy-blue: #002b49;
+      --bg-gray: #f4f6f9;
       --card-bg: #ffffff;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
-      --border: #cbd5e1;
-      --shadow: 0 10px 30px rgba(13, 35, 58, 0.08);
+      --text-main: #2b2b2b;
+      --border-color: #e0e0e0;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
-    body { background-color: var(--bg-surface); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px 12px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg-gray); color: var(--text-main); padding-bottom: 40px; }
 
-    .portal-container { width: 100%; max-width: 850px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-
-    .card-box { background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); padding: 30px 25px; text-align: center; }
-    .card-public { border-top: 6px solid var(--samu-red); }
-    .card-private { border-top: 6px solid var(--samu-navy); }
-
-    .brand-logo { width: 75px; margin-bottom: 12px; }
-    h2 { font-size: 1.15rem; color: var(--samu-navy); font-weight: 800; text-transform: uppercase; margin-bottom: 6px; }
-    p.sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 22px; }
-
-    /* BOTÕES PÚBLICOS OPERACIONAIS */
-    .btn-op {
-      display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px; margin-bottom: 12px;
-      background: #f8fafc; border: 1.5px solid var(--border); border-radius: 12px; text-decoration: none;
-      color: var(--text-main); font-weight: 700; font-size: 0.88rem; transition: 0.2s; text-align: left;
+    .topbar {
+      background-color: var(--navy-blue); color: white; padding: 12px 24px;
+      display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
-    .btn-op:hover { border-color: var(--samu-blue); background: #f0f7ff; transform: translateY(-2px); }
+    .topbar-brand { font-weight: 700; font-size: 1.1rem; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+    .btn-admin-login {
+      background-color: var(--primary-red); color: white; border: none; padding: 8px 16px;
+      border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;
+    }
+    .btn-admin-login:hover { background-color: var(--dark-red); }
 
-    /* FORMULÁRIO DE LOGIN ÚNICO (SSO) */
-    .form-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 16px; }
-    .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 6px; text-transform: uppercase; }
-    .form-group input { padding: 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; background: #f8fafc; }
-    .form-group input:focus { border-color: var(--samu-blue); background: white; }
+    .hero {
+      background: linear-gradient(135deg, var(--navy-blue), var(--dark-red));
+      color: white; text-align: center; padding: 35px 20px; margin-bottom: 30px;
+    }
+    .hero h1 { font-size: 1.8rem; margin-bottom: 8px; }
+    .hero p { font-size: 0.95rem; opacity: 0.9; }
 
-    .forgot-link { text-align: right; margin-top: -8px; margin-bottom: 18px; }
-    .forgot-link a { font-size: 0.78rem; color: var(--samu-blue); font-weight: 600; text-decoration: none; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+    .section-title {
+      font-size: 1.2rem; color: var(--navy-blue); margin-bottom: 16px; padding-bottom: 8px;
+      border-bottom: 2px solid var(--primary-red); display: flex; align-items: center; gap: 8px;
+    }
 
-    .btn-sso { width: 100%; background: var(--samu-navy); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; cursor: pointer; transition: 0.2s; }
-    .btn-sso:hover { background: #081726; }
+    .grid-container {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px; margin-bottom: 40px;
+    }
 
-    /* MODAL ESQUECI A SENHA */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13,35,58,0.65); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; }
-    .modal-overlay.active { display: flex; }
-    .modal-content { background: white; width: 92%; max-width: 420px; padding: 25px; border-radius: 16px; box-shadow: var(--shadow); text-align: left; }
+    .card {
+      background: var(--card-bg); border-radius: 10px; padding: 22px; text-align: center;
+      text-decoration: none; color: var(--text-main); border-top: 4px solid var(--primary-red);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.06); transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex; flex-direction: column; justify-content: space-between; cursor: pointer;
+    }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.12); border-top-color: var(--navy-blue); }
+    .card-icon { font-size: 2.2rem; margin-bottom: 12px; }
+    .card-title { font-weight: 700; font-size: 1.05rem; color: var(--navy-blue); margin-bottom: 8px; }
+    .card-desc { font-size: 0.85rem; color: #666; line-height: 1.4; }
+    .badge {
+      display: inline-block; margin-top: 14px; padding: 6px 12px; background-color: var(--bg-gray);
+      border-radius: 12px; font-size: 0.75rem; font-weight: 600; color: var(--primary-red);
+    }
 
-    @media (max-width: 768px) { .portal-container { grid-template-columns: 1fr; } }
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6); display: none; justify-content: center; align-items: center; z-index: 1000;
+    }
+    .modal-box {
+      background: white; padding: 28px; border-radius: 12px; width: 90%; max-width: 420px;
+      text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.3); position: relative;
+    }
+    .modal-box h3 { color: var(--navy-blue); margin-bottom: 8px; }
+    .modal-box p { font-size: 0.85rem; color: #666; margin-bottom: 18px; }
+
+    .form-group-modal { text-align: left; margin-bottom: 14px; }
+    .form-group-modal label { font-size: 0.75rem; font-weight: 700; color: var(--navy-blue); text-transform: uppercase; display: block; margin-bottom: 4px; }
+    .input-field { width: 100%; padding: 11px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; outline: none; }
+    .input-field:focus { border-color: var(--navy-blue); }
+
+    .btn-submit { width: 100%; padding: 12px; background-color: var(--primary-red); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+    .btn-submit:hover { background-color: var(--dark-red); }
+
+    .close-modal { position: absolute; top: 12px; right: 15px; font-size: 1.3rem; cursor: pointer; color: #999; }
+
+    #admin-section {
+      display: none; margin-top: 20px; background: #ffffff; padding: 25px;
+      border-radius: 10px; border-left: 5px solid var(--navy-blue); box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
   </style>
 </head>
 <body>
 
-  <div class="portal-container">
-    
-    <!-- LADO ESQUERDO: ZONA PÚBLICA OPERACIONAL -->
-    <div class="card-box card-public">
-      <img src="logo.png" alt="SAMU 192" class="brand-logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
-      <h2>Acesso Operacional</h2>
-      <p class="sub">Rotinas de Plantão e Formulários de Campo (Sem Senha)</p>
+  <!-- Topbar com botão de Acesso Restrito -->
+  <div class="topbar">
+    <div class="topbar-brand">🚑 SAMU ORLEANS</div>
+    <button class="btn-admin-login" id="auth-btn" onclick="openLoginModal('GESTAO')">🔒 Gestão / Coordenação</button>
+  </div>
 
-      <a href="operacional.html" class="btn-op">
-        <span style="font-size:1.2rem;">🚑</span>
-        <div>Checklists & Abastecimentos<br><small style="font-weight:400; color:#64748b;">Condutores e Enfermagem</small></div>
+  <!-- Cabeçalho Principal -->
+  <div class="hero">
+    <h1>Painel Integrado de Gestão & Operação</h1>
+    <p>Central de links e sistemas de rotina operacional USB 11</p>
+  </div>
+
+  <div class="container">
+
+    <!-- SEÇÃO 1: FORMULÁRIOS E SISTEMAS PÚBLICOS OPERACIONAIS -->
+    <h2 class="section-title">📋 Registros e Controles Diários</h2>
+    <div class="grid-container">
+
+      <!-- Card 1: Checklist & Abastecimento -->
+      <a href="operacional.html" class="card">
+        <div>
+          <div class="card-icon">🚑</div>
+          <div class="card-title">Checklist & Abastecimento</div>
+          <div class="card-desc">Conferência diária de materiais, viaturas e abastecimento com trava J3.</div>
+        </div>
+        <span class="badge">Acessar Sistema</span>
       </a>
 
-      <a href="aph.html" class="btn-op">
-        <span style="font-size:1.2rem;">📋</span>
-        <div>Ficha APH Web Inteligente<br><small style="font-weight:400; color:#64748b;">Registro de Ocorrências e SUS</small></div>
+      <!-- Card 2: Escala Operacional (Visualização Livre) -->
+      <a href="escala.html" class="card">
+        <div>
+          <div class="card-icon">📅</div>
+          <div class="card-title">Escalas Operacionais</div>
+          <div class="card-desc">Consulta livre da escala de plantão da equipe da USB 11.</div>
+        </div>
+        <span class="badge">Visualizar Escala</span>
       </a>
 
-      <a href="lista-presenca.html" class="btn-op">
-        <span style="font-size:1.2rem;">📝</span>
-        <div>Lista de Presença em Cursos<br><small style="font-weight:400; color:#64748b;">Assinatura Digital de Treinamentos</small></div>
+      <!-- Card 3: NOVO - Lançamento de J3 / Indisponibilidade -->
+      <div onclick="abrirModalJ3()" class="card" style="border-top-color: #d97706;">
+        <div>
+          <div class="card-icon">🚨</div>
+          <div class="card-title">Lançar J3 / Atestado</div>
+          <div class="card-desc">Registro rápido de indisponibilidade, atestados ou trocas de plantão.</div>
+        </div>
+        <span class="badge" style="color: #d97706;">Lançar J3</span>
+      </div>
+
+      <!-- Card 4: Ocorrência APH / Atendimento a Paciente -->
+      <a href="https://forms.gle/k5EQAVoTJhe8DQHZ8" target="_blank" class="card">
+        <div>
+          <div class="card-icon">🩺</div>
+          <div class="card-title">Ocorrência APH / Paciente</div>
+          <div class="card-desc">Registro de atendimento de socorro a pacientes e fichas de APH.</div>
+        </div>
+        <span class="badge">Acessar Formulário</span>
       </a>
+
+      <!-- Card 5: Controle de Cursos -->
+      <a href="cursos.html" class="card">
+        <div>
+          <div class="card-icon">🎓</div>
+          <div class="card-title">Cursos & Capacitações</div>
+          <div class="card-desc">Lançamento de treinamentos, controle de horas e relatórios.</div>
+        </div>
+        <span class="badge">Acessar Módulo</span>
+      </a>
+
+      <!-- Card 6: Gerador de Lista de Presença -->
+      <a href="lista-presenca.html" class="card">
+        <div>
+          <div class="card-icon">📝</div>
+          <div class="card-title">Lista de Presença</div>
+          <div class="card-desc">Gerador de folha oficial de presença e treinamentos em PDF.</div>
+        </div>
+        <span class="badge">Gerar Folha</span>
+      </a>
+
+      <!-- Card 7: Portal do Servidor (Requer Senha Única) -->
+      <div onclick="openLoginModal('PORTAL')" class="card">
+        <div>
+          <div class="card-icon">🔐</div>
+          <div class="card-title">Portal do Servidor</div>
+          <div class="card-desc">Acesso a dados cadastrais, perfil de acesso e histórico.</div>
+        </div>
+        <span class="badge">Acessar com Senha</span>
+      </div>
+
     </div>
 
-    <!-- LADO DIREITO: ZONA RESTRITA (SSO — SENHA ÚNICA) -->
-    <div class="card-box card-private">
-      <img src="logo.png" alt="SAMU 192" class="brand-logo" style="filter: hue-rotate(180deg);" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
-      <h2>Portal do Servidor</h2>
-      <p class="sub">Escalas, Histórico, Trocas e Gestão (Senha Única)</p>
+    <!-- SEÇÃO 2: ÁREA RESTRITA / GESTÃO (LIBERADA AUTOMATICAMENTE PARA ADMIN/COORDENAÇÃO) -->
+    <div id="admin-section">
+      <h2 class="section-title" style="border-bottom-color: var(--navy-blue);">📊 Banco de Dados & Gestão de Frotas/Materiais</h2>
+      <div class="grid-container">
 
-      <form id="formSSO" onsubmit="autenticarSSO(event)">
-        <div class="form-group">
-          <label>CPF do Servidor:*</label>
-          <input type="text" id="sso_cpf" placeholder="000.000.000-00" oninput="mascaraCPF(this)" maxlength="14" required>
-        </div>
+        <!-- Planilha 1: SGM-SAMU -->
+        <a href="https://docs.google.com/spreadsheets/d/12a8Dan853g2KWDgbDMuFK1HnzjhxEDte-ZpzQX5tcJk/edit?gid=1531210653#gid=1531210653" target="_blank" class="card" style="border-top-color: var(--navy-blue);">
+          <div>
+            <div class="card-icon">📦</div>
+            <div class="card-title">SGM-SAMU</div>
+            <div class="card-desc">Sistema Gestor de Materiais, Validades & Fichas APH.</div>
+          </div>
+          <span class="badge" style="color: var(--navy-blue);">Abrir Planilha</span>
+        </a>
 
-        <div class="form-group">
-          <label>Senha Única:*</label>
-          <input type="password" id="sso_senha" placeholder="••••••••" required>
-        </div>
+        <!-- Planilha 2: SGF-SAMU -->
+        <a href="https://docs.google.com/spreadsheets/d/1JZqoKfclPrSTjsWQj7JR4dqvNvcmWIRQQRzMfjFqFAw/edit?gid=1179310506#gid=1179310506" target="_blank" class="card" style="border-top-color: var(--navy-blue);">
+          <div>
+            <div class="card-icon">🚐</div>
+            <div class="card-title">SGF-SAMU</div>
+            <div class="card-desc">Sistema Gestor de Frotas, Viaturas e Operações.</div>
+          </div>
+          <span class="badge" style="color: var(--navy-blue);">Abrir Planilha</span>
+        </a>
 
-        <div class="forgot-link">
-          <a href="#" onclick="abrirModalRecuperacao(event)">Esqueceu sua senha única?</a>
-        </div>
+        <!-- Planilha 3: Cursos e Treinamentos -->
+        <a href="https://docs.google.com/spreadsheets/d/1UdiuXZ428JWHKssjq5Eiet4JLTzN5ehNVvsmjiFbZpQ/edit?gid=305646960#gid=305646960" target="_blank" class="card" style="border-top-color: var(--navy-blue);">
+          <div>
+            <div class="card-icon">🎓</div>
+            <div class="card-title">Gestão de Cursos</div>
+            <div class="card-desc">Histórico e banco de dados de capacitações e certificações.</div>
+          </div>
+          <span class="badge" style="color: var(--navy-blue);">Abrir Planilha</span>
+        </a>
 
-        <button type="submit" class="btn-sso">Acessar Área Restrita 🔐</button>
-      </form>
+      </div>
     </div>
 
   </div>
 
-  <!-- MODAL DE REDEFINIÇÃO DE SENHA ÚNICA -->
-  <div class="modal-overlay" id="modalSSO">
-    <div class="modal-content">
-      <h3 style="color:var(--samu-navy); margin-bottom:6px;">🔑 Redefinir Senha Única</h3>
-      <p style="font-size:0.8rem; color:#64748b; margin-bottom:15px;">Confirme seu CPF e seu Registro Profissional (COREN ou CNH) para alterar sua senha única.</p>
+  <!-- MODAL DE LOGIN (SERVIDORES E GESTÃO) -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-box">
+      <span class="close-modal" onclick="closeLoginModal()">&times;</span>
+      <h3 id="modalTitle">Acesso ao Portal</h3>
+      <p id="modalDesc">Digite seu CPF e sua Senha Única para continuar.</p>
 
-      <div id="step_valida">
-        <div class="form-group">
-          <label>CPF:*</label>
-          <input type="text" id="rec_cpf" placeholder="000.000.000-00" oninput="mascaraCPF(this)" maxlength="14">
+      <form id="formLoginModal" onsubmit="processarLoginModal(event)">
+        <div class="form-group-modal">
+          <label>CPF do Servidor:*</label>
+          <input type="text" id="login_cpf" class="input-field" placeholder="000.000.000-00" oninput="mascaraCPF(this)" maxlength="14" required>
         </div>
-        <div class="form-group">
-          <label>Registro (COREN ou CNH):*</label>
-          <input type="text" id="rec_reg" placeholder="Ex: 5031057705">
-        </div>
-        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
-          <button type="button" class="btn-op" style="width:auto; padding:8px 15px;" onclick="fecharModalRecuperacao()">Cancelar</button>
-          <button type="button" class="btn-sso" style="width:auto; padding:8px 15px;" onclick="validarEAvancar()">Validar 🔍</button>
-        </div>
-      </div>
 
-      <div id="step_senha" style="display:none;">
-        <div class="form-group">
-          <label>Nova Senha Única:*</label>
-          <input type="password" id="nova_s1" placeholder="Mínimo 6 caracteres" minlength="6">
+        <div class="form-group-modal">
+          <label>Senha Única:*</label>
+          <input type="password" id="login_senha" class="input-field" placeholder="••••••••" required>
         </div>
-        <div class="form-group">
-          <label>Confirme a Nova Senha:*</label>
-          <input type="password" id="nova_s2" placeholder="Digite novamente..." minlength="6">
+
+        <button type="submit" class="btn-submit">Entrar ➔</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE LANÇAMENTO DE J3 -->
+  <div class="modal-overlay" id="modalJ3">
+    <div class="modal-box">
+      <span class="close-modal" onclick="fecharModalJ3()">&times;</span>
+      <h3>🚨 Registrar Indisponibilidade / J3</h3>
+      <p>Informe o servidor e o motivo do afastamento do plantão.</p>
+
+      <form id="formJ3" onsubmit="salvarJ3(event)">
+        <div class="form-group-modal">
+          <label>Servidor / Colaborador:*</label>
+          <select id="j3_servidor" class="input-field" required>
+            <option value="">Carregando equipe...</option>
+          </select>
         </div>
-        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
-          <button type="button" class="btn-sso" style="background:#15803d;" onclick="salvarNovaSenhaUnica()">💾 Salvar Senha Única</button>
+
+        <div class="form-group-modal">
+          <label>Motivo do J3 / Afastamento:*</label>
+          <select id="j3_motivo" class="input-field" required>
+            <option value="">Selecione...</option>
+            <option value="Atestado Médico / Licença Saúde">Atestado Médico / Licença Saúde</option>
+            <option value="Folga / Troca de Plantão">Folga / Troca de Plantão</option>
+            <option value="Capacitação / Cursos">Capacitação / Cursos</option>
+            <option value="Outros Motivos Operacionais">Outros Motivos Operacionais</option>
+          </select>
         </div>
-      </div>
+
+        <div class="form-group-modal">
+          <label>Data de Início:*</label>
+          <input type="date" id="j3_data_inicio" class="input-field" required>
+        </div>
+
+        <div class="form-group-modal">
+          <label>Data de Término:*</label>
+          <input type="date" id="j3_data_fim" class="input-field" required>
+        </div>
+
+        <button type="submit" class="btn-submit" style="background-color: #d97706;">💾 Gravar Lançamento J3</button>
+      </form>
     </div>
   </div>
 
@@ -155,7 +292,7 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
-    let idServidorValidado = null;
+    let destinoAcesso = 'PORTAL';
 
     function mascaraCPF(i) {
       let v = i.value.replace(/\D/g, '');
@@ -167,92 +304,111 @@
       i.value = v;
     }
 
-    /* AUTENTICAÇÃO CENTRALIZADA (SSO) */
-    async function autenticarSSO(e) {
+    function openLoginModal(tipo) {
+      destinoAcesso = tipo;
+      document.getElementById('loginModal').style.display = 'flex';
+      document.getElementById('login_cpf').focus();
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').style.display = 'none';
+      document.getElementById('login_cpf').value = '';
+      document.getElementById('login_senha').value = '';
+    }
+
+    async function processarLoginModal(e) {
       e.preventDefault();
-      const cpfLimpo = document.getElementById('sso_cpf').value.replace(/\D/g, '');
-      const senha = document.getElementById('sso_senha').value.trim();
+      const cpfLimpo = document.getElementById('login_cpf').value.replace(/\D/g, '').trim();
+      const senha = document.getElementById('login_senha').value.trim();
 
       const { data, error } = await dbNuvem.from('colaboradores').select('*');
 
       if (!error && data) {
         const usuario = data.find(c => {
-          const cBD = (c.cpf || '').replace(/\D/g, '');
+          const cBD = (c.cpf || '').replace(/\D/g, '').trim();
           const sBD = c.senha_unica || c.senha || 'samu192';
           return (cBD === cpfLimpo && sBD === senha);
         });
 
+        // Caso de login via chave padrão de gestão
+        if (senha === 'samu192' && destinoAcesso === 'GESTAO') {
+          closeLoginModal();
+          liberarGestao();
+          return;
+        }
+
         if (usuario) {
+          const nivel = (usuario.nivel_acesso || usuario.cargo || '').toUpperCase();
+
           sessionStorage.setItem('samu_usuario_logado', JSON.stringify({
             id: usuario.id,
             nome: usuario.nome,
             cpf: usuario.cpf,
             cargo: usuario.cargo,
-            nivel: usuario.nivel_acesso || 'SERVIDOR'
+            nivel: nivel
           }));
 
-          alert(`✅ Bem-vindo(a), ${usuario.nome}!`);
-          window.location.href = 'portal.html';
+          closeLoginModal();
+
+          // Se for Coordenador ou Administrador, libera automaticamente a seção de Gestão na tela
+          if (nivel.includes('ADMINISTRADOR') || nivel.includes('COORDENA') || nivel.includes('ENFERMEIR')) {
+            liberarGestao();
+          }
+
+          if (destinoAcesso === 'PORTAL') {
+            window.location.href = 'portal.html';
+          }
         } else {
-          alert("❌ CPF ou Senha Única incorretos. Tente novamente.");
+          alert("❌ CPF ou Senha Única incorretos.");
         }
-      } else { alert("Erro ao conectar com o servidor."); }
+      }
     }
 
-    function abrirModalRecuperacao(e) { e.preventDefault(); document.getElementById('modalSSO').classList.add('active'); }
-    function fecharModalRecuperacao() { document.getElementById('modalSSO').classList.remove('active'); }
+    function liberarGestao() {
+      document.getElementById('admin-section').style.display = 'block';
+      document.getElementById('auth-btn').innerText = "🔓 Gestão Liberada";
+      document.getElementById('auth-btn').style.backgroundColor = "#28a745";
+      document.getElementById('auth-btn').onclick = null;
+      document.getElementById('admin-section').scrollIntoView({ behavior: 'smooth' });
+    }
 
-    /* VALIDAÇÃO APRIMORADA CONSULTANDO MULTI-COLUNAS DE REGISTRO */
-    async function validarEAvancar() {
-      const cpfL = document.getElementById('rec_cpf').value.replace(/\D/g, '').trim();
-      const regL = document.getElementById('rec_reg').value.replace(/\D/g, '').trim();
-
-      if (!cpfL || !regL) {
-        alert("Preencha o CPF e o Registro para realizar a validação."); return;
-      }
-
-      const { data, error } = await dbNuvem.from('colaboradores').select('*');
-
-      if (!error && data) {
-        const achou = data.find(c => {
-          const cpfBD = (c.cpf || '').replace(/\D/g, '').trim();
-          
-          // Concatena todos os campos possíveis onde o registro pode estar salvo
-          const regBD = ((c.registro || '') + (c.cnh || '') + (c.coren || '') + (c.registro_profissional || '')).replace(/\D/g, '').trim();
-
-          return (cpfBD === cpfL && (regBD.includes(regL) || regL.includes(regBD)));
+    /* CONTROLE DO MODAL DE J3 */
+    async function abrirModalJ3() {
+      document.getElementById('modalJ3').style.display = 'flex';
+      
+      // Carrega colaboradores na lista
+      const { data } = await dbNuvem.from('colaboradores').select('nome, cargo').order('nome');
+      const sel = document.getElementById('j3_servidor');
+      sel.innerHTML = '<option value="">Selecione o servidor...</option>';
+      if (data) {
+        data.forEach(c => {
+          sel.innerHTML += `<option value="${c.nome}">${c.nome} (${c.cargo || 'Servidor'})</option>`;
         });
-
-        if (achou) {
-          idServidorValidado = achou.id;
-          document.getElementById('step_valida').style.display = 'none';
-          document.getElementById('step_senha').style.display = 'block';
-        } else {
-          alert("❌ Divergência nos dados. Verifique o CPF e o Registro digitados.");
-        }
-      } else {
-        alert("Erro ao consultar base de dados.");
       }
     }
 
-    async function salvarNovaSenhaUnica() {
-      const s1 = document.getElementById('nova_s1').value;
-      const s2 = document.getElementById('nova_s2').value;
+    function fecharModalJ3() {
+      document.getElementById('modalJ3').style.display = 'none';
+    }
 
-      if (!s1 || s1.length < 6 || s1 !== s2) {
-        alert("As senhas devem ser iguais e ter no mínimo 6 caracteres."); return;
-      }
+    async function salvarJ3(e) {
+      e.preventDefault();
+      const payload = {
+        servidor_nome: document.getElementById('j3_servidor').value,
+        motivo: document.getElementById('j3_motivo').value,
+        data_inicio: document.getElementById('j3_data_inicio').value,
+        data_fim: document.getElementById('j3_data_fim').value,
+        status: 'ATIVO'
+      };
 
-      const { error } = await dbNuvem.from('colaboradores').update({
-        senha_unica: s1,
-        senha: s1
-      }).eq('id', idServidorValidado);
+      const { error } = await dbNuvem.from('servidores_indisponibilidade').insert([payload]);
 
       if (!error) {
-        alert("✅ Senha Única redefinida com sucesso!");
-        fecharModalRecuperacao();
-        document.getElementById('sso_senha').value = s1;
-      } else { alert("Erro ao salvar: " + error.message); }
+        alert(`✅ Lançamento de J3 gravado com sucesso para ${payload.servidor_nome}!`);
+        fecharModalJ3();
+      } else {
+        alert("Erro ao gravar J3: " + error.message);
+      }
     }
   </script>
 </body>
