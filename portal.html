@@ -70,12 +70,15 @@
     /* CARDS E FORMULÁRIOS FLEXÍVEIS */
     .card-panel { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border: 1px solid var(--border-color); margin-bottom: 18px; width: 100%; }
     
-    .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .grid-filter { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; align-items: flex-end; margin-bottom: 15px; }
 
     .btn-primary { background: var(--navy-blue); color: white; border: none; padding: 11px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.88rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: auto; }
     .btn-primary:hover { background: var(--navy-dark); }
     .btn-action-sm { background: #f1f5f9; color: var(--navy-blue); border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.78rem; }
     .btn-danger-sm { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; padding: 6px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.78rem; }
+
+    .search-input { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; width: 100%; max-width: 300px; font-size: 0.85rem; outline: none; }
 
     .table-wrapper { overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; }
     .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 500px; }
@@ -91,7 +94,13 @@
     .badge-role { padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
     .role-admin { background: #fee2e2; color: #991b1b; }
     .role-user { background: #e0f2fe; color: #0369a1; }
+    .role-fuel { background: #fef3c7; color: #92400e; }
     .badge-ch { background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 12px; font-weight: bold; }
+
+    /* CABEÇALHO IMPRESSÃO OFICIAL */
+    .relatorio-header-print { display: none; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 8px; text-align: center; }
+    .relatorio-header-print h2 { font-size: 11pt; text-transform: uppercase; margin: 0; color: #000; font-weight: 800; }
+    .relatorio-header-print h3 { font-size: 9.5pt; text-transform: uppercase; margin: 2px 0; color: #000; }
 
     /* MODAIS RESPONSIVOS */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; padding: 10px; }
@@ -110,6 +119,22 @@
       .card-panel { padding: 14px; }
       .btn-primary { width: 100%; margin-top: 8px; }
       .grid-form { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      @page { size: A4 portrait; margin: 8mm; }
+      body { background: white !important; color: #000 !important; font-size: 8.5pt !important; width: 100% !important; }
+      .sidebar, .no-print, .search-input, .grid-filter, .login-wrapper, .modal-header button, .page-header, .mobile-header { display: none !important; }
+      .app-layout { display: block !important; }
+      .main-content { padding: 0 !important; overflow: visible !important; }
+      .card-panel { border: none !important; box-shadow: none !important; padding: 0 !important; margin-bottom: 12pt !important; }
+      .relatorio-header-print { display: block !important; }
+      .data-table, table { width: 100% !important; border-collapse: collapse !important; font-size: 8pt !important; }
+      .data-table th, .data-table td, table th, table td { border: 1px solid #000 !important; padding: 4px 6px !important; color: #000 !important; }
+      .data-table th, table th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body.modal-open-print #dashboardScreen { display: none !important; }
+      body.modal-open-print #modalChecklistEspelho { display: block !important; position: static !important; background: transparent !important; padding: 0 !important; width: 100% !important; }
+      body.modal-open-print #modalChecklistEspelho .modal-card { max-width: 100% !important; width: 100% !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
     }
   </style>
 </head>
@@ -235,28 +260,35 @@
 
       <!-- ABA 3: MINHAS CAPACITAÇÕES -->
       <div id="tabMeusCursos" class="tab-pane" style="display:none;">
-        <div class="page-header">
-          <div class="page-title">Minhas Capacitações (Portaria 2048)</div>
+        <div class="relatorio-header-print">
+          <h2>ESTADO DE SANTA CATARINA — MUNICÍPIO DE ORLEANS</h2>
+          <h3>SAMU 192 — UNIDADE DE SUPORTE BÁSICO (USB 11 ORLEANS)</h3>
+          <p style="font-size:8.5pt; font-weight:bold; margin-top:3px;">RELATÓRIO DE CAPACITAÇÕES DO SERVIDOR (PORTARIA 2048/2002)</p>
+        </div>
+
+        <div class="page-header no-print">
+          <div class="page-title">Histórico de Capacitações e Metas</div>
           <div style="display:flex; gap:8px;">
             <a href="cursos.html" target="_blank" class="btn-primary" style="text-decoration:none;">➕ Novo Lançamento</a>
+            <button class="btn-primary" onclick="window.print()">🖨️ Imprimir PDF</button>
           </div>
         </div>
 
         <div class="card-panel">
-          <h3 style="color:var(--navy-blue); margin-bottom:10px; font-size:0.9rem;">📊 Resumo de Horas (Metas)</h3>
+          <h3 style="color:var(--navy-blue); margin-bottom:10px; font-size:0.9rem;">📊 RESUMO DE CARGA HORÁRIA (PORTARIA 2048/2002)</h3>
           <table class="table-resumo"><tbody></tbody></table>
         </div>
 
         <div class="card-panel">
-          <h3 style="color:var(--navy-blue); margin-bottom:12px; font-size:0.9rem;">📋 Cursos Registrados</h3>
+          <h3 style="color:var(--navy-blue); margin-bottom:12px; font-size:0.9rem;">📋 HISTÓRICO DE CURSOS REGISTRADOS</h3>
           <div class="table-wrapper">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>DATA</th>
-                  <th>C.H.</th>
-                  <th>CURSO / INSTITUIÇÃO</th>
-                  <th>MODALIDADE</th>
+                  <th style="width:15%;">DATA</th>
+                  <th style="width:15%;">CARGA HORÁRIA</th>
+                  <th style="width:50%;">NOME DO CURSO / INSTITUIÇÃO</th>
+                  <th style="width:20%;">MODALIDADE</th>
                 </tr>
               </thead>
               <tbody id="tbMeusCursos"></tbody>
@@ -267,13 +299,13 @@
 
       <!-- ABA 4: GESTÃO DE SERVIDORES (ADMIN) -->
       <div id="tabAdminServidores" class="tab-pane" style="display:none;">
-        <div class="page-header">
-          <div class="page-title">Quadro de Servidores</div>
+        <div class="page-header no-print">
+          <div class="page-title">Painel do Quadro de Servidores</div>
           <button class="btn-primary" onclick="abrirModalNovoServidor()">➕ Novo Colaborador</button>
         </div>
 
         <div class="card-panel">
-          <div style="margin-bottom:12px;">
+          <div class="action-bar no-print" style="margin-bottom:12px;">
             <input type="text" class="search-input" id="searchServidores" placeholder="🔍 Buscar por Nome ou CPF..." onkeyup="filtrarTabelaServidores()" style="max-width:100%;">
           </div>
 
@@ -285,8 +317,13 @@
                   <th>CPF</th>
                   <th>Função</th>
                   <th>Registro</th>
+                  <th>Coturno</th>
+                  <th>Macacão</th>
+                  <th>Camiseta</th>
+                  <th>Jaqueta</th>
+                  <th>Capa Chuva</th>
                   <th>Perfil</th>
-                  <th>Ações</th>
+                  <th class="no-print">Ações</th>
                 </tr>
               </thead>
               <tbody id="adminServidoresTable"></tbody>
@@ -297,12 +334,19 @@
 
       <!-- ABA 5: RELATÓRIO CURSOS (ADMIN) -->
       <div id="tabAdminCursos" class="tab-pane" style="display:none;">
-        <div class="page-header">
-          <div class="page-title">Relatório Geral de Capacitações</div>
+        <div class="relatorio-header-print">
+          <h2>ESTADO DE SANTA CATARINA — MUNICÍPIO DE ORLEANS</h2>
+          <h3>SAMU 192 — UNIDADE DE SUPORTE BÁSICO (USB 11 ORLEANS)</h3>
+          <p style="font-size:8.5pt; font-weight:bold; margin-top:3px;">RELATÓRIO OFICIAL DE CAPACITAÇÕES E AUDITORIA (PORTARIA 2048/2002)</p>
         </div>
 
-        <div class="card-panel">
-          <div class="grid-form" style="margin-bottom:12px;">
+        <div class="page-header no-print">
+          <div class="page-title">Relatório Geral de Capacitações (Portaria 2048)</div>
+          <button class="btn-primary" onclick="window.print()">🖨️ Imprimir Relatório A4</button>
+        </div>
+
+        <div class="card-panel no-print">
+          <div class="grid-filter">
             <div class="form-group">
               <label>Profissional:</label>
               <select id="admFiltroProfissional" onchange="processarPainelAdmin()">
@@ -310,12 +354,24 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Ano:</label>
+              <label>Filtrar Ano:</label>
               <select id="admFiltroAno" onchange="processarPainelAdmin()">
                 <option value="TODOS">Todos os Anos</option>
               </select>
             </div>
+            <div class="form-group">
+              <label>Data Inicial:</label>
+              <input type="date" id="admDataInicio" onchange="processarPainelAdmin()">
+            </div>
+            <div class="form-group">
+              <label>Data Final:</label>
+              <input type="date" id="admDataFim" onchange="processarPainelAdmin()">
+            </div>
           </div>
+        </div>
+
+        <div class="card-panel">
+          <h3 style="color:var(--navy-blue); margin-bottom:10px; font-size:0.9rem;">📊 RESUMO DE AUDITORIA DE CARGA HORÁRIA</h3>
           <table class="table-resumo"><tbody></tbody></table>
         </div>
 
@@ -324,11 +380,12 @@
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>DATA</th>
-                  <th>PROFISSIONAL</th>
-                  <th>C.H.</th>
-                  <th>CURSO</th>
-                  <th>AÇÕES</th>
+                  <th style="width:12%;">DATA</th>
+                  <th style="width:25%;">PROFISSIONAL</th>
+                  <th style="width:12%;">C.H.</th>
+                  <th style="width:33%;">NOME DO CURSO / INSTITUIÇÃO</th>
+                  <th style="width:18%;">MODALIDADE</th>
+                  <th class="no-print" style="width:10%;">AÇÕES</th>
                 </tr>
               </thead>
               <tbody id="adminCursosTable"></tbody>
@@ -337,10 +394,11 @@
         </div>
       </div>
 
-      <!-- ABA 6: FROTAS & CHECKLISTS -->
+      <!-- ABA 6: FROTAS & CHECKLISTS OPERACIONAIS -->
       <div id="tabAdminChecklists" class="tab-pane" style="display:none;">
-        <div class="page-header">
-          <div class="page-title">Frotas & Checklists Operacionais</div>
+        <div class="page-header no-print">
+          <div class="page-title">Histórico de Checklists Operacionais e Viatura</div>
+          <button class="btn-primary" onclick="carregarRelatorioChecklistsAdmin()">🔄 Atualizar Dados</button>
         </div>
 
         <div class="card-panel">
@@ -351,22 +409,47 @@
                   <th>Data/Hora</th>
                   <th>Viatura</th>
                   <th>Profissional</th>
-                  <th>Tipo</th>
-                  <th>Ação</th>
+                  <th>Procedimento</th>
+                  <th>Detalhes</th>
+                  <th class="no-print">Ação</th>
                 </tr>
               </thead>
               <tbody id="tbAdminChecklists">
-                <tr><td colspan="5" style="text-align:center;">Carregando dados...</td></tr>
+                <tr><td colspan="6" style="text-align:center;">Carregando registros de checklist...</td></tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- ABA 7: LOGS DE ALTERAÇÕES -->
+      <!-- ABA 7: LOGS DE ALTERAÇÕES E AUDITORIA -->
       <div id="tabAdminLogs" class="tab-pane" style="display:none;">
-        <div class="page-header">
-          <div class="page-title">Logs e Auditoria do Sistema</div>
+        <div class="page-header no-print">
+          <div class="page-title">Histórico de Alterações e Auditoria</div>
+          <button class="btn-primary" onclick="carregarLogsAuditoria()">🔄 Atualizar Logs</button>
+        </div>
+
+        <div class="card-panel no-print">
+          <div class="grid-filter">
+            <div class="form-group">
+              <label>Buscar por Usuário / Texto:</label>
+              <input type="text" class="search-input" id="filtroLogsBusca" placeholder="🔍 Nome, CPF ou detalhe..." onkeyup="filtrarLogs()">
+            </div>
+            <div class="form-group">
+              <label>Ação / Categoria:</label>
+              <select id="filtroLogsAcao" onchange="filtrarLogs()">
+                <option value="TODOS">-- Todas as Ações --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Data Inicial:</label>
+              <input type="date" id="filtroLogsDataIni" onchange="filtrarLogs()">
+            </div>
+            <div class="form-group">
+              <label>Data Final:</label>
+              <input type="date" id="filtroLogsDataFim" onchange="filtrarLogs()">
+            </div>
+          </div>
         </div>
 
         <div class="card-panel">
@@ -374,14 +457,14 @@
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>DATA / HORA</th>
-                  <th>USUÁRIO</th>
-                  <th>AÇÃO</th>
-                  <th>DETALHES</th>
+                  <th style="width:18%;">DATA / HORA</th>
+                  <th style="width:25%;">USUÁRIO / SERVIDOR</th>
+                  <th style="width:22%;">AÇÃO REALIZADA</th>
+                  <th style="width:35%;">DETALHES DA MODIFICAÇÃO</th>
                 </tr>
               </thead>
               <tbody id="tbAdminLogs">
-                <tr><td colspan="4" style="text-align:center;">Carregando logs...</td></tr>
+                <tr><td colspan="4" style="text-align:center;">Carregando logs do sistema...</td></tr>
               </tbody>
             </table>
           </div>
@@ -394,11 +477,15 @@
   <!-- MODAL DE ESPELHO CHECKLIST -->
   <div id="modalChecklistEspelho" class="modal-overlay">
     <div class="modal-card">
-      <div class="modal-header">
-        <div class="modal-title">📄 ESPELHO DO CHECKLIST</div>
+      <div class="modal-header no-print">
+        <div class="modal-title">📄 ESPELHO DO CHECKLIST OPERACIONAL</div>
         <button style="background:none; border:none; font-size:1.2rem; cursor:pointer;" onclick="fecharModalChecklist()">✕</button>
       </div>
       <div id="conteudoChecklistEspelho"></div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:15px;" class="no-print">
+        <button class="btn-action-sm" onclick="fecharModalChecklist()">Fechar</button>
+        <button class="btn-primary" onclick="window.print()">🖨️ Imprimir Ficha A4</button>
+      </div>
     </div>
   </div>
 
@@ -412,6 +499,7 @@
       
       <input type="hidden" id="modalServidorId">
       
+      <h4 style="color:var(--navy-blue); margin-bottom:8px; font-size:0.85rem; text-transform:uppercase;">📌 Dados Cadastrais</h4>
       <div class="grid-form">
         <div class="form-group"><label>Nome Completo:</label><input type="text" id="modalNome" required></div>
         <div class="form-group"><label>CPF:</label><input type="text" id="modalCPF" required></div>
@@ -425,18 +513,27 @@
         </div>
         <div class="form-group"><label>Registro (COREN/CNH):</label><input type="text" id="modalRegistro"></div>
         <div class="form-group">
-          <label>Perfil:</label>
+          <label>Perfil de Acesso:</label>
           <select id="modalPerfil">
             <option value="servidor">Servidor</option>
             <option value="admin">Administrador (Admin)</option>
           </select>
         </div>
-        <div class="form-group"><label>Senha:</label><input type="text" id="modalNovaSenha" placeholder="Manter atual se em branco"></div>
+        <div class="form-group"><label>Senha de Acesso:</label><input type="text" id="modalNovaSenha" placeholder="Deixe em branco para não alterar"></div>
+      </div>
+
+      <h4 style="color:var(--navy-blue); margin:12px 0 8px 0; font-size:0.85rem; text-transform:uppercase; border-top:1px solid var(--border-color); padding-top:10px;">👕 Tamanhos de Uniformes e Equipamentos</h4>
+      <div class="grid-form">
+        <div class="form-group"><label>Coturno:</label><input type="text" id="modalCoturno" placeholder="Ex: 39"></div>
+        <div class="form-group"><label>Macacão:</label><input type="text" id="modalMacacao" placeholder="Ex: P/M/G"></div>
+        <div class="form-group"><label>Camiseta:</label><input type="text" id="modalCamiseta" placeholder="Ex: M"></div>
+        <div class="form-group"><label>Jaqueta:</label><input type="text" id="modalJaqueta" placeholder="Ex: M"></div>
+        <div class="form-group"><label>Capa Chuva:</label><input type="text" id="modalCapaChuva" placeholder="Ex: M"></div>
       </div>
 
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:15px;">
         <button class="btn-action-sm" onclick="fecharModal()">Cancelar</button>
-        <button class="btn-primary" style="background:#166534;" onclick="salvarEdicaoAdmin()">💾 Salvar</button>
+        <button class="btn-primary" style="background:#166534;" onclick="salvarEdicaoAdmin()">💾 Salvar Colaborador</button>
       </div>
     </div>
   </div>
@@ -479,7 +576,6 @@
       const cpfClean = rawInput.replace(/\D/g, '');
       const senhaInput = document.getElementById('loginSenha').value.trim();
 
-      // ACESSO MESTRE ADMIN
       if ((rawInput.toLowerCase() === 'admin' || cpfClean === '00000000000') && (senhaInput === SENHA_MESTRA_EMERGENCIA || senhaInput === 'samu192')) {
         usuarioLogado = { id: 999999, nome: "Administrador do Sistema", cpf: "000.000.000-00", funcao: "Coordenador Geral / Admin", perfil: "admin" };
         await registrarLog("Acesso ao Sistema", "Login Mestre Admin.");
@@ -487,7 +583,6 @@
         return;
       }
 
-      // CONSULTA DE SERVIDORES
       const { data } = await dbNuvem.from('colaboradores').select('*');
       if (data) {
         listaColaboradores = data;
@@ -498,7 +593,6 @@
 
         if (user) {
           const senhaIndividual = user.senha;
-          // Aceita: Senha cadastrada no banco OR Senha Mestra OR Senha padrão 'samu192'
           if ((senhaIndividual && senhaInput === senhaIndividual) || senhaInput === SENHA_MESTRA_EMERGENCIA || senhaInput === 'samu192') {
             usuarioLogado = user;
             await registrarLog("Acesso ao Sistema", `Login Portal (${user.nome}).`);
@@ -546,6 +640,8 @@
         document.getElementById('btnAdminChecklists').style.display = 'flex';
         document.getElementById('btnAdminLogs').style.display = 'flex';
         carregarServidoresAdmin();
+        carregarLogsAuditoria();
+        carregarRelatorioChecklistsAdmin();
       }
 
       await carregarMeusCursos();
@@ -573,6 +669,7 @@
     async function carregarMeusCursos() {
       const { data } = await dbNuvem.from('cursos_certificados').select('*');
       todosCursos = data || [];
+
       const primeiroNome = usuarioLogado.nome.trim().split(' ')[0].toLowerCase();
 
       const meus = todosCursos.filter(c => {
@@ -582,66 +679,422 @@
         return idBate || cpfBate || nomeBate;
       });
 
+      meus.sort((a, b) => new Date(a.data_certificado || a.certificado_de_dados || '1970-01-01') - new Date(b.data_certificado || b.certificado_de_dados || '1970-01-01'));
+
       const tbMeus = document.getElementById("tbMeusCursos");
       tbMeus.innerHTML = "";
       
       const anoAtual = new Date().getFullYear();
-      let somaCH = 0;
+      const horasPorAno = {};
 
       meus.forEach(c => {
         const dataBruta = c.data_certificado || c.certificado_de_dados || '';
         const dtObj = dataBruta ? new Date(dataBruta + 'T00:00:00') : null;
-        if (dtObj && dtObj.getFullYear() === anoAtual) somaCH += Number(c.carga_horaria) || 0;
+        
+        if (dtObj) {
+          const ano = dtObj.getFullYear();
+          if (!horasPorAno[ano]) horasPorAno[ano] = 0;
+          horasPorAno[ano] += Number(c.carga_horaria) || 0;
+        }
+
+        const dataFmt = dtObj ? `${String(dtObj.getDate()).padStart(2,'0')}/${String(dtObj.getMonth()+1).padStart(2,'0')}/${dtObj.getFullYear()}` : '-';
+        const modExibida = c.disciplina || c.modalidade || 'Presencial/EAD';
+        const descCurso = (c.nome_curso || '-') + (c.instituicao ? ` (${c.instituicao})` : '');
 
         tbMeus.innerHTML += `
           <tr>
-            <td>${dtObj ? `${dtObj.getDate()}/${dtObj.getMonth()+1}/${dtObj.getFullYear()}` : '-'}</td>
-            <td><span class="badge-ch">${c.carga_horaria || 0}h</span></td>
-            <td>${c.nome_curso || '-'}</td>
-            <td>${c.disciplina || 'Presencial'}</td>
+            <td style="text-align:center;"><b>${dataFmt}</b></td>
+            <td style="text-align:center;"><span class="badge-ch">${c.carga_horaria || 0}h</span></td>
+            <td>${descCurso}</td>
+            <td style="text-align:center;">${modExibida}</td>
           </tr>
         `;
       });
 
+      if (!horasPorAno[anoAtual]) horasPorAno[anoAtual] = 0;
+
       const ehCondutor = usuarioLogado.funcao.toLowerCase().includes("condutor");
       const metaAnual = ehCondutor ? 200 : 154;
-      const saldo = Math.max(0, metaAnual - somaCH);
+      const cargoNome = ehCondutor ? "Condutor Socorrista" : "Técnico de Enfermagem Socorrista";
 
-      const htmlResumo = `
-        <tr><td class="label">Meta (${anoAtual}):</td><td><b>${metaAnual} hrs</b></td></tr>
-        <tr><td class="label">Cumprido (${anoAtual}):</td><td><b>${somaCH} hrs</b></td></tr>
-        <tr><td class="label">Saldo Faltante:</td><td><b>${saldo} hrs</b></td></tr>
-        <tr><td class="label">Status:</td><td class="${saldo === 0 ? 'status-atingido' : 'status-andamento'}">${saldo === 0 ? 'COMPLETO' : 'EM ANDAMENTO'}</td></tr>
+      let htmlResumo = `
+        <tr><td class="label">Cargo / Função:</td><td><b>${usuarioLogado.nome}</b> (${cargoNome})</td></tr>
+        <tr><td class="label">Meta Anual Exigida:</td><td><b>${metaAnual} horas/ano</b></td></tr>
       `;
-      document.querySelector("#tabMeusCursos .table-resumo tbody").innerHTML = htmlResumo;
+
+      Object.keys(horasPorAno).map(Number).sort((a, b) => a - b).forEach(anoKey => {
+        htmlResumo += `<tr><td class="label">Carga Horária Cumprida em ${anoKey}:</td><td><b>${horasPorAno[anoKey]} hrs</b></td></tr>`;
+      });
+
+      const saldoFaltante = Math.max(0, metaAnual - (horasPorAno[anoAtual] || 0));
+      const statusTexto = saldoFaltante === 0 ? "COMPLETO (Meta Atingida)" : "EM ANDAMENTO";
+      const classStatus = saldoFaltante === 0 ? "status-atingido" : "status-andamento";
+
+      htmlResumo += `
+        <tr><td class="label">Saldo Faltante para Meta ${anoAtual}:</td><td><b>${saldoFaltante} hrs</b></td></tr>
+        <tr><td class="label">Status do Cumprimento (${anoAtual}):</td><td class="${classStatus}">${statusTexto}</td></tr>
+      `;
+
+      const tabelaResumoBody = document.querySelector("#tabMeusCursos .table-resumo tbody");
+      if (tabelaResumoBody) tabelaResumoBody.innerHTML = htmlResumo;
+
+      preencherFiltrosAdmin();
+    }
+
+    function preencherFiltrosAdmin() {
+      const selProf = document.getElementById("admFiltroProfissional");
+      const selAno = document.getElementById("admFiltroAno");
+      if (!selProf || !selAno) return;
+
+      selProf.innerHTML = `<option value="TODOS">-- Todos os Servidores --</option>`;
+      listaColaboradores.forEach(c => { selProf.innerHTML += `<option value="${c.nome}">${c.nome}</option>`; });
+
+      const anosSet = new Set();
+      todosCursos.forEach(c => {
+        const dt = c.data_certificado || c.certificado_de_dados;
+        if (dt) {
+          const ano = new Date(dt + 'T00:00:00').getFullYear();
+          if (!isNaN(ano)) anosSet.add(ano);
+        }
+      });
+
+      selAno.innerHTML = `<option value="TODOS">Todos os Anos</option>`;
+      Array.from(anosSet).sort().forEach(ano => { selAno.innerHTML += `<option value="${ano}">${ano}</option>`; });
+
+      processarPainelAdmin();
+    }
+
+    function processarPainelAdmin() {
+      const tbAdmin = document.getElementById("adminCursosTable");
+      if (!tbAdmin) return;
+
+      const profSel = document.getElementById("admFiltroProfissional").value;
+      const anoSel = document.getElementById("admFiltroAno").value;
+      const dtIniFilter = document.getElementById("admDataInicio").value ? new Date(document.getElementById("admDataInicio").value + 'T00:00:00') : null;
+      const dtFimFilter = document.getElementById("admDataFim").value ? new Date(document.getElementById("admDataFim").value + 'T23:59:59') : null;
+
+      const anoAtual = new Date().getFullYear();
+      const horasPorAno = {};
+
+      let cursosFiltrados = todosCursos.filter(c => {
+        if (profSel !== "TODOS" && (!c.servidor_nome || !c.servidor_nome.toLowerCase().includes(profSel.toLowerCase()))) return false;
+        const dataBruta = c.data_certificado || c.certificado_de_dados;
+        if (dataBruta) {
+          const dtObj = new Date(dataBruta + 'T00:00:00');
+          if (anoSel !== "TODOS" && dtObj.getFullYear().toString() !== anoSel) return false;
+          if (dtIniFilter && dtObj < dtIniFilter) return false;
+          if (dtFimFilter && dtObj > dtFimFilter) return false;
+        }
+        return true;
+      });
+
+      cursosFiltrados.sort((a, b) => new Date(a.data_certificado || a.certificado_de_dados || '1970-01-01') - new Date(b.data_certificado || b.certificado_de_dados || '1970-01-01'));
+
+      tbAdmin.innerHTML = "";
+      let cargoIdentificado = "Profissional da Unidade";
+
+      cursosFiltrados.forEach(c => {
+        const dataBruta = c.data_certificado || c.certificado_de_dados || '';
+        const dtObj = dataBruta ? new Date(dataBruta + 'T00:00:00') : null;
+        
+        if (dtObj) {
+          const ano = dtObj.getFullYear();
+          if (!horasPorAno[ano]) horasPorAno[ano] = 0;
+          horasPorAno[ano] += Number(c.carga_horaria) || 0;
+        }
+
+        if (c.servidor_nome) {
+          if (c.servidor_nome.toLowerCase().includes("condutor")) cargoIdentificado = "Condutor Socorrista";
+          else if (c.servidor_nome.toLowerCase().includes("técnico") || c.servidor_nome.toLowerCase().includes("enferm")) cargoIdentificado = "Técnico de Enfermagem Socorrista";
+        }
+
+        const dataFmt = dtObj ? `${String(dtObj.getDate()).padStart(2,'0')}/${String(dtObj.getMonth()+1).padStart(2,'0')}/${dtObj.getFullYear()}` : '-';
+
+        tbAdmin.innerHTML += `
+          <tr>
+            <td style="text-align:center;"><b>${dataFmt}</b></td>
+            <td><b>${c.servidor_nome || '-'}</b></td>
+            <td style="text-align:center;"><span class="badge-ch">${c.carga_horaria || 0}h</span></td>
+            <td>${(c.nome_curso || '-') + (c.instituicao ? ` (${c.instituicao})` : '')}</td>
+            <td style="text-align:center;">${c.disciplina || c.modalidade || 'Presencial/EAD'}</td>
+            <td class="no-print"><button class="btn-danger-sm" onclick="excluirCurso(${c.id})">Remover</button></td>
+          </tr>
+        `;
+      });
+
+      const metaAnual = (cargoIdentificado === "Condutor Socorrista") ? 200 : 154;
+
+      let htmlResumoAdmin = `
+        <tr><td class="label">Profissional / Função:</td><td><b>${profSel !== "TODOS" ? profSel : "Todos os Servidores"}</b> (${cargoIdentificado})</td></tr>
+        <tr><td class="label">Meta Anual Exigida:</td><td><b>${metaAnual} horas/ano</b></td></tr>
+      `;
+
+      if (anoSel === "TODOS") {
+        Object.keys(horasPorAno).map(Number).sort((a, b) => a - b).forEach(anoKey => {
+          htmlResumoAdmin += `<tr><td class="label">Carga Horária Cumprida em ${anoKey}:</td><td><b>${horasPorAno[anoKey]} hrs</b></td></tr>`;
+        });
+      } else {
+        htmlResumoAdmin += `<tr><td class="label">Carga Horária Cumprida em ${anoSel}:</td><td><b>${horasPorAno[anoSel] || 0} hrs</b></td></tr>`;
+      }
+
+      const saldo = Math.max(0, metaAnual - (horasPorAno[anoAtual] || 0));
+      htmlResumoAdmin += `
+        <tr><td class="label">Saldo Faltante para Meta ${anoAtual}:</td><td><b>${saldo} hrs</b></td></tr>
+        <tr><td class="label">Status do Cumprimento (${anoAtual}):</td><td class="${saldo === 0 ? 'status-atingido' : 'status-andamento'}">${saldo === 0 ? 'COMPLETO' : 'EM ANDAMENTO'}</td></tr>
+      `;
+
+      const tabelaResumoAdminBody = document.querySelector("#tabAdminCursos .table-resumo tbody");
+      if (tabelaResumoAdminBody) tabelaResumoAdminBody.innerHTML = htmlResumoAdmin;
+    }
+
+    async function carregarRelatorioChecklistsAdmin() {
+      const tb = document.getElementById("tbAdminChecklists");
+      if (!tb) return;
+
+      const { data: listCheck } = await dbNuvem.from('operacional_checklists').select('*');
+      const { data: listAbs } = await dbNuvem.from('operacional_abastecimentos').select('*');
+
+      let listaUnificada = [];
+
+      if (listCheck) {
+        listCheck.forEach(item => {
+          if (item.tipo_procedimento !== 'Registro de Abastecimento' && !(item.relato_avarias && item.relato_avarias.includes('[ABASTECIMENTO]'))) {
+            listaUnificada.push({ origem: 'checklist', data_hora: item.data_hora, viatura: item.viatura, profissional_nome: item.profissional_nome, tipo_procedimento: item.tipo_procedimento || 'Checklist', detalhes: item.relato_avarias || 'Sem avarias', raw: item });
+          }
+        });
+      }
+
+      if (listAbs) {
+        listAbs.forEach(item => {
+          listaUnificada.push({ origem: 'abastecimento', data_hora: item.data_hora, viatura: item.viatura, profissional_nome: item.condutor_nome, tipo_procedimento: 'REGISTRO DE ABASTECIMENTO', detalhes: `Posto: ${item.posto_credenciado || '-'} | Insumo: ${item.tipo_insumo || 'Diesel'} | ${item.litros || 0}L | R$ ${item.valor_pago || 0}`, raw: item });
+        });
+      }
+
+      listaUnificada.sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora));
+
+      tb.innerHTML = '';
+      if (listaUnificada.length === 0) {
+        tb.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#64748b; padding:15px;">Nenhum registro localizado no histórico.</td></tr>`;
+        return;
+      }
+
+      listaUnificada.forEach((c) => {
+        const jsonStr = JSON.stringify(c).replace(/'/g, "&#39;");
+        tb.innerHTML += `
+          <tr>
+            <td><b>${c.data_hora ? new Date(c.data_hora).toLocaleString('pt-BR') : '-'}</b></td>
+            <td><b>${c.viatura || '-'}</b></td>
+            <td>${c.profissional_nome || '-'}</td>
+            <td><span class="badge-role ${c.origem === 'abastecimento' ? 'role-fuel' : 'role-user'}">${c.tipo_procedimento}</span></td>
+            <td>${c.detalhes.length > 45 ? c.detalhes.substring(0, 45) + '...' : c.detalhes}</td>
+            <td class="no-print"><button class="btn-action-sm" onclick='abrirEspelhoChecklist(${jsonStr})'>👁️ Ver Espelho</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    async function abrirEspelhoChecklist(itemUnificado) {
+      document.body.classList.add('modal-open-print');
+      const data = itemUnificado.raw;
+      const ehAbastecimento = itemUnificado.origem === 'abastecimento';
+
+      let html = `
+        <div style="text-align:center; border-bottom:2px solid #002b49; padding-bottom:8px; margin-bottom:12px;">
+          <h2 style="font-size:1.05rem; color:#002b49; margin:0; text-transform:uppercase;">SAMU CONNECT — CENTRAL OPERACIONAL</h2>
+          <p style="font-size:0.75rem; color:#64748b; margin:2px 0 0 0;">USB 11 ORLEANS — Registros Operacionais e Checklists de Rotina</p>
+        </div>
+
+        <div style="background:#f8fafc; padding:10px; border-radius:8px; display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; margin-bottom:12px; border:1px solid #cbd5e1;">
+          <div><b>Viatura:</b> ${data.viatura || 'N/D'}</div>
+          <div><b>Profissional:</b> ${data.profissional_nome || data.condutor_nome || 'N/D'}</div>
+          <div><b>Data/Hora:</b> ${data.data_hora ? new Date(data.data_hora).toLocaleString('pt-BR') : 'N/D'}</div>
+          <div><b>Procedimento:</b> ${ehAbastecimento ? '⛽ Registro de Abastecimento' : (data.tipo_procedimento || 'Checklist')}</div>
+        </div>
+      `;
+
+      if (ehAbastecimento) {
+        html += `
+          <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:8px; text-transform:uppercase; border-bottom:1px solid #002b49; padding-bottom:3px;">⛽ COMPROVANTE OFICIAL DE REABASTECIMENTO</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:0.82rem; margin-bottom:12px; background:#fff; padding:12px; border:1px solid #cbd5e1; border-radius:6px;">
+            <div><b>Posto Credenciado:</b> ${data.posto_credenciado || 'N/D'}</div>
+            <div><b>Tipo de Insumo:</b> ${data.tipo_insumo || 'Diesel S10'}</div>
+            <div><b>Quilometragem Atual:</b> ${data.km_atual || 0} KM</div>
+            <div><b>Litros Abastecidos:</b> ${data.litros || 0} Litros</div>
+            <div><b>Valor Total Pago:</b> R$ ${data.valor_pago || 0}</div>
+          </div>
+        `;
+      } else {
+        html += `
+          <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase; border-bottom:1px solid #002b49; padding-bottom:3px;">📋 DETALHES DO CHECKLIST</h4>
+          <div style="background:#fff; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.78rem;">
+            <b>Turno:</b> ${data.turno_plantao || 'Plantão 24h'}<br>
+            <b>KM Atual:</b> ${data.km_atual || '-'} km
+          </div>
+        `;
+      }
+
+      if (data.observacoes || data.relato_avarias) {
+        html += `
+          <div style="background:#fff3cd; border:1px solid #ffeba2; padding:8px; border-radius:6px; font-size:0.78rem; margin-top:8px;">
+            <b>Observações / Avarias Registradas:</b><br>${data.observacoes || data.relato_avarias}
+          </div>
+        `;
+      }
+
+      html += `
+        <div style="margin-top:30px; border-top:1px solid #000; width:240px; margin-left:auto; margin-right:auto; text-align:center; font-size:0.75rem; padding-top:4px;">
+          Assinatura do Profissional Responsável<br><b>${data.profissional_nome || data.condutor_nome || ''}</b>
+        </div>
+      `;
+
+      document.getElementById('conteudoChecklistEspelho').innerHTML = html;
+      document.getElementById('modalChecklistEspelho').style.display = 'flex';
+    }
+
+    function fecharModalChecklist() {
+      document.body.classList.remove('modal-open-print');
+      document.getElementById('modalChecklistEspelho').style.display = 'none';
+    }
+
+    async function carregarLogsAuditoria() {
+      const tbody = document.getElementById('tbAdminLogs');
+      if (!tbody) return;
+
+      const { data: logs, error } = await dbNuvem.from('logs_alteracoes').select('*').order('data_hora', { ascending: false });
+
+      if (error || !logs || logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b; padding:15px;">Nenhum registro de alteração localizado no histórico.</td></tr>`;
+        return;
+      }
+
+      todosLogs = logs;
+
+      const selAcao = document.getElementById('filtroLogsAcao');
+      if (selAcao) {
+        const acoesSet = new Set(logs.map(l => l.acao).filter(Boolean));
+        selAcao.innerHTML = `<option value="TODOS">-- Todas as Ações --</option>`;
+        Array.from(acoesSet).sort().forEach(act => {
+          selAcao.innerHTML += `<option value="${act}">${act}</option>`;
+        });
+      }
+
+      filtrarLogs();
+    }
+
+    function filtrarLogs() {
+      const tbody = document.getElementById('tbAdminLogs');
+      if (!tbody) return;
+
+      const busca = document.getElementById('filtroLogsBusca').value.toLowerCase();
+      const acaoSel = document.getElementById('filtroLogsAcao') ? document.getElementById('filtroLogsAcao').value : 'TODOS';
+      const dtIniStr = document.getElementById('filtroLogsDataIni') ? document.getElementById('filtroLogsDataIni').value : '';
+      const dtFimStr = document.getElementById('filtroLogsDataFim') ? document.getElementById('filtroLogsDataFim').value : '';
+
+      const dtIniFilter = dtIniStr ? new Date(dtIniStr + 'T00:00:00') : null;
+      const dtFimFilter = dtFimStr ? new Date(dtFimStr + 'T23:59:59') : null;
+
+      const logsFiltrados = todosLogs.filter(l => {
+        if (busca) {
+          const mNome = l.usuario_nome && l.usuario_nome.toLowerCase().includes(busca);
+          const mCpf = l.usuario_cpf && l.usuario_cpf.includes(busca);
+          const mDet = l.detalhes && l.detalhes.toLowerCase().includes(busca);
+          if (!mNome && !mCpf && !mDet) return false;
+        }
+
+        if (acaoSel !== 'TODOS' && l.acao !== acaoSel) return false;
+
+        if (l.data_hora) {
+          const dtObj = new Date(l.data_hora);
+          if (dtIniFilter && dtObj < dtIniFilter) return false;
+          if (dtFimFilter && dtObj > dtFimFilter) return false;
+        }
+
+        return true;
+      });
+
+      tbody.innerHTML = '';
+
+      if (logsFiltrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b; padding:15px;">Nenhum log encontrado para os filtros selecionados.</td></tr>`;
+        return;
+      }
+
+      logsFiltrados.forEach(l => {
+        const dataFmt = l.data_hora ? new Date(l.data_hora).toLocaleString('pt-BR') : '-';
+        tbody.innerHTML += `
+          <tr>
+            <td style="font-size:0.78rem; color:#64748b;"><b>${dataFmt}</b></td>
+            <td><b>${l.usuario_nome || 'Sistema'}</b><br><span style="font-size:0.7rem; color:#64748b;">CPF: ${l.usuario_cpf || '-'}</span></td>
+            <td><span class="badge-role role-user">${l.acao || 'Alteração'}</span></td>
+            <td style="font-size:0.8rem; line-height:1.3;">${l.detalhes || '-'}</td>
+          </tr>
+        `;
+      });
+    }
+
+    async function excluirCurso(id) {
+      if (confirm("Remover este registro de curso?")) {
+        await dbNuvem.from('cursos_certificados').delete().eq('id', id);
+        await registrarLog("Exclusão de Curso", `Excluiu o registro ID #${id}`);
+        await carregarMeusCursos();
+      }
     }
 
     async function carregarServidoresAdmin() {
       const { data: colabs } = await dbNuvem.from('colaboradores').select('*').order('nome');
+      const { data: unis } = await dbNuvem.from('uniformes').select('*');
+
       listaColaboradores = colabs || [];
+      listaUniformes = unis || [];
+
       const tbody = document.getElementById('adminServidoresTable');
       tbody.innerHTML = '';
 
       listaColaboradores.forEach(s => {
+        const u = listaUniformes.find(item => item.colaborador_id === s.id) || {};
         tbody.innerHTML += `
           <tr>
             <td><strong>${s.nome}</strong></td>
             <td>${s.cpf}</td>
             <td>${s.funcao}</td>
             <td>${s.coren !== 'N/A' ? s.coren : s.cnh}</td>
+            <td>${u.coturno || '-'}</td>
+            <td>${u.macacao || '-'}</td>
+            <td>${u.camiseta || '-'}</td>
+            <td>${u.jaqueta || '-'}</td>
+            <td>${u.capa_chuva || '-'}</td>
             <td><span class="badge-role ${s.perfil === 'admin' ? 'role-admin' : 'role-user'}">${s.perfil || 'servidor'}</span></td>
-            <td><button class="btn-action-sm" onclick="abrirModalEdicao(${s.id})">✏️ Editar</button></td>
+            <td class="no-print"><button class="btn-action-sm" onclick="abrirModalEdicao(${s.id})">✏️ Editar</button></td>
           </tr>
         `;
       });
     }
 
-    function switchTab(tabId, element) {
-      document.querySelectorAll('.tab-pane').forEach(t => t.style.display = 'none');
-      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-      document.getElementById(tabId).style.display = 'block';
-      if (element) element.classList.add('active');
-      document.getElementById('mainSidebar').classList.remove('open');
+    function filtrarTabelaServidores() {
+      const query = document.getElementById('searchServidores').value.toLowerCase();
+      const filtrados = listaColaboradores.filter(s => s.nome.toLowerCase().includes(query) || s.cpf.includes(query));
+      
+      const tbody = document.getElementById('adminServidoresTable');
+      tbody.innerHTML = '';
+
+      filtrados.forEach(s => {
+        const u = listaUniformes.find(item => item.colaborador_id === s.id) || {};
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${s.nome}</strong></td>
+            <td>${s.cpf}</td>
+            <td>${s.funcao}</td>
+            <td>${s.coren !== 'N/A' ? s.coren : s.cnh}</td>
+            <td>${u.coturno || '-'}</td>
+            <td>${u.macacao || '-'}</td>
+            <td>${u.camiseta || '-'}</td>
+            <td>${u.jaqueta || '-'}</td>
+            <td>${u.capa_chuva || '-'}</td>
+            <td><span class="badge-role ${s.perfil === 'admin' ? 'role-admin' : 'role-user'}">${s.perfil || 'servidor'}</span></td>
+            <td class="no-print"><button class="btn-action-sm" onclick="abrirModalEdicao(${s.id})">✏️ Editar</button></td>
+          </tr>
+        `;
+      });
     }
 
     async function salvarTudoPerfil() {
@@ -653,11 +1106,127 @@
       if (usuarioLogado.funcao.includes('Condutor')) { upColab.cnh = reg; } else { upColab.coren = reg; }
 
       await dbNuvem.from('colaboradores').update(upColab).eq('id', usuarioLogado.id);
+
+      const upUni = {
+        colaborador_id: usuarioLogado.id,
+        tipo_sangue: document.getElementById('uTipoSangue').value,
+        nome_guerra: document.getElementById('uNomeGuerra').value,
+        macacao: document.getElementById('uMacacao').value,
+        camiseta: document.getElementById('uCamiseta').value,
+        jaqueta: document.getElementById('uJaqueta').value,
+        coturno: document.getElementById('uCoturno').value,
+        capa_chuva: document.getElementById('uCapaChuva').value
+      };
+      await dbNuvem.from('uniformes').upsert(upUni, { onConflict: 'colaborador_id' });
+
       await registrarLog("Atualização Cadastral", "Dados pessoais atualizados.");
-      alert('Dados salvos!');
+      alert('Informações salvas com sucesso!');
     }
 
-    function logout() { usuarioLogado = null; location.reload(); }
+    function abrirModalNovoServidor() {
+      document.getElementById('modalFormTitle').innerText = '➕ Cadastrar Novo Colaborador';
+      document.getElementById('modalServidorId').value = '';
+      document.getElementById('modalNome').value = '';
+      document.getElementById('modalCPF').value = '';
+      document.getElementById('modalFuncao').value = 'Condutor Socorrista';
+      document.getElementById('modalRegistro').value = '';
+      document.getElementById('modalPerfil').value = 'servidor';
+      document.getElementById('modalNovaSenha').value = '';
+
+      document.getElementById('modalCoturno').value = '';
+      document.getElementById('modalMacacao').value = '';
+      document.getElementById('modalCamiseta').value = '';
+      document.getElementById('modalJaqueta').value = '';
+      document.getElementById('modalCapaChuva').value = '';
+
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function abrirModalEdicao(id) {
+      const s = listaColaboradores.find(item => item.id === id);
+      if (!s) return;
+
+      const u = listaUniformes.find(item => item.colaborador_id === s.id) || {};
+
+      document.getElementById('modalFormTitle').innerText = '✏️ Editar Colaborador e Uniformes';
+      document.getElementById('modalServidorId').value = s.id;
+      document.getElementById('modalNome').value = s.nome;
+      document.getElementById('modalCPF').value = s.cpf;
+      document.getElementById('modalFuncao').value = s.funcao;
+      document.getElementById('modalRegistro').value = s.coren !== 'N/A' ? s.coren : s.cnh;
+      document.getElementById('modalPerfil').value = s.perfil || 'servidor';
+      document.getElementById('modalNovaSenha').value = '';
+
+      document.getElementById('modalCoturno').value = u.coturno || '';
+      document.getElementById('modalMacacao').value = u.macacao || '';
+      document.getElementById('modalCamiseta').value = u.camiseta || '';
+      document.getElementById('modalJaqueta').value = u.jaqueta || '';
+      document.getElementById('modalCapaChuva').value = u.capa_chuva || '';
+
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function fecharModal() { document.getElementById('editModal').style.display = 'none'; }
+
+    async function salvarEdicaoAdmin() {
+      const id = document.getElementById('modalServidorId').value;
+      const nome = document.getElementById('modalNome').value;
+      const cpf = document.getElementById('modalCPF').value;
+      const funcao = document.getElementById('modalFuncao').value;
+      const reg = document.getElementById('modalRegistro').value;
+      const perfil = document.getElementById('modalPerfil').value;
+      const novaSenha = document.getElementById('modalNovaSenha').value;
+
+      let payload = { nome, cpf, funcao, perfil };
+      if (funcao.toLowerCase().includes('condutor')) { payload.cnh = reg; payload.coren = 'N/A'; } 
+      else { payload.coren = reg; payload.cnh = 'N/A'; }
+
+      if (novaSenha.trim() !== '') payload.senha = novaSenha.trim();
+
+      let targetId = id;
+
+      if (id) {
+        await dbNuvem.from('colaboradores').update(payload).eq('id', id);
+        await registrarLog("Edição de Colaborador", `Admin editou cadastro de ${nome}`);
+      } else {
+        const res = await dbNuvem.from('colaboradores').insert([payload]).select().single();
+        if (res.data) targetId = res.data.id;
+        await registrarLog("Novo Colaborador", `Admin cadastrou novo servidor: ${nome}`);
+      }
+
+      if (targetId) {
+        const payloadUniforme = {
+          colaborador_id: targetId,
+          coturno: document.getElementById('modalCoturno').value,
+          macacao: document.getElementById('modalMacacao').value,
+          camiseta: document.getElementById('modalCamiseta').value,
+          jaqueta: document.getElementById('modalJaqueta').value,
+          capa_chuva: document.getElementById('modalCapaChuva').value
+        };
+        await dbNuvem.from('uniformes').upsert(payloadUniforme, { onConflict: 'colaborador_id' });
+      }
+
+      alert('Servidor salvo com sucesso!');
+      fecharModal();
+      carregarServidoresAdmin();
+    }
+
+    function switchTab(tabId, element) {
+      document.querySelectorAll('.tab-pane').forEach(t => t.style.display = 'none');
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).style.display = 'block';
+      if (element) element.classList.add('active');
+
+      if (tabId === 'tabAdminLogs') carregarLogsAuditoria();
+      if (tabId === 'tabAdminChecklists') carregarRelatorioChecklistsAdmin();
+      document.getElementById('mainSidebar').classList.remove('open');
+    }
+
+    function logout() {
+      registrarLog("Logout", "Servidor encerrou a sessão no portal.");
+      usuarioLogado = null;
+      location.reload();
+    }
   </script>
 </body>
 </html>
