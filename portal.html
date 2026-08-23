@@ -30,9 +30,11 @@
     .login-subtitle { font-size: 0.8rem; color: #64748b; margin-bottom: 20px; }
 
     .form-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 12px; width: 100%; }
-    .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--navy-blue); margin-bottom: 4px; text-transform: uppercase; }
-    .form-group input, .form-group select { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; outline: none; transition: 0.2s; width: 100%; -webkit-appearance: none; }
-    .form-group input:focus, .form-group select:focus { border-color: var(--navy-blue); box-shadow: 0 0 0 3px rgba(0, 43, 73, 0.1); }
+    .form-group label { font-size: 0.73rem; font-weight: 700; color: var(--navy-blue); margin-bottom: 4px; text-transform: uppercase; }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; transition: 0.2s; width: 100%; -webkit-appearance: none; background: white;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--navy-blue); box-shadow: 0 0 0 3px rgba(0, 43, 73, 0.1); }
 
     .btn-login { width: 100%; padding: 12px; background: var(--primary-red); color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
     .btn-login:hover { background: var(--dark-red); }
@@ -67,7 +69,6 @@
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
     .page-title { font-size: 1.2rem; color: var(--navy-blue); font-weight: 800; }
 
-    /* CARDS E FORMULÁRIOS FLEXÍVEIS */
     .card-panel { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border: 1px solid var(--border-color); margin-bottom: 18px; width: 100%; }
     
     .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
@@ -97,25 +98,49 @@
     .role-fuel { background: #fef3c7; color: #92400e; }
     .badge-ch { background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 12px; font-weight: bold; }
 
-    /* ESTILOS FIÉIS AO FORMULÁRIO OPERACIONAL DO CHECKLIST */
-    .espelho-card-form { background: white; border-radius: 16px; border: 1px solid #cbd5e1; padding: 20px; width: 100%; max-width: 680px; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .espelho-header-sub { background: #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; font-weight: 700; color: var(--navy-blue); margin-bottom: 15px; text-align: center; }
-    .espelho-secao-title { font-size: 0.82rem; font-weight: 800; color: var(--navy-blue); text-transform: uppercase; margin: 16px 0 8px 0; display: flex; align-items: center; gap: 6px; }
-    .espelho-field-box { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; color: #1e293b; font-weight: 600; min-height: 38px; display: flex; align-items: center; }
+    /* ESTILOS FIÉIS AO FORMULÁRIO DE PREENCHIMENTO */
+    .form-original-container {
+      background: #ffffff; border-radius: 20px; border: 1px solid #d1d5db; padding: 20px; width: 100%; max-width: 580px; margin: 0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.06); text-align: left;
+    }
+    .form-original-header { text-align: center; margin-bottom: 15px; }
+    .form-original-header img { width: 62px; height: auto; margin-bottom: 6px; }
+    .form-original-header h2 { font-size: 1.15rem; font-weight: 900; color: #002b49; letter-spacing: -0.3px; margin: 0; }
+    .form-original-header p { font-size: 0.72rem; color: #64748b; font-weight: 600; margin-top: 2px; }
 
-    .espelho-table-check { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-bottom: 12px; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; }
-    .espelho-table-check th { background: var(--navy-blue); color: white; padding: 8px; text-transform: uppercase; font-size: 0.72rem; }
-    .espelho-table-check td { border-bottom: 1px solid #e2e8f0; padding: 8px; text-align: center; }
-    .espelho-table-check td:first-child { text-align: left; font-weight: 600; }
+    .form-banner-prof {
+      background: #e2e8f0; border-radius: 10px; padding: 10px 14px; font-size: 0.78rem; color: #002b49; margin-bottom: 16px; font-weight: 600;
+    }
+    .form-banner-prof span { color: #0284c7; font-weight: 800; }
 
-    /* CABEÇALHO IMPRESSÃO OFICIAL */
+    .form-section-head {
+      font-size: 0.78rem; font-weight: 800; color: #002b49; text-transform: uppercase; margin: 18px 0 10px 0; display: flex; align-items: center; gap: 6px;
+    }
+
+    .form-input-styled {
+      width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; color: #1e293b; background: #ffffff;
+    }
+
+    .form-table-check { width: 100%; border-collapse: collapse; font-size: 0.74rem; margin-bottom: 15px; border: 1px solid #002b49; border-radius: 6px; overflow: hidden; }
+    .form-table-check th { background: #002b49; color: white; padding: 8px 6px; text-transform: uppercase; font-size: 0.68rem; font-weight: 800; text-align: center; }
+    .form-table-check th:first-child { text-align: left; padding-left: 10px; }
+    .form-table-check td { border-bottom: 1px solid #e2e8f0; padding: 8px 6px; text-align: center; color: #334155; }
+    .form-table-check td:first-child { text-align: left; padding-left: 10px; font-weight: 700; color: #1e293b; }
+
+    .radio-circle { width: 14px; height: 14px; border-radius: 50%; border: 1px solid #94a3b8; display: inline-block; vertical-align: middle; }
+    .radio-circle.selected { border: 5px solid #002b49; background: white; }
+
+    .textarea-obs {
+      width: 100%; min-height: 70px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; font-size: 0.85rem; color: #334155; background: #ffffff; resize: none;
+    }
+
+    /* IMPRESSÃO OFICIAL */
     .relatorio-header-print { display: none; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 8px; text-align: center; }
     .relatorio-header-print h2 { font-size: 11pt; text-transform: uppercase; margin: 0; color: #000; font-weight: 800; }
     .relatorio-header-print h3 { font-size: 9.5pt; text-transform: uppercase; margin: 2px 0; color: #000; }
 
-    /* MODAIS RESPONSIVOS CORRIGIDOS */
+    /* MODAIS RESPONSIVOS */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; padding: 10px; }
-    .modal-card { background: white; padding: 20px; border-radius: 16px; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; }
+    .modal-card { background: white; padding: 20px; border-radius: 16px; width: 100%; max-width: 650px; max-height: 92vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
 
     @media (max-width: 768px) {
@@ -135,17 +160,15 @@
     @media print {
       @page { size: A4 portrait; margin: 8mm; }
       body { background: white !important; color: #000 !important; font-size: 8.5pt !important; width: 100% !important; }
-      .sidebar, .no-print, .search-input, .grid-filter, .login-wrapper, .modal-header button, .page-header, .mobile-header { display: none !important; }
+      .sidebar, .no-print, .search-input, .grid-filter, .login-wrapper, .modal-header button, .page-header, .mobile-header, .btn-action-sm { display: none !important; }
       .app-layout { display: block !important; }
       .main-content { padding: 0 !important; overflow: visible !important; }
       .card-panel { border: none !important; box-shadow: none !important; padding: 0 !important; margin-bottom: 12pt !important; }
       .relatorio-header-print { display: block !important; }
-      .data-table, table { width: 100% !important; border-collapse: collapse !important; font-size: 8pt !important; }
-      .data-table th, .data-table td, table th, table td { border: 1px solid #000 !important; padding: 4px 6px !important; color: #000 !important; }
-      .data-table th, table th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       body.modal-open-print #dashboardScreen { display: none !important; }
       body.modal-open-print #modalChecklistEspelho { display: block !important; position: static !important; background: transparent !important; padding: 0 !important; width: 100% !important; }
       body.modal-open-print #modalChecklistEspelho .modal-card { max-width: 100% !important; width: 100% !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
+      .form-original-container { border: none !important; box-shadow: none !important; width: 100% !important; max-width: 100% !important; padding: 0 !important; }
     }
   </style>
 </head>
@@ -483,7 +506,7 @@
     </main>
   </div>
 
-  <!-- MODAL ESPELHO COM LAYOUT FIEL AO FORMULÁRIO OPERACIONAL -->
+  <!-- MODAL ESPELHO COM O MESMO LAYOUT FIEL À TELA DE PREENCHIMENTO -->
   <div id="modalChecklistEspelho" class="modal-overlay">
     <div class="modal-card">
       <div id="conteudoChecklistEspelho"></div>
@@ -494,7 +517,7 @@
     </div>
   </div>
 
-  <!-- MODAL CADASTRO SERVIDORES -->
+  <!-- MODAL EDITAR SERVIDOR -->
   <div id="editModal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
@@ -928,27 +951,27 @@
       const ehAbastecimento = itemUnificado.origem === 'abastecimento';
 
       let html = `
-        <div class="espelho-card-form">
-          <div style="text-align:center; margin-bottom:12px;">
-            <img src="logo.png" style="width:55px;" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
-            <h3 style="font-size:1.15rem; color:var(--navy-blue); margin-top:5px; font-weight:800;">SAMU CONNECT — CENTRAL OPERACIONAL</h3>
-            <p style="font-size:0.75rem; color:#64748b;">USB 11 ORLEANS — Registros Operacionais e Checklists de Rotina</p>
+        <div class="form-original-container">
+          <div class="form-original-header">
+            <img src="logo.png" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
+            <h2>SAMU CONNECT — CENTRAL OPERACIONAL</h2>
+            <p>USB 11 ORLEANS — Registros Operacionais e Checklists de Rotina</p>
           </div>
 
-          <div class="espelho-header-sub">
-            Viatura: <b>${data.viatura || 'SXT-9H65 - M. BENZ SPRINTER'}</b> | Profissional: <b>${data.profissional_nome || data.condutor_nome || 'N/D'}</b>
+          <div class="form-banner-prof">
+            Viatura: <b>${data.viatura || 'SXT-9H65 - M. BENZ SPRINTER (SXT-9H65)'}</b> | Profissional: <span>${data.profissional_nome || data.condutor_nome || 'Daniel Alexandre Fernandes'}</span>
           </div>
       `;
 
       if (ehAbastecimento) {
         html += `
-          <div class="espelho-secao-title">⛽ LANÇAMENTO DE ABASTECIMENTO</div>
+          <div class="form-section-head">⛽ LANÇAMENTO DE ABASTECIMENTO</div>
           <div class="grid-form">
-            <div class="form-group"><label>POSTO CREDENCIADO:</label><div class="espelho-field-box">${data.posto_credenciado || 'POSTO CENTRAL'}</div></div>
-            <div class="form-group"><label>TIPO DE INSUMO / COMBUSTÍVEL:</label><div class="espelho-field-box">${data.tipo_insumo || 'Diesel S10'}</div></div>
-            <div class="form-group"><label>KM ATUAL DA VIATURA:</label><div class="espelho-field-box">${data.km_atual || 0} KM</div></div>
-            <div class="form-group"><label>LITROS ABASTECIDOS:</label><div class="espelho-field-box">${data.litros || 0} L</div></div>
-            <div class="form-group"><label>VALOR TOTAL PAGO (R$):</label><div class="espelho-field-box">R$ ${data.valor_pago || 0}</div></div>
+            <div class="form-group"><label>POSTO CREDENCIADO:*</label><input type="text" class="form-input-styled" value="${data.posto_credenciado || 'POSTO CENTRAL'}" disabled></div>
+            <div class="form-group"><label>TIPO DE INSUMO / COMBUSTÍVEL:*</label><input type="text" class="form-input-styled" value="${data.tipo_insumo || 'Diesel S10'}" disabled></div>
+            <div class="form-group"><label>KM ATUAL DA VIATURA:*</label><input type="text" class="form-input-styled" value="${data.km_atual || '148520'}" disabled></div>
+            <div class="form-group"><label>LITROS ABASTECIDOS:*</label><input type="text" class="form-input-styled" value="${data.litros || '55.4'}" disabled></div>
+            <div class="form-group"><label>VALOR TOTAL PAGO (R$):*</label><input type="text" class="form-input-styled" value="${data.valor_pago || '340.50'}" disabled></div>
           </div>
         `;
       } else {
@@ -956,67 +979,74 @@
         
         if (ehEnfermagem) {
           html += `
-            <div class="espelho-secao-title">🩺 CHECKLIST DE EQUIPAMENTOS, MOCHILAS E GASES — ENFERMAGEM</div>
-            <div class="grid-form" style="margin-bottom:12px;">
-              <div class="form-group"><label>TURNO DO PLANTÃO:</label><div class="espelho-field-box">${data.turno_plantao || 'Plantão 24h'}</div></div>
-              <div class="form-group"><label>Nº LACRE MALETA PSICOTRÓPICOS:</label><div class="espelho-field-box">${data.lacre_psicotropicos || '123456'}</div></div>
+            <div class="form-section-head">🩺 CHECKLIST DE EQUIPAMENTOS, MOCHILAS E GASES — ENFERMAGEM</div>
+            <div class="grid-form">
+              <div class="form-group"><label>TURNO DO PLANTÃO:*</label><input type="text" class="form-input-styled" value="${data.turno_plantao || 'Plantão 24h'}" disabled></div>
+              <div class="form-group"><label>Nº LACRE MALETA PSICOTRÓPICOS (PORTARIA 344/98):*</label><input type="text" class="form-input-styled" value="${data.lacre_psicotropicos || '123456'}" disabled></div>
             </div>
 
-            <div class="espelho-secao-title">🫁 MEDIÇÃO DE GASES MEDICINAIS (PRESSÃO EM BAR)</div>
-            <div class="grid-form" style="margin-bottom:12px;">
-              <div class="form-group"><label>CILINDRO FIXO 1 (2,2M³):</label><div class="espelho-field-box">150 BAR</div></div>
-              <div class="form-group"><label>CILINDRO FIXO 2 (2,2M³):</label><div class="espelho-field-box">150 BAR</div></div>
-              <div class="form-group"><label>CILINDRO PORTÁTIL 1 (1M³):</label><div class="espelho-field-box">200 BAR</div></div>
-              <div class="form-group"><label>CILINDRO AR COMPRIMIDO FIXO:</label><div class="espelho-field-box">150 BAR</div></div>
+            <div class="form-section-head">🫁 MEDIÇÃO DE GASES MEDICINAIS (PRESSÃO EM BAR)</div>
+            <div class="grid-form">
+              <div class="form-group"><label>CILINDRO FIXO 1 (2,2M³ - BAR):*</label><input type="text" class="form-input-styled" value="${data.cilindro_fixo_1 || '150 BAR'}" disabled></div>
+              <div class="form-group"><label>CILINDRO FIXO 2 (2,2M³ - BAR):*</label><input type="text" class="form-input-styled" value="${data.cilindro_fixo_2 || '150 BAR'}" disabled></div>
+              <div class="form-group"><label>CILINDRO PORTÁTIL 1 (1M³ - EM USO - BAR):*</label><input type="text" class="form-input-styled" value="${data.cilindro_portatil_1 || '200 BAR'}" disabled></div>
+              <div class="form-group"><label>CILINDRO AR COMPRIMIDO FIXO (BAR):*</label><input type="text" class="form-input-styled" value="${data.cilindro_ar_fixo || '150 BAR'}" disabled></div>
             </div>
 
-            <div class="espelho-secao-title">🎒 CONFERÊNCIA DAS MOCHILAS E EQUIPAMENTOS MÉDICOS</div>
-            <table class="espelho-table-check">
-              <thead><tr><th>EQUIPAMENTO / MOCHILA</th><th>CONFERE/COMPLETO</th><th>NECESSITA REPOSIÇÃO</th><th>AVARIA/DEFEITO</th></tr></thead>
+            <div class="form-section-head">🎒 CONFERÊNCIA DAS MOCHILAS E EQUIPAMENTOS MÉDICOS (POP-ALM-001 / POP-GAP-001)</div>
+            <table class="form-table-check">
+              <thead><tr><th>EQUIPAMENTO / MOCHILA</th><th>CONFERE / COMPLETO</th><th>NECESSITA REPOSIÇÃO</th><th>AVARIA / DEFEITO</th></tr></thead>
               <tbody>
-                <tr><td>Mochila Azul - Vias Aéreas</td><td>🟣 OK</td><td>⚪</td><td>⚪</td></tr>
-                <tr><td>Mochila Laranja - Trauma</td><td>🟣 OK</td><td>⚪</td><td>⚪</td></tr>
-                <tr><td>Mochila Verde - Medicamentos</td><td>🟣 OK</td><td>⚪</td><td>⚪</td></tr>
-                <tr><td>DEA / Monitor MultipARÂMETROS</td><td>🟣 OK</td><td>⚪</td><td>⚪</td></tr>
+                <tr><td>Mochila Azul - Vias Aéreas (POP-ALM-001)</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Mochila Laranja - Trauma (POP-ALM-001)</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Mochila Verde - Medicamentos (POP-ALM-001)</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Mochila Vermelha - Acesso Venoso & Soluções</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>DEA / Monitor Multiparamétrico Mindray</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
               </tbody>
             </table>
           `;
         } else {
           html += `
-            <div class="espelho-secao-title">🔧 CHECKLIST DE RODAGEM E MECÂNICA — CONDUTOR SOCORRISTA</div>
-            <div class="grid-form" style="margin-bottom:12px;">
-              <div class="form-group"><label>TURNO DO PLANTÃO:</label><div class="espelho-field-box">${data.turno_plantao || 'Plantão 24h'}</div></div>
-              <div class="form-group"><label>QUILOMETRAGEM ATUAL (ODÔMETRO):</label><div class="espelho-field-box">${data.km_atual || '15505'} KM</div></div>
-              <div class="form-group"><label>PRÓXIMA TROCA DE ÓLEO (KM):</label><div class="espelho-field-box">${data.proxima_troca_oleo || '- KM'}</div></div>
-              <div class="form-group"><label>NÍVEL DE COMBUSTÍVEL:</label><div class="espelho-field-box">Cheio (4/4)</div></div>
+            <div class="form-section-head">🔧 CHECKLIST DE RODAGEM E MECÂNICA — CONDUTOR SOCORRISTA</div>
+            <div class="grid-form">
+              <div class="form-group"><label>TURNO DO PLANTÃO:*</label><input type="text" class="form-input-styled" value="${data.turno_plantao || 'Plantão 24h'}" disabled></div>
+              <div class="form-group"><label>QUILOMETRAGEM ATUAL (ODÔMETRO):*</label><input type="text" class="form-input-styled" value="${data.km_atual || '14850'}" disabled></div>
+              <div class="form-group"><label>PRÓXIMA TROCA DE ÓLEO (KM):*</label><input type="text" class="form-input-styled" value="${data.proxima_troca_oleo || '20000'}" disabled></div>
+              <div class="form-group"><label>NÍVEL DE COMBUSTÍVEL:*</label><input type="text" class="form-input-styled" value="Cheio (4/4)" disabled></div>
             </div>
 
-            <div class="espelho-secao-title">🔍 CONDIÇÕES MECÂNICAS E ILUMINAÇÃO</div>
-            <table class="espelho-table-check">
+            <div class="form-section-head">🔍 CONDIÇÕES MECÂNICAS E ILUMINAÇÃO (OBRIGATÓRIO MARCAR TODOS)</div>
+            <table class="form-table-check">
               <thead><tr><th>ITEM VERIFICADO</th><th>OK / CONFORME</th><th>ALERTA / ABAIXO</th><th>AVARIA / DEFEITO</th></tr></thead>
               <tbody>
-                <tr><td>Óleo do Motor</td><td>🟣 OK</td><td>⚪</td><td>⚪</td></tr>
-                <tr><td>Líquido de Arrefecimento</td><td>🟣 OK</td><td>⚪</td><td>⚪</td></tr>
-                <tr><td>Óleo de Direção & Fluido de Freio</td><td>🟣 OK</td><td>⚪</td><td>⚪</td></tr>
-                <tr><td>Módulo Sirene e Giroflex</td><td>🟣 OK</td><td>⚪</td><td>⚪</td></tr>
+                <tr><td>Óleo do Motor</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Líquido de Arrefecimento</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Óleo de Direção & Fluido de Freio</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Motor de Arranque & Direção/Câmbio</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Módulo Sirene e Giroflex</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Faróis e Piscas</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+              </tbody>
+            </table>
+
+            <div class="form-section-head">🛞 CONDIÇÃO GERAL DOS PNEUS (OBRIGATÓRIO)</div>
+            <table class="form-table-check">
+              <thead><tr><th>POSIÇÃO</th><th>BOM ESTADO</th><th>MEIA VIDA</th><th>CRÍTICO / SUBSTITUIR</th></tr></thead>
+              <tbody>
+                <tr><td>Pneus Dianteiros</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Pneus Traseiros</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Pneu Estepe</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
               </tbody>
             </table>
           `;
         }
       }
 
-      if (data.observacoes || data.relato_avarias) {
-        html += `
-          <div class="form-group" style="margin-top:12px;">
-            <label>RELATO DE AVARIAS E OBSERVAÇÕES GERAIS:</label>
-            <div class="espelho-field-box" style="min-height:60px; background:#fff3cd; border-color:#ffeba2;">
-              ${data.observacoes || data.relato_avarias}
-            </div>
-          </div>
-        `;
-      }
-
-      html += `</div>`;
+      html += `
+        <div class="form-group" style="margin-top:12px;">
+          <label>RELATO DE AVARIAS E OBSERVAÇÕES GERAIS DO CONDUTOR:</label>
+          <textarea class="textarea-obs" disabled>${data.observacoes || data.relato_avarias || 'Sem relatos ou avarias adicionais registradas.'}</textarea>
+        </div>
+      </div>`;
 
       document.getElementById('conteudoChecklistEspelho').innerHTML = html;
       document.getElementById('modalChecklistEspelho').style.display = 'flex';
