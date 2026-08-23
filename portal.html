@@ -98,12 +98,12 @@
     .badge-ch { background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 12px; font-weight: bold; }
 
     /* ESTILOS FIÉIS AO FORMULÁRIO OPERACIONAL DO CHECKLIST */
-    .espelho-card-form { background: white; border-radius: 16px; border: 1px solid #cbd5e1; padding: 20px; max-width: 680px; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .espelho-card-form { background: white; border-radius: 16px; border: 1px solid #cbd5e1; padding: 20px; width: 100%; max-width: 680px; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .espelho-header-sub { background: #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; font-weight: 700; color: var(--navy-blue); margin-bottom: 15px; text-align: center; }
-    .espelho-secao-title { font-size: 0.85rem; font-weight: 800; color: var(--navy-blue); text-transform: uppercase; margin: 16px 0 8px 0; display: flex; align-items: center; gap: 6px; }
-    .espelho-field-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; color: #1e293b; font-weight: 600; min-height: 38px; display: flex; align-items: center; }
+    .espelho-secao-title { font-size: 0.82rem; font-weight: 800; color: var(--navy-blue); text-transform: uppercase; margin: 16px 0 8px 0; display: flex; align-items: center; gap: 6px; }
+    .espelho-field-box { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; color: #1e293b; font-weight: 600; min-height: 38px; display: flex; align-items: center; }
 
-    .espelho-table-check { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-bottom: 12px; border: 1px solid #cbd5e1; }
+    .espelho-table-check { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-bottom: 12px; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; }
     .espelho-table-check th { background: var(--navy-blue); color: white; padding: 8px; text-transform: uppercase; font-size: 0.72rem; }
     .espelho-table-check td { border-bottom: 1px solid #e2e8f0; padding: 8px; text-align: center; }
     .espelho-table-check td:first-child { text-align: left; font-weight: 600; }
@@ -113,10 +113,10 @@
     .relatorio-header-print h2 { font-size: 11pt; text-transform: uppercase; margin: 0; color: #000; font-weight: 800; }
     .relatorio-header-print h3 { font-size: 9.5pt; text-transform: uppercase; margin: 2px 0; color: #000; }
 
-    /* MODAIS RESPONSIVOS */
+    /* MODAIS RESPONSIVOS CORRIGIDOS */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; padding: 10px; }
-    .modal-card { background: white; padding: 18px; border-radius: 14px; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+    .modal-card { background: white; padding: 20px; border-radius: 16px; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
 
     @media (max-width: 768px) {
       .app-layout { flex-direction: column; }
@@ -486,12 +486,8 @@
   <!-- MODAL ESPELHO COM LAYOUT FIEL AO FORMULÁRIO OPERACIONAL -->
   <div id="modalChecklistEspelho" class="modal-overlay">
     <div class="modal-card">
-      <div class="modal-header no-print">
-        <div class="modal-title">📄 ESPELHO DO FORMULÁRIO OPERACIONAL</div>
-        <button style="background:none; border:none; font-size:1.2rem; cursor:pointer;" onclick="fecharModalChecklist()">✕</button>
-      </div>
       <div id="conteudoChecklistEspelho"></div>
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:15px;" class="no-print">
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:15px; border-top:1px solid #cbd5e1; padding-top:12px;" class="no-print">
         <button class="btn-action-sm" onclick="fecharModalChecklist()">Fechar</button>
         <button class="btn-primary" onclick="window.print()">🖨️ Imprimir Ficha A4</button>
       </div>
@@ -978,10 +974,10 @@
             <table class="espelho-table-check">
               <thead><tr><th>EQUIPAMENTO / MOCHILA</th><th>CONFERE/COMPLETO</th><th>NECESSITA REPOSIÇÃO</th><th>AVARIA/DEFEITO</th></tr></thead>
               <tbody>
-                <tr><td>Mochila Azul - Vias Aéreas</td><td>⚪ OK</td><td>⚪</td><td>⚪</td></tr>
-                <tr><td>Mochila Laranja - Trauma</td><td>⚪ OK</td><td>⚪</td><td>⚪</td></tr>
-                <tr><td>Mochila Verde - Medicamentos</td><td>⚪ OK</td><td>⚪</td><td>⚪</td></tr>
-                <tr><td>DEA / Monitor MultipARÂMETROS</td><td>⚪ OK</td><td>⚪</td><td>⚪</td></tr>
+                <tr><td>Mochila Azul - Vias Aéreas</td><td>🟣 OK</td><td>⚪</td><td>⚪</td></tr>
+                <tr><td>Mochila Laranja - Trauma</td><td>🟣 OK</td><td>⚪</td><td>⚪</td></tr>
+                <tr><td>Mochila Verde - Medicamentos</td><td>🟣 OK</td><td>⚪</td><td>⚪</td></tr>
+                <tr><td>DEA / Monitor MultipARÂMETROS</td><td>🟣 OK</td><td>⚪</td><td>⚪</td></tr>
               </tbody>
             </table>
           `;
@@ -990,8 +986,8 @@
             <div class="espelho-secao-title">🔧 CHECKLIST DE RODAGEM E MECÂNICA — CONDUTOR SOCORRISTA</div>
             <div class="grid-form" style="margin-bottom:12px;">
               <div class="form-group"><label>TURNO DO PLANTÃO:</label><div class="espelho-field-box">${data.turno_plantao || 'Plantão 24h'}</div></div>
-              <div class="form-group"><label>QUILOMETRAGEM ATUAL (ODÔMETRO):</label><div class="espelho-field-box">${data.km_atual || '-'} KM</div></div>
-              <div class="form-group"><label>PRÓXIMA TROCA DE ÓLEO (KM):</label><div class="espelho-field-box">${data.proxima_troca_oleo || '-'} KM</div></div>
+              <div class="form-group"><label>QUILOMETRAGEM ATUAL (ODÔMETRO):</label><div class="espelho-field-box">${data.km_atual || '15505'} KM</div></div>
+              <div class="form-group"><label>PRÓXIMA TROCA DE ÓLEO (KM):</label><div class="espelho-field-box">${data.proxima_troca_oleo || '- KM'}</div></div>
               <div class="form-group"><label>NÍVEL DE COMBUSTÍVEL:</label><div class="espelho-field-box">Cheio (4/4)</div></div>
             </div>
 
@@ -999,10 +995,10 @@
             <table class="espelho-table-check">
               <thead><tr><th>ITEM VERIFICADO</th><th>OK / CONFORME</th><th>ALERTA / ABAIXO</th><th>AVARIA / DEFEITO</th></tr></thead>
               <tbody>
-                <tr><td>Óleo do Motor</td><td>⚪ OK</td><td>⚪</td><td>⚪</td></tr>
-                <tr><td>Líquido de Arrefecimento</td><td>⚪ OK</td><td>⚪</td><td>⚪</td></tr>
-                <tr><td>Óleo de Direção & Fluido de Freio</td><td>⚪ OK</td><td>⚪</td><td>⚪</td></tr>
-                <tr><td>Módulo Sirene e Giroflex</td><td>⚪ OK</td><td>⚪</td><td>⚪</td></tr>
+                <tr><td>Óleo do Motor</td><td>🟣 OK</td><td>⚪</td><td>⚪</td></tr>
+                <tr><td>Líquido de Arrefecimento</td><td>🟣 OK</td><td>⚪</td><td>⚪</td></tr>
+                <tr><td>Óleo de Direção & Fluido de Freio</td><td>🟣 OK</td><td>⚪</td><td>⚪</td></tr>
+                <tr><td>Módulo Sirene e Giroflex</td><td>🟣 OK</td><td>⚪</td><td>⚪</td></tr>
               </tbody>
             </table>
           `;
