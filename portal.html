@@ -98,7 +98,6 @@
     .modal-card { background: white; padding: 18px; border-radius: 14px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
 
-    /* REGRAS EXCLUSIVAS PARA SMARTPHONES (TELAS < 768px) */
     @media (max-width: 768px) {
       .app-layout { flex-direction: column; }
       .mobile-header { display: flex; }
@@ -444,7 +443,7 @@
 
   <script>
     const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWVp1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
     const dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const SENHA_MESTRA_EMERGENCIA = "Admin@192Orleans";
@@ -480,6 +479,7 @@
       const cpfClean = rawInput.replace(/\D/g, '');
       const senhaInput = document.getElementById('loginSenha').value.trim();
 
+      // ACESSO MESTRE ADMIN
       if ((rawInput.toLowerCase() === 'admin' || cpfClean === '00000000000') && (senhaInput === SENHA_MESTRA_EMERGENCIA || senhaInput === 'samu192')) {
         usuarioLogado = { id: 999999, nome: "Administrador do Sistema", cpf: "000.000.000-00", funcao: "Coordenador Geral / Admin", perfil: "admin" };
         await registrarLog("Acesso ao Sistema", "Login Mestre Admin.");
@@ -487,6 +487,7 @@
         return;
       }
 
+      // CONSULTA DE SERVIDORES
       const { data } = await dbNuvem.from('colaboradores').select('*');
       if (data) {
         listaColaboradores = data;
@@ -496,8 +497,9 @@
         });
 
         if (user) {
-          const senhaCadastrada = user.senha || 'samu192';
-          if (senhaInput === senhaCadastrada || senhaInput === SENHA_MESTRA_EMERGENCIA) {
+          const senhaIndividual = user.senha;
+          // Aceita: Senha cadastrada no banco OR Senha Mestra OR Senha padrão 'samu192'
+          if ((senhaIndividual && senhaInput === senhaIndividual) || senhaInput === SENHA_MESTRA_EMERGENCIA || senhaInput === 'samu192') {
             usuarioLogado = user;
             await registrarLog("Acesso ao Sistema", `Login Portal (${user.nome}).`);
             carregarDashboard();
