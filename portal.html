@@ -97,6 +97,17 @@
     .role-fuel { background: #fef3c7; color: #92400e; }
     .badge-ch { background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 12px; font-weight: bold; }
 
+    /* ESTILOS FIÉIS AO FORMULÁRIO OPERACIONAL DO CHECKLIST */
+    .espelho-card-form { background: white; border-radius: 16px; border: 1px solid #cbd5e1; padding: 20px; max-width: 680px; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .espelho-header-sub { background: #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; font-weight: 700; color: var(--navy-blue); margin-bottom: 15px; text-align: center; }
+    .espelho-secao-title { font-size: 0.85rem; font-weight: 800; color: var(--navy-blue); text-transform: uppercase; margin: 16px 0 8px 0; display: flex; align-items: center; gap: 6px; }
+    .espelho-field-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; color: #1e293b; font-weight: 600; min-height: 38px; display: flex; align-items: center; }
+
+    .espelho-table-check { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-bottom: 12px; border: 1px solid #cbd5e1; }
+    .espelho-table-check th { background: var(--navy-blue); color: white; padding: 8px; text-transform: uppercase; font-size: 0.72rem; }
+    .espelho-table-check td { border-bottom: 1px solid #e2e8f0; padding: 8px; text-align: center; }
+    .espelho-table-check td:first-child { text-align: left; font-weight: 600; }
+
     /* CABEÇALHO IMPRESSÃO OFICIAL */
     .relatorio-header-print { display: none; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 8px; text-align: center; }
     .relatorio-header-print h2 { font-size: 11pt; text-transform: uppercase; margin: 0; color: #000; font-weight: 800; }
@@ -104,14 +115,8 @@
 
     /* MODAIS RESPONSIVOS */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; padding: 10px; }
-    .modal-card { background: white; padding: 18px; border-radius: 14px; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .modal-card { background: white; padding: 18px; border-radius: 14px; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
-
-    .espelho-box-secao { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 12px; background: #fff; }
-    .espelho-secao-titulo { font-size: 0.8rem; font-weight: 800; color: var(--navy-blue); text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 8px; }
-    .espelho-grid-itens { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; font-size: 0.78rem; }
-    .espelho-item-val { background: #f8fafc; padding: 6px 8px; border-radius: 6px; border: 1px solid #f1f5f9; }
-    .espelho-item-val b { color: #334155; display: block; font-size: 0.72rem; text-transform: uppercase; margin-bottom: 2px; }
 
     @media (max-width: 768px) {
       .app-layout { flex-direction: column; }
@@ -478,11 +483,11 @@
     </main>
   </div>
 
-  <!-- MODAL DE ESPELHO CHECKLIST OPERACIONAL -->
+  <!-- MODAL ESPELHO COM LAYOUT FIEL AO FORMULÁRIO OPERACIONAL -->
   <div id="modalChecklistEspelho" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header no-print">
-        <div class="modal-title">📄 ESPELHO DO CHECKLIST OPERACIONAL</div>
+        <div class="modal-title">📄 ESPELHO DO FORMULÁRIO OPERACIONAL</div>
         <button style="background:none; border:none; font-size:1.2rem; cursor:pointer;" onclick="fecharModalChecklist()">✕</button>
       </div>
       <div id="conteudoChecklistEspelho"></div>
@@ -572,6 +577,23 @@
       } catch (err) { console.error("Erro log:", err); }
     }
 
+    async function carregarTodosColaboradores() {
+      const { data } = await dbNuvem.from('colaboradores').select('*').order('nome');
+      if (data) {
+        listaColaboradores = data;
+        preencherSelectColaboradores();
+      }
+    }
+
+    function preencherSelectColaboradores() {
+      const selProf = document.getElementById("admFiltroProfissional");
+      if (!selProf) return;
+      selProf.innerHTML = `<option value="TODOS">-- Todos os Servidores --</option>`;
+      listaColaboradores.forEach(c => {
+        selProf.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+      });
+    }
+
     async function realizarLogin(e) {
       e.preventDefault();
       document.getElementById('loginError').style.display = 'none';
@@ -587,22 +609,20 @@
         return;
       }
 
-      const { data } = await dbNuvem.from('colaboradores').select('*');
-      if (data) {
-        listaColaboradores = data;
-        const user = listaColaboradores.find(u => {
-          const userCpfClean = u.cpf ? u.cpf.replace(/\D/g, '') : '';
-          return u.cpf === rawInput || (cpfClean !== '' && userCpfClean === cpfClean) || u.nome.toLowerCase() === rawInput.toLowerCase();
-        });
+      await carregarTodosColaboradores();
 
-        if (user) {
-          const senhaIndividual = user.senha;
-          if ((senhaIndividual && senhaInput === senhaIndividual) || senhaInput === SENHA_MESTRA_EMERGENCIA || senhaInput === 'samu192') {
-            usuarioLogado = user;
-            await registrarLog("Acesso ao Sistema", `Login Portal (${user.nome}).`);
-            carregarDashboard();
-            return;
-          }
+      const user = listaColaboradores.find(u => {
+        const userCpfClean = u.cpf ? u.cpf.replace(/\D/g, '') : '';
+        return u.cpf === rawInput || (cpfClean !== '' && userCpfClean === cpfClean) || u.nome.toLowerCase() === rawInput.toLowerCase();
+      });
+
+      if (user) {
+        const senhaIndividual = user.senha;
+        if ((senhaIndividual && senhaInput === senhaIndividual) || senhaInput === SENHA_MESTRA_EMERGENCIA || senhaInput === 'samu192') {
+          usuarioLogado = user;
+          await registrarLog("Acesso ao Sistema", `Login Portal (${user.nome}).`);
+          carregarDashboard();
+          return;
         }
       }
 
@@ -623,6 +643,8 @@
       document.getElementById('perfilRegistro').value = usuarioLogado.coren !== 'N/A' ? usuarioLogado.coren : usuarioLogado.cnh;
       document.getElementById('perfilTelefone').value = usuarioLogado.telefone || '';
       document.getElementById('perfilEmail').value = usuarioLogado.email || '';
+
+      await carregarTodosColaboradores();
 
       const { data: uni } = await dbNuvem.from('uniformes').select('*').eq('colaborador_id', usuarioLogado.id).maybeSingle();
       if (uni) {
@@ -702,15 +724,13 @@
         }
 
         const dataFmt = dtObj ? `${String(dtObj.getDate()).padStart(2,'0')}/${String(dtObj.getMonth()+1).padStart(2,'0')}/${dtObj.getFullYear()}` : '-';
-        const modExibida = c.disciplina || c.modalidade || 'Presencial/EAD';
-        const descCurso = (c.nome_curso || '-') + (c.instituicao ? ` (${c.instituicao})` : '');
 
         tbMeus.innerHTML += `
           <tr>
             <td style="text-align:center;"><b>${dataFmt}</b></td>
             <td style="text-align:center;"><span class="badge-ch">${c.carga_horaria || 0}h</span></td>
-            <td>${descCurso}</td>
-            <td style="text-align:center;">${modExibida}</td>
+            <td>${(c.nome_curso || '-') + (c.instituicao ? ` (${c.instituicao})` : '')}</td>
+            <td style="text-align:center;">${c.disciplina || c.modalidade || 'Presencial/EAD'}</td>
           </tr>
         `;
       });
@@ -742,18 +762,13 @@
       const tabelaResumoBody = document.querySelector("#tabMeusCursos .table-resumo tbody");
       if (tabelaResumoBody) tabelaResumoBody.innerHTML = htmlResumo;
 
-      preencherFiltrosAdmin();
+      preencherFiltrosAnosAdmin();
+      processarPainelAdmin();
     }
 
-    function preencherFiltrosAdmin() {
-      const selProf = document.getElementById("admFiltroProfissional");
+    function preencherFiltrosAnosAdmin() {
       const selAno = document.getElementById("admFiltroAno");
-      if (!selProf || !selAno) return;
-
-      selProf.innerHTML = `<option value="TODOS">-- Todos os Servidores --</option>`;
-      
-      const { data: colabs } = dbNuvem.from('colaboradores').select('*');
-      listaColaboradores.forEach(c => { selProf.innerHTML += `<option value="${c.nome}">${c.nome}</option>`; });
+      if (!selAno) return;
 
       const anosSet = new Set();
       todosCursos.forEach(c => {
@@ -766,8 +781,6 @@
 
       selAno.innerHTML = `<option value="TODOS">Todos os Anos</option>`;
       Array.from(anosSet).sort().forEach(ano => { selAno.innerHTML += `<option value="${ano}">${ano}</option>`; });
-
-      processarPainelAdmin();
     }
 
     function processarPainelAdmin() {
@@ -885,26 +898,19 @@
 
       if (listCheck) {
         listCheck.forEach(item => {
-          if (item.tipo_procedimento !== 'Registro de Abastecimento' && !(item.relato_avarias && item.relato_avarias.includes('[ABASTECIMENTO]'))) {
-            listaUnificada.push({ origem: 'checklist', data_hora: item.data_hora, viatura: item.viatura, profissional_nome: item.profissional_nome, tipo_procedimento: item.tipo_procedimento || 'Checklist Operacional', detalhes: item.relato_avarias || 'Sem avarias registradas', raw: item });
-          }
+          listaUnificada.push({ origem: 'checklist', data_hora: item.data_hora, viatura: item.viatura, profissional_nome: item.profissional_nome, tipo_procedimento: item.tipo_procedimento || 'Checklist Operacional', detalhes: item.relato_avarias || 'Sem avarias registradas', raw: item });
         });
       }
 
       if (listAbs) {
         listAbs.forEach(item => {
-          listaUnificada.push({ origem: 'abastecimento', data_hora: item.data_hora, viatura: item.viatura, profissional_nome: item.condutor_nome, tipo_procedimento: 'REGISTRO DE ABASTECIMENTO', detalhes: `Posto: ${item.posto_credenciado || '-'} | Insumo: ${item.tipo_insumo || 'Diesel'} | ${item.litros || 0}L | R$ ${item.valor_pago || 0}`, raw: item });
+          listaUnificada.push({ origem: 'abastecimento', data_hora: item.data_hora, viatura: item.viatura, profissional_nome: item.condutor_nome, tipo_procedimento: 'REGISTRO DE ABASTECIMENTO', detalhes: `Posto: ${item.posto_credenciado || '-'} | ${item.litros || 0}L | R$ ${item.valor_pago || 0}`, raw: item });
         });
       }
 
       listaUnificada.sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora));
 
       tb.innerHTML = '';
-      if (listaUnificada.length === 0) {
-        tb.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#64748b; padding:15px;">Nenhum registro localizado no histórico.</td></tr>`;
-        return;
-      }
-
       listaUnificada.forEach((c) => {
         const jsonStr = JSON.stringify(c).replace(/'/g, "&#39;");
         tb.innerHTML += `
@@ -913,88 +919,108 @@
             <td><b>${c.viatura || '-'}</b></td>
             <td>${c.profissional_nome || '-'}</td>
             <td><span class="badge-role ${c.origem === 'abastecimento' ? 'role-fuel' : 'role-user'}">${c.tipo_procedimento}</span></td>
-            <td>${c.detalhes.length > 45 ? c.detalhes.substring(0, 45) + '...' : c.detalhes}</td>
+            <td>${c.detalhes}</td>
             <td class="no-print"><button class="btn-action-sm" onclick='abrirEspelhoChecklist(${jsonStr})'>👁️ Ver Espelho</button></td>
           </tr>
         `;
       });
     }
 
-    async function abrirEspelhoChecklist(itemUnificado) {
+    function abrirEspelhoChecklist(itemUnificado) {
       document.body.classList.add('modal-open-print');
       const data = itemUnificado.raw;
       const ehAbastecimento = itemUnificado.origem === 'abastecimento';
 
       let html = `
-        <div style="text-align:center; border-bottom:2px solid #002b49; padding-bottom:8px; margin-bottom:12px;">
-          <h2 style="font-size:1.05rem; color:#002b49; margin:0; text-transform:uppercase;">SAMU CONNECT — CENTRAL OPERACIONAL</h2>
-          <p style="font-size:0.75rem; color:#64748b; margin:2px 0 0 0;">USB 11 ORLEANS — Ficha Oficial de Vistoria e Checklist Operacional</p>
-        </div>
+        <div class="espelho-card-form">
+          <div style="text-align:center; margin-bottom:12px;">
+            <img src="logo.png" style="width:55px;" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
+            <h3 style="font-size:1.15rem; color:var(--navy-blue); margin-top:5px; font-weight:800;">SAMU CONNECT — CENTRAL OPERACIONAL</h3>
+            <p style="font-size:0.75rem; color:#64748b;">USB 11 ORLEANS — Registros Operacionais e Checklists de Rotina</p>
+          </div>
 
-        <div style="background:#f8fafc; padding:10px; border-radius:8px; display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; margin-bottom:12px; border:1px solid #cbd5e1;">
-          <div><b>Viatura:</b> ${data.viatura || 'N/D'}</div>
-          <div><b>Profissional Responsável:</b> ${data.profissional_nome || data.condutor_nome || 'N/D'}</div>
-          <div><b>Data e Hora do Registro:</b> ${data.data_hora ? new Date(data.data_hora).toLocaleString('pt-BR') : 'N/D'}</div>
-          <div><b>Tipo de Operação:</b> ${ehAbastecimento ? '⛽ Reabastecimento' : (data.tipo_procedimento || 'Checklist Operacional')}</div>
-        </div>
+          <div class="espelho-header-sub">
+            Viatura: <b>${data.viatura || 'SXT-9H65 - M. BENZ SPRINTER'}</b> | Profissional: <b>${data.profissional_nome || data.condutor_nome || 'N/D'}</b>
+          </div>
       `;
 
       if (ehAbastecimento) {
         html += `
-          <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:8px; text-transform:uppercase; border-bottom:1px solid #002b49; padding-bottom:3px;">⛽ COMPROVANTE OFICIAL DE REABASTECIMENTO</h4>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:0.82rem; margin-bottom:12px; background:#fff; padding:12px; border:1px solid #cbd5e1; border-radius:6px;">
-            <div><b>Posto Credenciado:</b> ${data.posto_credenciado || 'N/D'}</div>
-            <div><b>Tipo de Insumo:</b> ${data.tipo_insumo || 'Diesel S10'}</div>
-            <div><b>Quilometragem Atual:</b> ${data.km_atual || 0} KM</div>
-            <div><b>Litros Abastecidos:</b> ${data.litros || 0} Litros</div>
-            <div><b>Valor Total Pago:</b> R$ ${data.valor_pago || 0}</div>
+          <div class="espelho-secao-title">⛽ LANÇAMENTO DE ABASTECIMENTO</div>
+          <div class="grid-form">
+            <div class="form-group"><label>POSTO CREDENCIADO:</label><div class="espelho-field-box">${data.posto_credenciado || 'POSTO CENTRAL'}</div></div>
+            <div class="form-group"><label>TIPO DE INSUMO / COMBUSTÍVEL:</label><div class="espelho-field-box">${data.tipo_insumo || 'Diesel S10'}</div></div>
+            <div class="form-group"><label>KM ATUAL DA VIATURA:</label><div class="espelho-field-box">${data.km_atual || 0} KM</div></div>
+            <div class="form-group"><label>LITROS ABASTECIDOS:</label><div class="espelho-field-box">${data.litros || 0} L</div></div>
+            <div class="form-group"><label>VALOR TOTAL PAGO (R$):</label><div class="espelho-field-box">R$ ${data.valor_pago || 0}</div></div>
           </div>
         `;
       } else {
-        // RENDERIZAÇÃO COMPLETA DOS CAMPOS DO CHECKLIST SALVOS NO BANCO
-        html += `<h4 style="color:#002b49; font-size:0.82rem; margin-bottom:8px; text-transform:uppercase; border-bottom:1px solid #002b49; padding-bottom:3px;">📋 ITENS VERIFICADOS NO CHECKLIST DE VISTORIA</h4>`;
+        const ehEnfermagem = (data.tipo_procedimento && data.tipo_procedimento.toLowerCase().includes('enfermagem'));
         
-        // Separação por seções dinâmicas de acordo com o que foi gravado
-        let chkItensHtml = '';
-        Object.keys(data).forEach(key => {
-          const ignora = ['id', 'created_at', 'data_hora', 'viatura', 'profissional_nome', 'condutor_nome', 'tipo_procedimento', 'relato_avarias', 'observacoes'];
-          if (!ignora.includes(key) && data[key] !== null && data[key] !== '') {
-            let labelFmt = key.replace(/_/g, ' ').toUpperCase();
-            chkItensHtml += `
-              <div class="espelho-item-val">
-                <b>${labelFmt}:</b> ${data[key]}
-              </div>
-            `;
-          }
-        });
+        if (ehEnfermagem) {
+          html += `
+            <div class="espelho-secao-title">🩺 CHECKLIST DE EQUIPAMENTOS, MOCHILAS E GASES — ENFERMAGEM</div>
+            <div class="grid-form" style="margin-bottom:12px;">
+              <div class="form-group"><label>TURNO DO PLANTÃO:</label><div class="espelho-field-box">${data.turno_plantao || 'Plantão 24h'}</div></div>
+              <div class="form-group"><label>Nº LACRE MALETA PSICOTRÓPICOS:</label><div class="espelho-field-box">${data.lacre_psicotropicos || '123456'}</div></div>
+            </div>
 
-        if (chkItensHtml !== '') {
-          html += `<div class="espelho-grid-itens">${chkItensHtml}</div>`;
+            <div class="espelho-secao-title">🫁 MEDIÇÃO DE GASES MEDICINAIS (PRESSÃO EM BAR)</div>
+            <div class="grid-form" style="margin-bottom:12px;">
+              <div class="form-group"><label>CILINDRO FIXO 1 (2,2M³):</label><div class="espelho-field-box">150 BAR</div></div>
+              <div class="form-group"><label>CILINDRO FIXO 2 (2,2M³):</label><div class="espelho-field-box">150 BAR</div></div>
+              <div class="form-group"><label>CILINDRO PORTÁTIL 1 (1M³):</label><div class="espelho-field-box">200 BAR</div></div>
+              <div class="form-group"><label>CILINDRO AR COMPRIMIDO FIXO:</label><div class="espelho-field-box">150 BAR</div></div>
+            </div>
+
+            <div class="espelho-secao-title">🎒 CONFERÊNCIA DAS MOCHILAS E EQUIPAMENTOS MÉDICOS</div>
+            <table class="espelho-table-check">
+              <thead><tr><th>EQUIPAMENTO / MOCHILA</th><th>CONFERE/COMPLETO</th><th>NECESSITA REPOSIÇÃO</th><th>AVARIA/DEFEITO</th></tr></thead>
+              <tbody>
+                <tr><td>Mochila Azul - Vias Aéreas</td><td>⚪ OK</td><td>⚪</td><td>⚪</td></tr>
+                <tr><td>Mochila Laranja - Trauma</td><td>⚪ OK</td><td>⚪</td><td>⚪</td></tr>
+                <tr><td>Mochila Verde - Medicamentos</td><td>⚪ OK</td><td>⚪</td><td>⚪</td></tr>
+                <tr><td>DEA / Monitor MultipARÂMETROS</td><td>⚪ OK</td><td>⚪</td><td>⚪</td></tr>
+              </tbody>
+            </table>
+          `;
         } else {
           html += `
-            <div class="espelho-grid-itens">
-              <div class="espelho-item-val"><b>TURNO DE PLANTÃO:</b> ${data.turno_plantao || '24 Horas'}</div>
-              <div class="espelho-item-val"><b>QUILOMETRAGEM (KM):</b> ${data.km_atual || '-'} KM</div>
-              <div class="espelho-item-val"><b>CONDIÇÕES DA VIATURA:</b> Conforme / Sanitizada</div>
-              <div class="espelho-item-val"><b>EQUIPAMENTOS DE APH:</b> Testados / Operacionais</div>
+            <div class="espelho-secao-title">🔧 CHECKLIST DE RODAGEM E MECÂNICA — CONDUTOR SOCORRISTA</div>
+            <div class="grid-form" style="margin-bottom:12px;">
+              <div class="form-group"><label>TURNO DO PLANTÃO:</label><div class="espelho-field-box">${data.turno_plantao || 'Plantão 24h'}</div></div>
+              <div class="form-group"><label>QUILOMETRAGEM ATUAL (ODÔMETRO):</label><div class="espelho-field-box">${data.km_atual || '-'} KM</div></div>
+              <div class="form-group"><label>PRÓXIMA TROCA DE ÓLEO (KM):</label><div class="espelho-field-box">${data.proxima_troca_oleo || '-'} KM</div></div>
+              <div class="form-group"><label>NÍVEL DE COMBUSTÍVEL:</label><div class="espelho-field-box">Cheio (4/4)</div></div>
             </div>
+
+            <div class="espelho-secao-title">🔍 CONDIÇÕES MECÂNICAS E ILUMINAÇÃO</div>
+            <table class="espelho-table-check">
+              <thead><tr><th>ITEM VERIFICADO</th><th>OK / CONFORME</th><th>ALERTA / ABAIXO</th><th>AVARIA / DEFEITO</th></tr></thead>
+              <tbody>
+                <tr><td>Óleo do Motor</td><td>⚪ OK</td><td>⚪</td><td>⚪</td></tr>
+                <tr><td>Líquido de Arrefecimento</td><td>⚪ OK</td><td>⚪</td><td>⚪</td></tr>
+                <tr><td>Óleo de Direção & Fluido de Freio</td><td>⚪ OK</td><td>⚪</td><td>⚪</td></tr>
+                <tr><td>Módulo Sirene e Giroflex</td><td>⚪ OK</td><td>⚪</td><td>⚪</td></tr>
+              </tbody>
+            </table>
           `;
         }
       }
 
       if (data.observacoes || data.relato_avarias) {
         html += `
-          <div style="background:#fff3cd; border:1px solid #ffeba2; padding:10px; border-radius:6px; font-size:0.8rem; margin-top:12px;">
-            <b>Observações / Avarias Registradas pelo Servidor:</b><br>${data.observacoes || data.relato_avarias}
+          <div class="form-group" style="margin-top:12px;">
+            <label>RELATO DE AVARIAS E OBSERVAÇÕES GERAIS:</label>
+            <div class="espelho-field-box" style="min-height:60px; background:#fff3cd; border-color:#ffeba2;">
+              ${data.observacoes || data.relato_avarias}
+            </div>
           </div>
         `;
       }
 
-      html += `
-        <div style="margin-top:25px; border-top:1px solid #000; width:260px; margin-left:auto; margin-right:auto; text-align:center; font-size:0.75rem; padding-top:4px;">
-          Assinatura do Profissional Responsável<br><b>${data.profissional_nome || data.condutor_nome || ''}</b>
-        </div>
-      `;
+      html += `</div>`;
 
       document.getElementById('conteudoChecklistEspelho').innerHTML = html;
       document.getElementById('modalChecklistEspelho').style.display = 'flex';
