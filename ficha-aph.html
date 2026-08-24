@@ -60,6 +60,9 @@
     .grid-paciente { display: grid; grid-template-columns: 1fr 0.6fr 0.7fr 1fr; gap: 4px; }
 
     label { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 1px; text-transform: uppercase; }
+    
+    .uppercase-input { text-transform: uppercase; }
+
     input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea {
       width: 100%;
       padding: 5px;
@@ -86,7 +89,7 @@
       height: 29px;
     }
 
-    /* MÓDULO J'S */
+    /* MÓDULO J'S COM BLOQUEIO DE FLUXO */
     .j-block-container {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -121,10 +124,16 @@
       cursor: pointer;
       touch-action: manipulation;
       user-select: none;
-      transition: transform 0.1s ease, background 0.1s ease;
+      transition: all 0.15 ease;
     }
 
-    .btn-j-badge:active {
+    .btn-j-badge:disabled {
+      background: #94a3b8 !important;
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-j-badge:active:not(:disabled) {
       background: var(--primary);
       transform: scale(0.96);
     }
@@ -142,24 +151,20 @@
       background: #ffffff !important;
     }
 
-    /* TABELA DE SINAIS VITAIS */
-    .sv-table { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.72rem; }
-    .sv-table th { background: #f1f5f9; padding: 3px; border: 1px solid #cbd5e1; font-size: 0.62rem; text-transform: uppercase; text-align: center; }
-    .sv-table td { padding: 2px; border: 1px solid #cbd5e1; text-align: center; }
-    .sv-table input { margin-bottom: 0; text-align: center; font-size: 0.78rem; padding: 3px; }
-    .btn-time-sv { background: var(--secondary); color: #fff; border: none; border-radius: 3px; padding: 2px 4px; font-size: 0.6rem; cursor: pointer; }
+    .j-time-input:disabled {
+      background: #e2e8f0 !important;
+      color: #64748b !important;
+    }
 
-    /* TABELA DE MEDICAÇÕES & INSUMOS */
-    .med-table { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.72rem; }
-    .med-table th { background: #f1f5f9; padding: 3px; border: 1px solid #cbd5e1; text-align: left; font-size: 0.62rem; text-transform: uppercase; }
-    .med-table td { padding: 2px; border: 1px solid #cbd5e1; }
-    .med-table input, .med-table select { margin-bottom: 0; font-size: 0.75rem; padding: 3px; }
+    /* TABELAS */
+    .sv-table, .med-table, .table-expo { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.72rem; }
+    .sv-table th, .med-table th, .table-expo th { background: #f1f5f9; padding: 3px; border: 1px solid #cbd5e1; font-size: 0.62rem; text-transform: uppercase; text-align: center; }
+    .sv-table td, .med-table td, .table-expo td { padding: 2px; border: 1px solid #cbd5e1; text-align: center; }
+    .sv-table input, .med-table input, .med-table select { margin-bottom: 0; text-align: center; font-size: 0.78rem; padding: 3px; }
+    
+    .btn-time-sv { background: var(--secondary); color: #fff; border: none; border-radius: 3px; padding: 2px 4px; font-size: 0.6rem; cursor: pointer; }
     .btn-add-med, .btn-add-sv { background: #166534; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; cursor: pointer; margin-top: 3px; }
     .btn-del-med { background: #991b1b; color: white; border: none; padding: 2px 5px; border-radius: 3px; font-weight: bold; cursor: pointer; }
-
-    .table-expo { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.68rem; }
-    .table-expo th { background: #f1f5f9; padding: 3px; border: 1px solid #cbd5e1; font-size: 0.6rem; text-transform: uppercase; }
-    .table-expo td { padding: 2px; border: 1px solid #cbd5e1; text-align: center; }
 
     .checkbox-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
     .checkbox-grid label {
@@ -173,6 +178,28 @@
       border: 1px solid #e2e8f0;
       font-size: 0.68rem;
     }
+
+    /* BOTÃO DITADO POR VOZ */
+    .btn-mic {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+      float: right;
+    }
+    .btn-mic.recording {
+      background: #dc2626;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
     canvas { border: 1px dashed var(--border); border-radius: 4px; width: 100%; height: 70px; background: #fff; touch-action: none; margin-top: 2px; }
 
@@ -195,7 +222,6 @@
       cursor: pointer;
     }
 
-    /* MODAL DE ALERTAS DA FICHA */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -214,18 +240,12 @@
       max-width: 400px;
       width: 100%;
       text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     }
-    .modal-box h3 { color: var(--primary-dark); font-size: 1.1rem; margin-bottom: 8px; text-transform: uppercase; font-weight: 800; }
-    .modal-box p { font-size: 0.85rem; color: var(--text); margin-bottom: 16px; font-weight: 600; }
-    .modal-btns { display: flex; gap: 8px; justify-content: center; }
-    .btn-modal-cancel { background: #64748b; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-    .btn-modal-confirm { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; }
 
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
       html, body { width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 6pt !important; }
-      .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .modal-overlay, button, script { display: none !important; }
+      .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .modal-overlay, button, script { display: none !important; }
       header { background: none !important; color: #000 !important; border-bottom: 1.5pt solid #000; padding: 0 !important; margin-bottom: 2px !important; border-left: none !important; }
       header img { height: 26px !important; }
       header h1 { font-size: 8.5pt !important; margin: 0; color: #000 !important; }
@@ -236,7 +256,7 @@
       input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.5pt solid #666 !important; background: transparent !important; padding: 0px 0 !important; font-weight: bold !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; }
       textarea { height: 10px !important; resize: none; }
       .j-block-container { grid-template-columns: repeat(6, 1fr) !important; gap: 1px !important; }
-      .btn-j-badge { background: #000 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; height: 16px !important; font-size: 5.5pt !important; min-width: 45px !important; }
+      .btn-j-badge { background: #000 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; height: 16px !important; font-size: 5.5pt !important; min-width: 45px !important; opacity: 1 !important; }
       .j-time-input { height: 16px !important; font-size: 6pt !important; border-bottom: 0.5pt solid #000 !important; }
       .sv-table th, .sv-table td, .med-table th, .med-table td { font-size: 5.2pt !important; padding: 1px !important; border: 0.5pt solid #000 !important; }
       canvas { height: 24px !important; border: 0.5pt solid #000 !important; }
@@ -258,7 +278,7 @@
     <div class="card">
       <h2>1. Controle Operacional & Equipe</h2>
       <div class="grid-3">
-        <div><label>Nº Ocorrência</label><input type="tel" inputmode="numeric" id="codigo" required placeholder="Apenas números"></div>
+        <div><label>Nº Ocorrência</label><input type="tel" inputmode="numeric" id="codigo" class="uppercase-input" required placeholder="Nº Ocorrência"></div>
         <div>
           <label>CÓDIGO COR</label>
           <select id="cor_ocorrencia">
@@ -272,7 +292,7 @@
       </div>
 
       <div class="grid-3">
-        <div><label>Médico Regulador</label><input type="text" id="regulador"></div>
+        <div><label>Médico Regulador</label><input type="text" id="regulador" class="uppercase-input" placeholder="MÉDICO REGULADOR"></div>
         <div>
           <label>Téc. de Enfermagem</label>
           <select id="tec_enfermeiro"><option value="">Buscando no Supabase...</option></select>
@@ -283,41 +303,41 @@
         </div>
       </div>
 
-      <!-- MÓDULO DOS J'S EM SETAS -->
+      <!-- MÓDULO DOS J'S COM BLOQUEIO DE FLUXO SEQUENCIAL -->
       <div class="j-block-container">
         <div class="j-row-tactical">
-          <button type="button" class="btn-j-badge" data-target="horaJ9">J9 ⏱️</button>
+          <button type="button" class="btn-j-badge" id="btnJ9" data-target="horaJ9">J9 ⏱️</button>
           <input type="time" id="horaJ9" class="j-time-input">
           <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Saída Base</span>
         </div>
 
         <div class="j-row-tactical">
-          <button type="button" class="btn-j-badge" data-target="horaJ10">J10 ⏱️</button>
-          <input type="time" id="horaJ10" class="j-time-input">
+          <button type="button" class="btn-j-badge" id="btnJ10" data-target="horaJ10" disabled>J10 ⏱️</button>
+          <input type="time" id="horaJ10" class="j-time-input" disabled>
           <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Cheg. Local</span>
         </div>
 
         <div class="j-row-tactical">
-          <button type="button" class="btn-j-badge" data-target="horaJ9_INT">J9-INT ⏱️</button>
-          <input type="time" id="horaJ9_INT" class="j-time-input">
+          <button type="button" class="btn-j-badge" id="btnJ9_INT" data-target="horaJ9_INT" disabled>J9-INT ⏱️</button>
+          <input type="time" id="horaJ9_INT" class="j-time-input" disabled>
           <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Saída Local</span>
         </div>
 
         <div class="j-row-tactical">
-          <button type="button" class="btn-j-badge" data-target="horaJ10_INT">J10-INT ⏱️</button>
-          <input type="time" id="horaJ10_INT" class="j-time-input">
+          <button type="button" class="btn-j-badge" id="btnJ10_INT" data-target="horaJ10_INT" disabled>J10-INT ⏱️</button>
+          <input type="time" id="horaJ10_INT" class="j-time-input" disabled>
           <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Destino</span>
         </div>
 
         <div class="j-row-tactical">
-          <button type="button" class="btn-j-badge" data-target="horaJ11">J11 ⏱️</button>
-          <input type="time" id="horaJ11" class="j-time-input">
+          <button type="button" class="btn-j-badge" id="btnJ11" data-target="horaJ11" disabled>J11 ⏱️</button>
+          <input type="time" id="horaJ11" class="j-time-input" disabled>
           <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Disponível</span>
         </div>
 
         <div class="j-row-tactical">
-          <button type="button" class="btn-j-badge" data-target="horaJ12">J12 ⏱️</button>
-          <input type="time" id="horaJ12" class="j-time-input">
+          <button type="button" class="btn-j-badge" id="btnJ12" data-target="horaJ12" disabled>J12 ⏱️</button>
+          <input type="time" id="horaJ12" class="j-time-input" disabled>
           <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Na Base</span>
         </div>
       </div>
@@ -340,7 +360,7 @@
 
       <div style="margin-top: 2px;">
         <label>Nome Completo do Paciente</label>
-        <input type="text" id="paciente" style="font-weight: 700;">
+        <input type="text" id="paciente" class="uppercase-input" style="font-weight: 700;" placeholder="NOME DO PACIENTE">
       </div>
 
       <div class="grid-paciente">
@@ -421,7 +441,7 @@
       </table>
     </div>
 
-    <!-- SINAIS VITAIS DINÂMICOS COM TECLADO NUMÉRICO -->
+    <!-- SINAIS VITAIS DINÂMICOS -->
     <div class="card">
       <h2>5. Sinais Vitais (Medições APH)</h2>
       <table class="sv-table">
@@ -438,7 +458,7 @@
           </tr>
         </thead>
         <tbody id="sv_body">
-          <!-- 1ª Linha Obrigatória (Script) -->
+          <!-- Linhas criadas via script -->
         </tbody>
       </table>
       <button type="button" class="btn-add-sv" onclick="addSvRow(false)">+ Adicionar Reavaliação de Sinais</button>
@@ -458,21 +478,52 @@
           </tr>
         </thead>
         <tbody id="meds_body">
-          <!-- Linhas de medicação -->
+          <!-- Linhas criadas via script -->
         </tbody>
       </table>
       <button type="button" class="btn-add-med" onclick="addMedRow()">+ Adicionar Medicamento / Insumo</button>
     </div>
 
-    <!-- ANAMNESE E EVOLUÇÃO -->
+    <!-- ANAMNESE E EVOLUÇÃO (CAMPOS DINÂMICOS + TRANSCRITOR DE VOZ) -->
     <div class="card">
       <h2>7. Anamnese, Evolução e Conduta</h2>
+      
       <div class="grid-2">
-        <div><label>Alergia?</label><select><option>NÃO</option><option>SIM</option></select></div>
-        <div><label>Medicações de Uso Contínuo</label><input type="text" placeholder="Remédios do paciente"></div>
+        <div>
+          <label>Possui Alergias?</label>
+          <select id="alergia_select" onchange="toggleAlergiaInput()">
+            <option value="NAO">NÃO</option>
+            <option value="SIM">SIM</option>
+          </select>
+        </div>
+        
+        <div id="alergia_desc_box" style="display: none;">
+          <label style="color: var(--primary-dark);">Relatar Medicamentos / Alergias</label>
+          <input type="text" id="alergia_desc" placeholder="Ex: Dipirona, Penicilina...">
+        </div>
       </div>
-      <div><label>Evolução e Conduta</label><textarea rows="2" placeholder="Procedimentos e conduta prestada..."></textarea></div>
-      <div class="grid-2">
+
+      <div style="margin-top: 4px;">
+        <label style="display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
+          <input type="checkbox" id="chk_med_continua" onchange="toggleMedContinuaInput()">
+          <span>Faz uso de medicação contínua?</span>
+        </label>
+      </div>
+
+      <div id="med_continua_box" style="display: none; margin-top: 3px;">
+        <label>Descrever Medicamentos de Uso Contínuo</label>
+        <input type="text" id="meds_continuas" placeholder="Ex: Losartana 50mg, Metformina 850mg...">
+      </div>
+
+      <div style="margin-top: 6px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <label>Evolução e Conduta</label>
+          <button type="button" class="btn-mic" id="btnMic" onclick="toggleDitadoVoz()">🎙️ Ouvir / Ditar</button>
+        </div>
+        <textarea id="evolucao_texto" rows="3" placeholder="Relato do atendimento, condutas realizadas e suporte prestado..."></textarea>
+      </div>
+
+      <div class="grid-2" style="margin-top: 4px;">
         <div><label>Técnico Resp.</label><input type="text" id="tec_resp"></div>
         <div><label>Destino / Hospital Receptor</label><input type="text" placeholder="Ex: Hospital Santa Otília"></div>
       </div>
@@ -504,14 +555,14 @@
     <button type="button" class="btn-submit" id="btnImprimir">Imprimir / Gerar 2 Vias A4</button>
   </form>
 
-  <!-- MODAL DE CONFIRMAÇÃO DE RECARREGAMENTO -->
+  <!-- MODAL ALERTA RECARREGAMENTO -->
   <div class="modal-overlay" id="reloadModal">
     <div class="modal-box">
-      <h3>⚠️ ATENÇÃO: PERDA DE DADOS!</h3>
-      <p>Você tem informações digitadas nesta Ficha APH. Se recarregar ou sair da página agora, todos os dados não salvos serão perdidos!</p>
-      <div class="modal-btns">
-        <button type="button" class="btn-modal-cancel" onclick="fecharModalReload()">Continuar Preenchendo</button>
-        <button type="button" class="btn-modal-confirm" onclick="confirmarReload()">Sair Sem Salvar</button>
+      <h3 style="color: var(--primary-dark);">⚠️ ATENÇÃO: PERDA DE DADOS!</h3>
+      <p style="font-size: 0.85rem; margin: 10px 0;">Existem dados digitados na Ficha APH. Se recarregar a página agora, todas as informações serão perdidas!</p>
+      <div style="display: flex; gap: 8px; justify-content: center; margin-top: 15px;">
+        <button type="button" style="background: #64748b; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold;" onclick="fecharModalReload()">Continuar Preenchendo</button>
+        <button type="button" style="background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold;" onclick="confirmarReload()">Sair Sem Salvar</button>
       </div>
     </div>
   </div>
@@ -523,16 +574,130 @@
     let _supabase = null;
     let listaInsumosEstoque = [];
     let formModificado = false;
+    let recognition = null;
+    let isRecording = false;
 
     if (window.supabase) {
       _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // REGISTRA ALTERAÇÕES PARA PROTEGER CONTRA RECARREGAMENTO
+    // REGISTRO DE CAIXA ALTA AUTOMÁTICA EM INPUTS COM A CLASSE .uppercase-input
+    document.querySelectorAll('.uppercase-input').forEach(input => {
+      input.addEventListener('input', (e) => {
+        e.target.value = e.target.value.toUpperCase();
+      });
+    });
+
+    // DINÂMICA DE EXIBIÇÃO: ALERGIAS E MEDICAÇÃO CONTÍNUA
+    function toggleAlergiaInput() {
+      const val = document.getElementById('alergia_select').value;
+      const box = document.getElementById('alergia_desc_box');
+      box.style.display = (val === 'SIM') ? 'block' : 'none';
+    }
+
+    function toggleMedContinuaInput() {
+      const chk = document.getElementById('chk_med_continua').checked;
+      const box = document.getElementById('med_continua_box');
+      box.style.display = chk ? 'block' : 'none';
+    }
+
+    // REGRA DE SEQUÊNCIA E HABILITAÇÃO DOS J'S
+    function acionarJTime(jCode, targetInputId) {
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      
+      const input = document.getElementById(targetInputId);
+      if (input) {
+        input.disabled = false;
+        input.value = timeStr;
+      }
+
+      formModificado = true;
+
+      // Lógica de liberação encadeada
+      if (jCode === 'J9') {
+        liberarJ('btnJ10', 'horaJ10');
+      } else if (jCode === 'J10') {
+        liberarJ('btnJ9_INT', 'horaJ9_INT');
+        liberarJ('btnJ11', 'horaJ11');
+      } else if (jCode === 'J9_INT') {
+        // Se for para o hospital, desabilita J11 direto e abre J10-INT
+        bloquearJ('btnJ11', 'horaJ11');
+        liberarJ('btnJ10_INT', 'horaJ10_INT');
+      } else if (jCode === 'J10_INT' || jCode === 'J11') {
+        liberarJ('btnJ12', 'horaJ12');
+      }
+    }
+
+    function liberarJ(btnId, inputId) {
+      const btn = document.getElementById(btnId);
+      const input = document.getElementById(inputId);
+      if (btn) btn.disabled = false;
+      if (input) input.disabled = false;
+    }
+
+    function bloquearJ(btnId, inputId) {
+      const btn = document.getElementById(btnId);
+      const input = document.getElementById(inputId);
+      if (btn) btn.disabled = true;
+      if (input) { input.disabled = true; input.value = ''; }
+    }
+
+    // TRANSCRIÇÃO DE VOZ (DITADO)
+    function toggleDitadoVoz() {
+      const btn = document.getElementById('btnMic');
+      const textarea = document.getElementById('evolucao_texto');
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("O seu navegador/tablet não possui suporte nativo para transcrição de voz.");
+        return;
+      }
+
+      if (isRecording) {
+        recognition.stop();
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'pt-BR';
+      recognition.continuous = true;
+      recognition.interimResults = false;
+
+      recognition.onstart = function() {
+        isRecording = true;
+        btn.classList.add('recording');
+        btn.innerHTML = '🛑 Gravando... Toque p/ Parar';
+      };
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[event.results.length - 1][0].transcript;
+        textarea.value += (textarea.value ? ' ' : '') + transcript;
+        formModificado = true;
+      };
+
+      recognition.onerror = function(e) {
+        console.warn("Erro no reconhecimento de voz:", e);
+        pararGravacao(btn);
+      };
+
+      recognition.onend = function() {
+        pararGravacao(btn);
+      };
+
+      recognition.start();
+    }
+
+    function pararGravacao(btn) {
+      isRecording = false;
+      btn.classList.remove('recording');
+      btn.innerHTML = '🎙️ Ouvir / Ditar';
+    }
+
+    // MODAL DE PROTEÇÃO CONTRA RECARREGAMENTO
     document.getElementById('aphForm').addEventListener('input', () => { formModificado = true; });
     document.getElementById('aphForm').addEventListener('change', () => { formModificado = true; });
 
-    // ALERTA DE RECARREGAMENTO DO NAVEGADOR
     window.addEventListener('beforeunload', function (e) {
       if (formModificado) {
         e.preventDefault();
@@ -541,7 +706,6 @@
       }
     });
 
-    // BLOQUEIO DE TECLAS DE ATALHO (F5 / CTRL+R) COM MODAL GRANDE
     window.addEventListener('keydown', function(e) {
       if ((e.key === 'F5') || (e.ctrlKey && e.key === 'r') || (e.metaKey && e.key === 'r')) {
         if (formModificado) {
@@ -551,23 +715,17 @@
       }
     });
 
-    function fecharModalReload() {
-      document.getElementById('reloadModal').style.display = 'none';
-    }
+    function fecharModalReload() { document.getElementById('reloadModal').style.display = 'none'; }
+    function confirmarReload() { formModificado = false; window.location.reload(); }
 
-    function confirmarReload() {
-      formModificado = false;
-      window.location.reload();
-    }
-
-    // 1. CONSULTA DE COLABORADORES E ESTOQUE
+    // INITIALIZAÇÃO E SUPABASE
     async function inicializarDados() {
       addSvRow(true);
 
       if (!_supabase) return;
 
       try {
-        const { data: colabs, error } = await _supabase.from('colaboradores').select('*').order('nome');
+        const { data: colabs } = await _supabase.from('colaboradores').select('*').order('nome');
         if (colabs && colabs.length > 0) {
           const selectTec = document.getElementById('tec_enfermeiro');
           const selectSoc = document.getElementById('socorrista');
@@ -593,7 +751,7 @@
       addMedRow();
     }
 
-    // 2. SINAIS VITAIS DINÂMICOS (COM TECLADO NUMÉRICO DIRETO)
+    // SINAIS VITAIS DINÂMICOS
     function addSvRow(isFirst = false) {
       const tbody = document.getElementById('sv_body');
       const tr = document.createElement('tr');
@@ -625,7 +783,7 @@
       formModificado = true;
     }
 
-    // 3. BUSCA PACIENTE CPF
+    // BUSCA PACIENTE CPF
     async function buscarPacienteCPF() {
       const cpfRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
       if (cpfRaw.length < 11) {
@@ -645,7 +803,7 @@
           return;
         }
 
-        document.getElementById('paciente').value = data.nome || '';
+        document.getElementById('paciente').value = (data.nome || '').toUpperCase();
         document.getElementById('cns_paciente').value = data.cns || '';
         document.getElementById('idade').value = data.idade || '';
         if (data.sexo) document.getElementById('sexo').value = data.sexo;
@@ -659,7 +817,7 @@
       } catch (err) { alert("Erro ao consultar CPF do paciente."); }
     }
 
-    // 4. MEDICAÇÕES
+    // MEDICAÇÕES
     function addMedRow() {
       const tbody = document.getElementById('meds_body');
       const tr = document.createElement('tr');
@@ -692,22 +850,25 @@
       }
     }
 
-    // Ação nos J's
+    // CLIQUE NOS BOTOES J DE FORMA SEQUENCIAL
     document.addEventListener('click', function(e) {
       const badgeBtn = e.target.closest('.btn-j-badge');
-      if (badgeBtn) {
+      if (badgeBtn && !badgeBtn.disabled) {
         e.preventDefault();
         const targetId = badgeBtn.getAttribute('data-target');
-        const input = document.getElementById(targetId);
-        if (input) {
-          const now = new Date();
-          input.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-          formModificado = true;
-        }
+        
+        let jCode = 'J9';
+        if (targetId.includes('J10_INT')) jCode = 'J10_INT';
+        else if (targetId.includes('J9_INT')) jCode = 'J9_INT';
+        else if (targetId.includes('J10')) jCode = 'J10';
+        else if (targetId.includes('J11')) jCode = 'J11';
+        else if (targetId.includes('J12')) jCode = 'J12';
+
+        acionarJTime(jCode, targetId);
       }
     });
 
-    // Máscara CPF
+    // MÁSCARA CPF
     document.getElementById('cpf_paciente').addEventListener('keyup', (e) => {
       let v = e.target.value.replace(/\D/g, "");
       if (v.length > 11) v = v.slice(0, 11);
@@ -717,7 +878,7 @@
       e.target.value = v;
     });
 
-    // Glasgow Calc
+    // GLASGOW CALC
     document.querySelectorAll('.g-calc').forEach(select => {
       select.addEventListener('change', () => {
         const o = parseInt(document.getElementById('g_oc').value) || 0;
@@ -727,7 +888,7 @@
       });
     });
 
-    // Canvas Assinatura
+    // CANVAS ASSINATURA
     const canvas = document.getElementById('sig-canvas');
     const ctx = canvas.getContext('2d');
     let writing = false;
@@ -761,11 +922,11 @@
 
     document.getElementById('btnClearSig').addEventListener('click', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); });
     document.getElementById('btnImprimir').addEventListener('click', () => { 
-      formModificado = false; // Permite imprimir sem disparar o alerta de saída
+      formModificado = false;
       window.print(); 
     });
 
-    // Inicialização
+    // INICIALIZAÇÃO
     document.getElementById('data').valueAsDate = new Date();
     document.getElementById('data_hora_recusa').value = new Date().toLocaleString('pt-BR');
     inicializarDados();
