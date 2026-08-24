@@ -90,6 +90,27 @@
       font-weight: 500;
     }
 
+    /* SELETOR TÁTICO DE CÓDIGO COR */
+    .codigo-group { display: flex; gap: 3px; margin-bottom: 3px; }
+    .btn-cor {
+      flex: 1;
+      border: 2px solid transparent;
+      padding: 5px 2px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+      color: #fff;
+      opacity: 0.5;
+      transition: all 0.15s ease;
+    }
+    .btn-cor.active { opacity: 1; transform: scale(1.02); border-color: #000; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    .cor-vd { background-color: #16a34a; }
+    .cor-am { background-color: #eab308; color: #000; }
+    .cor-vm { background-color: #dc2626; }
+    .cor-az { background-color: #2563eb; }
+
     /* BUSCA POR CPF */
     .search-group { display: flex; gap: 3px; }
     .btn-search {
@@ -142,10 +163,7 @@
       transition: all 0.15s ease;
     }
 
-    .btn-j-badge.btn-qta {
-      background: #991b1b !important;
-    }
-
+    .btn-j-badge.btn-qta { background: #991b1b !important; }
     .btn-j-badge:disabled { background: #94a3b8 !important; opacity: 0.4; cursor: not-allowed; }
     .btn-j-badge:active:not(:disabled) { background: var(--primary); transform: scale(0.96); }
 
@@ -189,9 +207,9 @@
       background: #0284c7;
       color: #fff;
       border: none;
-      padding: 3px 8px;
+      padding: 4px 10px;
       border-radius: 4px;
-      font-size: 0.65rem;
+      font-size: 0.68rem;
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
@@ -224,25 +242,28 @@
       cursor: pointer;
     }
 
+    /* OTIMIZAÇÃO DE IMPRESSÃO A4 - FOLHA ÚNICA */
     @media print {
-      @page { size: A4 portrait; margin: 3mm; }
-      html, body { width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 6pt !important; }
+      @page { size: A4 portrait; margin: 2mm; }
+      html, body { width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 5.5pt !important; line-height: 1.1; }
       .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, button, script { display: none !important; }
-      header { background: none !important; color: #000 !important; border-bottom: 1.5pt solid #000; padding: 0 !important; margin-bottom: 2px !important; border-left: none !important; }
-      header img { height: 26px !important; }
-      header h1 { font-size: 8.5pt !important; margin: 0; color: #000 !important; }
-      header p { font-size: 5pt !important; margin: 0; font-weight: bold; color: #000 !important; }
-      .card { box-shadow: none !important; border: 0.5pt solid #000 !important; margin-bottom: 1px !important; padding: 0 !important; border-radius: 0 !important; page-break-inside: avoid !important; }
-      .card-header { background: none !important; color: #000 !important; border-bottom: 0.5pt solid #000 !important; padding: 1px 3px !important; font-size: 6pt !important; }
-      .card-body { display: block !important; padding: 2px 3px !important; }
-      label { font-size: 4.8pt !important; color: #000 !important; margin-bottom: 0px !important; }
-      input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.5pt solid #666 !important; background: transparent !important; padding: 0px 0 !important; font-weight: bold !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; }
-      textarea { height: 10px !important; resize: none; }
+      header { background: none !important; color: #000 !important; border-bottom: 1pt solid #000; padding: 0 !important; margin-bottom: 1px !important; border-left: none !important; }
+      header img { height: 20px !important; }
+      header h1 { font-size: 7.5pt !important; margin: 0; color: #000 !important; }
+      header p { font-size: 4.5pt !important; margin: 0; font-weight: bold; color: #000 !important; }
+      .card { box-shadow: none !important; border: 0.4pt solid #000 !important; margin-bottom: 1px !important; padding: 0 !important; border-radius: 0 !important; page-break-inside: avoid !important; }
+      .card-header { background: none !important; color: #000 !important; border-bottom: 0.4pt solid #000 !important; padding: 1px 2px !important; font-size: 5.2pt !important; }
+      .card-body { display: block !important; padding: 1px 2px !important; }
+      label { font-size: 4.2pt !important; color: #000 !important; margin-bottom: 0px !important; }
+      input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.4pt solid #444 !important; background: transparent !important; padding: 0px !important; font-weight: bold !important; font-size: 5.2pt !important; margin-bottom: 0px !important; height: auto !important; }
+      textarea { height: 24px !important; resize: none; }
+      .codigo-group { display: inline-flex !important; gap: 2px !important; }
+      .btn-cor { padding: 1px 4px !important; font-size: 4.8pt !important; opacity: 1 !important; border: 0.4pt solid #000 !important; }
       .j-block-container { grid-template-columns: repeat(7, 1fr) !important; gap: 1px !important; }
-      .btn-j-badge { background: #000 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; height: 16px !important; font-size: 5.5pt !important; min-width: 40px !important; opacity: 1 !important; }
-      .j-time-input { height: 16px !important; font-size: 6pt !important; border-bottom: 0.5pt solid #000 !important; }
-      .sv-table th, .sv-table td, .med-table th, .med-table td { font-size: 5.2pt !important; padding: 1px !important; border: 0.5pt solid #000 !important; }
-      canvas { height: 24px !important; border: 0.5pt solid #000 !important; }
+      .btn-j-badge { background: #000 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; height: 13px !important; font-size: 4.8pt !important; min-width: 32px !important; opacity: 1 !important; }
+      .j-time-input { height: 13px !important; font-size: 5pt !important; border-bottom: 0.4pt solid #000 !important; }
+      .sv-table th, .sv-table td, .med-table th, .med-table td { font-size: 4.8pt !important; padding: 0px 1px !important; border: 0.4pt solid #000 !important; }
+      canvas { height: 20px !important; border: 0.4pt solid #000 !important; }
     }
   </style>
 </head>
@@ -268,13 +289,14 @@
         <div class="grid-3">
           <div><label>Nº Ocorrência</label><input type="tel" inputmode="numeric" id="codigo" class="uppercase-input" required placeholder="Nº Ocorrência"></div>
           <div>
-            <label>CÓDIGO COR</label>
-            <select id="cor_ocorrencia">
-              <option value="VD">VD (Verde)</option>
-              <option value="AM">AM (Amarelo)</option>
-              <option value="VM">VM (Vermelho)</option>
-              <option value="AZ">AZ (Azul)</option>
-            </select>
+            <label>CÓDIGO TRIAGEM</label>
+            <input type="hidden" id="cor_ocorrencia" value="VD">
+            <div class="codigo-group">
+              <button type="button" class="btn-cor cor-vd active" onclick="selecionarCodigo('VD', this)">VD</button>
+              <button type="button" class="btn-cor cor-am" onclick="selecionarCodigo('AM', this)">AM</button>
+              <button type="button" class="btn-cor cor-vm" onclick="selecionarCodigo('VM', this)">VM</button>
+              <button type="button" class="btn-cor cor-az" onclick="selecionarCodigo('AZ', this)">AZ</button>
+            </div>
           </div>
           <div><label>Data</label><input type="date" id="data"></div>
         </div>
@@ -287,11 +309,11 @@
         <div class="grid-2">
           <div>
             <label>Téc. de Enfermagem</label>
-            <select id="tec_enfermeiro"><option value="">Buscando no Supabase...</option></select>
+            <select id="tec_enfermeiro" onchange="sincronizarTecnicoResp()"><option value="">Carregando do Supabase...</option></select>
           </div>
           <div>
             <label>Socorrista (Condutor)</label>
-            <select id="socorrista"><option value="">Buscando no Supabase...</option></select>
+            <select id="socorrista"><option value="">Carregando do Supabase...</option></select>
           </div>
         </div>
 
@@ -340,7 +362,6 @@
           </div>
         </div>
 
-        <!-- JUSTIFICATIVA DO QTA (EXIBIDA SE ACIONADO) -->
         <div id="qta_box" style="display: none; margin-top: 6px; background: #fef2f2; padding: 6px; border: 1px solid #fca5a5; border-radius: 4px;">
           <label style="color: #991b1b;">Justificativa do QTA (Cancelamento do Atendimento)*</label>
           <input type="text" id="qta_motivo" placeholder="Informe o motivo da dispensa/cancelamento pela regulação...">
@@ -364,7 +385,10 @@
             </div>
           </div>
           <div><label>CNS (Cartão SUS)</label><input type="tel" inputmode="numeric" id="cns_paciente" placeholder="000 0000 0000 0000" maxlength="15"></div>
-          <div><label>CEP</label><input type="tel" inputmode="numeric" id="cep_paciente" placeholder="00000-000" maxlength="9"></div>
+          <div>
+            <label>CEP</label>
+            <input type="tel" inputmode="numeric" id="cep_paciente" placeholder="00000-000" maxlength="9" onkeyup="mascaraEBuscarCEP(this)">
+          </div>
         </div>
 
         <div style="margin-top: 2px;">
@@ -385,7 +409,6 @@
           <div><label>Telefone</label><input type="tel" inputmode="numeric" id="telefone" placeholder="(00) 00000-0000"></div>
         </div>
 
-        <!-- ENDEREÇO REORGANIZADO -->
         <div class="grid-endereco" style="margin-top: 2px;">
           <div><label>Rua / Logradouro</label><input type="text" id="rua" placeholder="Nome da rua ou rodovia..."></div>
           <div><label>Nº Casa / Apto</label><input type="text" id="numero" placeholder="Nº"></div>
@@ -549,16 +572,19 @@
           </div>
         </div>
 
-        <div style="margin-top: 4px;">
-          <label style="display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
-            <input type="checkbox" id="chk_med_continua" onchange="toggleMedContinuaInput()">
-            <span>Faz uso de medicação contínua?</span>
-          </label>
-        </div>
+        <div class="grid-2" style="margin-top: 4px;">
+          <div>
+            <label>Uso de Medicação Contínua?</label>
+            <select id="med_continua_select" onchange="toggleMedContinuaInput()">
+              <option value="NAO">NÃO</option>
+              <option value="SIM">SIM</option>
+            </select>
+          </div>
 
-        <div id="med_continua_box" style="display: none; margin-top: 3px;">
-          <label>Descrever Medicamentos de Uso Contínuo</label>
-          <input type="text" id="meds_continuas" placeholder="Ex: Losartana 50mg, Metformina 850mg...">
+          <div id="med_continua_box" style="display: none;">
+            <label style="color: var(--primary-dark);">Descrever Medicamentos Contínuos</label>
+            <input type="text" id="meds_continuas" placeholder="Ex: Losartana 50mg, Metformina 850mg...">
+          </div>
         </div>
 
         <div style="margin-top: 6px;">
@@ -566,12 +592,16 @@
             <label>Evolução e Conduta (Com IA Tática de Transcrição)</label>
             <button type="button" class="btn-mic" id="btnMic" onclick="toggleDitadoVoz()">🎙️ Ditar c/ Parser Médico</button>
           </div>
-          <textarea id="evolucao_texto" rows="3" placeholder="Relato do atendimento, condutas realizadas e suporte prestado..."></textarea>
+          <textarea id="evolucao_texto" rows="5" placeholder="Relato completo do atendimento, condutas realizadas e suporte prestado..."></textarea>
         </div>
 
         <div class="grid-2" style="margin-top: 4px;">
-          <div><label>Técnico Resp.</label><input type="text" id="tec_resp"></div>
-          <div><label>Destino / Hospital Receptor</label><input type="text" placeholder="Ex: Hospital Santa Otília"></div>
+          <div><label>Técnico Resp. (Automático)</label><input type="text" id="tec_resp" readonly style="background: #e2e8f0; font-weight: bold;"></div>
+          <div>
+            <label>Destino / Hospital Receptor</label>
+            <select id="hospital_destino" onchange="toggleHospitalOutros()"><option value="">Buscando Hospitais...</option></select>
+            <input type="text" id="hospital_outros" placeholder="Digite o nome do Hospital..." style="display: none; margin-top: 3px;">
+          </div>
         </div>
       </div>
     </div>
@@ -613,7 +643,6 @@
 
     let _supabase = null;
     let listaInsumosEstoque = [];
-    let formModificado = false;
     let wakeLock = null;
     let recognition = null;
     let isRecording = false;
@@ -622,43 +651,81 @@
       _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // 1. TRAVA DE BRILHO DE TELA DO TABLET (WAKE LOCK API)
+    // 1. TELA ACESA
     async function reterTelaAcesa() {
       try {
-        if ('wakeLock' in navigator) {
-          wakeLock = await navigator.wakeLock.request('screen');
-        }
-      } catch (err) {
-        console.warn("Screen Wake Lock não suportado pelo tablet/navegador:", err);
+        if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+      } catch (err) {}
+    }
+    document.getElementById('aphForm').addEventListener('click', reterTelaAcesa, { once: true });
+
+    // 2. SELEÇÃO DE CÓDIGO
+    function selecionarCodigo(cor, btn) {
+      document.getElementById('cor_ocorrencia').value = cor;
+      document.querySelectorAll('.btn-cor').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      salvarLocal();
+    }
+
+    // 3. MÁSCARA E BUSCA AUTOMÁTICA DE CEP (ViaCEP)
+    async function mascaraEBuscarCEP(input) {
+      let v = input.value.replace(/\D/g, "");
+      if (v.length > 8) v = v.slice(0, 8);
+      v = v.replace(/^(\d{5})(\d)/, "$1-$2");
+      input.value = v;
+
+      const cepSemMascara = v.replace("-", "");
+      if (cepSemMascara.length === 8) {
+        try {
+          const res = await fetch(`https://viacep.com.br/ws/${cepSemMascara}/json/`);
+          const data = await res.json();
+          if (!data.erro) {
+            if (data.localidade) document.getElementById('municipio').value = data.localidade;
+            if (data.bairro) document.getElementById('bairro').value = data.bairro;
+            if (data.logradouro) document.getElementById('rua').value = data.logradouro;
+            salvarLocal();
+          }
+        } catch(e) {}
       }
     }
 
-    document.getElementById('aphForm').addEventListener('click', reterTelaAcesa, { once: true });
-
-    // 2. SISTEMA ACCORDION
+    // 4. ACCORDION
     function toggleCard(cardId) {
       const card = document.getElementById(cardId);
       if (card) card.classList.toggle('active');
     }
 
-    // 3. MÁSCARA INTELIGENTE DE TELEFONE COM DDD
-    document.getElementById('telefone').addEventListener('keyup', (e) => {
-      let v = e.target.value.replace(/\D/g, "");
-      if (v.length > 11) v = v.slice(0, 11);
+    // 5. SINCRONIZAR TÉCNICO RESPONSÁVEL
+    function sincronizarTecnicoResp() {
+      const selectTec = document.getElementById('tec_enfermeiro');
+      document.getElementById('tec_resp').value = selectTec.value;
+      salvarLocal();
+    }
 
-      if (v.length > 10) {
-        v = v.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
-      } else if (v.length > 6) {
-        v = v.replace(/^(\d{2})(\d{4})(\d{0,4})$/, "($1) $2-$3");
-      } else if (v.length > 2) {
-        v = v.replace(/^(\d{2})(\d{0,5})$/, "($1) $2");
-      } else if (v.length > 0) {
-        v = v.replace(/^(\d*)$/, "($1");
-      }
-      e.target.value = v;
-    });
+    // 6. HOSPITAL RECEPTOR DINÂMICO
+    function toggleHospitalOutros() {
+      const select = document.getElementById('hospital_destino');
+      const inputOutros = document.getElementById('hospital_outros');
+      inputOutros.style.display = (select.value === 'OUTROS') ? 'block' : 'none';
+      salvarLocal();
+    }
 
-    // 4. PARSER MÉDICO E TRANSCRITOR DE VOZ
+    // 7. AUTO-SAVE LOCAL
+    function salvarLocal() {
+      const formData = {};
+      document.querySelectorAll('#aphForm input, #aphForm select, #aphForm textarea').forEach(el => {
+        if (el.id) {
+          if (el.type === 'checkbox') formData[el.id] = el.checked;
+          else formData[el.id] = el.value;
+        }
+      });
+      localStorage.setItem('aph_draft_data', JSON.stringify(formData));
+    }
+
+    document.getElementById('aphForm').addEventListener('input', salvarLocal);
+    document.getElementById('aphForm').addEventListener('change', salvarLocal);
+
+    // 8. PARSER MÉDICO E TRANSCRITOR DE VOZ
     const dicionarioMedico = {
       "pressao alta": "Hipertensão Arterial",
       "pressao baixa": "Hipotensão Arterial",
@@ -689,7 +756,7 @@
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
-        alert("O tablet/navegador não possui suporte para transcrição de voz.");
+        alert("O tablet não possui suporte para transcrição de voz.");
         return;
       }
 
@@ -708,7 +775,7 @@
       recognition.onresult = function(event) {
         const transcriptBruto = event.results[event.results.length - 1][0].transcript;
         textarea.value += processarTextoMedico(transcriptBruto);
-        formModificado = true;
+        salvarLocal();
       };
 
       recognition.onend = function() {
@@ -720,7 +787,7 @@
       recognition.start();
     }
 
-    // 5. CAIXA ALTA AUTOMÁTICA
+    // CAIXA ALTA
     document.querySelectorAll('.uppercase-input').forEach(input => {
       input.addEventListener('input', (e) => { e.target.value = e.target.value.toUpperCase(); });
     });
@@ -731,11 +798,11 @@
     }
 
     function toggleMedContinuaInput() {
-      const chk = document.getElementById('chk_med_continua').checked;
-      document.getElementById('med_continua_box').style.display = chk ? 'block' : 'none';
+      const val = document.getElementById('med_continua_select').value;
+      document.getElementById('med_continua_box').style.display = (val === 'SIM') ? 'block' : 'none';
     }
 
-    // 6. REGRA SEQUENCIAL DOS J'S E QTA
+    // 9. BOTOES J & QTA
     function acionarJTime(jCode, targetInputId) {
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -745,8 +812,6 @@
         input.disabled = false;
         input.value = timeStr;
       }
-
-      formModificado = true;
 
       if (jCode === 'J9') {
         liberarJ('btnJ10', 'horaJ10');
@@ -768,6 +833,7 @@
       } else if (jCode === 'J10_INT' || jCode === 'J11') {
         liberarJ('btnJ12', 'horaJ12');
       }
+      salvarLocal();
     }
 
     function liberarJ(btnId, inputId) {
@@ -784,14 +850,15 @@
       if (input) { input.disabled = true; input.value = ''; }
     }
 
-    // 7. CONSULTA DE COLABORADORES E ESTOQUE (COM CORREÇÃO DE BUSCA NO SUPABASE)
+    // 10. CONSULTA DE COLABORADORES, HOSPITAIS E ESTOQUE
     async function inicializarDados() {
       addSvRow(true);
 
       if (!_supabase) return;
 
+      // Carrega Todos os Colaboradores Sem Filtros
       try {
-        const { data: colabs, error } = await _supabase.from('colaboradores').select('*').order('nome');
+        const { data: colabs } = await _supabase.from('colaboradores').select('*').order('nome');
         if (colabs && colabs.length > 0) {
           const selectTec = document.getElementById('tec_enfermeiro');
           const selectSoc = document.getElementById('socorrista');
@@ -799,22 +866,29 @@
           selectSoc.innerHTML = '<option value="">-- Selecione o Condutor --</option>';
 
           colabs.forEach(c => {
-            const funcLower = (c.funcao || '').toLowerCase();
-            const corenVal = c.coren || '';
-
-            // Popula Técnicos de Enfermagem
-            if ((corenVal && corenVal !== 'N/A') || funcLower.includes('técnico') || funcLower.includes('tecnico') || funcLower.includes('enferm')) {
-              selectTec.innerHTML += `<option value="${c.nome} - COREN ${corenVal}">${c.nome} (${corenVal || 'Téc'})</option>`;
-            }
-
-            // Popula Condutores / Socorristas
-            if (funcLower.includes('condutor') || funcLower.includes('socorrista') || funcLower.includes('motorista')) {
-              selectSoc.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
-            }
+            const corenVal = c.coren ? ` (COREN ${c.coren})` : '';
+            selectTec.innerHTML += `<option value="${c.nome}">${c.nome}${corenVal}</option>`;
+            selectSoc.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
           });
         }
-      } catch(e) { console.warn("Erro ao buscar colaboradores:", e); }
+      } catch(e) {}
 
+      // Carrega Hospitais
+      try {
+        const { data: hospitais } = await _supabase.from('hospitais').select('*').order('nome');
+        const selectHosp = document.getElementById('hospital_destino');
+        selectHosp.innerHTML = '<option value="">-- Selecione o Hospital --</option>';
+        if (hospitais && hospitais.length > 0) {
+          hospitais.forEach(h => {
+            selectHosp.innerHTML += `<option value="${h.nome}">${h.nome}</option>`;
+          });
+        }
+        selectHosp.innerHTML += '<option value="OUTROS">OUTROS (Digitar Nome...)</option>';
+      } catch(e) {
+        document.getElementById('hospital_destino').innerHTML = '<option value="OUTROS">OUTROS (Digitar Nome...)</option>';
+      }
+
+      // Carrega Estoque
       try {
         const { data: est } = await _supabase.from('estoque_lotes').select('id, item_nome, lote, data_validade').gt('quantidade', 0);
         if (est) {
@@ -827,7 +901,7 @@
             datalist.appendChild(opt);
           });
         }
-      } catch(e) { console.warn("Erro ao buscar estoque:", e); }
+      } catch(e) {}
 
       addMedRow();
     }
@@ -861,7 +935,7 @@
       const timeInput = tr.querySelector('.sv-time-val');
       const now = new Date();
       timeInput.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      formModificado = true;
+      salvarLocal();
     }
 
     // BUSCA PACIENTE CPF
@@ -894,6 +968,7 @@
         document.getElementById('rua').value = data.rua || '';
         document.getElementById('numero').value = data.numero || '';
         if (data.cep) document.getElementById('cep_paciente').value = data.cep;
+        salvarLocal();
 
       } catch (err) { alert("Erro ao consultar CPF do paciente."); }
     }
@@ -926,9 +1001,10 @@
         tr.querySelector('.med-lote').value = '';
         tr.querySelector('.med-val').value = '';
       }
+      salvarLocal();
     }
 
-    // CLIQUE BOTOES J E QTA
+    // BOTOES J E QTA
     document.addEventListener('click', function(e) {
       const badgeBtn = e.target.closest('.btn-j-badge');
       if (badgeBtn && !badgeBtn.disabled) {
@@ -964,6 +1040,7 @@
         const v = parseInt(document.getElementById('g_verb').value) || 0;
         const m = parseInt(document.getElementById('g_mot').value) || 0;
         document.getElementById('glasgow_total_val').innerText = `Total Glasgow: ${o + v + m} / 15`;
+        salvarLocal();
       });
     });
 
@@ -989,7 +1066,6 @@
     canvas.addEventListener('touchstart', (e) => {
       writing = true; ctx.beginPath();
       const pos = getTouchPos(e); ctx.moveTo(pos.x, pos.y);
-      formModificado = true;
     }, { passive: false });
 
     canvas.addEventListener('touchend', () => { writing = false; });
@@ -1001,9 +1077,8 @@
 
     document.getElementById('btnClearSig').addEventListener('click', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); });
     
-    // PREPARA O FORMULÁRIO PARA IMPRESSÃO EXPANDINDO TODAS AS SEÇÕES
+    // PREPARA O FORMULÁRIO PARA IMPRESSÃO EXPANDINDO TODAS AS SEÇÕES EM A4
     document.getElementById('btnImprimir').addEventListener('click', () => { 
-      formModificado = false;
       document.querySelectorAll('.card').forEach(c => c.classList.add('active'));
       window.print(); 
     });
