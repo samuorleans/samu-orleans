@@ -140,10 +140,26 @@
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
     }
 
+    /* TABELAS COM ALINHAMENTOS AJUSTADOS (ITEM 6 ESQUERDA / QTD CENTRO) */
     .sv-table, .med-table, .table-expo { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.72rem; }
     .sv-table th, .med-table th, .table-expo th { background: #f1f5f9; padding: 3px; border: 1px solid #cbd5e1; font-size: 0.62rem; text-transform: uppercase; text-align: center; }
-    .sv-table td, .med-table td, .table-expo td { padding: 2px; border: 1px solid #cbd5e1; text-align: center; }
-    .sv-table input, .med-table input { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: center; }
+    .med-table th:first-child { text-align: left; padding-left: 5px; }
+    
+    .sv-table td, .table-expo td { padding: 2px; border: 1px solid #cbd5e1; text-align: center; }
+    .med-table td { padding: 2px; border: 1px solid #cbd5e1; text-align: left; }
+    .med-table td.td-center { text-align: center; }
+
+    .sv-table input { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: center; }
+    .med-table input.med-search-input { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: left; }
+    .med-table input.med-qtd { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: center; }
+
+    .psico-box {
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      padding: 5px;
+      border-radius: 4px;
+      margin-top: 3px;
+    }
     
     .btn-time-sv { background: var(--secondary); color: #fff; border: none; border-radius: 3px; padding: 2px 4px; font-size: 0.6rem; cursor: pointer; }
     .btn-add-med, .btn-add-sv { background: #166534; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; cursor: pointer; margin-top: 3px; }
@@ -214,8 +230,12 @@
       .j-print-label { display: block !important; font-size: 4.2pt !important; font-weight: 900 !important; text-transform: uppercase; text-align: center; }
       .j-time-input { height: 11px !important; font-size: 5.5pt !important; font-weight: 900 !important; border: none !important; text-align: center !important; width: 100% !important; }
 
-      .sv-table th, .sv-table td, .med-table th, .med-table td, .table-expo th, .table-expo td { font-size: 5pt !important; padding: 1px !important; border: 0.4pt solid #000 !important; text-align: center !important; }
-      .med-table input { text-align: center !important; }
+      .sv-table th, .sv-table td, .table-expo th, .table-expo td { font-size: 5pt !important; padding: 1px !important; border: 0.4pt solid #000 !important; text-align: center !important; }
+      .med-table th, .med-table td { font-size: 5pt !important; padding: 1px !important; border: 0.4pt solid #000 !important; }
+      .med-table td { text-align: left !important; }
+      .med-table td.td-center { text-align: center !important; }
+      .med-table input.med-search-input { text-align: left !important; }
+      .med-table input.med-qtd { text-align: center !important; }
       
       canvas { height: 28px !important; border: 0.4pt solid #000 !important; }
 
@@ -465,7 +485,7 @@
       </div>
     </div>
 
-    <!-- SEÇÃO 4: AVALIAÇÃO TÁTICA ABCDE -->
+    <!-- SEÇÃO 4: AVALIAÇÃO TÁTICA ABCDE E BIOSSEGURANÇA -->
     <div class="card" id="sec4">
       <div class="card-header" onclick="toggleCard('sec4')">
         <span>4. Avaliação Tática & Exame Físico (ABCDE)</span>
@@ -555,6 +575,42 @@
             </tbody>
           </table>
         </div>
+
+        <!-- REGRA 2: ÁRVORE DE DECISÃO DE BIOSSEGURANÇA -->
+        <div style="margin-top: 6px; padding: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;">
+          <label style="color: var(--secondary); font-weight: 800; font-size: 0.68rem;">
+            ☣️ BIOSSEGURANÇA: PACIENTE COM SUSPEITA OU CONFIRMAÇÃO DE DOENÇA INFECTOCONTAGIOSA / MATERIAL BIOLÓGICO?
+          </label>
+          <select id="bio_suspeita" onchange="alternarBiosseguranca(this)">
+            <option value="NAO">NÃO</option>
+            <option value="SIM">SIM</option>
+          </select>
+
+          <div id="box_bio_detalhes" style="display: none; margin-top: 4px;">
+            <div class="grid-2">
+              <div>
+                <label style="color: var(--primary-dark);">TIPO DE SUSPEITA / AGENTE BIOLÓGICO OU EXPOSIÇÃO</label>
+                <select id="bio_tipo_agente" onchange="alternarBioOutros(this)">
+                  <option value="Síndrome Respiratória/Gripal">Síndrome Respiratória / Gripal</option>
+                  <option value="Contato com Fluidos/Sangue/Secreções">Contato com Fluidos / Sangue / Secreções</option>
+                  <option value="Arboviroses/Doenças Transmissíveis">Arboviroses / Doenças Transmissíveis</option>
+                  <option value="Escabiose/Parasitoses">Escabiose / Parasitoses</option>
+                  <option value="OUTROS">OUTROS (ESPECIFICAR)</option>
+                </select>
+                <input type="text" id="bio_agente_outros" class="uppercase-input" placeholder="DESCREVA A SUSPEITA OU AGENTE..." style="display: none; margin-top: 2px;">
+              </div>
+              <div>
+                <label style="color: var(--primary-dark);">DESINFECÇÃO DA VIATURA APÓS ATENDIMENTO</label>
+                <select id="bio_desinfeccao">
+                  <option value="Sim - Desinfecção Concorrente">SIM — DESINFECÇÃO CONCORRENTE</option>
+                  <option value="Sim - Desinfecção Terminal">SIM — DESINFECÇÃO TERMINAL</option>
+                  <option value="Não se aplica">NÃO SE APLICA</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -607,8 +663,8 @@
             <thead>
               <tr>
                 <th>Insumo Selecionado (Com Lote e Validade)</th>
-                <th style="width: 80px;">Qtd</th>
-                <th style="width: 35px;">#</th>
+                <th style="width: 80px; text-align: center;">Qtd</th>
+                <th style="width: 35px; text-align: center;">#</th>
               </tr>
             </thead>
             <tbody id="meds_body">
@@ -806,6 +862,18 @@
       e.returnValue = 'Atenção: Os dados do APH não salvos podem ser perdidos. Deseja realmente sair?';
       return e.returnValue;
     });
+
+    function alternarBiosseguranca(selectEl) {
+      const box = document.getElementById('box_bio_detalhes');
+      box.style.display = (selectEl.value === 'SIM') ? 'block' : 'none';
+      salvarLocal();
+    }
+
+    function alternarBioOutros(selectEl) {
+      const inputOutros = document.getElementById('bio_agente_outros');
+      inputOutros.style.display = (selectEl.value === 'OUTROS') ? 'block' : 'none';
+      salvarLocal();
+    }
 
     function alternarExibicaoExposicaoTrauma() {
       const chk = document.getElementById('chk_trauma');
@@ -1305,10 +1373,10 @@
 
       try {
         const [resMestre, resLotes] = await Promise.all([
-          fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=codigo_insumo,descricao_insumo,categoria&exibir_no_aph=eq.true&order=descricao_insumo.asc`, {
+          fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=codigo_insumo,descricao_insumo,categoria,is_psicotropico&exibir_no_aph=eq.true&order=descricao_insumo.asc`, {
             headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
           }),
-          fetch(`${SUPABASE_URL}/rest/v1/estoque_lotes?select=descricao_insumo,numero_lote,data_validade&order=data_validade.asc`, {
+          fetch(`${SUPABASE_URL}/rest/v1/estoque_lotes?select=id,descricao_insumo,numero_lote,data_validade,quantidade_saldo&order=data_validade.asc`, {
             headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
           })
         ]);
@@ -1321,13 +1389,13 @@
         try {
           const { data: dMestre } = await _supabase
             .from('estoque_mestre')
-            .select('codigo_insumo, descricao_insumo, categoria')
+            .select('codigo_insumo, descricao_insumo, categoria, is_psicotropico')
             .eq('exibir_no_aph', true)
             .order('descricao_insumo', { ascending: true });
 
           const { data: dLotes } = await _supabase
             .from('estoque_lotes')
-            .select('descricao_insumo, numero_lote, data_validade')
+            .select('id, descricao_insumo, numero_lote, data_validade, quantidade_saldo')
             .order('data_validade', { ascending: true });
 
           if (dMestre) mestreRes = dMestre;
@@ -1351,20 +1419,26 @@
 
               mapaLotesUnificados.push({
                 label: labelExibicao,
+                lote_id: l.id,
                 codigo: m.codigo_insumo || '',
                 descricao: m.descricao_insumo,
                 numero_lote: l.numero_lote || '',
-                data_validade: l.data_validade || ''
+                data_validade: l.data_validade || '',
+                saldo: l.quantidade_saldo || 0,
+                is_psicotropico: !!m.is_psicotropico
               });
             });
           } else {
             const labelExibicao = `${m.descricao_insumo} — Lote: SEM LOTE | Val: N/A`;
             mapaLotesUnificados.push({
               label: labelExibicao,
+              lote_id: null,
               codigo: m.codigo_insumo || '',
               descricao: m.descricao_insumo,
               numero_lote: 'SEM LOTE',
-              data_validade: ''
+              data_validade: '',
+              saldo: 0,
+              is_psicotropico: !!m.is_psicotropico
             });
           }
         });
@@ -1486,22 +1560,60 @@
       salvarLocal();
     }
 
+    /* REGRA 1: CONTROLE DINÂMICO DE PSICOTRÓPICOS & LACRES */
     function addMedRow() {
       const tbody = document.getElementById('meds_body');
       const tr = document.createElement('tr');
 
       tr.innerHTML = `
         <td>
-          <input type="text" list="listaInsumosLotesAPH" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR INSUMO, LOTE OU VALIDADE..." onchange="salvarLocal()">
+          <input type="text" list="listaInsumosLotesAPH" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR INSUMO, LOTE OU VALIDADE..." onchange="verificarPsicotropico(this)">
+          
+          <div class="psico-box" style="display: none;">
+            <label style="color: #c2410c; font-weight: 800;">🔒 CONTROLE DE PSICOTRÓPICO & LACRES</label>
+            <div class="grid-3" style="margin-top: 2px;">
+              <div>
+                <label>VIA ADMINISTRADA</label>
+                <select class="psico-via">
+                  <option value="EV">EV (Endovenosa)</option>
+                  <option value="IM">IM (Intramuscular)</option>
+                  <option value="SC">SC (Subcutânea)</option>
+                </select>
+              </div>
+              <div>
+                <label>Nº LACRE ROMPIDO</label>
+                <input type="text" class="psico-lacre-rompido uppercase-input" placeholder="Nº ROMPIDO" onchange="salvarLocal()">
+              </div>
+              <div>
+                <label>Nº NOVO LACRE</label>
+                <input type="text" class="psico-lacre-novo uppercase-input" placeholder="Nº NOVO" onchange="salvarLocal()">
+              </div>
+            </div>
+          </div>
         </td>
-        <td>
+        <td class="td-center">
           <input type="number" inputmode="numeric" class="med-qtd" value="1" min="1" onchange="salvarLocal()">
         </td>
-        <td>
+        <td class="td-center">
           <button type="button" class="btn-del-med" onclick="this.closest('tr').remove(); salvarLocal();">🗑️</button>
         </td>
       `;
       tbody.appendChild(tr);
+    }
+
+    function verificarPsicotropico(inputEl) {
+      const val = inputEl.value.trim();
+      const tr = inputEl.closest('tr');
+      const psicoBox = tr.querySelector('.psico-box');
+      
+      const itemEncontrado = mapaLotesUnificados.find(i => i.label === val);
+
+      if (itemEncontrado && itemEncontrado.is_psicotropico) {
+        psicoBox.style.display = 'block';
+      } else {
+        psicoBox.style.display = 'none';
+      }
+      salvarLocal();
     }
 
     function obterInsumosUtilizadosPayload() {
@@ -1513,7 +1625,8 @@
           descricao: 'NENHUM INSUMO OU MEDICAÇÃO UTILIZADO',
           numero_lote: 'N/A',
           data_validade: null,
-          quantidade: 0
+          quantidade: 0,
+          is_psicotropico: false
         }];
       }
 
@@ -1523,26 +1636,48 @@
       linhas.forEach(tr => {
         const inputLabel = tr.querySelector('.med-search-input');
         const inputQtd = tr.querySelector('.med-qtd');
+        const psicoBox = tr.querySelector('.psico-box');
 
         if (inputLabel && inputLabel.value.trim() !== '') {
           const valDigitado = inputLabel.value.trim();
           const itemEncontrado = mapaLotesUnificados.find(i => i.label === valDigitado);
 
+          const isPsico = (psicoBox && psicoBox.style.display !== 'none');
+          let via = null;
+          let lacreRompido = null;
+          let lacreNovo = null;
+
+          if (isPsico) {
+            via = tr.querySelector('.psico-via').value;
+            lacreRompido = tr.querySelector('.psico-lacre-rompido').value.toUpperCase();
+            lacreNovo = tr.querySelector('.psico-lacre-novo').value.toUpperCase();
+          }
+
           if (itemEncontrado) {
             insumosArray.push({
+              lote_id: itemEncontrado.lote_id,
               codigo: itemEncontrado.codigo,
               descricao: itemEncontrado.descricao,
               numero_lote: itemEncontrado.numero_lote,
               data_validade: itemEncontrado.data_validade,
-              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1
+              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
+              is_psicotropico: isPsico,
+              via_administrada: via,
+              lacre_rompido: lacreRompido,
+              lacre_novo: lacreNovo
             });
           } else {
             insumosArray.push({
+              lote_id: null,
               codigo: null,
               descricao: valDigitado.toUpperCase(),
               numero_lote: 'N/A',
               data_validade: null,
-              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1
+              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
+              is_psicotropico: isPsico,
+              via_administrada: via,
+              lacre_rompido: lacreRompido,
+              lacre_novo: lacreNovo
             });
           }
         }
@@ -1551,9 +1686,60 @@
       return insumosArray;
     }
 
+    /* REGRA 3: BAIXA AUTOMÁTICA DE ESTOQUE NOS LOTES */
+    async function processarBaixaEstoqueELacres(insumosPayload, codigoOcorrencia) {
+      if (!insumosPayload || !insumosPayload.length) return;
+
+      for (const item of insumosPayload) {
+        if (item.lote_id && item.quantidade > 0) {
+          try {
+            const itemAtual = mapaLotesUnificados.find(l => l.lote_id === item.lote_id);
+            if (itemAtual) {
+              const novoSaldo = Math.max(0, (itemAtual.saldo || 0) - item.quantidade);
+              
+              if (_supabase) {
+                await _supabase
+                  .from('estoque_lotes')
+                  .update({ quantidade_saldo: novoSaldo })
+                  .eq('id', item.lote_id);
+              }
+            }
+          } catch (e) {}
+        }
+
+        /* REGISTRO NA TABELA OPERACIONAL_SAUDE_LACRES PARA PSICOTRÓPICOS */
+        if (item.is_psicotropico && item.lacre_rompido && item.lacre_novo) {
+          try {
+            const lacrePayload = {
+              codigo_ocorrencia: codigoOcorrencia,
+              medicamento: item.descricao,
+              lote: item.numero_lote,
+              via_administrada: item.via_administrada,
+              lacre_rompido: item.lacre_rompido,
+              lacre_novo: item.lacre_novo,
+              responsavel: document.getElementById('tec_resp').value || 'N/A',
+              created_at: new Date().toISOString()
+            };
+
+            if (_supabase) {
+              await _supabase
+                .from('operacional_saude_lacres')
+                .insert([lacrePayload]);
+            }
+          } catch (e) {}
+        }
+      }
+    }
+
     async function salvarFichaOcorrenciaAPH() {
       try {
         const insumosPayload = obterInsumosUtilizadosPayload();
+
+        const bioSuspeita = document.getElementById('bio_suspeita').value;
+        const bioTipoAgente = (bioSuspeita === 'SIM') ? 
+          (document.getElementById('bio_tipo_agente').value === 'OUTROS' ? document.getElementById('bio_agente_outros').value : document.getElementById('bio_tipo_agente').value) 
+          : 'NÃO';
+        const bioDesinfeccao = (bioSuspeita === 'SIM') ? document.getElementById('bio_desinfeccao').value : 'N/A';
 
         const payload = {
           codigo_ocorrencia: document.getElementById('codigo').value,
@@ -1576,6 +1762,9 @@
           municipio: document.getElementById('municipio').value,
           estado: document.getElementById('estado').value,
           glasgow_total: (parseInt(document.getElementById('g_oc').value) || 0) + (parseInt(document.getElementById('g_verb').value) || 0) + (parseInt(document.getElementById('g_mot').value) || 0),
+          bio_suspeita: bioSuspeita,
+          bio_tipo_agente: bioTipoAgente,
+          bio_desinfeccao: bioDesinfeccao,
           evolucao_texto: document.getElementById('evolucao_texto').value,
           desfecho_vitima: document.getElementById('desfecho_vitima').value,
           houve_recusa: document.getElementById('houve_recusa').value,
@@ -1597,6 +1786,8 @@
 
           if (error) {
             alert("Erro ao gravar APH no Supabase: " + error.message);
+          } else {
+            await processarBaixaEstoqueELacres(insumosPayload, payload.codigo_ocorrencia);
           }
         }
       } catch (err) {
@@ -1700,7 +1891,7 @@
       const confirmacao = confirm(
         "⚠️ ATENÇÃO: CONFIRMA A IMPRESSÃO DA FICHA?\n\n" +
         "• Certifique-se de que todos os dados estão corretos.\n" +
-        "• Após a impressão, os dados serão salvos definitivamente na base de dados.\n" +
+        "• Após a impressão, os dados serão salvos e o estoque será abatido no Supabase.\n" +
         "• Os campos desta ficha serão LIMPOS e não será possível editar esta ocorrência localmente.\n\n" +
         "Deseja realmente prosseguir com a impressão?"
       );
