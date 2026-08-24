@@ -59,6 +59,7 @@
     
     .status-aph-sim { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
     .status-aph-nao { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+    .badge-psico { background: #fdf2f8; color: #9d174d; border: 1px solid #f472b6; padding: 2px 6px; border-radius: 4px; font-weight: 800; font-size: 0.68rem; margin-left: 6px; display: inline-block; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
     .modal-box { background: white; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; border-radius: 16px; padding: 24px; box-shadow: var(--shadow); position: relative; }
@@ -144,7 +145,7 @@
       </div>
     </div>
 
-    <!-- ABA 3: INSUMOS (COM BUSCA LOCAL, FILTRO E TOGGLE DIRETO NA TABELA) -->
+    <!-- ABA 3: INSUMOS -->
     <div id="secaoInsumos" style="display: none;">
       <div class="action-bar">
         <div class="filter-box">
@@ -210,7 +211,7 @@
     <a href="index.html" class="btn-voltar">⬅️ Voltar ao Painel Principal</a>
   </div>
 
-  <!-- MODAL DE EDICAO DO SERVIDOR E UNIFORMES -->
+  <!-- MODAL DE SERVIDOR -->
   <div class="modal-overlay" id="modalColaborador">
     <div class="modal-box">
       <div class="modal-header">
@@ -224,14 +225,8 @@
 
         <div class="form-section-title">📋 Dados Pessoais & Situação Administrativa (`colaboradores`)</div>
         <div class="grid-form">
-          <div class="form-group">
-            <label>Nome Completo:*</label>
-            <input type="text" id="modal_nome" required>
-          </div>
-          <div class="form-group">
-            <label>CPF:*</label>
-            <input type="text" id="modal_cpf" required>
-          </div>
+          <div class="form-group"><label>Nome Completo:*</label><input type="text" id="modal_nome" required></div>
+          <div class="form-group"><label>CPF:*</label><input type="text" id="modal_cpf" required></div>
           <div class="form-group">
             <label>Função:*</label>
             <select id="modal_funcao" required>
@@ -250,54 +245,21 @@
             </select>
           </div>
 
-          <div class="form-group">
-            <label>COREN:</label>
-            <input type="text" id="modal_coren">
-          </div>
-          <div class="form-group">
-            <label>CNH:</label>
-            <input type="text" id="modal_cnh">
-          </div>
-          <div class="form-group">
-            <label>Telefone / WhatsApp:</label>
-            <input type="text" id="modal_fone">
-          </div>
-          <div class="form-group">
-            <label>Senha Única:*</label>
-            <input type="password" id="modal_senha" required>
-          </div>
+          <div class="form-group"><label>COREN:</label><input type="text" id="modal_coren"></div>
+          <div class="form-group"><label>CNH:</label><input type="text" id="modal_cnh"></div>
+          <div class="form-group"><label>Telefone / WhatsApp:</label><input type="text" id="modal_fone"></div>
+          <div class="form-group"><label>Senha Única:*</label><input type="password" id="modal_senha" required></div>
         </div>
 
         <div class="form-section-title">👕 Tamanhos de Uniformes e Equipamentos (`uniformes`)</div>
         <div class="grid-form">
-          <div class="form-group">
-            <label>Tipo Sanguíneo:</label>
-            <input type="text" id="modal_sangue" placeholder="Ex: A+">
-          </div>
-          <div class="form-group">
-            <label>Nome de Guerra:</label>
-            <input type="text" id="modal_nome_guerra">
-          </div>
-          <div class="form-group">
-            <label>Macacão:</label>
-            <input type="text" id="modal_macacao">
-          </div>
-          <div class="form-group">
-            <label>Camiseta:</label>
-            <input type="text" id="modal_camiseta">
-          </div>
-          <div class="form-group">
-            <label>Jaqueta:</label>
-            <input type="text" id="modal_jaqueta">
-          </div>
-          <div class="form-group">
-            <label>Coturno (Número):</label>
-            <input type="text" id="modal_coturno">
-          </div>
-          <div class="form-group">
-            <label>Capa de Chuva:</label>
-            <input type="text" id="modal_capa_chuva">
-          </div>
+          <div class="form-group"><label>Tipo Sanguíneo:</label><input type="text" id="modal_sangue" placeholder="Ex: A+"></div>
+          <div class="form-group"><label>Nome de Guerra:</label><input type="text" id="modal_nome_guerra"></div>
+          <div class="form-group"><label>Macacão:</label><input type="text" id="modal_macacao"></div>
+          <div class="form-group"><label>Camiseta:</label><input type="text" id="modal_camiseta"></div>
+          <div class="form-group"><label>Jaqueta:</label><input type="text" id="modal_jaqueta"></div>
+          <div class="form-group"><label>Coturno (Número):</label><input type="text" id="modal_coturno"></div>
+          <div class="form-group"><label>Capa de Chuva:</label><input type="text" id="modal_capa_chuva"></div>
         </div>
 
         <button type="submit" class="btn-salvar-modal">💾 Salvar Dados nas Tabelas Supabase</button>
@@ -328,7 +290,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE INSUMO COM GERAÇÃO DE CÓDIGO E CONTROLE DE ESTOQUE -->
+  <!-- MODAL DE INSUMO -->
   <div class="modal-overlay" id="modalInsumo">
     <div class="modal-box">
       <div class="modal-header">
@@ -354,11 +316,11 @@
           </div>
           <div class="form-group">
             <label>Código Insumo:*</label>
-            <input type="text" id="modal_insumo_cod" placeholder="Ex: MED-001 (Gerado Auto)" required>
+            <input type="text" id="modal_insumo_cod" placeholder="Ex: MED-001" required>
           </div>
           <div class="form-group" style="grid-column: span 3;">
             <label>Descrição do Insumo:*</label>
-            <input type="text" id="modal_insumo_desc" placeholder="Ex: Paracetamol 200 mg/mL, Gaze..." required>
+            <input type="text" id="modal_insumo_desc" placeholder="Ex: Diazepam 10mg, Morfina..." required>
           </div>
         </div>
 
@@ -373,11 +335,20 @@
           </div>
         </div>
 
-        <div class="form-group" style="margin-top: 15px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1.5px solid var(--border);">
-          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none; font-size: 0.85rem;">
-            <input type="checkbox" id="modal_insumo_aph" style="width: 18px; height: 18px;">
-            <b>Exibir e liberar este item na Ficha de Atendimento (APH)</b>
-          </label>
+        <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1.5px solid var(--border);">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none; font-size: 0.85rem;">
+              <input type="checkbox" id="modal_insumo_aph" style="width: 18px; height: 18px;">
+              <b>Exibir e liberar este item na Ficha de Atendimento (APH)</b>
+            </label>
+          </div>
+
+          <div style="background: #fdf2f8; padding: 12px; border-radius: 8px; border: 1.5px solid #f472b6;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none; font-size: 0.85rem; color: #9d174d;">
+              <input type="checkbox" id="modal_insumo_psico" style="width: 18px; height: 18px;">
+              <b>🔒 É medicamento controlled / psicotrópico (Exige Lacre & Via na Ficha APH)</b>
+            </label>
+          </div>
         </div>
 
         <button type="submit" class="btn-salvar-modal">💾 Salvar Insumo no Estoque Mestre</button>
@@ -408,16 +379,23 @@
   </div>
 
   <script>
-    const dbNuvem = supabase.createClient(
-      "https://rcpgukslnlfptreiusff.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
-    );
+    const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
 
+    let dbNuvem = null;
     let listaGlobalInsumos = [];
 
-    window.onload = function() {
+    function obterSupabase() {
+      if (!dbNuvem && window.supabase) {
+        dbNuvem = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+      return dbNuvem;
+    }
+
+    function inicializarPainel() {
+      obterSupabase();
       carregarColaboradores();
-    };
+    }
 
     function alternarAba(aba) {
       document.getElementById('secaoColaboradores').style.display = aba === 'colaboradores' ? 'block' : 'none';
@@ -430,23 +408,25 @@
       document.getElementById('tabInsumos').classList.toggle('active', aba === 'insumos');
       document.getElementById('tabPostos').classList.toggle('active', aba === 'postos');
 
+      if (aba === 'colaboradores') carregarColaboradores();
       if (aba === 'viaturas') carregarViaturas();
       if (aba === 'postos') carregarPostos();
       if (aba === 'insumos') carregarInsumos();
     }
 
-    /* CARREGAMENTO DE SERVIDORES */
     async function carregarColaboradores() {
       const tbody = document.getElementById('tbodyColaboradores');
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando base e afastamentos...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando base de colaboradores...</td></tr>';
+
+      const client = obterSupabase();
+      if (!client) return;
 
       try {
-        const { data: servidores } = await dbNuvem.from('colaboradores').select('*').order('nome', { ascending: true });
-        const { data: afastamentos } = await dbNuvem.from('afastamentos').select('*');
+        const { data: servidores, error: errServ } = await client.from('colaboradores').select('*').order('nome', { ascending: true });
+        const { data: afastamentos } = await client.from('afastamentos').select('*');
 
         if (servidores && servidores.length > 0) {
           tbody.innerHTML = '';
-          
           servidores.forEach(s => {
             let badgeHtml = '<span class="badge-status status-ativo">🟢 ATIVO</span>';
 
@@ -456,11 +436,7 @@
               const af = afastamentos.find(a => a.colaborador_id === s.id || a.cpf === s.cpf);
               if (af) {
                 const tipo = (af.tipo || af.motivo || 'LICENÇA').toUpperCase();
-                if (tipo.includes('FÉRIAS') || tipo.includes('FERIAS')) {
-                  badgeHtml = '<span class="badge-status status-ferias">🌴 FÉRIAS</span>';
-                } else {
-                  badgeHtml = `<span class="badge-status status-atestado">🏥 ${tipo}</span>`;
-                }
+                badgeHtml = tipo.includes('FERIAS') ? '<span class="badge-status status-ferias">🌴 FÉRIAS</span>' : `<span class="badge-status status-atestado">🏥 ${tipo}</span>`;
               }
             }
 
@@ -478,69 +454,101 @@
               </tr>
             `;
           });
-        } else { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum colaborador encontrado.</td></tr>'; }
-      } catch (err) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Erro ao carregar lista.</td></tr>'; }
+        } else {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum colaborador cadastrado.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#d32f2f;">Erro ao carregar colaboradores.</td></tr>';
+      }
     }
 
-    /* CARREGAMENTO DE VIATURAS E POSTOS */
     async function carregarViaturas() {
       const tbody = document.getElementById('tbodyViaturas');
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Consultando frota...</td></tr>';
-      const { data } = await dbNuvem.from('operacional_viaturas').select('*');
-      if (data && data.length > 0) {
-        tbody.innerHTML = '';
-        data.forEach(v => {
-          tbody.innerHTML += `<tr>
-            <td><b>${v.prefixo || '—'}</b></td>
-            <td>${v.placa || '—'}</td>
-            <td>${v.modelo || '—'}</td>
-            <td>🟢 ${v.status || 'ATIVA'}</td>
-            <td>
-              <button class="btn-editar" onclick="abrirModalViatura('${v.id}')">✏️ Editar</button>
-              <button class="btn-excluir" onclick="deletarItem('operacional_viaturas', ${v.id}, carregarViaturas)">🗑️ Excluir</button>
-            </td>
-          </tr>`;
-        });
-      } else { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma viatura.</td></tr>'; }
+
+      const client = obterSupabase();
+      if (!client) return;
+
+      try {
+        const { data, error } = await client.from('operacional_viaturas').select('*');
+        if (data && data.length > 0) {
+          tbody.innerHTML = '';
+          data.forEach(v => {
+            tbody.innerHTML += `<tr>
+              <td><b>${v.prefixo || '—'}</b></td>
+              <td>${v.placa || '—'}</td>
+              <td>${v.modelo || '—'}</td>
+              <td>🟢 ${v.status || 'ATIVA'}</td>
+              <td>
+                <button class="btn-editar" onclick="abrirModalViatura('${v.id}')">✏️ Editar</button>
+                <button class="btn-excluir" onclick="deletarItem('operacional_viaturas', ${v.id}, carregarViaturas)">🗑️ Excluir</button>
+              </td>
+            </tr>`;
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma viatura cadastrada.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#d32f2f;">Erro ao carregar viaturas.</td></tr>';
+      }
     }
 
     async function carregarPostos() {
       const tbody = document.getElementById('tbodyPostos');
       tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando postos...</td></tr>';
-      const { data } = await dbNuvem.from('operacional_postos').select('*');
-      if (data && data.length > 0) {
-        tbody.innerHTML = '';
-        data.forEach(p => {
-          tbody.innerHTML += `<tr>
-            <td><b>${p.nome_posto || '—'}</b></td>
-            <td>${p.cidade || 'Orleans'}</td>
-            <td>🟢 ${p.status || 'ATIVO'}</td>
-            <td>
-              <button class="btn-editar" onclick="abrirModalPosto('${p.id}')">✏️ Editar</button>
-              <button class="btn-excluir" onclick="deletarItem('operacional_postos', ${p.id}, carregarPostos)">🗑️ Excluir</button>
-            </td>
-          </tr>`;
-        });
-      } else { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum posto.</td></tr>'; }
+
+      const client = obterSupabase();
+      if (!client) return;
+
+      try {
+        const { data, error } = await client.from('operacional_postos').select('*');
+        if (data && data.length > 0) {
+          tbody.innerHTML = '';
+          data.forEach(p => {
+            tbody.innerHTML += `<tr>
+              <td><b>${p.nome_posto || '—'}</b></td>
+              <td>${p.cidade || 'Orleans'}</td>
+              <td>🟢 ${p.status || 'ATIVO'}</td>
+              <td>
+                <button class="btn-editar" onclick="abrirModalPosto('${p.id}')">✏️ Editar</button>
+                <button class="btn-excluir" onclick="deletarItem('operacional_postos', ${p.id}, carregarPostos)">🗑️ Excluir</button>
+              </td>
+            </tr>`;
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum posto cadastrado.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#d32f2f;">Erro ao carregar postos.</td></tr>';
+      }
     }
 
-    /* CARREGAMENTO DE INSUMOS EM ORDEM ALFABÉTICA + BUSCA LOCAL */
     async function carregarInsumos() {
       const tbody = document.getElementById('tbodyInsumos');
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando estoque mestre...</td></tr>';
-      
-      const { data, error } = await dbNuvem
-        .from('estoque_mestre')
-        .select('*')
-        .order('descricao_insumo', { ascending: true });
 
-      if (error) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#d32f2f;">Erro ao carregar insumos.</td></tr>';
-        return;
+      const client = obterSupabase();
+      if (!client) return;
+
+      try {
+        const { data, error } = await client.from('estoque_mestre').select('*');
+
+        if (error) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#d32f2f;">Erro ao carregar insumos.</td></tr>';
+          return;
+        }
+
+        listaGlobalInsumos = data || [];
+        listaGlobalInsumos.sort((a, b) => {
+          const nameA = (a.descricao_insumo || a.descricao || a.nome || '').toUpperCase();
+          const nameB = (b.descricao_insumo || b.descricao || b.nome || '').toUpperCase();
+          return nameA.localeCompare(nameB);
+        });
+
+        filtrarInsumosLocal();
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#d32f2f;">Falha na consulta do estoque.</td></tr>';
       }
-
-      listaGlobalInsumos = data || [];
-      filtrarInsumosLocal();
     }
 
     function filtrarInsumosLocal() {
@@ -549,7 +557,7 @@
 
       const filtrados = listaGlobalInsumos.filter(item => {
         const desc = (item.descricao_insumo || item.descricao || item.nome || '').toLowerCase();
-        const cod = (item.codigo_insumo || '').toLowerCase();
+        const cod = (item.codigo_insumo || item.codigo_item || '').toLowerCase();
         const cat = item.categoria || '';
 
         const bateTexto = desc.includes(busca) || cod.includes(busca);
@@ -572,13 +580,15 @@
 
       lista.forEach(i => {
         const desc = i.descricao_insumo || i.descricao || i.nome || '—';
-        const cod = i.codigo_insumo || '—';
+        const cod = i.codigo_insumo || i.codigo_item || '—';
         const cat = i.categoria || 'COMBUSTIVEL';
         const min = i.estoque_minimo !== undefined && i.estoque_minimo !== null ? i.estoque_minimo : 10;
         const max = i.estoque_maximo !== undefined && i.estoque_maximo !== null ? i.estoque_maximo : 100;
         const estaAtivo = i.exibir_no_aph !== false;
+        const ehPsico = i.is_psicotropico === true;
 
-        // SELETOR CLICÁVEL DIRETO NA TABELA (TOGGLE EM TEMPO REAL)
+        const badgePsico = ehPsico ? '<span class="badge-psico">🔒 PSICOTRÓPICO</span>' : '';
+
         const toggleAPH = `
           <label style="display: inline-flex; align-items: center; cursor: pointer; gap: 6px;">
             <input type="checkbox" 
@@ -593,7 +603,7 @@
 
         tbody.innerHTML += `<tr>
           <td><b>${cod}</b></td>
-          <td><b>${desc}</b></td>
+          <td><b>${desc}</b>${badgePsico}</td>
           <td>${cat}</td>
           <td style="text-align: center; color: #64748b; font-weight: 600;">${min} / ${max}</td>
           <td style="text-align: center;">${toggleAPH}</td>
@@ -605,38 +615,32 @@
       });
     }
 
-    // ATUALIZA O CAMPO exibir_no_aph DIRETO NO SUPABASE
     async function alternarExibicaoAPH(id, novoStatus, nomeInsumo) {
+      const client = obterSupabase();
       try {
-        const { error } = await dbNuvem
-          .from('estoque_mestre')
-          .update({ exibir_no_aph: novoStatus })
-          .eq('id', id);
-
+        const { error } = await client.from('estoque_mestre').update({ exibir_no_aph: novoStatus }).eq('id', id);
         if (error) throw error;
-
         const item = listaGlobalInsumos.find(x => x.id === id);
         if (item) item.exibir_no_aph = novoStatus;
-
         filtrarInsumosLocal();
       } catch (err) {
-        console.error("Erro ao alterar visibilidade no APH:", err);
         alert(`Não foi possível alterar a visibilidade do insumo "${nomeInsumo}".`);
         carregarInsumos();
       }
     }
 
-    /* MODAL DE COLABORADOR E UNIFORMES */
     async function abrirModalColaborador(id) {
       document.getElementById('formModalColab').reset();
       document.getElementById('modal_id').value = '';
       document.getElementById('modal_uniforme_id').value = '';
       document.getElementById('modalTitulo').innerText = '👤 Cadastrar Novo Servidor';
 
-      if (id) {
+      const client = obterSupabase();
+
+      if (id && client) {
         document.getElementById('modalTitulo').innerText = '👤 Editar Ficha do Servidor';
         try {
-          const { data: c } = await dbNuvem.from('colaboradores').select('*').eq('id', id).single();
+          const { data: c } = await client.from('colaboradores').select('*').eq('id', id).single();
           if (c) {
             document.getElementById('modal_id').value = c.id;
             document.getElementById('modal_nome').value = c.nome || '';
@@ -649,7 +653,7 @@
             document.getElementById('modal_senha').value = c.senha_unica || c.senha || '';
           }
 
-          const { data: u } = await dbNuvem.from('uniformes').select('*').eq('colaborador_id', id).single();
+          const { data: u } = await client.from('uniformes').select('*').eq('colaborador_id', id).single();
           if (u) {
             document.getElementById('modal_uniforme_id').value = u.id;
             document.getElementById('modal_sangue').value = u.tipo_sangue || '';
@@ -671,6 +675,7 @@
       e.preventDefault();
       const colabId = document.getElementById('modal_id').value;
       const uniformeId = document.getElementById('modal_uniforme_id').value;
+      const client = obterSupabase();
 
       const payloadColaborador = {
         nome: document.getElementById('modal_nome').value.trim(),
@@ -686,9 +691,9 @@
       try {
         let idSalvo = colabId;
         if (colabId) {
-          await dbNuvem.from('colaboradores').update(payloadColaborador).eq('id', colabId);
+          await client.from('colaboradores').update(payloadColaborador).eq('id', colabId);
         } else {
-          const { data: novoc } = await dbNuvem.from('colaboradores').insert([payloadColaborador]).select();
+          const { data: novoc } = await client.from('colaboradores').insert([payloadColaborador]).select();
           if (novoc && novoc.length > 0) idSalvo = novoc[0].id;
         }
 
@@ -704,8 +709,8 @@
             capa_chuva: document.getElementById('modal_capa_chuva').value.trim()
           };
 
-          if (uniformeId) await dbNuvem.from('uniformes').update(payloadUniforme).eq('id', uniformeId);
-          else await dbNuvem.from('uniformes').insert([payloadUniforme]);
+          if (uniformeId) await client.from('uniformes').update(payloadUniforme).eq('id', uniformeId);
+          else await client.from('uniformes').insert([payloadUniforme]);
         }
 
         alert("✅ Servidor salvo com sucesso!");
@@ -714,12 +719,13 @@
       } catch (err) { alert("Erro ao salvar no Supabase."); }
     }
 
-    /* MODAL DE VIATURAS */
     async function abrirModalViatura(id) {
       document.getElementById('formModalViatura').reset();
       document.getElementById('modal_viat_id').value = '';
-      if (id) {
-        const { data } = await dbNuvem.from('operacional_viaturas').select('*').eq('id', id).single();
+      const client = obterSupabase();
+
+      if (id && client) {
+        const { data } = await client.from('operacional_viaturas').select('*').eq('id', id).single();
         if (data) {
           document.getElementById('modal_viat_id').value = data.id;
           document.getElementById('modal_viat_prefixo').value = data.prefixo || '';
@@ -735,27 +741,29 @@
     async function salvarViaturaModal(e) {
       e.preventDefault();
       const id = document.getElementById('modal_viat_id').value;
+      const client = obterSupabase();
+
       const payload = {
         prefixo: document.getElementById('modal_viat_prefixo').value.trim(),
         placa: document.getElementById('modal_viat_placa').value.trim(),
         modelo: document.getElementById('modal_viat_modelo').value.trim(),
         status: document.getElementById('modal_viat_status').value
       };
-      if (id) await dbNuvem.from('operacional_viaturas').update(payload).eq('id', id);
-      else await dbNuvem.from('operacional_viaturas').insert([payload]);
+
+      if (id) await client.from('operacional_viaturas').update(payload).eq('id', id);
+      else await client.from('operacional_viaturas').insert([payload]);
+
       fecharModalViatura();
       carregarViaturas();
     }
 
-    /* GERAÇÃO DE CÓDIGO AUTOMÁTICO DE INSUMOS */
     async function gerarCodigoAutomatico() {
       const categoria = document.getElementById('modal_insumo_cat').value;
       const campoCodigo = document.getElementById('modal_insumo_cod');
       const idExistente = document.getElementById('modal_insumo_id').value;
+      const client = obterSupabase();
       
-      // Se já está editando um item com ID, não sobrescreve o código
-      if (idExistente) return;
-      if (!categoria) return;
+      if (idExistente || !categoria || !client) return;
 
       let prefixo = 'INS';
       if (categoria.includes('Medicamentos')) prefixo = 'MED';
@@ -768,46 +776,45 @@
       else if (categoria === 'COMBUSTIVEL') prefixo = 'COMB';
 
       try {
-        const { data } = await dbNuvem
-          .from('estoque_mestre')
-          .select('codigo_insumo')
-          .ilike('codigo_insumo', `${prefixo}-%`)
-          .order('codigo_insumo', { ascending: false })
-          .limit(1);
+        const { data } = await client.from('estoque_mestre').select('*').limit(500);
 
         let proximoNumero = 1;
-        if (data && data.length > 0 && data[0].codigo_insumo) {
-          const ultimoCod = data[0].codigo_insumo;
-          const partes = ultimoCod.split('-');
-          if (partes.length > 1 && !isNaN(parseInt(partes[1], 10))) {
-            proximoNumero = parseInt(partes[1], 10) + 1;
+        if (data && data.length > 0) {
+          const codigos = data
+            .map(x => x.codigo_insumo || x.codigo_item || '')
+            .filter(c => c.startsWith(`${prefixo}-`));
+            
+          if (codigos.length > 0) {
+            const numeros = codigos.map(c => parseInt(c.split('-')[1]) || 0);
+            proximoNumero = Math.max(...numeros) + 1;
           }
         }
 
         campoCodigo.value = `${prefixo}-${String(proximoNumero).padStart(3, '0')}`;
-      } catch (err) {
-        console.error("Erro ao gerar código automático", err);
-      }
+      } catch (err) {}
     }
 
-    /* MODAL DE INSUMOS COM CAMPOS MÍN/MÁX E CÓDIGO AUTO */
     async function abrirModalInsumo(id) {
       document.getElementById('formModalInsumo').reset();
       document.getElementById('modal_insumo_id').value = '';
       document.getElementById('modalInsumoTitulo').innerText = '📦 Cadastrar Novo Insumo';
       document.getElementById('modal_insumo_aph').checked = true;
+      document.getElementById('modal_insumo_psico').checked = false;
 
-      if (id) {
+      const client = obterSupabase();
+
+      if (id && client) {
         document.getElementById('modalInsumoTitulo').innerText = '✏️ Editar Insumo';
-        const { data } = await dbNuvem.from('estoque_mestre').select('*').eq('id', id).single();
+        const { data } = await client.from('estoque_mestre').select('*').eq('id', id).single();
         if (data) {
           document.getElementById('modal_insumo_id').value = data.id;
-          document.getElementById('modal_insumo_cod').value = data.codigo_insumo || '';
+          document.getElementById('modal_insumo_cod').value = data.codigo_insumo || data.codigo_item || '';
           document.getElementById('modal_insumo_desc').value = data.descricao_insumo || data.descricao || data.nome || '';
           document.getElementById('modal_insumo_cat').value = data.categoria || 'Medicamentos / Farmácia APH';
           document.getElementById('modal_insumo_min').value = data.estoque_minimo !== null ? data.estoque_minimo : 10;
           document.getElementById('modal_insumo_max').value = data.estoque_maximo !== null ? data.estoque_maximo : 100;
           document.getElementById('modal_insumo_aph').checked = data.exibir_no_aph !== false;
+          document.getElementById('modal_insumo_psico').checked = data.is_psicotropico === true;
         }
       }
       document.getElementById('modalInsumo').style.display = 'flex';
@@ -818,6 +825,7 @@
     async function salvarInsumoModal(e) {
       e.preventDefault();
       const id = document.getElementById('modal_insumo_id').value;
+      const client = obterSupabase();
       
       const payload = {
         codigo_insumo: document.getElementById('modal_insumo_cod').value.trim(),
@@ -825,22 +833,24 @@
         categoria: document.getElementById('modal_insumo_cat').value,
         estoque_minimo: parseInt(document.getElementById('modal_insumo_min').value) || 0,
         estoque_maximo: parseInt(document.getElementById('modal_insumo_max').value) || 0,
-        exibir_no_aph: document.getElementById('modal_insumo_aph').checked
+        exibir_no_aph: document.getElementById('modal_insumo_aph').checked,
+        is_psicotropico: document.getElementById('modal_insumo_psico').checked
       };
 
-      if (id) await dbNuvem.from('estoque_mestre').update(payload).eq('id', id);
-      else await dbNuvem.from('estoque_mestre').insert([payload]);
+      if (id) await client.from('estoque_mestre').update(payload).eq('id', id);
+      else await client.from('estoque_mestre').insert([payload]);
 
       fecharModalInsumo();
       carregarInsumos();
     }
 
-    /* MODAL DE POSTO */
     async function abrirModalPosto(id) {
       document.getElementById('formModalPosto').reset();
       document.getElementById('modal_posto_id').value = '';
-      if (id) {
-        const { data } = await dbNuvem.from('operacional_postos').select('*').eq('id', id).single();
+      const client = obterSupabase();
+
+      if (id && client) {
+        const { data } = await client.from('operacional_postos').select('*').eq('id', id).single();
         if (data) {
           document.getElementById('modal_posto_id').value = data.id;
           document.getElementById('modal_posto_nome').value = data.nome_posto || '';
@@ -855,22 +865,32 @@
     async function salvarPostoModal(e) {
       e.preventDefault();
       const id = document.getElementById('modal_posto_id').value;
+      const client = obterSupabase();
+
       const payload = {
         nome_posto: document.getElementById('modal_posto_nome').value.trim(),
         cidade: document.getElementById('modal_posto_cidade').value.trim(),
         status: document.getElementById('modal_posto_status').value
       };
-      if (id) await dbNuvem.from('operacional_postos').update(payload).eq('id', id);
-      else await dbNuvem.from('operacional_postos').insert([payload]);
+
+      if (id) await client.from('operacional_postos').update(payload).eq('id', id);
+      else await client.from('operacional_postos').insert([payload]);
+
       fecharModalPosto();
       carregarPostos();
     }
 
-    /* DELETAR REGISTRO */
     async function deletarItem(tabela, id, callback) {
       if (!confirm("Confirma a exclusão deste registro no Supabase?")) return;
-      await dbNuvem.from(tabela).delete().eq('id', id);
+      const client = obterSupabase();
+      await client.from(tabela).delete().eq('id', id);
       callback();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', inicializarPainel);
+    } else {
+      inicializarPainel();
     }
   </script>
 </body>
