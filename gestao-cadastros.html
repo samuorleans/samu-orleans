@@ -56,6 +56,9 @@
     .status-desligado { background: #fee2e2; color: #b91c1c; }
     .status-ferias { background: #fef3c7; color: #b45309; }
     .status-atestado { background: #e0e7ff; color: #4338ca; }
+    
+    .status-aph-sim { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .status-aph-nao { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
     .modal-box { background: white; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; border-radius: 16px; padding: 24px; box-shadow: var(--shadow); position: relative; }
@@ -166,14 +169,15 @@
           <thead>
             <tr>
               <th style="width: 12%;">Código</th>
-              <th style="width: 35%;">Descrição Insumo</th>
-              <th style="width: 25%;">Categoria</th>
-              <th style="width: 13%; text-align: center;">Ficha APH</th>
-              <th style="width: 15%; text-align: center;">Ações</th>
+              <th style="width: 30%;">Descrição Insumo</th>
+              <th style="width: 18%;">Categoria</th>
+              <th style="width: 15%; text-align: center;">Mín / Máx</th>
+              <th style="width: 12%; text-align: center;">Ficha APH</th>
+              <th style="width: 13%; text-align: center;">Ações</th>
             </tr>
           </thead>
           <tbody id="tbodyInsumos">
-            <tr><td colspan="5" style="text-align:center;">Consultando insumos no banco de dados...</td></tr>
+            <tr><td colspan="6" style="text-align:center;">Consultando insumos no banco de dados...</td></tr>
           </tbody>
         </table>
       </div>
@@ -324,7 +328,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE INSUMO COM COLUNA exibir_no_aph -->
+  <!-- MODAL DE INSUMO COM GERAÇÃO DE CÓDIGO E CONTROLE DE ESTOQUE -->
   <div class="modal-overlay" id="modalInsumo">
     <div class="modal-box">
       <div class="modal-header">
@@ -334,17 +338,10 @@
       <form id="formModalInsumo" onsubmit="salvarInsumoModal(event)">
         <input type="hidden" id="modal_insumo_id">
         <div class="grid-form">
-          <div class="form-group">
-            <label>Código Insumo:</label>
-            <input type="text" id="modal_insumo_cod" placeholder="Ex: INS-001 ou MED-005">
-          </div>
           <div class="form-group" style="grid-column: span 2;">
-            <label>Descrição do Insumo:*</label>
-            <input type="text" id="modal_insumo_desc" placeholder="Ex: Paracetamol 200 mg/mL, Gaze..." required>
-          </div>
-          <div class="form-group">
             <label>Categoria:*</label>
-            <select id="modal_insumo_cat" required>
+            <select id="modal_insumo_cat" required onchange="gerarCodigoAutomatico()">
+              <option value="">-- Selecione a Categoria --</option>
               <option value="Medicamentos / Farmácia APH">Medicamentos / Farmácia APH</option>
               <option value="Acesso Venoso & Injeção">Acesso Venoso & Injeção</option>
               <option value="Curativos & Imobilização">Curativos & Imobilização</option>
@@ -354,6 +351,25 @@
               <option value="Saneantes & Biossegurança">Saneantes & Biossegurança</option>
               <option value="COMBUSTIVEL">Combustível / Frota</option>
             </select>
+          </div>
+          <div class="form-group">
+            <label>Código Insumo:*</label>
+            <input type="text" id="modal_insumo_cod" placeholder="Ex: MED-001 (Gerado Auto)" required>
+          </div>
+          <div class="form-group" style="grid-column: span 3;">
+            <label>Descrição do Insumo:*</label>
+            <input type="text" id="modal_insumo_desc" placeholder="Ex: Paracetamol 200 mg/mL, Gaze..." required>
+          </div>
+        </div>
+
+        <div class="grid-form" style="margin-top: 12px; padding: 10px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px;">
+          <div class="form-group">
+            <label>Estoque Mínimo (Alerta):*</label>
+            <input type="number" id="modal_insumo_min" value="10" min="0" required>
+          </div>
+          <div class="form-group">
+            <label>Estoque Máximo:*</label>
+            <input type="number" id="modal_insumo_max" value="100" min="1" required>
           </div>
         </div>
 
@@ -511,7 +527,7 @@
     /* CARREGAMENTO DE INSUMOS EM ORDEM ALFABÉTICA + BUSCA LOCAL */
     async function carregarInsumos() {
       const tbody = document.getElementById('tbodyInsumos');
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Consultando estoque mestre...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando estoque mestre...</td></tr>';
       
       const { data, error } = await dbNuvem
         .from('estoque_mestre')
@@ -519,7 +535,7 @@
         .order('descricao_insumo', { ascending: true });
 
       if (error) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#d32f2f;">Erro ao carregar insumos.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#d32f2f;">Erro ao carregar insumos.</td></tr>';
         return;
       }
 
@@ -550,7 +566,7 @@
       tbody.innerHTML = '';
 
       if (lista.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 15px; color:#64748b;">Nenhum insumo encontrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color:#64748b;">Nenhum insumo encontrado.</td></tr>';
         return;
       }
 
@@ -558,6 +574,8 @@
         const desc = i.descricao_insumo || i.descricao || i.nome || '—';
         const cod = i.codigo_insumo || '—';
         const cat = i.categoria || 'COMBUSTIVEL';
+        const min = i.estoque_minimo !== undefined && i.estoque_minimo !== null ? i.estoque_minimo : 10;
+        const max = i.estoque_maximo !== undefined && i.estoque_maximo !== null ? i.estoque_maximo : 100;
         const estaAtivo = i.exibir_no_aph !== false;
 
         // SELETOR CLICÁVEL DIRETO NA TABELA (TOGGLE EM TEMPO REAL)
@@ -577,6 +595,7 @@
           <td><b>${cod}</b></td>
           <td><b>${desc}</b></td>
           <td>${cat}</td>
+          <td style="text-align: center; color: #64748b; font-weight: 600;">${min} / ${max}</td>
           <td style="text-align: center;">${toggleAPH}</td>
           <td style="text-align: center;">
             <button class="btn-editar" onclick="abrirModalInsumo('${i.id}')">✏️ Editar</button>
@@ -728,7 +747,50 @@
       carregarViaturas();
     }
 
-    /* MODAL DE INSUMOS COM CAMPOS codigo_insumo E exibir_no_aph */
+    /* GERAÇÃO DE CÓDIGO AUTOMÁTICO DE INSUMOS */
+    async function gerarCodigoAutomatico() {
+      const categoria = document.getElementById('modal_insumo_cat').value;
+      const campoCodigo = document.getElementById('modal_insumo_cod');
+      const idExistente = document.getElementById('modal_insumo_id').value;
+      
+      // Se já está editando um item com ID, não sobrescreve o código
+      if (idExistente) return;
+      if (!categoria) return;
+
+      let prefixo = 'INS';
+      if (categoria.includes('Medicamentos')) prefixo = 'MED';
+      else if (categoria.includes('Acesso Venoso')) prefixo = 'AC';
+      else if (categoria.includes('Curativos')) prefixo = 'CUR';
+      else if (categoria.includes('Soluções')) prefixo = 'SOL';
+      else if (categoria.includes('Vias Aéreas')) prefixo = 'VA';
+      else if (categoria.includes('Procedimentos')) prefixo = 'EPI';
+      else if (categoria.includes('Saneantes')) prefixo = 'BIO';
+      else if (categoria === 'COMBUSTIVEL') prefixo = 'COMB';
+
+      try {
+        const { data } = await dbNuvem
+          .from('estoque_mestre')
+          .select('codigo_insumo')
+          .ilike('codigo_insumo', `${prefixo}-%`)
+          .order('codigo_insumo', { ascending: false })
+          .limit(1);
+
+        let proximoNumero = 1;
+        if (data && data.length > 0 && data[0].codigo_insumo) {
+          const ultimoCod = data[0].codigo_insumo;
+          const partes = ultimoCod.split('-');
+          if (partes.length > 1 && !isNaN(parseInt(partes[1], 10))) {
+            proximoNumero = parseInt(partes[1], 10) + 1;
+          }
+        }
+
+        campoCodigo.value = `${prefixo}-${String(proximoNumero).padStart(3, '0')}`;
+      } catch (err) {
+        console.error("Erro ao gerar código automático", err);
+      }
+    }
+
+    /* MODAL DE INSUMOS COM CAMPOS MÍN/MÁX E CÓDIGO AUTO */
     async function abrirModalInsumo(id) {
       document.getElementById('formModalInsumo').reset();
       document.getElementById('modal_insumo_id').value = '';
@@ -743,11 +805,14 @@
           document.getElementById('modal_insumo_cod').value = data.codigo_insumo || '';
           document.getElementById('modal_insumo_desc').value = data.descricao_insumo || data.descricao || data.nome || '';
           document.getElementById('modal_insumo_cat').value = data.categoria || 'Medicamentos / Farmácia APH';
+          document.getElementById('modal_insumo_min').value = data.estoque_minimo !== null ? data.estoque_minimo : 10;
+          document.getElementById('modal_insumo_max').value = data.estoque_maximo !== null ? data.estoque_maximo : 100;
           document.getElementById('modal_insumo_aph').checked = data.exibir_no_aph !== false;
         }
       }
       document.getElementById('modalInsumo').style.display = 'flex';
     }
+    
     function fecharModalInsumo() { document.getElementById('modalInsumo').style.display = 'none'; }
 
     async function salvarInsumoModal(e) {
@@ -758,6 +823,8 @@
         codigo_insumo: document.getElementById('modal_insumo_cod').value.trim(),
         descricao_insumo: document.getElementById('modal_insumo_desc').value.trim(),
         categoria: document.getElementById('modal_insumo_cat').value,
+        estoque_minimo: parseInt(document.getElementById('modal_insumo_min').value) || 0,
+        estoque_maximo: parseInt(document.getElementById('modal_insumo_max').value) || 0,
         exibir_no_aph: document.getElementById('modal_insumo_aph').checked
       };
 
