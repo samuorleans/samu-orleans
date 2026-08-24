@@ -85,23 +85,56 @@
       height: 31px;
     }
 
-    /* MÓDULO J'S COMPACTO */
-    .j-vertical-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 4px; }
-    .j-compact-item { background: #f1f5f9; padding: 3px 5px; border-radius: 4px; border: 1px solid #e2e8f0; }
-    .j-compact-item label { font-size: 0.58rem; margin-bottom: 1px; color: var(--secondary); font-weight: 800; }
-    .j-input-group { display: flex; gap: 2px; align-items: center; }
-    .j-input-group input[type="time"] { font-size: 0.72rem; padding: 2px 4px; height: 26px; margin-bottom: 0; font-weight: 700; text-align: center; background: #fff; }
-    .btn-j-small {
-      background: var(--secondary);
-      color: white;
+    /* DESIGN TÁTICO DOS J'S - IGUAL À FICHA FÍSICA */
+    .j-block-container {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      max-width: 320px;
+      margin-top: 6px;
+    }
+
+    .j-row-tactical {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-j-badge {
+      background: #334155;
+      color: #ffffff;
       border: none;
-      padding: 0 5px;
+      padding: 3px 8px;
+      font-size: 0.65rem;
+      font-weight: 800;
+      border-radius: 3px 0 0 3px;
+      clip-path: polygon(0% 0%, 82% 0%, 100% 50%, 82% 100%, 0% 100%);
+      width: 68px;
       height: 26px;
-      border-radius: 3px;
-      font-size: 0.58rem;
-      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       cursor: pointer;
-      white-space: nowrap;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .btn-j-badge:active {
+      background: var(--primary);
+    }
+
+    .j-time-input {
+      width: 80px !important;
+      height: 26px !important;
+      font-size: 0.82rem !important;
+      font-weight: 800 !important;
+      text-align: center !important;
+      margin-bottom: 0 !important;
+      padding: 0 !important;
+      letter-spacing: 1px;
+      border: 1px solid var(--border) !important;
+      border-radius: 3px !important;
+      background: #ffffff !important;
     }
 
     /* TABELA DE MEDICAÇÕES & INSUMOS */
@@ -154,10 +187,11 @@
       cursor: pointer;
     }
 
+    /* REGRAS DE IMPRESSÃO A4 */
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
       html, body { width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 6.2pt !important; }
-      .btn-submit, .btn-j-small, .btn-search, .btn-add-med, .btn-del-med, button, script { display: none !important; }
+      .btn-submit, .btn-search, .btn-add-med, .btn-del-med, button, script { display: none !important; }
       header { background: none !important; color: #000 !important; border-bottom: 1.5pt solid #000; padding: 0 !important; margin-bottom: 2px !important; border-left: none !important; }
       header img { height: 30px !important; }
       header h1 { font-size: 9pt !important; margin: 0; color: #000 !important; }
@@ -167,8 +201,9 @@
       label { font-size: 5pt !important; color: #000 !important; margin-bottom: 0px !important; }
       input[type="text"], input[type="number"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.5pt solid #666 !important; background: transparent !important; padding: 0px 0 !important; font-weight: bold !important; font-size: 6pt !important; margin-bottom: 0px !important; height: auto !important; }
       textarea { height: 12px !important; resize: none; }
-      .j-vertical-list { grid-template-columns: repeat(6, 1fr) !important; gap: 1px !important; }
-      .j-compact-item { background: transparent !important; border: none !important; padding: 0 !important; }
+      .j-block-container { max-width: 100% !important; display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 2px !important; }
+      .btn-j-badge { background: #000 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; height: 18px !important; font-size: 6pt !important; width: 50px !important; }
+      .j-time-input { height: 18px !important; font-size: 6.5pt !important; border-bottom: 0.5pt solid #000 !important; }
       .med-table th, .med-table td { font-size: 5.5pt !important; padding: 1px !important; border: 0.5pt solid #000 !important; }
       canvas { height: 26px !important; border: 0.5pt solid #000 !important; }
     }
@@ -214,31 +249,42 @@
         </div>
       </div>
 
-      <!-- HORÁRIOS J COMPACTOS -->
-      <div class="j-vertical-list">
-        <div class="j-compact-item">
-          <label>J9 (Saída Base)</label>
-          <div class="j-input-group"><input type="time" id="horaJ9"><button type="button" class="btn-j-small" data-target="horaJ9">AGORA</button></div>
+      <!-- MÓDULO DOS J'S EM SETAS IDÊNTICO À FICHA FÍSICA -->
+      <div class="j-block-container">
+        <div class="j-row-tactical">
+          <button type="button" class="btn-j-badge" data-target="horaJ9">J9 ⏱️</button>
+          <input type="time" id="horaJ9" class="j-time-input">
+          <span style="font-size: 0.62rem; color: #64748b; font-weight: 600;">Saída Base</span>
         </div>
-        <div class="j-compact-item">
-          <label>J10 (Cheg. Local)</label>
-          <div class="j-input-group"><input type="time" id="horaJ10"><button type="button" class="btn-j-small" data-target="horaJ10">AGORA</button></div>
+
+        <div class="j-row-tactical">
+          <button type="button" class="btn-j-badge" data-target="horaJ10">J10 ⏱️</button>
+          <input type="time" id="horaJ10" class="j-time-input">
+          <span style="font-size: 0.62rem; color: #64748b; font-weight: 600;">Cheg. Local</span>
         </div>
-        <div class="j-compact-item">
-          <label>J9-INT (Saída Local)</label>
-          <div class="j-input-group"><input type="time" id="horaJ9_INT"><button type="button" class="btn-j-small" data-target="horaJ9_INT">AGORA</button></div>
+
+        <div class="j-row-tactical">
+          <button type="button" class="btn-j-badge" data-target="horaJ9_INT">J9-INT ⏱️</button>
+          <input type="time" id="horaJ9_INT" class="j-time-input">
+          <span style="font-size: 0.62rem; color: #64748b; font-weight: 600;">Saída Local</span>
         </div>
-        <div class="j-compact-item">
-          <label>J10-INT (Destino)</label>
-          <div class="j-input-group"><input type="time" id="horaJ10_INT"><button type="button" class="btn-j-small" data-target="horaJ10_INT">AGORA</button></div>
+
+        <div class="j-row-tactical">
+          <button type="button" class="btn-j-badge" data-target="horaJ10_INT">J10-INT ⏱️</button>
+          <input type="time" id="horaJ10_INT" class="j-time-input">
+          <span style="font-size: 0.62rem; color: #64748b; font-weight: 600;">Destino</span>
         </div>
-        <div class="j-compact-item">
-          <label>J11 (Disponível)</label>
-          <div class="j-input-group"><input type="time" id="horaJ11"><button type="button" class="btn-j-small" data-target="horaJ11">AGORA</button></div>
+
+        <div class="j-row-tactical">
+          <button type="button" class="btn-j-badge" data-target="horaJ11">J11 ⏱️</button>
+          <input type="time" id="horaJ11" class="j-time-input">
+          <span style="font-size: 0.62rem; color: #64748b; font-weight: 600;">Disponível</span>
         </div>
-        <div class="j-compact-item">
-          <label>J12 (Na Base)</label>
-          <div class="j-input-group"><input type="time" id="horaJ12"><button type="button" class="btn-j-small" data-target="horaJ12">AGORA</button></div>
+
+        <div class="j-row-tactical">
+          <button type="button" class="btn-j-badge" data-target="horaJ12">J12 ⏱️</button>
+          <input type="time" id="horaJ12" class="j-time-input">
+          <span style="font-size: 0.62rem; color: #64748b; font-weight: 600;">Na Base</span>
         </div>
       </div>
     </div>
@@ -375,7 +421,7 @@
       </div>
     </div>
 
-    <!-- MEDICAÇÕES E INSUMOS UTILIZADOS (BUSCA NO SUPABASE: estoque_mestre / estoque_lotes) -->
+    <!-- MEDICAÇÕES E INSUMOS UTILIZADOS -->
     <div class="card">
       <h2>6. Medicações & Insumos Utilizados (Baixa de Estoque)</h2>
       <table class="med-table" id="tabela_meds">
@@ -476,7 +522,6 @@
         if (est) listaInsumosEstoque = est;
       } catch(e) { console.warn("Erro ao carregar estoque:", e); }
 
-      // Adiciona a primeira linha de insumo
       addMedRow();
     }
 
@@ -500,7 +545,6 @@
           return;
         }
 
-        // Autopreenchimento
         document.getElementById('paciente').value = data.nome || '';
         document.getElementById('cns_paciente').value = data.cns || '';
         document.getElementById('idade').value = data.idade || '';
@@ -549,6 +593,22 @@
       }
     }
 
+    // Action rápida ao clicar na tag cinza do J
+    document.addEventListener('click', function(e) {
+      const badgeBtn = e.target.closest('.btn-j-badge');
+      if (badgeBtn) {
+        e.preventDefault();
+        const targetId = badgeBtn.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        if (input) {
+          const now = new Date();
+          const hh = String(now.getHours()).padStart(2, '0');
+          const mm = String(now.getMinutes()).padStart(2, '0');
+          input.value = `${hh}:${mm}`;
+        }
+      }
+    });
+
     // Máscara CPF
     document.getElementById('cpf_paciente').addEventListener('keyup', (e) => {
       let v = e.target.value.replace(/\D/g, "");
@@ -557,21 +617,6 @@
       v = v.replace(/(\d{3})(\d)/, "$1.$2");
       v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
       e.target.value = v;
-    });
-
-    // Horário nos J's
-    function getNowTime() {
-      const now = new Date();
-      return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    }
-
-    document.addEventListener('click', function(e) {
-      if (e.target && e.target.classList.contains('btn-j-small')) {
-        e.preventDefault();
-        const targetId = e.target.getAttribute('data-target');
-        const input = document.getElementById(targetId);
-        if (input) input.value = getNowTime();
-      }
     });
 
     // Glasgow Calc
