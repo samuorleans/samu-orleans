@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Ficha APH - SAMU 192 Orleans</title>
+  <!-- Supabase CDN para busca automática na tabela colaboradores -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --primary: #dc2626;
@@ -22,14 +24,17 @@
     header {
       background: linear-gradient(135deg, #1e293b, #0f172a);
       color: white;
-      padding: 10px;
-      text-align: center;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
       border-radius: 6px;
       margin-bottom: 10px;
       border-left: 5px solid var(--primary);
     }
-    header h1 { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; color: #fff; letter-spacing: 0.5px; }
-    header p { font-size: 0.72rem; color: #94a3b8; font-weight: 600; }
+    header img { height: 42px; width: auto; object-fit: contain; }
+    header .header-info h1 { font-size: 1.05rem; font-weight: 800; text-transform: uppercase; color: #fff; }
+    header .header-info p { font-size: 0.7rem; color: #94a3b8; font-weight: 600; }
 
     .card {
       background: var(--card-bg);
@@ -52,7 +57,6 @@
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
     .grid-4 { display: grid; grid-template-columns: 1.2fr 1.5fr 0.7fr 0.8fr; gap: 6px; }
-    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
 
     label { font-size: 0.62rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 2px; text-transform: uppercase; }
     input[type="text"], input[type="number"], input[type="date"], input[type="time"], select, textarea {
@@ -67,26 +71,28 @@
       font-weight: 500;
     }
 
-    /* Módulo J's */
-    .j-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-    .j-card { background: #f1f5f9; padding: 4px; border-radius: 4px; border: 1px solid #e2e8f0; }
-    .j-group { display: flex; gap: 2px; align-items: center; }
-    .j-group input { margin-bottom: 0; font-weight: 700; padding: 4px; font-size: 0.78rem; background: #fff; }
-    .btn-j {
+    /* MÓDULO J'S EMPILHADO E COMPACTO */
+    .j-vertical-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 4px; }
+    .j-compact-item { background: #f1f5f9; padding: 3px 5px; border-radius: 4px; border: 1px solid #e2e8f0; }
+    .j-compact-item label { font-size: 0.58rem; margin-bottom: 1px; color: var(--secondary); font-weight: 800; }
+    .j-input-group { display: flex; gap: 2px; align-items: center; }
+    .j-input-group input[type="time"] { font-size: 0.72rem; padding: 2px 4px; height: 26px; margin-bottom: 0; font-weight: 700; text-align: center; background: #fff; }
+    .btn-j-small {
       background: var(--secondary);
       color: white;
       border: none;
-      padding: 6px;
-      border-radius: 4px;
-      font-size: 0.62rem;
+      padding: 0 5px;
+      height: 26px;
+      border-radius: 3px;
+      font-size: 0.58rem;
+      font-weight: 700;
       cursor: pointer;
+      white-space: nowrap;
     }
 
-    /* Tabelas táticas de Exposição E */
     .table-expo { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 0.7rem; }
     .table-expo th { background: #f1f5f9; padding: 4px; border: 1px solid #cbd5e1; font-size: 0.65rem; text-transform: uppercase; }
     .table-expo td { padding: 4px; border: 1px solid #cbd5e1; text-align: center; }
-    .table-expo label { display: flex; align-items: center; justify-content: center; margin: 0; gap: 2px; font-size: 0.65rem; color: #000; text-transform: none; }
 
     .checkbox-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
     .checkbox-grid label {
@@ -101,7 +107,6 @@
       font-size: 0.72rem;
     }
 
-    /* Sinais Vitais em 3 Colunas (Réplica Ficha Física) */
     .sv-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
     .sv-col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px; }
     .sv-col-box h3 { font-size: 0.68rem; color: var(--primary-dark); margin-bottom: 4px; text-transform: uppercase; text-align: center; font-weight: 800; }
@@ -127,12 +132,12 @@
       cursor: pointer;
     }
 
-    /* REGRAS EXCLUSIVAS DE IMPRESSÃO (A4 1 PÁGINA) */
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
       html, body { width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 6.2pt !important; }
-      .btn-submit, .btn-j, button, script { display: none !important; }
-      header { background: none !important; color: #000 !important; border-bottom: 1.5pt solid #000; text-align: center; padding: 0 0 1px 0 !important; margin-bottom: 2px !important; border-left: none !important; }
+      .btn-submit, .btn-j-small, button, script { display: none !important; }
+      header { background: none !important; color: #000 !important; border-bottom: 1.5pt solid #000; padding: 0 !important; margin-bottom: 2px !important; border-left: none !important; }
+      header img { height: 30px !important; }
       header h1 { font-size: 9pt !important; margin: 0; color: #000 !important; }
       header p { font-size: 5.5pt !important; margin: 0; font-weight: bold; color: #000 !important; }
       .card { box-shadow: none !important; border: 0.5pt solid #000 !important; margin-bottom: 1px !important; padding: 1.5px 3px !important; border-radius: 0 !important; page-break-inside: avoid !important; }
@@ -140,8 +145,8 @@
       label { font-size: 5pt !important; color: #000 !important; margin-bottom: 0px !important; }
       input[type="text"], input[type="number"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.5pt solid #666 !important; background: transparent !important; padding: 0px 0 !important; font-weight: bold !important; font-size: 6pt !important; margin-bottom: 0px !important; height: auto !important; }
       textarea { height: 12px !important; resize: none; }
-      .j-grid { grid-template-columns: repeat(6, 1fr) !important; gap: 1px !important; }
-      .j-card { background: transparent !important; border: none !important; padding: 0 !important; }
+      .j-vertical-list { grid-template-columns: repeat(6, 1fr) !important; gap: 1px !important; }
+      .j-compact-item { background: transparent !important; border: none !important; padding: 0 !important; }
       .checkbox-grid label { background: transparent !important; border: none !important; padding: 0 !important; font-size: 5.5pt !important; }
       .checkbox-grid input[type="checkbox"] { width: 8px !important; height: 8px !important; }
       .table-expo th, .table-expo td { padding: 1px !important; font-size: 5.5pt !important; border: 0.5pt solid #000 !important; }
@@ -152,8 +157,11 @@
 <body>
 
   <header>
-    <h1>SAMU 192 - ORLEANS</h1>
-    <p>FICHA DE ATENDIMENTO MÓVEL DE URGÊNCIA (USB)</p>
+    <img src="logo.png" alt="SAMU Logo" onerror="this.style.display='none'">
+    <div class="header-info">
+      <h1>SAMU 192 - ORLEANS</h1>
+      <p>FICHA DE ATENDIMENTO MÓVEL DE URGÊNCIA (USB 11)</p>
+    </div>
   </header>
 
   <form id="aphForm">
@@ -179,52 +187,42 @@
         <div>
           <label>Téc. de Enfermagem</label>
           <select id="tec_enfermeiro">
-            <option value="">-- Selecione --</option>
-            <option value="Gicerléia Trindade da Rosa - COREN-SC 870568">Gicerléia Trindade da Rosa</option>
-            <option value="Luis Eduardo Formanski Vitório - COREN-SC 1551746">Luis Eduardo Formanski Vitório</option>
-            <option value="Clênio Borges - COREN-SC 862518">Clênio Borges</option>
-            <option value="Rinaldo Calegario - COREN-SC 331871">Rinaldo Calegario</option>
-            <option value="Suandre Adão Machado - COREN-SC 99894">Suandre Adão Machado</option>
+            <option value="">Buscando colaboradores...</option>
           </select>
         </div>
         <div>
-          <label>Socorrista</label>
+          <label>Socorrista (Condutor)</label>
           <select id="socorrista">
-            <option value="">-- Selecione --</option>
-            <option value="Daniel Alexandre Fernandes">Daniel Alexandre Fernandes</option>
-            <option value="Lucas Vieira Mendes">Lucas Vieira Mendes</option>
-            <option value="Márcio Becker">Márcio Becker</option>
-            <option value="Renato Cândido">Renato Cândido</option>
-            <option value="Vanderlei José Tasca">Vanderlei José Tasca</option>
+            <option value="">Buscando colaboradores...</option>
           </select>
         </div>
       </div>
 
-      <!-- MÓDULO DE HORÁRIOS DA FICHA -->
-      <div class="j-grid">
-        <div class="j-card">
+      <!-- HORÁRIOS J EMPILHADOS E COMPACTOS -->
+      <div class="j-vertical-list">
+        <div class="j-compact-item">
           <label>J9 (Saída Base)</label>
-          <div class="j-group"><input type="time" id="horaJ9"><button type="button" class="btn-j" data-target="horaJ9">AGORA</button></div>
+          <div class="j-input-group"><input type="time" id="horaJ9"><button type="button" class="btn-j-small" data-target="horaJ9">AGORA</button></div>
         </div>
-        <div class="j-card">
+        <div class="j-compact-item">
           <label>J10 (Cheg. Local)</label>
-          <div class="j-group"><input type="time" id="horaJ10"><button type="button" class="btn-j" data-target="horaJ10">AGORA</button></div>
+          <div class="j-input-group"><input type="time" id="horaJ10"><button type="button" class="btn-j-small" data-target="horaJ10">AGORA</button></div>
         </div>
-        <div class="j-card">
+        <div class="j-compact-item">
           <label>J9-INT (Saída Local)</label>
-          <div class="j-group"><input type="time" id="horaJ9_INT"><button type="button" class="btn-j" data-target="horaJ9_INT">AGORA</button></div>
+          <div class="j-input-group"><input type="time" id="horaJ9_INT"><button type="button" class="btn-j-small" data-target="horaJ9_INT">AGORA</button></div>
         </div>
-        <div class="j-card">
-          <label>J10-INT (Cheg. Destino)</label>
-          <div class="j-group"><input type="time" id="horaJ10_INT"><button type="button" class="btn-j" data-target="horaJ10_INT">AGORA</button></div>
+        <div class="j-compact-item">
+          <label>J10-INT (Destino)</label>
+          <div class="j-input-group"><input type="time" id="horaJ10_INT"><button type="button" class="btn-j-small" data-target="horaJ10_INT">AGORA</button></div>
         </div>
-        <div class="j-card">
+        <div class="j-compact-item">
           <label>J11 (Disponível)</label>
-          <div class="j-group"><input type="time" id="horaJ11"><button type="button" class="btn-j" data-target="horaJ11">AGORA</button></div>
+          <div class="j-input-group"><input type="time" id="horaJ11"><button type="button" class="btn-j-small" data-target="horaJ11">AGORA</button></div>
         </div>
-        <div class="j-card">
+        <div class="j-compact-item">
           <label>J12 (Na Base)</label>
-          <div class="j-group"><input type="time" id="horaJ12"><button type="button" class="btn-j" data-target="horaJ12">AGORA</button></div>
+          <div class="j-input-group"><input type="time" id="horaJ12"><button type="button" class="btn-j-small" data-target="horaJ12">AGORA</button></div>
         </div>
       </div>
     </div>
@@ -282,7 +280,6 @@
         </div>
       </div>
 
-      <!-- ESCALA DE GLASGOW & PUPILAS -->
       <div class="grid-2" style="margin-bottom: 6px;">
         <div>
           <label>D - Glasgow (Ocular + Verbal + Motor)</label>
@@ -299,7 +296,6 @@
         </div>
       </div>
 
-      <!-- TABELA E - EXPOSIÇÃO CORPORAL (RÉPLICA DA FICHA IMPRESSA) -->
       <label>E - Exposição / Lesões por Região</label>
       <table class="table-expo">
         <thead>
@@ -321,9 +317,8 @@
         </tbody>
       </table>
 
-      <!-- QUEIMADURAS -->
       <div style="margin-top: 6px;">
-        <label>Queimaduras (Grau & Agente)</label>
+        <label>Queimaduram (Grau & Agente)</label>
         <div class="checkbox-grid">
           <label><input type="checkbox"> 1º Grau</label>
           <label><input type="checkbox"> 2º Grau</label>
@@ -335,7 +330,7 @@
       </div>
     </div>
 
-    <!-- SINAIS VITAIS (3 COLUNAS FÍSICAS DA FICHA) -->
+    <!-- SINAIS VITAIS -->
     <div class="card">
       <h2>5. Sinais Vitais (Medições APH)</h2>
       <div class="sv-cols">
@@ -383,7 +378,7 @@
       </div>
       <div><label>Evolução e Conduta</label><textarea rows="2" placeholder="Procedimentos e conduta prestada..."></textarea></div>
       <div class="grid-2">
-        <div><label>Técnico de Enfermagem Resp.</label><input type="text" id="tec_resp"></div>
+        <div><label>Técnico Resp.</label><input type="text" id="tec_resp"></div>
         <div><label>Destino / Hospital Receptor</label><input type="text" placeholder="Ex: Hospital Santa Otília"></div>
       </div>
     </div>
@@ -415,20 +410,85 @@
   </form>
 
   <script>
+    // 1. CONEXÃO AUTOMÁTICA AO SUPABASE (BUSCA COLABORADORES)
+    const SUPABASE_URL = 'https://rcpgukslnlfptreiusff.supabase.co'; // Projeto conforme o print do Dashboard
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Chave pública Anon (Injetada automaticamente se já estiver no ambiente)
+
+    let _supabase = null;
+    if (window.supabase) {
+      _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    async function carregarColaboradores() {
+      const selectTec = document.getElementById('tec_enfermeiro');
+      const selectSoc = document.getElementById('socorrista');
+
+      try {
+        if (!_supabase) throw new Error("Supabase não inicializado");
+        
+        const { data, error } = await _supabase
+          .from('colaboradores')
+          .select('nome, funcao, coren')
+          .order('nome', { ascending: true });
+
+        if (error) throw error;
+
+        selectTec.innerHTML = '<option value="">-- Selecione o Téc. --</option>';
+        selectSoc.innerHTML = '<option value="">-- Selecione o Condutor --</option>';
+
+        data.forEach(colab => {
+          // Popula Técnicos/Enfermeiros
+          if (colab.coren && colab.coren !== 'N/A') {
+            const opt = document.createElement('option');
+            opt.value = `${colab.nome} - COREN ${colab.coren}`;
+            opt.textContent = `${colab.nome} (COREN ${colab.coren})`;
+            selectTec.appendChild(opt);
+          }
+
+          // Popula Condutores Socorristas
+          if (colab.funcao && colab.funcao.toLowerCase().includes('condutor')) {
+            const opt = document.createElement('option');
+            opt.value = colab.nome;
+            opt.textContent = colab.nome;
+            selectSoc.appendChild(opt);
+          }
+        });
+
+      } catch (err) {
+        console.warn("Falha na busca remota Supabase, utilizando lista local pré-carregada:", err);
+        // Lista fallback padrão caso esteja offline sem cache prévio
+        selectTec.innerHTML = `
+          <option value="">-- Selecione o Téc. --</option>
+          <option value="Clênio Borges - COREN 862518">Clênio Borges</option>
+          <option value="Gicerléia Trindade da Rosa - COREN 870568">Gicerléia Trindade da Rosa</option>
+          <option value="Luis Eduardo Formanski Vitório - COREN 1551746">Luis Eduardo Formanski Vitório</option>
+          <option value="Rinaldo Calegario - COREN 331871">Rinaldo Calegario</option>
+          <option value="Suandre Adão Machado - COREN 99894">Suandre Adão Machado</option>
+        `;
+        selectSoc.innerHTML = `
+          <option value="">-- Selecione o Condutor --</option>
+          <option value="Daniel Alexandre Fernandes">Daniel Alexandre Fernandes</option>
+          <option value="Lucas Vieira Mendes">Lucas Vieira Mendes</option>
+          <option value="Márcio Becker">Márcio Becker</option>
+          <option value="Renato Cândido">Renato Cândido</option>
+          <option value="Vanderlei Jose Tasca">Vanderlei Jose Tasca</option>
+        `;
+      }
+    }
+
+    // Inicialização da página
     document.getElementById('data').valueAsDate = new Date();
+    document.getElementById('data_hora_recusa').value = new Date().toLocaleString('pt-BR');
+    carregarColaboradores();
 
     function getNowTime() {
       const now = new Date();
       return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     }
 
-    // Carimba data e hora da recusa automaticamente
-    const nowStr = new Date().toLocaleString('pt-BR');
-    document.getElementById('data_hora_recusa').value = nowStr;
-
     // Delegador de Eventos para os botões J
     document.addEventListener('click', function(e) {
-      if (e.target && e.target.classList.contains('btn-j')) {
+      if (e.target && e.target.classList.contains('btn-j-small')) {
         e.preventDefault();
         const targetId = e.target.getAttribute('data-target');
         const input = document.getElementById(targetId);
