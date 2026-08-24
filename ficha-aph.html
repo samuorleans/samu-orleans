@@ -576,7 +576,7 @@
           </table>
         </div>
 
-        <!-- REGRA 2: ÁRVORE DE DECISÃO DE BIOSSEGURANÇA -->
+        <!-- ÁRVORE DE DECISÃO DE BIOSSEGURANÇA -->
         <div style="margin-top: 6px; padding: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;">
           <label style="color: var(--secondary); font-weight: 800; font-size: 0.68rem;">
             ☣️ BIOSSEGURANÇA: PACIENTE COM SUSPEITA OU CONFIRMAÇÃO DE DOENÇA INFECTOCONTAGIOSA / MATERIAL BIOLÓGICO?
@@ -1560,14 +1560,14 @@
       salvarLocal();
     }
 
-    /* REGRA 1: CONTROLE DINÂMICO DE PSICOTRÓPICOS & LACRES */
+    /* CONTROLE DINÂMICO DE PSICOTRÓPICOS & LACRES */
     function addMedRow() {
       const tbody = document.getElementById('meds_body');
       const tr = document.createElement('tr');
 
       tr.innerHTML = `
         <td>
-          <input type="text" list="listaInsumosLotesAPH" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR INSUMO, LOTE OU VALIDADE..." onchange="verificarPsicotropico(this)">
+          <input type="text" list="listaInsumosLotesAPH" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR INSUMO, LOTE OU VALIDADE..." oninput="verificarPsicotropico(this)">
           
           <div class="psico-box" style="display: none;">
             <label style="color: #c2410c; font-weight: 800;">🔒 CONTROLE DE PSICOTRÓPICO & LACRES</label>
@@ -1602,13 +1602,26 @@
     }
 
     function verificarPsicotropico(inputEl) {
-      const val = inputEl.value.trim();
+      const val = inputEl.value.trim().toUpperCase();
       const tr = inputEl.closest('tr');
       const psicoBox = tr.querySelector('.psico-box');
       
-      const itemEncontrado = mapaLotesUnificados.find(i => i.label === val);
+      if (!psicoBox) return;
 
-      if (itemEncontrado && itemEncontrado.is_psicotropico) {
+      const itemEncontrado = mapaLotesUnificados.find(i => 
+        i.label.toUpperCase() === val || 
+        val.includes(i.descricao.toUpperCase()) ||
+        (i.descricao && i.descricao.toUpperCase().includes(val))
+      );
+
+      const ehPsicotropicoGarantido = val.includes("DIAZEPAM") || 
+                                      val.includes("TRAMADOL") || 
+                                      val.includes("MORFINA") || 
+                                      val.includes("FENTANIL") || 
+                                      val.includes("MIDAZOLAM") ||
+                                      val.includes("MEPERIDINA");
+
+      if ((itemEncontrado && itemEncontrado.is_psicotropico) || ehPsicotropicoGarantido) {
         psicoBox.style.display = 'block';
       } else {
         psicoBox.style.display = 'none';
@@ -1686,7 +1699,7 @@
       return insumosArray;
     }
 
-    /* REGRA 3: BAIXA AUTOMÁTICA DE ESTOQUE NOS LOTES */
+    /* BAIXA AUTOMÁTICA DE ESTOQUE NOS LOTES */
     async function processarBaixaEstoqueELacres(insumosPayload, codigoOcorrencia) {
       if (!insumosPayload || !insumosPayload.length) return;
 
@@ -1739,7 +1752,7 @@
         const bioTipoAgente = (bioSuspeita === 'SIM') ? 
           (document.getElementById('bio_tipo_agente').value === 'OUTROS' ? document.getElementById('bio_agente_outros').value : document.getElementById('bio_tipo_agente').value) 
           : 'NÃO';
-        const bioDesinfeccao = (bioSuspeita === 'SIM') ? document.getElementById('bio_desinfeccao').value : 'N/A';
+        const bioDesinfeccao = (bioSuspeita === 'SIM') ? document.getElementById('bio_desinfeccao').value : 'NÃO SE APLICA';
 
         const payload = {
           codigo_ocorrencia: document.getElementById('codigo').value,
