@@ -125,7 +125,6 @@
       border-radius: 3px !important; background: #ffffff !important;
     }
 
-    /* ESTILO VISUAL DESTACADO DO TOTAL GLASGOW */
     .glasgow-total-box {
       font-size: 1.1rem;
       font-weight: 900;
@@ -191,6 +190,9 @@
       .print-triagem-text {
         display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.5pt solid #000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;
       }
+
+      /* OCULTAR O CAMPO DE HORÁRIO NA IMPRESSÃO PARA EVITAR REPETIÇÃO */
+      #box_reclassificacao_hora_form { display: none !important; }
 
       .j-block-container { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 2px !important; }
       .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; border: 0.4pt solid #000 !important; background: transparent !important; padding: 1px !important; }
@@ -277,7 +279,7 @@
           <div><label>Data</label><input type="date" id="data"></div>
         </div>
 
-        <!-- RECLASSIFICAÇÃO DO CÓDIGO DE TRIAGEM COM HORÁRIO AUTOMÁTICO E BLOQUEADO -->
+        <!-- RECLASSIFICAÇÃO DE CÓDIGO -->
         <div style="margin-top: 4px; padding: 5px; background: #f8fafc; border: 1px dashed var(--border); border-radius: 4px;">
           <label style="color: #0f172a; font-weight: 800;">RECLASSIFICAÇÃO DE CÓDIGO / ALTERAÇÃO PELA REGULAÇÃO (OPCIONAL)</label>
           <div class="grid-3">
@@ -291,7 +293,7 @@
                 <option value="AZ">AZUL (AZ)</option>
               </select>
             </div>
-            <div>
+            <div id="box_reclassificacao_hora_form">
               <label>Horário da Mudança (Automático)</label>
               <input type="time" id="reclassificacao_hora" readonly style="background: #e2e8f0; font-weight: bold;">
             </div>
@@ -415,7 +417,7 @@
               <option value="Indeterminado">Indeterminado</option>
             </select>
           </div>
-          <div><label>Telefone</label><input type="tel" inputmode="numeric" id="telefone" placeholder="(00) 00000-0000"></div>
+          <div><label>Telefone</label><input type="tel" inputmode="numeric" id="telefone" class="tel-mask" placeholder="(00) 00000-0000" maxlength="15"></div>
         </div>
 
         <div class="grid-endereco" style="margin-top: 2px;">
@@ -432,7 +434,7 @@
       </div>
     </div>
 
-    <!-- SEÇÃO 3: TIPO DE ATENDIMENTO COM DISPARO CONDICIONAL DA EXPOSIÇÃO -->
+    <!-- SEÇÃO 3: TIPO DE ATENDIMENTO -->
     <div class="card" id="sec3">
       <div class="card-header" onclick="toggleCard('sec3')">
         <span>3. Tipo de Atendimento</span>
@@ -449,7 +451,7 @@
       </div>
     </div>
 
-    <!-- SEÇÃO 4: AVALIAÇÃO TÁTICA ABCDE COM GLASGOW DETALHADO E DESTACADO -->
+    <!-- SEÇÃO 4: AVALIAÇÃO TÁTICA ABCDE -->
     <div class="card" id="sec4">
       <div class="card-header" onclick="toggleCard('sec4')">
         <span>4. Avaliação Tática & Exame Físico (ABCDE)</span>
@@ -517,13 +519,11 @@
             </div>
           </div>
           
-          <!-- CAMPO DESTACADO COM A PONTUAÇÃO FINAL DE GLASGOW -->
           <div id="glasgow_total_val" class="glasgow-total-box">
             TOTAL GLASGOW: 15 / 15
           </div>
         </div>
 
-        <!-- E - EXPOSIÇÃO EXIBIDO SOMENTE AO MARCAR "CAUSAS EXTERNAS / TRAUMA" -->
         <div id="box_exposicao_lesoes" style="display: none; margin-top: 4px;">
           <label style="color: var(--primary-dark); font-weight: 800;">E - Exposição / Lesões por Região (Trauma)</label>
           <table class="table-expo">
@@ -725,7 +725,7 @@
               </div>
               <div id="box_tel_assinante">
                 <label>Telefone Contato</label>
-                <input type="tel" inputmode="numeric" id="tel_assinante" placeholder="(00) 00000-0000">
+                <input type="tel" inputmode="numeric" id="tel_assinante" class="tel-mask" placeholder="(00) 00000-0000" maxlength="15">
               </div>
             </div>
           </div>
@@ -738,7 +738,7 @@
       </div>
     </div>
 
-    <!-- CAMPO EXCLUSIVO DA IMPRESSÃO P&B COM LÓGICA DINÂMICA DE EXIBIÇÃO DA ASSINATURA -->
+    <!-- CAMPO EXCLUSIVO DA IMPRESSÃO P&B -->
     <div class="print-signatures-block" id="printSigBlock">
       <div class="sig-box">
         <div style="font-size: 4.5pt; font-weight: bold;">TÉCNICO DE ENFERMAGEM</div>
@@ -833,6 +833,7 @@
       salvarLocal();
     }
 
+    /* AJUSTADO: EXIBE 'DR(A).' E UNIFICA O HORÁRIO SEM REPETIÇÕES */
     function atualizarTextoReclassificacaoImpressao() {
       const novoCod = document.getElementById('reclassificacao_codigo').value;
       const hora = document.getElementById('reclassificacao_hora').value;
@@ -847,7 +848,7 @@
           'AZ': 'AZUL (AZ)'
         };
         const horaStr = hora ? ` ÀS ${hora}` : '';
-        const medStr = med ? ` (AUTORIZADO DR. ${med})` : '';
+        const medStr = med ? ` (AUTORIZADO DR(A). ${med})` : '';
         box.innerText = `🔄 RECLASSIFICADO PARA: ${nomesTriagem[novoCod]}${horaStr}${medStr}`;
         box.style.display = 'block';
       } else {
@@ -984,7 +985,11 @@
         }
 
         document.getElementById('nome_assinante').value = (data.nome || '').toUpperCase();
-        if (data.telefone) document.getElementById('tel_assinante').value = data.telefone;
+        if (data.telefone) {
+          const elTel = document.getElementById('tel_assinante');
+          elTel.value = data.telefone;
+          aplicarMascaraTelefone(elTel);
+        }
         salvarLocal();
       } catch (err) { alert("Erro ao consultar CPF."); }
     }
@@ -1442,7 +1447,11 @@
         document.getElementById('cns_paciente').value = data.cns || '';
         document.getElementById('idade').value = data.idade || '';
         if (data.sexo) document.getElementById('sexo').value = data.sexo;
-        document.getElementById('telefone').value = data.telefone || '';
+        if (data.telefone) {
+          const elTel = document.getElementById('telefone');
+          elTel.value = data.telefone;
+          aplicarMascaraTelefone(elTel);
+        }
         document.getElementById('municipio').value = (data.municipio || 'ORLEANS').toUpperCase();
         document.getElementById('estado').value = (data.estado || 'SC').toUpperCase();
         document.getElementById('bairro').value = (data.bairro || '').toUpperCase();
@@ -1548,6 +1557,7 @@
           paciente: document.getElementById('paciente').value,
           idade: document.getElementById('idade').value,
           sexo: document.getElementById('sexo').value,
+          telefone: document.getElementById('telefone').value,
           rua: document.getElementById('rua').value,
           bairro: document.getElementById('bairro').value,
           municipio: document.getElementById('municipio').value,
@@ -1601,14 +1611,37 @@
       }
     });
 
+    /* MÁSCARA DINÂMICA PARA TELEFONE FIXO E CELULAR */
+    function aplicarMascaraTelefone(el) {
+      let v = el.value.replace(/\D/g, "");
+      if (v.length > 11) v = v.slice(0, 11);
+      
+      if (v.length > 10) {
+        // Celular com 9 dígitos: (XX) XXXXX-XXXX
+        v = v.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
+      } else if (v.length > 5) {
+        // Telefone Fixo com 8 dígitos: (XX) XXXX-XXXX
+        v = v.replace(/^(\d{2})(\d{4})(\d{0,4})$/, "($1) $2-$3");
+      } else if (v.length > 2) {
+        v = v.replace(/^(\d{2})(\d{0,5})$/, "($1) $2");
+      } else if (v.length > 0) {
+        v = v.replace(/^(\d*)$/, "($1");
+      }
+      el.value = v;
+    }
+
     document.addEventListener('keyup', (e) => {
-      if (e.target && (e.target.id === 'cpf_paciente' || e.target.classList.contains('cpf-mask'))) {
-        let v = e.target.value.replace(/\D/g, "");
-        if (v.length > 11) v = v.slice(0, 11);
-        v = v.replace(/(\d{3})(\d)/, "$1.$2");
-        v = v.replace(/(\d{3})(\d)/, "$1.$2");
-        v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-        e.target.value = v;
+      if (e.target) {
+        if (e.target.id === 'cpf_paciente' || e.target.classList.contains('cpf-mask')) {
+          let v = e.target.value.replace(/\D/g, "");
+          if (v.length > 11) v = v.slice(0, 11);
+          v = v.replace(/(\d{3})(\d)/, "$1.$2");
+          v = v.replace(/(\d{3})(\d)/, "$1.$2");
+          v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+          e.target.value = v;
+        } else if (e.target.classList.contains('tel-mask')) {
+          aplicarMascaraTelefone(e.target);
+        }
       }
     });
 
