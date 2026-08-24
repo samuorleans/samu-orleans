@@ -56,9 +56,6 @@
     .status-desligado { background: #fee2e2; color: #b91c1c; }
     .status-ferias { background: #fef3c7; color: #b45309; }
     .status-atestado { background: #e0e7ff; color: #4338ca; }
-    
-    .status-aph-sim { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
-    .status-aph-nao { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
     .modal-box { background: white; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; border-radius: 16px; padding: 24px; box-shadow: var(--shadow); position: relative; }
@@ -144,7 +141,7 @@
       </div>
     </div>
 
-    <!-- ABA 3: INSUMOS (COM BUSCA, FILTRO DE CATEGORIAS E STATUS APH) -->
+    <!-- ABA 3: INSUMOS (COM BUSCA LOCAL, FILTRO E TOGGLE DIRETO NA TABELA) -->
     <div id="secaoInsumos" style="display: none;">
       <div class="action-bar">
         <div class="filter-box">
@@ -561,21 +558,53 @@
         const desc = i.descricao_insumo || i.descricao || i.nome || '—';
         const cod = i.codigo_insumo || '—';
         const cat = i.categoria || 'COMBUSTIVEL';
-        const badgeAPH = i.exibir_no_aph 
-          ? `<span class="badge-status status-aph-sim">✅ SIM</span>` 
-          : `<span class="badge-status status-aph-nao">⚪ NÃO</span>`;
+        const estaAtivo = i.exibir_no_aph !== false;
+
+        // SELETOR CLICÁVEL DIRETO NA TABELA (TOGGLE EM TEMPO REAL)
+        const toggleAPH = `
+          <label style="display: inline-flex; align-items: center; cursor: pointer; gap: 6px;">
+            <input type="checkbox" 
+                   style="width: 18px; height: 18px; cursor: pointer;" 
+                   ${estaAtivo ? 'checked' : ''} 
+                   onchange="alternarExibicaoAPH(${i.id}, this.checked, '${desc.replace(/'/g, "\\'")}')">
+            <span style="font-weight: 700; font-size: 0.75rem; color: ${estaAtivo ? '#15803d' : '#64748b'};">
+              ${estaAtivo ? 'Sim' : 'Não'}
+            </span>
+          </label>
+        `;
 
         tbody.innerHTML += `<tr>
           <td><b>${cod}</b></td>
           <td><b>${desc}</b></td>
           <td>${cat}</td>
-          <td style="text-align: center;">${badgeAPH}</td>
+          <td style="text-align: center;">${toggleAPH}</td>
           <td style="text-align: center;">
             <button class="btn-editar" onclick="abrirModalInsumo('${i.id}')">✏️ Editar</button>
             <button class="btn-excluir" onclick="deletarItem('estoque_mestre', ${i.id}, carregarInsumos)">🗑️ Excluir</button>
           </td>
         </tr>`;
       });
+    }
+
+    // ATUALIZA O CAMPO exibir_no_aph DIRETO NO SUPABASE
+    async function alternarExibicaoAPH(id, novoStatus, nomeInsumo) {
+      try {
+        const { error } = await dbNuvem
+          .from('estoque_mestre')
+          .update({ exibir_no_aph: novoStatus })
+          .eq('id', id);
+
+        if (error) throw error;
+
+        const item = listaGlobalInsumos.find(x => x.id === id);
+        if (item) item.exibir_no_aph = novoStatus;
+
+        filtrarInsumosLocal();
+      } catch (err) {
+        console.error("Erro ao alterar visibilidade no APH:", err);
+        alert(`Não foi possível alterar a visibilidade do insumo "${nomeInsumo}".`);
+        carregarInsumos();
+      }
     }
 
     /* MODAL DE COLABORADOR E UNIFORMES */
