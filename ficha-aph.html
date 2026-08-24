@@ -36,7 +36,7 @@
     header .header-info h1 { font-size: 1rem; font-weight: 800; text-transform: uppercase; color: #fff; }
     header .header-info p { font-size: 0.65rem; color: #94a3b8; font-weight: 600; }
 
-    /* CARD ACCORDION (SANFONA) */
+    /* CARD ACCORDION */
     .card {
       background: var(--card-bg);
       border-radius: 6px;
@@ -73,7 +73,7 @@
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
     .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; }
-    .grid-paciente { display: grid; grid-template-columns: 1fr 0.6fr 0.7fr 1fr; gap: 4px; }
+    .grid-endereco { display: grid; grid-template-columns: 3fr 1fr; gap: 4px; }
 
     label { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 1px; text-transform: uppercase; }
     .uppercase-input { text-transform: uppercase; }
@@ -140,6 +140,10 @@
       touch-action: manipulation;
       user-select: none;
       transition: all 0.15s ease;
+    }
+
+    .btn-j-badge.btn-qta {
+      background: #991b1b !important;
     }
 
     .btn-j-badge:disabled { background: #94a3b8 !important; opacity: 0.4; cursor: not-allowed; }
@@ -220,7 +224,6 @@
       cursor: pointer;
     }
 
-    /* FORÇA ABERTURA DE TODAS AS SANFONAS NA IMPRESSÃO A4 */
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
       html, body { width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 6pt !important; }
@@ -235,8 +238,8 @@
       label { font-size: 4.8pt !important; color: #000 !important; margin-bottom: 0px !important; }
       input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.5pt solid #666 !important; background: transparent !important; padding: 0px 0 !important; font-weight: bold !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; }
       textarea { height: 10px !important; resize: none; }
-      .j-block-container { grid-template-columns: repeat(6, 1fr) !important; gap: 1px !important; }
-      .btn-j-badge { background: #000 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; height: 16px !important; font-size: 5.5pt !important; min-width: 45px !important; opacity: 1 !important; }
+      .j-block-container { grid-template-columns: repeat(7, 1fr) !important; gap: 1px !important; }
+      .btn-j-badge { background: #000 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; height: 16px !important; font-size: 5.5pt !important; min-width: 40px !important; opacity: 1 !important; }
       .j-time-input { height: 16px !important; font-size: 6pt !important; border-bottom: 0.5pt solid #000 !important; }
       .sv-table th, .sv-table td, .med-table th, .med-table td { font-size: 5.2pt !important; padding: 1px !important; border: 0.5pt solid #000 !important; }
       canvas { height: 24px !important; border: 0.5pt solid #000 !important; }
@@ -255,7 +258,7 @@
 
   <form id="aphForm">
 
-    <!-- SEÇÃO 1: CONTROLE OPERACIONAL (ATIVA POR PADRÃO) -->
+    <!-- SEÇÃO 1: CONTROLE OPERACIONAL -->
     <div class="card active" id="sec1">
       <div class="card-header" onclick="toggleCard('sec1')">
         <span>1. Controle Operacional & Equipe</span>
@@ -276,8 +279,12 @@
           <div><label>Data</label><input type="date" id="data"></div>
         </div>
 
-        <div class="grid-3">
+        <div class="grid-2">
           <div><label>Médico Regulador</label><input type="text" id="regulador" class="uppercase-input" placeholder="MÉDICO REGULADOR"></div>
+          <div><label>Motivo do Acionamento</label><input type="text" id="motivo_acionamento" placeholder="Ex: Acidente de Trânsito, Dor Torácica..."></div>
+        </div>
+
+        <div class="grid-2">
           <div>
             <label>Téc. de Enfermagem</label>
             <select id="tec_enfermeiro"><option value="">Buscando no Supabase...</option></select>
@@ -288,7 +295,7 @@
           </div>
         </div>
 
-        <!-- MÓDULO DOS J'S -->
+        <!-- MÓDULO DOS J'S E QTA -->
         <div class="j-block-container">
           <div class="j-row-tactical">
             <button type="button" class="btn-j-badge" id="btnJ9" data-target="horaJ9">J9 ⏱️</button>
@@ -300,6 +307,12 @@
             <button type="button" class="btn-j-badge" id="btnJ10" data-target="horaJ10" disabled>J10 ⏱️</button>
             <input type="time" id="horaJ10" class="j-time-input" disabled>
             <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Cheg. Local</span>
+          </div>
+
+          <div class="j-row-tactical">
+            <button type="button" class="btn-j-badge btn-qta" id="btnQTA" data-target="horaQTA" disabled>QTA 🛑</button>
+            <input type="time" id="horaQTA" class="j-time-input" disabled>
+            <span style="font-size: 0.58rem; color: #991b1b; font-weight: 700;">Cancelado</span>
           </div>
 
           <div class="j-row-tactical">
@@ -325,6 +338,12 @@
             <input type="time" id="horaJ12" class="j-time-input" disabled>
             <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Na Base</span>
           </div>
+        </div>
+
+        <!-- JUSTIFICATIVA DO QTA (EXIBIDA SE ACIONADO) -->
+        <div id="qta_box" style="display: none; margin-top: 6px; background: #fef2f2; padding: 6px; border: 1px solid #fca5a5; border-radius: 4px;">
+          <label style="color: #991b1b;">Justificativa do QTA (Cancelamento do Atendimento)*</label>
+          <input type="text" id="qta_motivo" placeholder="Informe o motivo da dispensa/cancelamento pela regulação...">
         </div>
       </div>
     </div>
@@ -353,19 +372,30 @@
           <input type="text" id="paciente" class="uppercase-input" style="font-weight: 700;" placeholder="NOME DO PACIENTE">
         </div>
 
-        <div class="grid-paciente">
+        <div class="grid-3">
           <div><label>Idade</label><input type="number" inputmode="numeric" id="idade"></div>
-          <div><label>Sexo</label><select id="sexo"><option>M</option><option>F</option></select></div>
-          <div><label>Telefone</label><input type="tel" inputmode="numeric" id="telefone"></div>
-          <div><label>Município</label><input type="text" id="municipio" value="Orleans"></div>
+          <div>
+            <label>Sexo</label>
+            <select id="sexo">
+              <option value="M">Masculino (M)</option>
+              <option value="F">Feminino (F)</option>
+              <option value="Indeterminado">Indeterminado</option>
+            </select>
+          </div>
+          <div><label>Telefone</label><input type="tel" inputmode="numeric" id="telefone" placeholder="(00) 00000-0000"></div>
+        </div>
+
+        <!-- ENDEREÇO REORGANIZADO -->
+        <div class="grid-endereco" style="margin-top: 2px;">
+          <div><label>Rua / Logradouro</label><input type="text" id="rua" placeholder="Nome da rua ou rodovia..."></div>
+          <div><label>Nº Casa / Apto</label><input type="text" id="numero" placeholder="Nº"></div>
         </div>
 
         <div class="grid-3">
           <div><label>Bairro</label><input type="text" id="bairro"></div>
-          <div><label>Rua</label><input type="text" id="rua"></div>
-          <div><label>Nº / Ponto de Ref.</label><input type="text" id="numero"></div>
+          <div><label>Ponto de Referência</label><input type="text" id="ponto_ref"></div>
+          <div><label>Município</label><input type="text" id="municipio" value="Orleans"></div>
         </div>
-        <div><label>Motivo Ativação</label><input type="text" id="motivo_ativacao"></div>
       </div>
     </div>
 
@@ -470,14 +500,13 @@
       </div>
     </div>
 
-    <!-- SEÇÃO 6: MEDICAÇÕES E INSUMOS UTILIZADOS COM BUSCA AUTOCOMPLETE -->
+    <!-- SEÇÃO 6: MEDICAÇÕES E INSUMOS -->
     <div class="card" id="sec6">
       <div class="card-header" onclick="toggleCard('sec6')">
         <span>6. Medicações & Insumos Utilizados (Baixa de Estoque)</span>
         <span class="icon-toggle">▼</span>
       </div>
       <div class="card-body">
-        <!-- DATALIST PARA A BUSCA AUTOMÁTICA DE MEDICAMENTOS -->
         <datalist id="lista_insumos_datalist"></datalist>
 
         <table class="med-table">
@@ -491,14 +520,14 @@
             </tr>
           </thead>
           <tbody id="meds_body">
-            <!-- Linhas de medicação com busca -->
+            <!-- Linhas de medicação -->
           </tbody>
         </table>
         <button type="button" class="btn-add-med" onclick="addMedRow()">+ Adicionar Medicamento / Insumo</button>
       </div>
     </div>
 
-    <!-- SEÇÃO 7: ANAMNESE E EVOLUÇÃO COM PARSER MÉDICO E TRANSCRITOR DE VOZ -->
+    <!-- SEÇÃO 7: ANAMNESE E EVOLUÇÃO -->
     <div class="card" id="sec7">
       <div class="card-header" onclick="toggleCard('sec7')">
         <span>7. Anamnese, Evolução e Conduta</span>
@@ -585,6 +614,7 @@
     let _supabase = null;
     let listaInsumosEstoque = [];
     let formModificado = false;
+    let wakeLock = null;
     let recognition = null;
     let isRecording = false;
 
@@ -592,15 +622,43 @@
       _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // 1. SISTEMA ACCORDION (SANFONA)
-    function toggleCard(cardId) {
-      const card = document.getElementById(cardId);
-      if (card) {
-        card.classList.toggle('active');
+    // 1. TRAVA DE BRILHO DE TELA DO TABLET (WAKE LOCK API)
+    async function reterTelaAcesa() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch (err) {
+        console.warn("Screen Wake Lock não suportado pelo tablet/navegador:", err);
       }
     }
 
-    // 2. DICIONÁRIO E PARSER MÉDICO GRATUITO (Aprimora a fala para nomenclaturas técnicas)
+    document.getElementById('aphForm').addEventListener('click', reterTelaAcesa, { once: true });
+
+    // 2. SISTEMA ACCORDION
+    function toggleCard(cardId) {
+      const card = document.getElementById(cardId);
+      if (card) card.classList.toggle('active');
+    }
+
+    // 3. MÁSCARA INTELIGENTE DE TELEFONE COM DDD
+    document.getElementById('telefone').addEventListener('keyup', (e) => {
+      let v = e.target.value.replace(/\D/g, "");
+      if (v.length > 11) v = v.slice(0, 11);
+
+      if (v.length > 10) {
+        v = v.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
+      } else if (v.length > 6) {
+        v = v.replace(/^(\d{2})(\d{4})(\d{0,4})$/, "($1) $2-$3");
+      } else if (v.length > 2) {
+        v = v.replace(/^(\d{2})(\d{0,5})$/, "($1) $2");
+      } else if (v.length > 0) {
+        v = v.replace(/^(\d*)$/, "($1");
+      }
+      e.target.value = v;
+    });
+
+    // 4. PARSER MÉDICO E TRANSCRITOR DE VOZ
     const dicionarioMedico = {
       "pressao alta": "Hipertensão Arterial",
       "pressao baixa": "Hipotensão Arterial",
@@ -613,85 +671,60 @@
       "desmaio": "Síncope",
       "sangramento": "Hemorragia",
       "batimento acelerado": "Taquicardia",
-      "batimento lento": "Bradicardia",
-      "queimadura": "Lesão Térmica",
-      "convulsao": "Crise Convulsiva"
+      "batimento lento": "Bradicardia"
     };
 
     function processarTextoMedico(textoFala) {
       let textoFormatado = textoFala.toLowerCase();
-
-      // Substitui termos leigos por termos técnicos médicos
       Object.keys(dicionarioMedico).forEach(termoLeigo => {
         const regex = new RegExp(`\\b${termoLeigo}\\b`, 'gi');
         textoFormatado = textoFormatado.replace(regex, dicionarioMedico[termoLeigo]);
       });
-
-      // Aplica pontuação e inicia com letra maiúscula
-      textoFormatado = textoFormatado.charAt(0).toUpperCase() + textoFormatado.slice(1) + ". ";
-      return textoFormatado;
+      return textoFormatado.charAt(0).toUpperCase() + textoFormatado.slice(1) + ". ";
     }
 
-    // 3. TRANSCRIÇÃO DE VOZ COM PÓS-PROCESSAMENTO MÉDICO
     function toggleDitadoVoz() {
       const btn = document.getElementById('btnMic');
       const textarea = document.getElementById('evolucao_texto');
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
-        alert("O seu navegador/tablet não possui suporte nativo para transcrição de voz.");
+        alert("O tablet/navegador não possui suporte para transcrição de voz.");
         return;
       }
 
-      if (isRecording) {
-        recognition.stop();
-        return;
-      }
+      if (isRecording) { recognition.stop(); return; }
 
       recognition = new SpeechRecognition();
       recognition.lang = 'pt-BR';
       recognition.continuous = true;
-      recognition.interimResults = false;
 
       recognition.onstart = function() {
         isRecording = true;
         btn.classList.add('recording');
-        btn.innerHTML = '🛑 Transcrevendo... Toque p/ Parar';
+        btn.innerHTML = '🛑 Parar Gravador';
       };
 
       recognition.onresult = function(event) {
         const transcriptBruto = event.results[event.results.length - 1][0].transcript;
-        const transcriptRefinado = processarTextoMedico(transcriptBruto);
-        textarea.value += transcriptRefinado;
+        textarea.value += processarTextoMedico(transcriptBruto);
         formModificado = true;
       };
 
-      recognition.onerror = function(e) {
-        console.warn("Erro no reconhecimento de voz:", e);
-        pararGravacao(btn);
-      };
-
       recognition.onend = function() {
-        pararGravacao(btn);
+        isRecording = false;
+        btn.classList.remove('recording');
+        btn.innerHTML = '🎙️ Ditar c/ Parser Médico';
       };
 
       recognition.start();
     }
 
-    function pararGravacao(btn) {
-      isRecording = false;
-      btn.classList.remove('recording');
-      btn.innerHTML = '🎙️ Ditar c/ Parser Médico';
-    }
-
-    // CAIXA ALTA AUTOMÁTICA
+    // 5. CAIXA ALTA AUTOMÁTICA
     document.querySelectorAll('.uppercase-input').forEach(input => {
-      input.addEventListener('input', (e) => {
-        e.target.value = e.target.value.toUpperCase();
-      });
+      input.addEventListener('input', (e) => { e.target.value = e.target.value.toUpperCase(); });
     });
 
-    // ANAMNESE DINÂMICA
     function toggleAlergiaInput() {
       const val = document.getElementById('alergia_select').value;
       document.getElementById('alergia_desc_box').style.display = (val === 'SIM') ? 'block' : 'none';
@@ -702,7 +735,7 @@
       document.getElementById('med_continua_box').style.display = chk ? 'block' : 'none';
     }
 
-    // REGRA DE SEQUÊNCIA E HABILITAÇÃO DOS J'S
+    // 6. REGRA SEQUENCIAL DOS J'S E QTA
     function acionarJTime(jCode, targetInputId) {
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -717,7 +750,16 @@
 
       if (jCode === 'J9') {
         liberarJ('btnJ10', 'horaJ10');
+        liberarJ('btnQTA', 'horaQTA');
+      } else if (jCode === 'QTA') {
+        document.getElementById('qta_box').style.display = 'block';
+        bloquearJ('btnJ10', 'horaJ10');
+        bloquearJ('btnJ9_INT', 'horaJ9_INT');
+        bloquearJ('btnJ10_INT', 'horaJ10_INT');
+        bloquearJ('btnJ11', 'horaJ11');
+        liberarJ('btnJ12', 'horaJ12');
       } else if (jCode === 'J10') {
+        bloquearJ('btnQTA', 'horaQTA');
         liberarJ('btnJ9_INT', 'horaJ9_INT');
         liberarJ('btnJ11', 'horaJ11');
       } else if (jCode === 'J9_INT') {
@@ -742,14 +784,14 @@
       if (input) { input.disabled = true; input.value = ''; }
     }
 
-    // 4. CONSULTA DE COLABORADORES E ESTOQUE
+    // 7. CONSULTA DE COLABORADORES E ESTOQUE (COM CORREÇÃO DE BUSCA NO SUPABASE)
     async function inicializarDados() {
       addSvRow(true);
 
       if (!_supabase) return;
 
       try {
-        const { data: colabs } = await _supabase.from('colaboradores').select('*').order('nome');
+        const { data: colabs, error } = await _supabase.from('colaboradores').select('*').order('nome');
         if (colabs && colabs.length > 0) {
           const selectTec = document.getElementById('tec_enfermeiro');
           const selectSoc = document.getElementById('socorrista');
@@ -757,17 +799,22 @@
           selectSoc.innerHTML = '<option value="">-- Selecione o Condutor --</option>';
 
           colabs.forEach(c => {
-            if ((c.coren && c.coren !== 'N/A') || (c.funcao && c.funcao.toLowerCase().includes('técnico'))) {
-              selectTec.innerHTML += `<option value="${c.nome} - COREN ${c.coren || ''}">${c.nome} (${c.coren || 'Téc'})</option>`;
+            const funcLower = (c.funcao || '').toLowerCase();
+            const corenVal = c.coren || '';
+
+            // Popula Técnicos de Enfermagem
+            if ((corenVal && corenVal !== 'N/A') || funcLower.includes('técnico') || funcLower.includes('tecnico') || funcLower.includes('enferm')) {
+              selectTec.innerHTML += `<option value="${c.nome} - COREN ${corenVal}">${c.nome} (${corenVal || 'Téc'})</option>`;
             }
-            if (c.funcao && c.funcao.toLowerCase().includes('condutor')) {
+
+            // Popula Condutores / Socorristas
+            if (funcLower.includes('condutor') || funcLower.includes('socorrista') || funcLower.includes('motorista')) {
               selectSoc.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
             }
           });
         }
-      } catch(e) { console.warn("Erro colaboradores:", e); }
+      } catch(e) { console.warn("Erro ao buscar colaboradores:", e); }
 
-      // POPULA O DATALIST DE BUSCA DE MEDICAÇÕES
       try {
         const { data: est } = await _supabase.from('estoque_lotes').select('id, item_nome, lote, data_validade').gt('quantidade', 0);
         if (est) {
@@ -780,7 +827,7 @@
             datalist.appendChild(opt);
           });
         }
-      } catch(e) { console.warn("Erro estoque:", e); }
+      } catch(e) { console.warn("Erro ao buscar estoque:", e); }
 
       addMedRow();
     }
@@ -851,7 +898,7 @@
       } catch (err) { alert("Erro ao consultar CPF do paciente."); }
     }
 
-    // 5. MEDICAÇÕES COM CAMPO DE BUSCA (DATALIST)
+    // MEDICAÇÕES
     function addMedRow() {
       const tbody = document.getElementById('meds_body');
       const tr = document.createElement('tr');
@@ -881,7 +928,7 @@
       }
     }
 
-    // CLIQUE NOS BOTOES J
+    // CLIQUE BOTOES J E QTA
     document.addEventListener('click', function(e) {
       const badgeBtn = e.target.closest('.btn-j-badge');
       if (badgeBtn && !badgeBtn.disabled) {
@@ -889,7 +936,8 @@
         const targetId = badgeBtn.getAttribute('data-target');
         
         let jCode = 'J9';
-        if (targetId.includes('J10_INT')) jCode = 'J10_INT';
+        if (targetId.includes('QTA')) jCode = 'QTA';
+        else if (targetId.includes('J10_INT')) jCode = 'J10_INT';
         else if (targetId.includes('J9_INT')) jCode = 'J9_INT';
         else if (targetId.includes('J10')) jCode = 'J10';
         else if (targetId.includes('J11')) jCode = 'J11';
@@ -953,7 +1001,7 @@
 
     document.getElementById('btnClearSig').addEventListener('click', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); });
     
-    // PREPARA O FORMULÁRIO PARA A IMPRESSÃO EXPANDINDO TODAS AS SANFONAS
+    // PREPARA O FORMULÁRIO PARA IMPRESSÃO EXPANDINDO TODAS AS SEÇÕES
     document.getElementById('btnImprimir').addEventListener('click', () => { 
       formModificado = false;
       document.querySelectorAll('.card').forEach(c => c.classList.add('active'));
