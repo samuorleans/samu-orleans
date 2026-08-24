@@ -60,7 +60,7 @@
     .grid-paciente { display: grid; grid-template-columns: 1fr 0.6fr 0.7fr 1fr; gap: 4px; }
 
     label { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 1px; text-transform: uppercase; }
-    input[type="text"], input[type="number"], input[type="date"], input[type="time"], select, textarea {
+    input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea {
       width: 100%;
       padding: 5px;
       border: 1px solid var(--border);
@@ -86,7 +86,7 @@
       height: 29px;
     }
 
-    /* MÓDULO J'S OTIMIZADO E EXPANDIDO */
+    /* MÓDULO J'S */
     .j-block-container {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -142,7 +142,7 @@
       background: #ffffff !important;
     }
 
-    /* TABELA DE SINAIS VITAIS DINÂMICA */
+    /* TABELA DE SINAIS VITAIS */
     .sv-table { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.72rem; }
     .sv-table th { background: #f1f5f9; padding: 3px; border: 1px solid #cbd5e1; font-size: 0.62rem; text-transform: uppercase; text-align: center; }
     .sv-table td { padding: 2px; border: 1px solid #cbd5e1; text-align: center; }
@@ -195,10 +195,37 @@
       cursor: pointer;
     }
 
+    /* MODAL DE ALERTAS DA FICHA */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.85);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-box {
+      background: #ffffff;
+      border-top: 6px solid var(--primary);
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .modal-box h3 { color: var(--primary-dark); font-size: 1.1rem; margin-bottom: 8px; text-transform: uppercase; font-weight: 800; }
+    .modal-box p { font-size: 0.85rem; color: var(--text); margin-bottom: 16px; font-weight: 600; }
+    .modal-btns { display: flex; gap: 8px; justify-content: center; }
+    .btn-modal-cancel { background: #64748b; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+    .btn-modal-confirm { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
       html, body { width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 6pt !important; }
-      .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, button, script { display: none !important; }
+      .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .modal-overlay, button, script { display: none !important; }
       header { background: none !important; color: #000 !important; border-bottom: 1.5pt solid #000; padding: 0 !important; margin-bottom: 2px !important; border-left: none !important; }
       header img { height: 26px !important; }
       header h1 { font-size: 8.5pt !important; margin: 0; color: #000 !important; }
@@ -206,7 +233,7 @@
       .card { box-shadow: none !important; border: 0.5pt solid #000 !important; margin-bottom: 1px !important; padding: 1px 2px !important; border-radius: 0 !important; page-break-inside: avoid !important; }
       .card h2 { font-size: 6pt !important; color: #000 !important; border-bottom: 0.5pt solid #000 !important; padding-bottom: 1px !important; margin-bottom: 1px !important; }
       label { font-size: 4.8pt !important; color: #000 !important; margin-bottom: 0px !important; }
-      input[type="text"], input[type="number"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.5pt solid #666 !important; background: transparent !important; padding: 0px 0 !important; font-weight: bold !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; }
+      input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.5pt solid #666 !important; background: transparent !important; padding: 0px 0 !important; font-weight: bold !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; }
       textarea { height: 10px !important; resize: none; }
       .j-block-container { grid-template-columns: repeat(6, 1fr) !important; gap: 1px !important; }
       .btn-j-badge { background: #000 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; height: 16px !important; font-size: 5.5pt !important; min-width: 45px !important; }
@@ -231,7 +258,7 @@
     <div class="card">
       <h2>1. Controle Operacional & Equipe</h2>
       <div class="grid-3">
-        <div><label>Nº Ocorrência</label><input type="text" id="codigo" required></div>
+        <div><label>Nº Ocorrência</label><input type="tel" inputmode="numeric" id="codigo" required placeholder="Apenas números"></div>
         <div>
           <label>CÓDIGO COR</label>
           <select id="cor_ocorrencia">
@@ -303,12 +330,12 @@
         <div>
           <label>CPF Paciente</label>
           <div class="search-group">
-            <input type="text" id="cpf_paciente" placeholder="000.000.000-00" maxlength="14">
+            <input type="tel" inputmode="numeric" id="cpf_paciente" placeholder="000.000.000-00" maxlength="14">
             <button type="button" class="btn-search" onclick="buscarPacienteCPF()">🔍 Buscar</button>
           </div>
         </div>
-        <div><label>CNS (Cartão SUS)</label><input type="text" id="cns_paciente" placeholder="000 0000 0000 0000" maxlength="15"></div>
-        <div><label>CEP</label><input type="text" id="cep_paciente" placeholder="00000-000" maxlength="9"></div>
+        <div><label>CNS (Cartão SUS)</label><input type="tel" inputmode="numeric" id="cns_paciente" placeholder="000 0000 0000 0000" maxlength="15"></div>
+        <div><label>CEP</label><input type="tel" inputmode="numeric" id="cep_paciente" placeholder="00000-000" maxlength="9"></div>
       </div>
 
       <div style="margin-top: 2px;">
@@ -317,9 +344,9 @@
       </div>
 
       <div class="grid-paciente">
-        <div><label>Idade</label><input type="number" id="idade"></div>
+        <div><label>Idade</label><input type="number" inputmode="numeric" id="idade"></div>
         <div><label>Sexo</label><select id="sexo"><option>M</option><option>F</option></select></div>
-        <div><label>Telefone</label><input type="text" id="telefone"></div>
+        <div><label>Telefone</label><input type="tel" inputmode="numeric" id="telefone"></div>
         <div><label>Município</label><input type="text" id="municipio" value="Orleans"></div>
       </div>
 
@@ -394,7 +421,7 @@
       </table>
     </div>
 
-    <!-- SINAIS VITAIS DINÂMICOS -->
+    <!-- SINAIS VITAIS DINÂMICOS COM TECLADO NUMÉRICO -->
     <div class="card">
       <h2>5. Sinais Vitais (Medições APH)</h2>
       <table class="sv-table">
@@ -411,7 +438,7 @@
           </tr>
         </thead>
         <tbody id="sv_body">
-          <!-- 1ª Linha Obrigatória (Criada via Script) -->
+          <!-- 1ª Linha Obrigatória (Script) -->
         </tbody>
       </table>
       <button type="button" class="btn-add-sv" onclick="addSvRow(false)">+ Adicionar Reavaliação de Sinais</button>
@@ -477,29 +504,70 @@
     <button type="button" class="btn-submit" id="btnImprimir">Imprimir / Gerar 2 Vias A4</button>
   </form>
 
+  <!-- MODAL DE CONFIRMAÇÃO DE RECARREGAMENTO -->
+  <div class="modal-overlay" id="reloadModal">
+    <div class="modal-box">
+      <h3>⚠️ ATENÇÃO: PERDA DE DADOS!</h3>
+      <p>Você tem informações digitadas nesta Ficha APH. Se recarregar ou sair da página agora, todos os dados não salvos serão perdidos!</p>
+      <div class="modal-btns">
+        <button type="button" class="btn-modal-cancel" onclick="fecharModalReload()">Continuar Preenchendo</button>
+        <button type="button" class="btn-modal-confirm" onclick="confirmarReload()">Sair Sem Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = 'https://rcpgukslnlfptreiusff.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
 
     let _supabase = null;
     let listaInsumosEstoque = [];
+    let formModificado = false;
 
     if (window.supabase) {
       _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // 1. CONSULTA DIRETA DE COLABORADORES E ESTOQUE
+    // REGISTRA ALTERAÇÕES PARA PROTEGER CONTRA RECARREGAMENTO
+    document.getElementById('aphForm').addEventListener('input', () => { formModificado = true; });
+    document.getElementById('aphForm').addEventListener('change', () => { formModificado = true; });
+
+    // ALERTA DE RECARREGAMENTO DO NAVEGADOR
+    window.addEventListener('beforeunload', function (e) {
+      if (formModificado) {
+        e.preventDefault();
+        e.returnValue = 'Atenção: Os dados digitados na Ficha APH serão perdidos se você sair!';
+        return e.returnValue;
+      }
+    });
+
+    // BLOQUEIO DE TECLAS DE ATALHO (F5 / CTRL+R) COM MODAL GRANDE
+    window.addEventListener('keydown', function(e) {
+      if ((e.key === 'F5') || (e.ctrlKey && e.key === 'r') || (e.metaKey && e.key === 'r')) {
+        if (formModificado) {
+          e.preventDefault();
+          document.getElementById('reloadModal').style.display = 'flex';
+        }
+      }
+    });
+
+    function fecharModalReload() {
+      document.getElementById('reloadModal').style.display = 'none';
+    }
+
+    function confirmarReload() {
+      formModificado = false;
+      window.location.reload();
+    }
+
+    // 1. CONSULTA DE COLABORADORES E ESTOQUE
     async function inicializarDados() {
-      // 1ª Linha de Sinais Vitais (Obrigatória)
       addSvRow(true);
 
       if (!_supabase) return;
 
-      // Carrega Colaboradores sem restrições de filtro rígido
       try {
         const { data: colabs, error } = await _supabase.from('colaboradores').select('*').order('nome');
-        if (error) console.error("Erro Supabase:", error);
-
         if (colabs && colabs.length > 0) {
           const selectTec = document.getElementById('tec_enfermeiro');
           const selectSoc = document.getElementById('socorrista');
@@ -507,33 +575,29 @@
           selectSoc.innerHTML = '<option value="">-- Selecione o Condutor --</option>';
 
           colabs.forEach(c => {
-            // Popula se tiver COREN ou função contendo Técnico/Enfermeiro
             if ((c.coren && c.coren !== 'N/A') || (c.funcao && c.funcao.toLowerCase().includes('técnico'))) {
               selectTec.innerHTML += `<option value="${c.nome} - COREN ${c.coren || ''}">${c.nome} (${c.coren || 'Téc'})</option>`;
             }
-            // Popula Condutores
             if (c.funcao && c.funcao.toLowerCase().includes('condutor')) {
               selectSoc.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
             }
           });
         }
-      } catch(e) { console.warn("Erro ao buscar colaboradores:", e); }
+      } catch(e) { console.warn("Erro colaboradores:", e); }
 
-      // Carrega Estoque
       try {
         const { data: est } = await _supabase.from('estoque_lotes').select('id, item_nome, lote, data_validade').gt('quantidade', 0);
         if (est) listaInsumosEstoque = est;
-      } catch(e) { console.warn("Erro ao buscar estoque:", e); }
+      } catch(e) { console.warn("Erro estoque:", e); }
 
       addMedRow();
     }
 
-    // 2. SINAIS VITAIS DINÂMICOS
+    // 2. SINAIS VITAIS DINÂMICOS (COM TECLADO NUMÉRICO DIRETO)
     function addSvRow(isFirst = false) {
       const tbody = document.getElementById('sv_body');
       const tr = document.createElement('tr');
       const reqAttr = isFirst ? 'required' : '';
-      const reqLabel = isFirst ? ' (1ª Aferição Obrigatória)' : '';
 
       tr.innerHTML = `
         <td>
@@ -542,12 +606,12 @@
             <button type="button" class="btn-time-sv" onclick="setSvTime(this)">⏱️</button>
           </div>
         </td>
-        <td><input type="text" placeholder="120x80" ${reqAttr}></td>
-        <td><input type="number" placeholder="80" ${reqAttr}></td>
-        <td><input type="number" placeholder="16" ${reqAttr}></td>
-        <td><input type="number" placeholder="98" ${reqAttr}></td>
-        <td><input type="number" step="0.1" placeholder="36.5" ${reqAttr}></td>
-        <td><input type="number" placeholder="90" ${reqAttr}></td>
+        <td><input type="tel" inputmode="numeric" placeholder="120x80" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" placeholder="80" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" placeholder="16" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" placeholder="98" ${reqAttr}></td>
+        <td><input type="number" inputmode="decimal" step="0.1" placeholder="36.5" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" placeholder="90" ${reqAttr}></td>
         <td>${isFirst ? '' : '<button type="button" class="btn-del-med" onclick="this.closest(\'tr\').remove()">×</button>'}</td>
       `;
       tbody.appendChild(tr);
@@ -558,6 +622,7 @@
       const timeInput = tr.querySelector('.sv-time-val');
       const now = new Date();
       timeInput.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      formModificado = true;
     }
 
     // 3. BUSCA PACIENTE CPF
@@ -608,7 +673,7 @@
         <td><select onchange="updateMedDetails(this)">${optionsHTML}</select></td>
         <td><input type="text" class="med-lote" readonly placeholder="Lote"></td>
         <td><input type="text" class="med-val" readonly placeholder="Validade"></td>
-        <td><input type="number" value="1" min="1"></td>
+        <td><input type="number" inputmode="numeric" value="1" min="1"></td>
         <td><button type="button" class="btn-del-med" onclick="this.closest('tr').remove()">×</button></td>
       `;
       tbody.appendChild(tr);
@@ -627,7 +692,7 @@
       }
     }
 
-    // Ação do Botão em Seta dos J's
+    // Ação nos J's
     document.addEventListener('click', function(e) {
       const badgeBtn = e.target.closest('.btn-j-badge');
       if (badgeBtn) {
@@ -637,11 +702,12 @@
         if (input) {
           const now = new Date();
           input.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+          formModificado = true;
         }
       }
     });
 
-    // Máscara CPF e CEP
+    // Máscara CPF
     document.getElementById('cpf_paciente').addEventListener('keyup', (e) => {
       let v = e.target.value.replace(/\D/g, "");
       if (v.length > 11) v = v.slice(0, 11);
@@ -683,6 +749,7 @@
     canvas.addEventListener('touchstart', (e) => {
       writing = true; ctx.beginPath();
       const pos = getTouchPos(e); ctx.moveTo(pos.x, pos.y);
+      formModificado = true;
     }, { passive: false });
 
     canvas.addEventListener('touchend', () => { writing = false; });
@@ -693,7 +760,10 @@
     }, { passive: false });
 
     document.getElementById('btnClearSig').addEventListener('click', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); });
-    document.getElementById('btnImprimir').addEventListener('click', () => { window.print(); });
+    document.getElementById('btnImprimir').addEventListener('click', () => { 
+      formModificado = false; // Permite imprimir sem disparar o alerta de saída
+      window.print(); 
+    });
 
     // Inicialização
     document.getElementById('data').valueAsDate = new Date();
