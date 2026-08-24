@@ -420,7 +420,7 @@
   <script>
     const dbNuvem = supabase.createClient(
       "https://rcpgukslnlfptreiusff.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
     let listaGlobalInsumos = [];
@@ -539,23 +539,23 @@
       const tbody = document.getElementById('tbodyInsumos');
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando estoque mestre...</td></tr>';
       
-      const { data, error } = await dbNuvem
-        .from('estoque_mestre')
-        .select('*');
+      try {
+        const { data, error } = await dbNuvem.from('estoque_mestre').select('*');
 
-      if (error) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#d32f2f;">Erro ao carregar insumos.</td></tr>';
-        return;
+        if (error) throw error;
+
+        listaGlobalInsumos = data || [];
+        listaGlobalInsumos.sort((a, b) => {
+          const descA = (a.descricao_insumo || a.descricao || a.nome || '').toUpperCase();
+          const descB = (b.descricao_insumo || b.descricao || b.nome || '').toUpperCase();
+          return descA.localeCompare(descB);
+        });
+
+        filtrarInsumosLocal();
+      } catch (err) {
+        console.error("Erro ao carregar insumos:", err);
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#d32f2f;">Erro ao carregar insumos do banco.</td></tr>';
       }
-
-      listaGlobalInsumos = data || [];
-      listaGlobalInsumos.sort((a, b) => {
-        const descA = (a.descricao_insumo || a.descricao || a.nome || '').toUpperCase();
-        const descB = (b.descricao_insumo || b.descricao || b.nome || '').toUpperCase();
-        return descA.localeCompare(descB);
-      });
-
-      filtrarInsumosLocal();
     }
 
     function filtrarInsumosLocal() {
@@ -771,7 +771,6 @@
       const campoCodigo = document.getElementById('modal_insumo_cod');
       const idExistente = document.getElementById('modal_insumo_id').value;
       
-      // Se já está editando um item com ID, não sobrescreve o código
       if (idExistente) return;
       if (!categoria) return;
 
@@ -845,28 +844,12 @@
         categoria: document.getElementById('modal_insumo_cat').value,
         estoque_minimo: parseInt(document.getElementById('modal_insumo_min').value) || 0,
         estoque_maximo: parseInt(document.getElementById('modal_insumo_max').value) || 0,
-        exibir_no_aph: document.getElementById('modal_insumo_aph').checked
+        exibir_no_aph: document.getElementById('modal_insumo_aph').checked,
+        is_psicotropico: document.getElementById('modal_insumo_psico').checked
       };
 
-      // Tenta incluir psicotrópico de forma segura sem travar caso a coluna ainda não exista
-      const ehPsico = document.getElementById('modal_insumo_psico').checked;
-      
-      try {
-        if (id) {
-          let res = await dbNuvem.from('estoque_mestre').update({ ...payload, is_psicotropico: ehPsico }).eq('id', id);
-          if (res.error) {
-            await dbNuvem.from('estoque_mestre').update(payload).eq('id', id);
-          }
-        } else {
-          let res = await dbNuvem.from('estoque_mestre').insert([{ ...payload, is_psicotropico: ehPsico }]);
-          if (res.error) {
-            await dbNuvem.from('estoque_mestre').insert([payload]);
-          }
-        }
-      } catch(err) {
-        if (id) await dbNuvem.from('estoque_mestre').update(payload).eq('id', id);
-        else await dbNuvem.from('estoque_mestre').insert([payload]);
-      }
+      if (id) await dbNuvem.from('estoque_mestre').update(payload).eq('id', id);
+      else await dbNuvem.from('estoque_mestre').insert([payload]);
 
       fecharModalInsumo();
       carregarInsumos();
