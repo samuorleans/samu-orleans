@@ -1032,18 +1032,17 @@
       });
     }
 
-    // NORMALIZADOR DE NOME PARA EVITAR ERROS DE MATCH
+    // NORMALIZAÇÃO DE STRING PARA COMPARAR SEM PROBLEMAS DE ESPAÇOS/CAIXA
     function normalizarString(str) {
       if (!str) return '';
       return str.toString()
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
+        .replace(/[^a-z0-9]/g, '');
     }
 
-    // CONSULTA UNIFICADA CORRIGIDA: ESTOQUE_MESTRE X ESTOQUE_LOTES (PLURAL)
+    // CONSULTA UNIFICADA: ESTOQUE_MESTRE X ESTOQUE_LOTES (SEM EXIBIR SALDO)
     async function carregarInsumosELotesUnificados() {
       const datalist = document.getElementById('listaInsumosLotesAPH');
       if (!datalist) return;
@@ -1059,7 +1058,7 @@
           fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=codigo_insumo,descricao_insumo,categoria&exibir_no_aph=eq.true&order=descricao_insumo.asc`, {
             headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
           }),
-          fetch(`${SUPABASE_URL}/rest/v1/estoque_lotes?select=descricao_insumo,numero_lote,data_validade,quantidade_entrada,quantidade_saida&order=data_validade.asc`, {
+          fetch(`${SUPABASE_URL}/rest/v1/estoque_lotes?select=descricao_insumo,numero_lote,data_validade&order=data_validade.asc`, {
             headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
           })
         ]);
@@ -1078,7 +1077,7 @@
 
           const { data: dLotes } = await _supabase
             .from('estoque_lotes')
-            .select('descricao_insumo, numero_lote, data_validade, quantidade_entrada, quantidade_saida')
+            .select('descricao_insumo, numero_lote, data_validade')
             .order('data_validade', { ascending: true });
 
           if (dMestre) mestreRes = dMestre;
@@ -1097,28 +1096,25 @@
 
           if (lotesDoItem.length > 0) {
             lotesDoItem.forEach(l => {
-              const saldoCalc = (l.quantidade_entrada || 0) - (l.quantidade_saida || 0);
               const dataValFmt = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : 'N/A';
-              const labelExibicao = `${m.descricao_insumo} — Lote: ${l.numero_lote || 'S/L'} | Val: ${dataValFmt} | Saldo: ${saldoCalc > 0 ? saldoCalc : (l.quantidade_entrada || 0)}`;
+              const labelExibicao = `${m.descricao_insumo} — Lote: ${l.numero_lote || 'S/L'} | Val: ${dataValFmt}`;
 
               mapaLotesUnificados.push({
                 label: labelExibicao,
                 codigo: m.codigo_insumo || '',
                 descricao: m.descricao_insumo,
                 numero_lote: l.numero_lote || '',
-                data_validade: l.data_validade || '',
-                saldo_lote: saldoCalc > 0 ? saldoCalc : (l.quantidade_entrada || 0)
+                data_validade: l.data_validade || ''
               });
             });
           } else {
-            const labelExibicao = `${m.descricao_insumo} — Lote: SEM LOTE | Val: N/A | Saldo: 0`;
+            const labelExibicao = `${m.descricao_insumo} — Lote: SEM LOTE | Val: N/A`;
             mapaLotesUnificados.push({
               label: labelExibicao,
               codigo: m.codigo_insumo || '',
               descricao: m.descricao_insumo,
               numero_lote: 'SEM LOTE',
-              data_validade: '',
-              saldo_lote: 0
+              data_validade: ''
             });
           }
         });
