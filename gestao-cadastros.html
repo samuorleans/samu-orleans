@@ -29,9 +29,14 @@
     .tab-btn { padding: 10px 16px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.85rem; border-radius: 8px; cursor: pointer; color: var(--samu-navy); white-space: nowrap; transition: 0.2s; }
     .tab-btn.active { background: var(--samu-navy); color: white; }
 
-    .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
     .btn-novo { background: #16a34a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
     .btn-novo:hover { background: #15803d; }
+
+    /* FILTROS E PESQUISA DE INSUMOS */
+    .filter-box { display: flex; gap: 8px; flex-grow: 1; max-width: 600px; }
+    .input-busca, .select-filtro { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.85rem; outline: none; background: white; width: 100%; }
+    .input-busca:focus, .select-filtro:focus { border-color: var(--samu-blue); }
 
     .table-container { overflow-x: auto; margin-top: 10px; }
     .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left; }
@@ -51,6 +56,9 @@
     .status-desligado { background: #fee2e2; color: #b91c1c; }
     .status-ferias { background: #fef3c7; color: #b45309; }
     .status-atestado { background: #e0e7ff; color: #4338ca; }
+    
+    .status-aph-sim { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .status-aph-nao { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
     .modal-box { background: white; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; border-radius: 16px; padding: 24px; box-shadow: var(--shadow); position: relative; }
@@ -66,7 +74,6 @@
     .form-group input:focus, .form-group select:focus { border-color: var(--samu-blue); }
 
     .btn-salvar-modal { margin-top: 20px; background: #16a34a; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%; font-size: 0.95rem; }
-
     .btn-voltar { display: inline-block; margin-top: 20px; font-size: 0.85rem; color: var(--samu-blue); text-decoration: none; font-weight: 700; }
   </style>
 </head>
@@ -137,10 +144,23 @@
       </div>
     </div>
 
-    <!-- ABA 3: INSUMOS -->
+    <!-- ABA 3: INSUMOS (COM BUSCA LOCAL, FILTRO E TOGGLE DIRETO NA TABELA) -->
     <div id="secaoInsumos" style="display: none;">
       <div class="action-bar">
-        <span style="font-size: 0.85rem; color:#64748b; font-weight:600;">Insumos e Medicamentos da tabela estoque_mestre.</span>
+        <div class="filter-box">
+          <input type="text" id="inputBuscaInsumo" class="input-busca" placeholder="🔍 Buscar por código ou descrição..." onkeyup="filtrarInsumosLocal()">
+          <select id="selectCatFiltro" class="select-filtro" onchange="filtrarInsumosLocal()" style="max-width: 200px;">
+            <option value="TODAS">Todas as Categorias</option>
+            <option value="Acesso Venoso & Injeção">Acesso Venoso & Injeção</option>
+            <option value="Curativos & Imobilização">Curativos & Imobilização</option>
+            <option value="Soluções & Soros">Soluções & Soros</option>
+            <option value="Vias Aéreas & Oxigenoterapia">Vias Aéreas & Oxigenoterapia</option>
+            <option value="Medicamentos / Farmácia APH">Medicamentos / Farmácia APH</option>
+            <option value="Procedimentos & EPIs">Procedimentos & EPIs</option>
+            <option value="Saneantes & Biossegurança">Saneantes & Biossegurança</option>
+            <option value="COMBUSTIVEL">Combustível</option>
+          </select>
+        </div>
         <button class="btn-novo" onclick="abrirModalInsumo()">➕ Novo Insumo</button>
       </div>
 
@@ -148,15 +168,16 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>Descrição Insumo</th>
-              <th>Categoria</th>
-              <th>Saldo Atual</th>
-              <th>Estoque Mínimo</th>
-              <th>Ações</th>
+              <th style="width: 12%;">Código</th>
+              <th style="width: 30%;">Descrição Insumo</th>
+              <th style="width: 18%;">Categoria</th>
+              <th style="width: 15%; text-align: center;">Mín / Máx</th>
+              <th style="width: 12%; text-align: center;">Ficha APH</th>
+              <th style="width: 13%; text-align: center;">Ações</th>
             </tr>
           </thead>
           <tbody id="tbodyInsumos">
-            <tr><td colspan="5" style="text-align:center;">Consultando insumos no banco de dados...</td></tr>
+            <tr><td colspan="6" style="text-align:center;">Consultando insumos no banco de dados...</td></tr>
           </tbody>
         </table>
       </div>
@@ -307,7 +328,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE INSUMO COM COLUNAS DO SUPABASE -->
+  <!-- MODAL DE INSUMO COM GERAÇÃO DE CÓDIGO E CONTROLE DE ESTOQUE -->
   <div class="modal-overlay" id="modalInsumo">
     <div class="modal-box">
       <div class="modal-header">
@@ -318,27 +339,47 @@
         <input type="hidden" id="modal_insumo_id">
         <div class="grid-form">
           <div class="form-group" style="grid-column: span 2;">
-            <label>Descrição do Insumo:*</label>
-            <input type="text" id="modal_insumo_desc" placeholder="Ex: Diesel S10, Arla 32..." required>
-          </div>
-          <div class="form-group">
             <label>Categoria:*</label>
-            <select id="modal_insumo_cat" required>
+            <select id="modal_insumo_cat" required onchange="gerarCodigoAutomatico()">
+              <option value="">-- Selecione a Categoria --</option>
+              <option value="Medicamentos / Farmácia APH">Medicamentos / Farmácia APH</option>
+              <option value="Acesso Venoso & Injeção">Acesso Venoso & Injeção</option>
+              <option value="Curativos & Imobilização">Curativos & Imobilização</option>
+              <option value="Soluções & Soros">Soluções & Soros</option>
+              <option value="Vias Aéreas & Oxigenoterapia">Vias Aéreas & Oxigenoterapia</option>
+              <option value="Procedimentos & EPIs">Procedimentos & EPIs</option>
+              <option value="Saneantes & Biossegurança">Saneantes & Biossegurança</option>
               <option value="COMBUSTIVEL">Combustível / Frota</option>
-              <option value="MEDICAMENTO">Medicamento / Farmácia</option>
-              <option value="CURATIVO">Curativo / Material APH</option>
-              <option value="EPI">EPI / Uniforme</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Estoque Inicial:*</label>
-            <input type="number" id="modal_insumo_est_ini" value="0" required>
+            <label>Código Insumo:*</label>
+            <input type="text" id="modal_insumo_cod" placeholder="Ex: MED-001 (Gerado Auto)" required>
           </div>
-          <div class="form-group">
-            <label>Estoque Mínimo:*</label>
-            <input type="number" id="modal_insumo_est_min" value="10" required>
+          <div class="form-group" style="grid-column: span 3;">
+            <label>Descrição do Insumo:*</label>
+            <input type="text" id="modal_insumo_desc" placeholder="Ex: Paracetamol 200 mg/mL, Gaze..." required>
           </div>
         </div>
+
+        <div class="grid-form" style="margin-top: 12px; padding: 10px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px;">
+          <div class="form-group">
+            <label>Estoque Mínimo (Alerta):*</label>
+            <input type="number" id="modal_insumo_min" value="10" min="0" required>
+          </div>
+          <div class="form-group">
+            <label>Estoque Máximo:*</label>
+            <input type="number" id="modal_insumo_max" value="100" min="1" required>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1.5px solid var(--border);">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none; font-size: 0.85rem;">
+            <input type="checkbox" id="modal_insumo_aph" style="width: 18px; height: 18px;">
+            <b>Exibir e liberar este item na Ficha de Atendimento (APH)</b>
+          </label>
+        </div>
+
         <button type="submit" class="btn-salvar-modal">💾 Salvar Insumo no Estoque Mestre</button>
       </form>
     </div>
@@ -371,6 +412,8 @@
       "https://rcpgukslnlfptreiusff.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
+
+    let listaGlobalInsumos = [];
 
     window.onload = function() {
       carregarColaboradores();
@@ -439,7 +482,7 @@
       } catch (err) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Erro ao carregar lista.</td></tr>'; }
     }
 
-    /* CARREGAMENTO DE VIATURAS, POSTOS E INSUMOS */
+    /* CARREGAMENTO DE VIATURAS E POSTOS */
     async function carregarViaturas() {
       const tbody = document.getElementById('tbodyViaturas');
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Consultando frota...</td></tr>';
@@ -481,25 +524,106 @@
       } else { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum posto.</td></tr>'; }
     }
 
+    /* CARREGAMENTO DE INSUMOS EM ORDEM ALFABÉTICA + BUSCA LOCAL */
     async function carregarInsumos() {
       const tbody = document.getElementById('tbodyInsumos');
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Consultando estoque...</td></tr>';
-      const { data } = await dbNuvem.from('estoque_mestre').select('*');
-      if (data && data.length > 0) {
-        tbody.innerHTML = '';
-        data.forEach(i => {
-          tbody.innerHTML += `<tr>
-            <td><b>${i.descricao_insumo || i.descricao || i.nome || '—'}</b></td>
-            <td>${i.categoria || 'COMBUSTIVEL'}</td>
-            <td><b>${i.saldo_atual !== null && i.saldo_atual !== undefined ? i.saldo_atual : (i.estoque_inicial || 0)}</b></td>
-            <td>${i.estoque_minimo || 0}</td>
-            <td>
-              <button class="btn-editar" onclick="abrirModalInsumo('${i.id}')">✏️ Editar</button>
-              <button class="btn-excluir" onclick="deletarItem('estoque_mestre', ${i.id}, carregarInsumos)">🗑️ Excluir</button>
-            </td>
-          </tr>`;
-        });
-      } else { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum insumo no estoque mestre.</td></tr>'; }
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando estoque mestre...</td></tr>';
+      
+      const { data, error } = await dbNuvem
+        .from('estoque_mestre')
+        .select('*')
+        .order('descricao_insumo', { ascending: true });
+
+      if (error) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#d32f2f;">Erro ao carregar insumos.</td></tr>';
+        return;
+      }
+
+      listaGlobalInsumos = data || [];
+      filtrarInsumosLocal();
+    }
+
+    function filtrarInsumosLocal() {
+      const busca = document.getElementById('inputBuscaInsumo').value.toLowerCase().trim();
+      const catSel = document.getElementById('selectCatFiltro').value;
+
+      const filtrados = listaGlobalInsumos.filter(item => {
+        const desc = (item.descricao_insumo || item.descricao || item.nome || '').toLowerCase();
+        const cod = (item.codigo_insumo || '').toLowerCase();
+        const cat = item.categoria || '';
+
+        const bateTexto = desc.includes(busca) || cod.includes(busca);
+        const bateCategoria = catSel === 'TODAS' || cat === catSel;
+
+        return bateTexto && bateCategoria;
+      });
+
+      renderizarTabelaInsumos(filtrados);
+    }
+
+    function renderizarTabelaInsumos(lista) {
+      const tbody = document.getElementById('tbodyInsumos');
+      tbody.innerHTML = '';
+
+      if (lista.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color:#64748b;">Nenhum insumo encontrado.</td></tr>';
+        return;
+      }
+
+      lista.forEach(i => {
+        const desc = i.descricao_insumo || i.descricao || i.nome || '—';
+        const cod = i.codigo_insumo || '—';
+        const cat = i.categoria || 'COMBUSTIVEL';
+        const min = i.estoque_minimo !== undefined && i.estoque_minimo !== null ? i.estoque_minimo : 10;
+        const max = i.estoque_maximo !== undefined && i.estoque_maximo !== null ? i.estoque_maximo : 100;
+        const estaAtivo = i.exibir_no_aph !== false;
+
+        // SELETOR CLICÁVEL DIRETO NA TABELA (TOGGLE EM TEMPO REAL)
+        const toggleAPH = `
+          <label style="display: inline-flex; align-items: center; cursor: pointer; gap: 6px;">
+            <input type="checkbox" 
+                   style="width: 18px; height: 18px; cursor: pointer;" 
+                   ${estaAtivo ? 'checked' : ''} 
+                   onchange="alternarExibicaoAPH(${i.id}, this.checked, '${desc.replace(/'/g, "\\'")}')">
+            <span style="font-weight: 700; font-size: 0.75rem; color: ${estaAtivo ? '#15803d' : '#64748b'};">
+              ${estaAtivo ? 'Sim' : 'Não'}
+            </span>
+          </label>
+        `;
+
+        tbody.innerHTML += `<tr>
+          <td><b>${cod}</b></td>
+          <td><b>${desc}</b></td>
+          <td>${cat}</td>
+          <td style="text-align: center; color: #64748b; font-weight: 600;">${min} / ${max}</td>
+          <td style="text-align: center;">${toggleAPH}</td>
+          <td style="text-align: center;">
+            <button class="btn-editar" onclick="abrirModalInsumo('${i.id}')">✏️ Editar</button>
+            <button class="btn-excluir" onclick="deletarItem('estoque_mestre', ${i.id}, carregarInsumos)">🗑️ Excluir</button>
+          </td>
+        </tr>`;
+      });
+    }
+
+    // ATUALIZA O CAMPO exibir_no_aph DIRETO NO SUPABASE
+    async function alternarExibicaoAPH(id, novoStatus, nomeInsumo) {
+      try {
+        const { error } = await dbNuvem
+          .from('estoque_mestre')
+          .update({ exibir_no_aph: novoStatus })
+          .eq('id', id);
+
+        if (error) throw error;
+
+        const item = listaGlobalInsumos.find(x => x.id === id);
+        if (item) item.exibir_no_aph = novoStatus;
+
+        filtrarInsumosLocal();
+      } catch (err) {
+        console.error("Erro ao alterar visibilidade no APH:", err);
+        alert(`Não foi possível alterar a visibilidade do insumo "${nomeInsumo}".`);
+        carregarInsumos();
+      }
     }
 
     /* MODAL DE COLABORADOR E UNIFORMES */
@@ -623,39 +747,85 @@
       carregarViaturas();
     }
 
-    /* MODAL DE INSUMOS COM COLUNA descricao_insumo */
+    /* GERAÇÃO DE CÓDIGO AUTOMÁTICO DE INSUMOS */
+    async function gerarCodigoAutomatico() {
+      const categoria = document.getElementById('modal_insumo_cat').value;
+      const campoCodigo = document.getElementById('modal_insumo_cod');
+      const idExistente = document.getElementById('modal_insumo_id').value;
+      
+      // Se já está editando um item com ID, não sobrescreve o código
+      if (idExistente) return;
+      if (!categoria) return;
+
+      let prefixo = 'INS';
+      if (categoria.includes('Medicamentos')) prefixo = 'MED';
+      else if (categoria.includes('Acesso Venoso')) prefixo = 'AC';
+      else if (categoria.includes('Curativos')) prefixo = 'CUR';
+      else if (categoria.includes('Soluções')) prefixo = 'SOL';
+      else if (categoria.includes('Vias Aéreas')) prefixo = 'VA';
+      else if (categoria.includes('Procedimentos')) prefixo = 'EPI';
+      else if (categoria.includes('Saneantes')) prefixo = 'BIO';
+      else if (categoria === 'COMBUSTIVEL') prefixo = 'COMB';
+
+      try {
+        const { data } = await dbNuvem
+          .from('estoque_mestre')
+          .select('codigo_insumo')
+          .ilike('codigo_insumo', `${prefixo}-%`)
+          .order('codigo_insumo', { ascending: false })
+          .limit(1);
+
+        let proximoNumero = 1;
+        if (data && data.length > 0 && data[0].codigo_insumo) {
+          const ultimoCod = data[0].codigo_insumo;
+          const partes = ultimoCod.split('-');
+          if (partes.length > 1 && !isNaN(parseInt(partes[1], 10))) {
+            proximoNumero = parseInt(partes[1], 10) + 1;
+          }
+        }
+
+        campoCodigo.value = `${prefixo}-${String(proximoNumero).padStart(3, '0')}`;
+      } catch (err) {
+        console.error("Erro ao gerar código automático", err);
+      }
+    }
+
+    /* MODAL DE INSUMOS COM CAMPOS MÍN/MÁX E CÓDIGO AUTO */
     async function abrirModalInsumo(id) {
       document.getElementById('formModalInsumo').reset();
       document.getElementById('modal_insumo_id').value = '';
       document.getElementById('modalInsumoTitulo').innerText = '📦 Cadastrar Novo Insumo';
+      document.getElementById('modal_insumo_aph').checked = true;
 
       if (id) {
         document.getElementById('modalInsumoTitulo').innerText = '✏️ Editar Insumo';
         const { data } = await dbNuvem.from('estoque_mestre').select('*').eq('id', id).single();
         if (data) {
           document.getElementById('modal_insumo_id').value = data.id;
+          document.getElementById('modal_insumo_cod').value = data.codigo_insumo || '';
           document.getElementById('modal_insumo_desc').value = data.descricao_insumo || data.descricao || data.nome || '';
-          document.getElementById('modal_insumo_cat').value = data.categoria || 'COMBUSTIVEL';
-          document.getElementById('modal_insumo_est_ini').value = data.estoque_inicial || 0;
-          document.getElementById('modal_insumo_est_min').value = data.estoque_minimo || 10;
+          document.getElementById('modal_insumo_cat').value = data.categoria || 'Medicamentos / Farmácia APH';
+          document.getElementById('modal_insumo_min').value = data.estoque_minimo !== null ? data.estoque_minimo : 10;
+          document.getElementById('modal_insumo_max').value = data.estoque_maximo !== null ? data.estoque_maximo : 100;
+          document.getElementById('modal_insumo_aph').checked = data.exibir_no_aph !== false;
         }
       }
       document.getElementById('modalInsumo').style.display = 'flex';
     }
+    
     function fecharModalInsumo() { document.getElementById('modalInsumo').style.display = 'none'; }
 
     async function salvarInsumoModal(e) {
       e.preventDefault();
       const id = document.getElementById('modal_insumo_id').value;
-      const estIni = parseInt(document.getElementById('modal_insumo_est_ini').value) || 0;
       
       const payload = {
+        codigo_insumo: document.getElementById('modal_insumo_cod').value.trim(),
         descricao_insumo: document.getElementById('modal_insumo_desc').value.trim(),
         categoria: document.getElementById('modal_insumo_cat').value,
-        estoque_inicial: estIni,
-        saldo_atual: estIni,
-        estoque_minimo: parseInt(document.getElementById('modal_insumo_est_min').value) || 0,
-        status_estoque: 'REGULAR'
+        estoque_minimo: parseInt(document.getElementById('modal_insumo_min').value) || 0,
+        estoque_maximo: parseInt(document.getElementById('modal_insumo_max').value) || 0,
+        exibir_no_aph: document.getElementById('modal_insumo_aph').checked
       };
 
       if (id) await dbNuvem.from('estoque_mestre').update(payload).eq('id', id);
