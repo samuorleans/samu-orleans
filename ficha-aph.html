@@ -127,7 +127,7 @@
     .sv-table, .med-table, .table-expo { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.72rem; }
     .sv-table th, .med-table th, .table-expo th { background: #f1f5f9; padding: 3px; border: 1px solid #cbd5e1; font-size: 0.62rem; text-transform: uppercase; text-align: center; }
     .sv-table td, .med-table td, .table-expo td { padding: 2px; border: 1px solid #cbd5e1; text-align: center; }
-    .sv-table input, .med-table input { margin-bottom: 0; font-size: 0.78rem; padding: 3px; }
+    .sv-table input, .med-table input { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: center; }
     
     .btn-time-sv { background: var(--secondary); color: #fff; border: none; border-radius: 3px; padding: 2px 4px; font-size: 0.6rem; cursor: pointer; }
     .btn-add-med, .btn-add-sv { background: #166534; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; cursor: pointer; margin-top: 3px; }
@@ -147,6 +147,8 @@
       color: white; border: none; padding: 11px; border-radius: 6px; font-size: 0.85rem; font-weight: 800;
       box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3); width: calc(100% - 16px); z-index: 1000; text-transform: uppercase; cursor: pointer;
     }
+
+    .j-print-item { display: none; }
 
     @media print {
       @page { size: A4 portrait; margin: 4mm; }
@@ -172,36 +174,45 @@
       
       .codigo-group { display: none !important; }
       .print-triagem-text {
-        display: block !important; font-size: 6.5pt !important; font-weight: 900 !important; border: 1pt solid #000 !important; padding: 1px 3px !important; text-align: center !important; background: #e2e8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;
+        display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.5pt solid #000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;
       }
 
-      .j-block-container { grid-template-columns: repeat(7, 1fr) !important; gap: 1px !important; }
-      .btn-j-badge { background: none !important; color: #000 !important; border: none !important; clip-path: none !important; height: 12px !important; font-size: 5pt !important; min-width: 30px !important; opacity: 1 !important; padding: 0 !important; font-weight: bold !important; }
-      .j-time-input { height: 12px !important; font-size: 5.5pt !important; border-bottom: 0.4pt solid #000 !important; }
-      .sv-table th, .sv-table td, .med-table th, .med-table td, .table-expo th, .table-expo td { font-size: 5pt !important; padding: 1px !important; border: 0.4pt solid #000 !important; }
+      /* RÓTULOS DOS J'S NA IMPRESSÃO */
+      .j-block-container { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 2px !important; }
+      .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; border: 0.4pt solid #000 !important; background: transparent !important; padding: 1px !important; }
+      .btn-j-badge { display: none !important; }
+      .j-print-label { display: block !important; font-size: 4.2pt !important; font-weight: 900 !important; text-transform: uppercase; text-align: center; }
+      .j-time-input { height: 11px !important; font-size: 5.5pt !important; font-weight: 900 !important; border: none !important; text-align: center !important; width: 100% !important; }
+
+      .sv-table th, .sv-table td, .med-table th, .med-table td, .table-expo th, .table-expo td { font-size: 5pt !important; padding: 1px !important; border: 0.4pt solid #000 !important; text-align: center !important; }
+      .med-table input { text-align: center !important; }
       
       canvas { height: 28px !important; border: 0.4pt solid #000 !important; }
 
+      /* ASSINATURAS DINÂMICAS */
       .print-signatures-block {
         display: grid !important;
         grid-template-columns: 1fr 1fr 1fr;
-        gap: 6px;
+        gap: 4px;
         margin-top: 4px;
         padding-top: 2px;
         page-break-inside: avoid;
+      }
+      .print-signatures-block.duas-colunas {
+        grid-template-columns: 1fr 1fr !important;
       }
       .sig-box {
         border: 0.4pt solid #000;
         padding: 3px;
         text-align: center;
-        min-height: 48px;
+        min-height: 44px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
       }
       .sig-line {
         border-top: 0.4pt solid #000;
-        margin-top: 22px;
+        margin-top: 20px;
         font-size: 4.8pt;
         font-weight: bold;
         text-transform: uppercase;
@@ -231,7 +242,7 @@
         <div class="grid-3">
           <div><label>Nº Ocorrência</label><input type="tel" inputmode="numeric" id="codigo" class="uppercase-input" required placeholder="Nº OCORRÊNCIA"></div>
           <div>
-            <label>CÓDIGO TRIAGEM</label>
+            <label>CÓDIGO TRIAGEM (INICIAL)</label>
             <input type="hidden" id="cor_ocorrencia" value="VM">
             
             <div class="codigo-group">
@@ -241,13 +252,39 @@
               <button type="button" class="btn-cor cor-az" onclick="selecionarCodigo('AZ', this)">AZ</button>
             </div>
 
-            <div id="printTriagemBox" class="print-triagem-text">VERMELHO (VM)</div>
+            <div id="printTriagemBox" class="print-triagem-text">CÓDIGO INICIAL: VERMELHO (VM)</div>
           </div>
           <div><label>Data</label><input type="date" id="data"></div>
         </div>
 
-        <div class="grid-2">
-          <div><label>Médico Regulador</label><input type="text" id="regulador" class="uppercase-input" placeholder="MÉDICO REGULADOR"></div>
+        <!-- RECLASSIFICAÇÃO DO CÓDIGO DE TRIAGEM -->
+        <div style="margin-top: 4px; padding: 5px; background: #f8fafc; border: 1px dashed var(--border); border-radius: 4px;">
+          <label style="color: #0f172a; font-weight: 800;">RECLASSIFICAÇÃO DE CÓDIGO / ALTERAÇÃO PELA REGULAÇÃO (OPCIONAL)</label>
+          <div class="grid-3">
+            <div>
+              <label>Novo Código</label>
+              <select id="reclassificacao_codigo" onchange="atualizarTextoReclassificacaoImpressao()">
+                <option value="">SEM ALTERAÇÃO</option>
+                <option value="VM">VERMELHO (VM)</option>
+                <option value="AM">AMARELO (AM)</option>
+                <option value="VD">VERDE (VD)</option>
+                <option value="AZ">AZUL (AZ)</option>
+              </select>
+            </div>
+            <div>
+              <label>Horário da Mudança</label>
+              <input type="time" id="reclassificacao_hora" onchange="atualizarTextoReclassificacaoImpressao()">
+            </div>
+            <div>
+              <label>Médico Autorizador</label>
+              <input type="text" id="reclassificacao_medico" class="uppercase-input" placeholder="NOME DO REGULADOR" onchange="atualizarTextoReclassificacaoImpressao()">
+            </div>
+          </div>
+          <div id="printReclassificacaoBox" class="print-triagem-text" style="display: none; margin-top: 2px;"></div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 4px;">
+          <div><label>Médico Regulador Inicial</label><input type="text" id="regulador" class="uppercase-input" placeholder="MÉDICO REGULADOR"></div>
           <div><label>Motivo do Acionamento</label><input type="text" id="motivo_acionamento" class="uppercase-input" placeholder="EX: ACIDENTE DE TRÂNSITO, DOR TORÁCICA..."></div>
         </div>
 
@@ -265,45 +302,52 @@
         <!-- MÓDULO DOS J'S E QTA -->
         <div class="j-block-container">
           <div class="j-row-tactical">
+            <span class="j-print-label">J9 (Saída Base)</span>
             <button type="button" class="btn-j-badge" id="btnJ9" data-target="horaJ9">J9</button>
             <input type="time" id="horaJ9" class="j-time-input">
-            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Saída Base</span>
+            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge">Saída Base</span>
           </div>
 
           <div class="j-row-tactical">
+            <span class="j-print-label">J10 (Cheg. Local)</span>
             <button type="button" class="btn-j-badge" id="btnJ10" data-target="horaJ10" disabled>J10</button>
             <input type="time" id="horaJ10" class="j-time-input" disabled>
-            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Cheg. Local</span>
+            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge">Cheg. Local</span>
           </div>
 
           <div class="j-row-tactical">
+            <span class="j-print-label">QTA (Cancelado)</span>
             <button type="button" class="btn-j-badge btn-qta" id="btnQTA" data-target="horaQTA" disabled>QTA 🛑</button>
             <input type="time" id="horaQTA" class="j-time-input" disabled>
-            <span style="font-size: 0.58rem; color: #991b1b; font-weight: 700;">Cancelado</span>
+            <span style="font-size: 0.58rem; color: #991b1b; font-weight: 700;" class="btn-j-badge">Cancelado</span>
           </div>
 
           <div class="j-row-tactical">
+            <span class="j-print-label">J9-INT (Saída Local)</span>
             <button type="button" class="btn-j-badge" id="btnJ9_INT" data-target="horaJ9_INT" disabled>J9-INT</button>
             <input type="time" id="horaJ9_INT" class="j-time-input" disabled>
-            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Saída Local</span>
+            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge">Saída Local</span>
           </div>
 
           <div class="j-row-tactical">
+            <span class="j-print-label">J10-INT (Destino)</span>
             <button type="button" class="btn-j-badge" id="btnJ10_INT" data-target="horaJ10_INT" disabled>J10-INT</button>
             <input type="time" id="horaJ10_INT" class="j-time-input" disabled>
-            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Destino</span>
+            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge">Destino</span>
           </div>
 
           <div class="j-row-tactical">
+            <span class="j-print-label">J11 (Disponível)</span>
             <button type="button" class="btn-j-badge" id="btnJ11" data-target="horaJ11" disabled>J11</button>
             <input type="time" id="horaJ11" class="j-time-input" disabled>
-            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Disponível</span>
+            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge">Disponível</span>
           </div>
 
           <div class="j-row-tactical">
+            <span class="j-print-label">J12 (Na Base)</span>
             <button type="button" class="btn-j-badge" id="btnJ12" data-target="horaJ12" disabled>J12</button>
             <input type="time" id="horaJ12" class="j-time-input" disabled>
-            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Na Base</span>
+            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge">Na Base</span>
           </div>
         </div>
 
@@ -478,7 +522,6 @@
       <div class="card-body">
         <datalist id="listaInsumosLotesAPH"></datalist>
 
-        <!-- OPÇÃO: NENHUM INSUMO UTILIZADO -->
         <div style="margin-bottom: 6px; background: #f8fafc; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
           <label style="display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 800; color: #1e293b; cursor: pointer;">
             <input type="checkbox" id="chk_nenhum_insumo" onchange="alternarNenhumInsumo(this)" style="width: 16px; height: 16px;">
@@ -636,17 +679,17 @@
       </div>
     </div>
 
-    <!-- CAMPO EXCLUSIVO DA IMPRESSÃO P&B -->
-    <div class="print-signatures-block">
+    <!-- CAMPO EXCLUSIVO DA IMPRESSÃO P&B COM LÓGICA DINÂMICA DE EXIBIÇÃO DA ASSINATURA -->
+    <div class="print-signatures-block" id="printSigBlock">
       <div class="sig-box">
         <div style="font-size: 4.5pt; font-weight: bold;">TÉCNICO DE ENFERMAGEM</div>
         <div class="sig-line">ASSINATURA E CARIMBO / COREN</div>
       </div>
-      <div class="sig-box">
+      <div class="sig-box" id="sigBoxDeclarante">
         <div style="font-size: 4.5pt; font-weight: bold;">DECLARANTE / VÍTIMA / RESPONSÁVEL</div>
         <div class="sig-line">ASSINATURA FÍSICA DO DECLARANTE</div>
       </div>
-      <div class="sig-box">
+      <div class="sig-box" id="sigBoxMedico">
         <div style="font-size: 4.5pt; font-weight: bold;">MÉDICO RECEPTOR / REGULADOR</div>
         <div class="sig-line">ASSINATURA E CARIMBO / CRM</div>
       </div>
@@ -698,13 +741,36 @@
 
       const printBox = document.getElementById('printTriagemBox');
       const nomesTriagem = {
-        'VM': 'VERMELHO (VM)',
-        'AM': 'AMARELO (AM)',
-        'VD': 'VERDE (VD)',
-        'AZ': 'AZUL (AZ)'
+        'VM': 'CÓDIGO INICIAL: VERMELHO (VM)',
+        'AM': 'CÓDIGO INICIAL: AMARELO (AM)',
+        'VD': 'CÓDIGO INICIAL: VERDE (VD)',
+        'AZ': 'CÓDIGO INICIAL: AZUL (AZ)'
       };
       printBox.innerText = nomesTriagem[cor] || cor;
+      atualizarTextoReclassificacaoImpressao();
       salvarLocal();
+    }
+
+    function atualizarTextoReclassificacaoImpressao() {
+      const novoCod = document.getElementById('reclassificacao_codigo').value;
+      const hora = document.getElementById('reclassificacao_hora').value;
+      const med = document.getElementById('reclassificacao_medico').value.toUpperCase();
+      const box = document.getElementById('printReclassificacaoBox');
+
+      if (novoCod) {
+        const nomesTriagem = {
+          'VM': 'VERMELHO (VM)',
+          'AM': 'AMARELO (AM)',
+          'VD': 'VERDE (VD)',
+          'AZ': 'AZUL (AZ)'
+        };
+        const horaStr = hora ? ` ÀS ${hora}` : '';
+        const medStr = med ? ` (AUTORIZADO DR. ${med})` : '';
+        box.innerText = `🔄 RECLASSIFICADO PARA: ${nomesTriagem[novoCod]}${horaStr}${medStr}`;
+        box.style.display = 'block';
+      } else {
+        box.style.display = 'none';
+      }
     }
 
     async function mascaraEBuscarCEP(input) {
@@ -763,6 +829,7 @@
         boxSem.style.display = 'block';
         boxCom.style.display = 'none';
       }
+      ajustarExibicaoAssinaturasImpressao();
       salvarLocal();
     }
 
@@ -774,6 +841,23 @@
         houveRecusaSelect.value = 'SIM';
       }
       alternarExibicaoRecusa();
+    }
+
+    // REGRA DE IMPRESSÃO DAS ASSINATURAS DADOS DESFECHO/RECUSA
+    function ajustarExibicaoAssinaturasImpressao() {
+      const desfecho = document.getElementById('desfecho_vitima').value;
+      const houveRecusa = document.getElementById('houve_recusa').value;
+
+      const sigBlock = document.getElementById('printSigBlock');
+      const sigDeclarante = document.getElementById('sigBoxDeclarante');
+
+      if (houveRecusa === 'SIM' || desfecho === 'RECUSA' || desfecho === 'PERMANECEU_LOCAL') {
+        sigDeclarante.style.display = 'flex';
+        sigBlock.classList.remove('duas-colunas');
+      } else {
+        sigDeclarante.style.display = 'none';
+        sigBlock.classList.add('duas-colunas');
+      }
     }
 
     function atualizarCamposAssinante() {
@@ -944,6 +1028,7 @@
       document.getElementById('med_continua_box').style.display = (val === 'SIM') ? 'block' : 'none';
     }
 
+    // FLUXO DE HABILITAÇÃO DOS J'S
     function acionarJTime(jCode, targetInputId) {
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -971,7 +1056,10 @@
       } else if (jCode === 'J9_INT') {
         bloquearJ('btnJ11', 'horaJ11');
         liberarJ('btnJ10_INT', 'horaJ10_INT');
-      } else if (jCode === 'J10_INT' || jCode === 'J11') {
+      } else if (jCode === 'J10_INT') {
+        liberarJ('btnJ11', 'horaJ11');
+        liberarJ('btnJ12', 'horaJ12');
+      } else if (jCode === 'J11') {
         liberarJ('btnJ12', 'horaJ12');
       }
       salvarLocal();
@@ -1050,7 +1138,6 @@
         .replace(/[^a-z0-9]/g, '');
     }
 
-    // CONSULTA UNIFICADA (SEM MOSTRAR SALDO)
     async function carregarInsumosELotesUnificados() {
       const datalist = document.getElementById('listaInsumosLotesAPH');
       if (!datalist) return;
@@ -1160,6 +1247,7 @@
       }
 
       addMedRow();
+      ajustarExibicaoAssinaturasImpressao();
     }
 
     function addSvRow(isFirst = false) {
@@ -1169,7 +1257,7 @@
 
       tr.innerHTML = `
         <td>
-          <div style="display: flex; gap: 2px; align-items: center;">
+          <div style="display: flex; gap: 2px; align-items: center; justify-content: center;">
             <input type="time" class="sv-time-val" ${reqAttr}>
             <button type="button" class="btn-time-sv" onclick="setSvTime(this)">⏱️</button>
           </div>
@@ -1228,7 +1316,6 @@
       } catch (err) { alert("Erro ao consultar CPF do paciente."); }
     }
 
-    // ALTERNAR EXIBIÇÃO DA TABELA QUANDO "NENHUM INSUMO" FOR MARCADO
     function alternarNenhumInsumo(chk) {
       const boxTabela = document.getElementById('box_tabela_insumos');
       if (chk.checked) {
@@ -1311,6 +1398,9 @@
         const payload = {
           codigo_ocorrencia: document.getElementById('codigo').value,
           cor_ocorrencia: document.getElementById('cor_ocorrencia').value,
+          reclassificacao_codigo: document.getElementById('reclassificacao_codigo').value,
+          reclassificacao_hora: document.getElementById('reclassificacao_hora').value,
+          reclassificacao_medico: document.getElementById('reclassificacao_medico').value,
           data: document.getElementById('data').value,
           regulador: document.getElementById('regulador').value,
           motivo_acionamento: document.getElementById('motivo_acionamento').value,
@@ -1420,6 +1510,7 @@
     
     document.getElementById('btnImprimir').addEventListener('click', () => { 
       document.querySelectorAll('.card').forEach(c => c.classList.add('active'));
+      ajustarExibicaoAssinaturasImpressao();
       window.print(); 
     });
 
