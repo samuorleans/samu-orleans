@@ -469,30 +469,29 @@
       </div>
     </div>
 
-    <!-- SEÇÃO 6: MEDICAÇÕES E INSUMOS -->
+    <!-- SEÇÃO 6: MEDICAÇÕES E INSUMOS UTILIZADOS -->
     <div class="card" id="sec6">
       <div class="card-header" onclick="toggleCard('sec6')">
-        <span>6. Medicações & Insumos Utilizados (Baixa de Estoque)</span>
+        <span>6. Medicações & Insumos Utilizados</span>
         <span class="icon-toggle">▼</span>
       </div>
       <div class="card-body">
-        <datalist id="lista_insumos_datalist"></datalist>
+        <datalist id="listaInsumosAPH"></datalist>
 
         <table class="med-table">
           <thead>
             <tr>
               <th>Insumo / Medicamento (Digite p/ Buscar)</th>
-              <th style="width: 75px;">Lote</th>
-              <th style="width: 80px;">Validade</th>
-              <th style="width: 50px;">Qtd</th>
-              <th style="width: 25px;">#</th>
+              <th style="width: 70px;">Qtd</th>
+              <th>Via de Aplicação / Observações</th>
+              <th style="width: 35px;">#</th>
             </tr>
           </thead>
           <tbody id="meds_body">
-            <!-- Linhas de medicação -->
+            <!-- Linhas de medicação inseridas dinamicamente -->
           </tbody>
         </table>
-        <button type="button" class="btn-add-med" onclick="addMedRow()">+ Adicionar Medicamento / Insumo</button>
+        <button type="button" class="btn-add-med" onclick="addMedRow()">➕ Adicionar Outro Insumo</button>
       </div>
     </div>
 
@@ -560,7 +559,6 @@
       </div>
       <div class="card-body">
         
-        <!-- DESFECHO DO ATENDIMENTO -->
         <div class="grid-2">
           <div>
             <label>Desfecho / Destino da Vítima</label>
@@ -580,12 +578,10 @@
           </div>
         </div>
 
-        <!-- MENSAGEM PADRÃO SEM RECUSA -->
         <div id="box_sem_recusa" style="margin-top: 4px; padding: 6px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; color: #166534; font-size: 0.68rem; font-weight: 700; text-align: center;">
           ✅ ATENDIMENTO CONCLUÍDO SEM DECLARAÇÃO DE RECUSA.
         </div>
 
-        <!-- ESTRUTURA COMPLETA DE RECUSA -->
         <div id="box_com_recusa" style="display: none; margin-top: 4px; padding: 6px; background: #fff5f5; border: 1px solid #fecaca; border-radius: 4px;">
           <p style="font-size: 0.62rem; color: #991b1b; font-weight: 700; margin-bottom: 4px;">
             "Declaro estar ciente dos riscos decorrentes da recusa de atendimento/transporte médico, isentando a equipe do SAMU 192 de responsabilidades sobre eventuais complicações."
@@ -631,7 +627,7 @@
       </div>
     </div>
 
-    <!-- CAMPO EXCLUSIVO DA IMPRESSÃO P&B: CARIMBOS E ASSINATURAS MÉDICO/TÉCNICO/DECLARANTE -->
+    <!-- CAMPO EXCLUSIVO DA IMPRESSÃO P&B -->
     <div class="print-signatures-block">
       <div class="sig-box">
         <div style="font-size: 4.5pt; font-weight: bold;">TÉCNICO DE ENFERMAGEM</div>
@@ -655,7 +651,7 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A';
 
     let _supabase = null;
-    let listaInsumosEstoque = [];
+    let listaInsumosEstoqueMestre = [];
     let wakeLock = null;
     let recognition = null;
     let isRecording = false;
@@ -745,7 +741,6 @@
       salvarLocal();
     }
 
-    // LÓGICA DE RECUSA E DESFECHO DA VÍTIMA (SEÇÃO 8)
     function alternarExibicaoRecusa() {
       const houveRecusa = document.getElementById('houve_recusa').value;
       const boxSem = document.getElementById('box_sem_recusa');
@@ -768,8 +763,6 @@
 
       if (desfecho === 'RECUSA') {
         houveRecusaSelect.value = 'SIM';
-      } else if (desfecho === 'PERMANECEU_LOCAL') {
-        // Se o paciente permaneceu no local sem recusa, permite assinar termo de ciência
       }
       alternarExibicaoRecusa();
     }
@@ -1039,9 +1032,59 @@
       });
     }
 
+    // BUSCA DE INSUMOS DA TABELA estoque_mestre
+    async function carregarInsumosParaAPH() {
+      const datalist = document.getElementById('listaInsumosAPH');
+      if (!datalist) return;
+
+      datalist.innerHTML = '';
+      let insumos = null;
+
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=codigo_insumo,descricao_insumo,categoria&exibir_no_aph=eq.true&order=descricao_insumo.asc`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
+
+        if (response.ok) {
+          insumos = await response.json();
+        }
+      } catch (errRest) {}
+
+      if (!insumos && _supabase) {
+        try {
+          const { data, error } = await _supabase
+            .from('estoque_mestre')
+            .select('codigo_insumo, descricao_insumo, categoria')
+            .eq('exibir_no_aph', true)
+            .order('descricao_insumo', { ascending: true });
+
+          if (!error && data) insumos = data;
+        } catch (errSdk) {}
+      }
+
+      if (insumos && insumos.length > 0) {
+        listaInsumosEstoqueMestre = insumos;
+        localStorage.setItem('aph_insumos_mestre_cache', JSON.stringify(insumos));
+      } else {
+        const cacheLocal = localStorage.getItem('aph_insumos_mestre_cache');
+        if (cacheLocal) listaInsumosEstoqueMestre = JSON.parse(cacheLocal);
+      }
+
+      listaInsumosEstoqueMestre.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.descricao_insumo;
+        opt.dataset.codigo = item.codigo_insumo || '';
+        datalist.appendChild(opt);
+      });
+    }
+
     async function inicializarDados() {
       addSvRow(true);
       await carregarColaboradoresRobusto();
+      await carregarInsumosParaAPH();
 
       try {
         const { data: hospitais } = await _supabase.from('hospitais').select('*').order('nome');
@@ -1056,20 +1099,6 @@
       } catch(e) {
         document.getElementById('hospital_destino').innerHTML = '<option value="OUTROS">OUTROS (Digitar Nome...)</option>';
       }
-
-      try {
-        const { data: est } = await _supabase.from('estoque_lotes').select('id, item_nome, lote, data_validade').gt('quantidade', 0);
-        if (est) {
-          listaInsumosEstoque = est;
-          const datalist = document.getElementById('lista_insumos_datalist');
-          datalist.innerHTML = '';
-          est.forEach(item => {
-            const opt = document.createElement('option');
-            opt.value = item.item_nome;
-            datalist.appendChild(opt);
-          });
-        }
-      } catch(e) {}
 
       addMedRow();
     }
@@ -1145,29 +1174,88 @@
       const tr = document.createElement('tr');
 
       tr.innerHTML = `
-        <td><input type="text" list="lista_insumos_datalist" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR..." onchange="updateMedDetailsSearch(this)"></td>
-        <td><input type="text" class="med-lote uppercase-input" readonly placeholder="LOTE"></td>
-        <td><input type="text" class="med-val uppercase-input" readonly placeholder="VALIDADE"></td>
-        <td><input type="number" inputmode="numeric" value="1" min="1"></td>
-        <td><button type="button" class="btn-del-med" onclick="this.closest('tr').remove()">×</button></td>
+        <td>
+          <input type="text" list="listaInsumosAPH" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR INSUMO..." onchange="salvarLocal()">
+        </td>
+        <td>
+          <input type="number" inputmode="numeric" class="med-qtd" value="1" min="1" onchange="salvarLocal()">
+        </td>
+        <td>
+          <input type="text" class="med-via uppercase-input" placeholder="EX: EV, VO, IM, IMOBILIZAÇÃO..." onchange="salvarLocal()">
+        </td>
+        <td>
+          <button type="button" class="btn-del-med" onclick="this.closest('tr').remove(); salvarLocal();">🗑️</button>
+        </td>
       `;
       tbody.appendChild(tr);
     }
 
-    function updateMedDetailsSearch(input) {
-      const tr = input.closest('tr');
-      const nomeDigitado = input.value.trim().toLowerCase();
-      
-      const itemEncontrado = listaInsumosEstoque.find(i => i.item_nome.toLowerCase() === nomeDigitado);
+    function obterInsumosUtilizadosPayload() {
+      const insumosArray = [];
+      const linhas = document.querySelectorAll('#meds_body tr');
 
-      if (itemEncontrado) {
-        tr.querySelector('.med-lote').value = itemEncontrado.lote || 'N/A';
-        tr.querySelector('.med-val').value = itemEncontrado.data_validade ? new Date(itemEncontrado.data_validade).toLocaleDateString('pt-BR') : 'N/A';
-      } else {
-        tr.querySelector('.med-lote').value = '';
-        tr.querySelector('.med-val').value = '';
+      linhas.forEach(tr => {
+        const inputDesc = tr.querySelector('.med-search-input');
+        const inputQtd = tr.querySelector('.med-qtd');
+        const inputVia = tr.querySelector('.med-via');
+
+        if (inputDesc && inputDesc.value.trim() !== '') {
+          const desc = inputDesc.value.trim().toUpperCase();
+          const itemEncontrado = listaInsumosEstoqueMestre.find(i => i.descricao_insumo.toUpperCase() === desc);
+
+          insumosArray.push({
+            codigo: itemEncontrado ? itemEncontrado.codigo_insumo : null,
+            descricao: desc,
+            quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
+            via_aplicacao: inputVia ? inputVia.value.trim().toUpperCase() : ''
+          });
+        }
+      });
+
+      return insumosArray;
+    }
+
+    async function salvarFichaOcorrenciaAPH() {
+      try {
+        const insumosPayload = obterInsumosUtilizadosPayload();
+
+        const payload = {
+          codigo_ocorrencia: document.getElementById('codigo').value,
+          cor_ocorrencia: document.getElementById('cor_ocorrencia').value,
+          data: document.getElementById('data').value,
+          regulador: document.getElementById('regulador').value,
+          motivo_acionamento: document.getElementById('motivo_acionamento').value,
+          tec_enfermeiro: document.getElementById('tec_enfermeiro').value,
+          socorrista: document.getElementById('socorrista').value,
+          cpf_paciente: document.getElementById('cpf_paciente').value,
+          paciente: document.getElementById('paciente').value,
+          idade: document.getElementById('idade').value,
+          sexo: document.getElementById('sexo').value,
+          rua: document.getElementById('rua').value,
+          bairro: document.getElementById('bairro').value,
+          municipio: document.getElementById('municipio').value,
+          estado: document.getElementById('estado').value,
+          evolucao_texto: document.getElementById('evolucao_texto').value,
+          desfecho_vitima: document.getElementById('desfecho_vitima').value,
+          houve_recusa: document.getElementById('houve_recusa').value,
+          insumos_utilizados: insumosPayload,
+          updated_at: new Date().toISOString()
+        };
+
+        if (_supabase) {
+          const { data, error } = await _supabase
+            .from('ocorrencias_aph')
+            .upsert([payload], { onConflict: 'codigo_ocorrencia' });
+
+          if (error) {
+            alert("Erro ao gravar APH no Supabase: " + error.message);
+          } else {
+            alert("Ficha de APH salva com sucesso!");
+          }
+        }
+      } catch (err) {
+        alert("Falha no salvamento da ocorrência APH.");
       }
-      salvarLocal();
     }
 
     document.addEventListener('click', function(e) {
