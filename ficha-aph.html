@@ -91,7 +91,6 @@
       min-height: 32px;
     }
 
-    /* SELETOR CÓDIGO (VERMELHO, AMARELO, VERDE, AZUL) */
     .codigo-group { display: flex; gap: 3px; margin-bottom: 3px; }
     .btn-cor {
       flex: 1;
@@ -125,7 +124,6 @@
       height: 29px;
     }
 
-    /* MÓDULO J'S */
     .j-block-container {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -241,7 +239,6 @@
       cursor: pointer;
     }
 
-    /* ESTILO LIMPO E CENTRALIZADO PARA IMPRESSÃO A4 */
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
       html, body { width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 5.8pt !important; line-height: 1.1; }
@@ -330,11 +327,11 @@
         <div class="grid-2">
           <div>
             <label>Téc. de Enfermagem</label>
-            <select id="tec_enfermeiro" onchange="sincronizarTecnicoResp()"><option value="">Carregando do Supabase...</option></select>
+            <select id="tec_enfermeiro" onchange="sincronizarTecnicoResp()"><option value="">Buscando equipe...</option></select>
           </div>
           <div>
             <label>Socorrista (Condutor)</label>
-            <select id="socorrista"><option value="">Carregando do Supabase...</option></select>
+            <select id="socorrista"><option value="">Buscando equipe...</option></select>
           </div>
         </div>
 
@@ -660,7 +657,7 @@
 
   <script>
     const SUPABASE_URL = 'https://rcpgukslnlfptreiusff.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A';
 
     let _supabase = null;
     let listaInsumosEstoque = [];
@@ -671,6 +668,11 @@
     if (window.supabase) {
       _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
+
+    // LISTA DE SEGURANÇA (FALLBACK LOCAL PARA MODO OFFLINE)
+    const COLABORADORES_FALLBACK = [
+      { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "" }
+    ];
 
     async function reterTelaAcesa() {
       try {
@@ -686,7 +688,6 @@
       salvarLocal();
     }
 
-    // BUSCA DE CEP AUTOMÁTICA
     async function mascaraEBuscarCEP(input) {
       let v = input.value.replace(/\D/g, "");
       if (v.length > 8) v = v.slice(0, 8);
@@ -746,7 +747,6 @@
     document.getElementById('aphForm').addEventListener('input', salvarLocal);
     document.getElementById('aphForm').addEventListener('change', salvarLocal);
 
-    // MÁSCARA AUTOMÁTICA DE PRESSÃO ARTERIAL (3 DÍGITOS + 'x')
     function mascaraPA(input) {
       let v = input.value.replace(/[^0-9xX]/g, "");
       if (!v.includes('x') && !v.includes('X') && v.length >= 3) {
@@ -755,7 +755,6 @@
       input.value = v;
     }
 
-    // MÁSCARA DE TEMPERATURA (2 DÍGITOS + '.')
     function mascaraTemp(input) {
       let v = input.value.replace(/[^0-9.]/g, "");
       if (!v.includes('.') && v.length >= 2) {
@@ -764,7 +763,6 @@
       input.value = v;
     }
 
-    // ALERTA DE SATURAÇÃO SPO2 < 94%
     function checarSpo2(input) {
       const val = parseFloat(input.value);
       if (!isNaN(val) && val > 0 && val < 94) {
@@ -894,26 +892,60 @@
       if (input) { input.disabled = true; input.value = ''; }
     }
 
-    async function inicializarDados() {
-      addSvRow(true);
+    // BUSCA DE COLABORADORES HÍBRIDA (REST + SDK + CACHE LOCAL)
+    async function carregarColaboradoresRobusto() {
+      const selectTec = document.getElementById('tec_enfermeiro');
+      const selectSoc = document.getElementById('socorrista');
 
-      if (!_supabase) return;
+      selectTec.innerHTML = '<option value="">Buscando equipe...</option>';
+      selectSoc.innerHTML = '<option value="">Buscando equipe...</option>';
+
+      let colabs = null;
 
       try {
-        const { data: colabs } = await _supabase.from('colaboradores').select('*').order('nome');
-        if (colabs && colabs.length > 0) {
-          const selectTec = document.getElementById('tec_enfermeiro');
-          const selectSoc = document.getElementById('socorrista');
-          selectTec.innerHTML = '<option value="">-- Selecione o Téc. --</option>';
-          selectSoc.innerHTML = '<option value="">-- Selecione o Condutor --</option>';
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/colaboradores?select=*&order=nome.asc`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
 
-          colabs.forEach(c => {
-            const corenVal = c.coren ? ` (COREN ${c.coren})` : '';
-            selectTec.innerHTML += `<option value="${c.nome}">${c.nome}${corenVal}</option>`;
-            selectSoc.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
-          });
+        if (response.ok) {
+          colabs = await response.json();
         }
-      } catch(e) {}
+      } catch (errRest) {}
+
+      if (!colabs && _supabase) {
+        try {
+          const { data, error } = await _supabase.from('colaboradores').select('*').order('nome');
+          if (!error && data) colabs = data;
+        } catch (errSdk) {}
+      }
+
+      if (!colabs || colabs.length === 0) {
+        const cacheLocal = localStorage.getItem('aph_colaboradores_cache');
+        if (cacheLocal) {
+          colabs = JSON.parse(cacheLocal);
+        } else {
+          colabs = COLABORADORES_FALLBACK;
+        }
+      } else {
+        localStorage.setItem('aph_colaboradores_cache', JSON.stringify(colabs));
+      }
+
+      selectTec.innerHTML = '<option value="">-- Selecione o Téc. --</option>';
+      selectSoc.innerHTML = '<option value="">-- Selecione o Condutor --</option>';
+
+      colabs.forEach(c => {
+        const corenVal = c.coren ? ` (COREN ${c.coren})` : '';
+        selectTec.innerHTML += `<option value="${c.nome}">${c.nome}${corenVal}</option>`;
+        selectSoc.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+      });
+    }
+
+    async function inicializarDados() {
+      addSvRow(true);
+      await carregarColaboradoresRobusto();
 
       try {
         const { data: hospitais } = await _supabase.from('hospitais').select('*').order('nome');
