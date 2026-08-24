@@ -478,20 +478,29 @@
       <div class="card-body">
         <datalist id="listaInsumosLotesAPH"></datalist>
 
-        <table class="med-table">
-          <thead>
-            <tr>
-              <th>Insumo Selecionado (Com Lote e Validade)</th>
-              <th style="width: 70px;">Qtd</th>
-              <th>Via de Aplicação / Observações</th>
-              <th style="width: 35px;">#</th>
-            </tr>
-          </thead>
-          <tbody id="meds_body">
-            <!-- Linhas de medicação inseridas dinamicamente -->
-          </tbody>
-        </table>
-        <button type="button" class="btn-add-med" onclick="addMedRow()">➕ Adicionar Outro Insumo</button>
+        <!-- OPÇÃO: NENHUM INSUMO UTILIZADO -->
+        <div style="margin-bottom: 6px; background: #f8fafc; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
+          <label style="display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 800; color: #1e293b; cursor: pointer;">
+            <input type="checkbox" id="chk_nenhum_insumo" onchange="alternarNenhumInsumo(this)" style="width: 16px; height: 16px;">
+            🚫 NENHUM INSUMO OU MEDICAÇÃO FOI UTILIZADO NESTE ATENDIMENTO
+          </label>
+        </div>
+
+        <div id="box_tabela_insumos">
+          <table class="med-table">
+            <thead>
+              <tr>
+                <th>Insumo Selecionado (Com Lote e Validade)</th>
+                <th style="width: 80px;">Qtd</th>
+                <th style="width: 35px;">#</th>
+              </tr>
+            </thead>
+            <tbody id="meds_body">
+              <!-- Linhas de medicação inseridas dinamicamente -->
+            </tbody>
+          </table>
+          <button type="button" class="btn-add-med" id="btnAddMed" onclick="addMedRow()">➕ Adicionar Outro Insumo</button>
+        </div>
       </div>
     </div>
 
@@ -1032,7 +1041,6 @@
       });
     }
 
-    // NORMALIZAÇÃO DE STRING PARA COMPARAR SEM PROBLEMAS DE ESPAÇOS/CAIXA
     function normalizarString(str) {
       if (!str) return '';
       return str.toString()
@@ -1042,7 +1050,7 @@
         .replace(/[^a-z0-9]/g, '');
     }
 
-    // CONSULTA UNIFICADA: ESTOQUE_MESTRE X ESTOQUE_LOTES (SEM EXIBIR SALDO)
+    // CONSULTA UNIFICADA (SEM MOSTRAR SALDO)
     async function carregarInsumosELotesUnificados() {
       const datalist = document.getElementById('listaInsumosLotesAPH');
       if (!datalist) return;
@@ -1220,19 +1228,27 @@
       } catch (err) { alert("Erro ao consultar CPF do paciente."); }
     }
 
+    // ALTERNAR EXIBIÇÃO DA TABELA QUANDO "NENHUM INSUMO" FOR MARCADO
+    function alternarNenhumInsumo(chk) {
+      const boxTabela = document.getElementById('box_tabela_insumos');
+      if (chk.checked) {
+        boxTabela.style.display = 'none';
+      } else {
+        boxTabela.style.display = 'block';
+      }
+      salvarLocal();
+    }
+
     function addMedRow() {
       const tbody = document.getElementById('meds_body');
       const tr = document.createElement('tr');
 
       tr.innerHTML = `
         <td>
-          <input type="text" list="listaInsumosLotesAPH" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR INSUMO/LOTE..." onchange="salvarLocal()">
+          <input type="text" list="listaInsumosLotesAPH" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR INSUMO, LOTE OU VALIDADE..." onchange="salvarLocal()">
         </td>
         <td>
           <input type="number" inputmode="numeric" class="med-qtd" value="1" min="1" onchange="salvarLocal()">
-        </td>
-        <td>
-          <input type="text" class="med-via uppercase-input" placeholder="EX: EV, VO, IM, IMOBILIZAÇÃO..." onchange="salvarLocal()">
         </td>
         <td>
           <button type="button" class="btn-del-med" onclick="this.closest('tr').remove(); salvarLocal();">🗑️</button>
@@ -1242,13 +1258,24 @@
     }
 
     function obterInsumosUtilizadosPayload() {
+      const chkNenhum = document.getElementById('chk_nenhum_insumo');
+      
+      if (chkNenhum && chkNenhum.checked) {
+        return [{
+          codigo: 'NENHUM',
+          descricao: 'NENHUM INSUMO OU MEDICAÇÃO UTILIZADO',
+          numero_lote: 'N/A',
+          data_validade: null,
+          quantidade: 0
+        }];
+      }
+
       const insumosArray = [];
       const linhas = document.querySelectorAll('#meds_body tr');
 
       linhas.forEach(tr => {
         const inputLabel = tr.querySelector('.med-search-input');
         const inputQtd = tr.querySelector('.med-qtd');
-        const inputVia = tr.querySelector('.med-via');
 
         if (inputLabel && inputLabel.value.trim() !== '') {
           const valDigitado = inputLabel.value.trim();
@@ -1260,8 +1287,7 @@
               descricao: itemEncontrado.descricao,
               numero_lote: itemEncontrado.numero_lote,
               data_validade: itemEncontrado.data_validade,
-              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
-              via_aplicacao: inputVia ? inputVia.value.trim().toUpperCase() : ''
+              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1
             });
           } else {
             insumosArray.push({
@@ -1269,8 +1295,7 @@
               descricao: valDigitado.toUpperCase(),
               numero_lote: 'N/A',
               data_validade: null,
-              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
-              via_aplicacao: inputVia ? inputVia.value.trim().toUpperCase() : ''
+              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1
             });
           }
         }
