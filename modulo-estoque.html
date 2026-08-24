@@ -177,13 +177,17 @@
     let _db = null;
     let listaLotesGlobais = [];
 
-    function inicializar() {
-      if (window.supabase) {
+    function obterConexaoSupabase() {
+      if (!_db && window.supabase) {
         _db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
-      carregarInsumosMestre();
-      carregarColaboradores();
-      carregarLotesSaldo();
+      return _db;
+    }
+
+    async function inicializar() {
+      await carregarInsumosMestre();
+      await carregarColaboradores();
+      await carregarLotesSaldo();
     }
 
     function alternarModo(modo) {
@@ -196,41 +200,60 @@
     async function carregarInsumosMestre() {
       const dl = document.getElementById('listaInsumosMestreBusca');
       dl.innerHTML = '';
+      
+      const client = obterConexaoSupabase();
+      if (!client) return;
 
-      if (!_db) return;
+      try {
+        const { data, error } = await client.from('estoque_mestre').select('descricao_insumo').order('descricao_insumo', { ascending: true });
+        
+        if (error) {
+          console.error("Erro ao carregar estoque_mestre:", error);
+          return;
+        }
 
-      const { data, error } = await _db.from('estoque_mestre').select('*').order('descricao_insumo', { ascending: true });
-
-      if (data && data.length > 0) {
-        data.forEach(item => {
-          const desc = item.descricao_insumo || item.descricao || item.nome;
-          if (desc) {
-            const opt = document.createElement('option');
-            opt.value = desc.toUpperCase();
-            dl.appendChild(opt);
-          }
-        });
+        if (data && data.length > 0) {
+          data.forEach(item => {
+            if (item.descricao_insumo) {
+              const opt = document.createElement('option');
+              opt.value = item.descricao_insumo.toUpperCase();
+              dl.appendChild(opt);
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Exceção insumos:", err);
       }
     }
 
     async function carregarColaboradores() {
       const sEnt = document.getElementById('ent_responsavel');
       const sBaixa = document.getElementById('baixa_responsavel');
+      
+      const client = obterConexaoSupabase();
+      if (!client) return;
 
-      if (!_db) return;
+      try {
+        const { data, error } = await client.from('colaboradores').select('nome').order('nome', { ascending: true });
 
-      const { data, error } = await _db.from('colaboradores').select('nome').order('nome', { ascending: true });
+        if (error) {
+          console.error("Erro ao carregar colaboradores:", error);
+          return;
+        }
 
-      sEnt.innerHTML = '<option value="">-- Selecione o Servidor --</option>';
-      sBaixa.innerHTML = '<option value="">-- Selecione o Servidor --</option>';
+        sEnt.innerHTML = '<option value="">-- Selecione o Servidor --</option>';
+        sBaixa.innerHTML = '<option value="">-- Selecione o Servidor --</option>';
 
-      if (data && data.length > 0) {
-        data.forEach(c => {
-          if (c.nome) {
-            sEnt.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
-            sBaixa.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
-          }
-        });
+        if (data && data.length > 0) {
+          data.forEach(c => {
+            if (c.nome) {
+              sEnt.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+              sBaixa.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Exceção colaboradores:", err);
       }
     }
 
@@ -241,33 +264,42 @@
       tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando lotes com saldo...</td></tr>';
       dlBaixa.innerHTML = '';
 
-      if (!_db) return;
+      const client = obterConexaoSupabase();
+      if (!client) return;
 
-      const { data, error } = await _db.from('estoque_lotes').select('*').gt('quantidade_saldo', 0).order('data_validade', { ascending: true });
+      try {
+        const { data, error } = await client.from('estoque_lotes').select('*').gt('quantidade_saldo', 0).order('data_validade', { ascending: true });
 
-      listaLotesGlobais = data || [];
+        if (error) {
+          console.error("Erro ao carregar estoque_lotes:", error);
+        }
 
-      if (data && data.length > 0) {
-        tbody.innerHTML = '';
-        data.forEach(l => {
-          const valFmt = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : 'N/A';
-          const label = `${l.descricao_insumo} — LOTE: ${l.numero_lote || 'S/L'} | SALDO: ${l.quantidade_saldo} | VAL: ${valFmt}`;
+        listaLotesGlobais = data || [];
 
-          tbody.innerHTML += `
-            <tr>
-              <td><b>${l.descricao_insumo}</b></td>
-              <td>${l.numero_lote || 'SEM LOTE'}</td>
-              <td>${valFmt}</td>
-              <td style="text-align: center; font-weight: 800; color: #16a34a;">${l.quantidade_saldo}</td>
-            </tr>
-          `;
+        if (data && data.length > 0) {
+          tbody.innerHTML = '';
+          data.forEach(l => {
+            const valFmt = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : 'N/A';
+            const label = `${l.descricao_insumo} — LOTE: ${l.numero_lote || 'S/L'} | SALDO: ${l.quantidade_saldo} | VAL: ${valFmt}`;
 
-          const opt = document.createElement('option');
-          opt.value = label;
-          dlBaixa.appendChild(opt);
-        });
-      } else {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum lote com saldo disponível. Registre uma entrada de material acima.</td></tr>';
+            tbody.innerHTML += `
+              <tr>
+                <td><b>${l.descricao_insumo}</b></td>
+                <td>${l.numero_lote || 'SEM LOTE'}</td>
+                <td>${valFmt}</td>
+                <td style="text-align: center; font-weight: 800; color: #16a34a;">${l.quantidade_saldo}</td>
+              </tr>
+            `;
+
+            const opt = document.createElement('option');
+            opt.value = label;
+            dlBaixa.appendChild(opt);
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum lote com saldo disponível. Registre uma entrada de material acima.</td></tr>';
+        }
+      } catch (err) {
+        console.error("Exceção lotes:", err);
       }
     }
 
@@ -282,8 +314,10 @@
 
       if (!insumo || !resp) { alert("Preencha o insumo e o responsável."); return; }
 
+      const client = obterConexaoSupabase();
+
       try {
-        const { data: existente } = await _db
+        const { data: existente } = await client
           .from('estoque_lotes')
           .select('id, quantidade_saldo')
           .eq('descricao_insumo', insumo)
@@ -292,9 +326,9 @@
 
         if (existente) {
           const novoSaldo = (existente.quantidade_saldo || 0) + qtd;
-          await _db.from('estoque_lotes').update({ quantidade_saldo: novoSaldo, data_validade: validade }).eq('id', existente.id);
+          await client.from('estoque_lotes').update({ quantidade_saldo: novoSaldo, data_validade: validade }).eq('id', existente.id);
         } else {
-          await _db.from('estoque_lotes').insert([{
+          await client.from('estoque_lotes').insert([{
             descricao_insumo: insumo,
             numero_lote: lote,
             data_validade: validade,
@@ -302,7 +336,7 @@
           }]);
         }
 
-        await _db.from('estoque_movimentacoes').insert([{
+        await client.from('estoque_movimentacoes').insert([{
           tipo_movimentacao: 'ENTRADA',
           descricao_insumo: insumo,
           numero_lote: lote,
@@ -336,12 +370,14 @@
       if (!loteSel) { alert("Selecione um lote válido da lista."); return; }
       if (qtd > loteSel.quantidade_saldo) { alert(`Quantidade maior que o saldo (${loteSel.quantidade_saldo}).`); return; }
 
+      const client = obterConexaoSupabase();
+
       try {
         const novoSaldo = loteSel.quantidade_saldo - qtd;
 
-        await _db.from('estoque_lotes').update({ quantidade_saldo: novoSaldo }).eq('id', loteSel.id);
+        await client.from('estoque_lotes').update({ quantidade_saldo: novoSaldo }).eq('id', loteSel.id);
 
-        await _db.from('estoque_movimentacoes').insert([{
+        await client.from('estoque_movimentacoes').insert([{
           tipo_movimentacao: 'SAIDA_MANUAL',
           descricao_insumo: loteSel.descricao_insumo,
           numero_lote: loteSel.numero_lote,
@@ -356,7 +392,6 @@
       } catch (err) { alert("Erro ao registrar baixa."); }
     }
 
-    // DISPARO IMEDIATO AO CARREGAR A PÁGINA
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', inicializar);
     } else {
