@@ -69,7 +69,7 @@
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
     .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; }
     .grid-glasgow { display: grid; grid-template-columns: 1fr 1fr 1fr 0.8fr; gap: 4px; }
-    .grid-reclassificacao-otimizado { display: grid; grid-template-columns: 1.2fr 1fr 1.2fr; gap: 4px; }
+    .grid-reclassificacao-otimizado { display: grid; grid-template-columns: 1.2fr 1.2fr 1fr; gap: 4px; }
     .grid-endereco { display: grid; grid-template-columns: 3fr 1fr; gap: 4px; }
     .grid-assinante-proporcional { display: grid; grid-template-columns: 1.2fr 2.5fr 1.1fr; gap: 4px; }
 
@@ -192,7 +192,8 @@
         display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.5pt solid #000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;
       }
 
-      #box_reclassificacao_hora_form { display: none !important; }
+      /* OCULTA O CAIXÃO DE RESUMO INFERIOR NA IMPRESSÃO PARA EVITAR REPETIÇÃO */
+      #printReclassificacaoBox { display: none !important; }
 
       .j-block-container { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 2px !important; }
       .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; border: 0.4pt solid #000 !important; background: transparent !important; padding: 1px !important; }
@@ -279,9 +280,9 @@
           <div><label>Data</label><input type="date" id="data"></div>
         </div>
 
-        <!-- RECLASSIFICAÇÃO DE CÓDIGO - LAYOUT OTIMIZADO -->
+        <!-- RECLASSIFICAÇÃO DE CÓDIGO - ALINHADO EM 3 COLUNAS -->
         <div style="margin-top: 4px; padding: 5px; background: #f8fafc; border: 1px dashed var(--border); border-radius: 4px;">
-          <label style="color: #0f172a; font-weight: 800;">RECLASSIFICAÇÃO DE CÓDIGO / ALTERAÇÃO PELA REGULAÇÃO (OPCIONAL)</label>
+          <label style="color: #0f172a; font-weight: 800;">RECLASSIFICAÇÃO DE CÓDIGO (REGULAÇÃO MÉDICA)</label>
           <div class="grid-reclassificacao-otimizado">
             <div>
               <label>Novo Código</label>
@@ -293,13 +294,13 @@
                 <option value="AZ">AZUL (AZ)</option>
               </select>
             </div>
-            <div id="box_reclassificacao_hora_form">
-              <label>Horário da Mudança (Automático)</label>
-              <input type="time" id="reclassificacao_hora" readonly style="background: #e2e8f0; font-weight: bold;">
-            </div>
             <div>
               <label>Médico Autorizador</label>
               <input type="text" id="reclassificacao_medico" class="uppercase-input" placeholder="NOME DO REGULADOR" onchange="atualizarTextoReclassificacaoImpressao()">
+            </div>
+            <div>
+              <label>Horário Mudança</label>
+              <input type="time" id="reclassificacao_hora" readonly style="background: #e2e8f0; font-weight: bold;">
             </div>
           </div>
           <div id="printReclassificacaoBox" class="print-triagem-text" style="display: none; margin-top: 2px;"></div>
