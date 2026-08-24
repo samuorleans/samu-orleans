@@ -140,18 +140,47 @@
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
     }
 
-    /* ALINHAMENTO ITEM 6 */
+    /* ALINHAMENTO E BUSCA MOBILE */
     .sv-table, .med-table, .table-expo { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.72rem; }
     .sv-table th, .med-table th, .table-expo th { background: #f1f5f9; padding: 3px; border: 1px solid #cbd5e1; font-size: 0.62rem; text-transform: uppercase; text-align: center; }
     .med-table th:first-child { text-align: left; padding-left: 5px; }
     
     .sv-table td, .table-expo td { padding: 2px; border: 1px solid #cbd5e1; text-align: center; }
-    .med-table td { padding: 2px; border: 1px solid #cbd5e1; text-align: left; }
+    .med-table td { padding: 2px; border: 1px solid #cbd5e1; text-align: left; position: relative; }
     .med-table td.td-center { text-align: center; }
 
     .sv-table input { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: center; }
-    .med-table input.med-search-input { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: left; }
+    .med-table input.med-search-input { margin-bottom: 0; font-size: 0.78rem; padding: 5px; text-align: left; }
     .med-table input.med-qtd { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: center; }
+
+    /* MENU FLUTUANTE DE SUGESTÕES MOBILE */
+    .mobile-suggest-box {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border: 1px solid #0284c7;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      max-height: 160px;
+      overflow-y: auto;
+      z-index: 9999;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      display: none;
+    }
+    .mobile-suggest-item {
+      padding: 8px 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border-bottom: 1px solid #f1f5f9;
+      color: #0f172a;
+      cursor: pointer;
+    }
+    .mobile-suggest-item:active {
+      background: #e0f2fe;
+      color: #0369a1;
+    }
 
     .psico-box {
       background: #fff7ed;
@@ -185,7 +214,7 @@
     @media print {
       @page { size: A4 portrait; margin: 4mm; }
       html, body { width: 100%; height: 100%; background: #fff !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 5.5pt !important; line-height: 1.15; }
-      .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, button, script { display: none !important; }
+      .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .mobile-suggest-box, button, script { display: none !important; }
       
       select, input[type="time"], input[type="date"] {
         -webkit-appearance: none !important;
@@ -649,7 +678,6 @@
         <span class="icon-toggle">▼</span>
       </div>
       <div class="card-body">
-        <datalist id="listaInsumosLotesAPH"></datalist>
 
         <div style="margin-bottom: 6px; background: #f8fafc; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
           <label style="display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 800; color: #1e293b; cursor: pointer;">
@@ -708,7 +736,7 @@
           </div>
 
           <div id="med_continua_box" style="display: none;">
-            <label style="color: var(--primary-dark);">Descrever Medicamentos Contínuos</label>
+            <label style="color: var(--primary-dark);">Descrever Medicamentos Contíduos</label>
             <textarea id="meds_continuas" class="auto-expand uppercase-input" placeholder="EX: LOSARTANA 50MG, METFORMINA 850MG..." oninput="autoExpandTextarea(this)"></textarea>
           </div>
         </div>
@@ -1362,10 +1390,6 @@
     }
 
     async function carregarInsumosELotesUnificados() {
-      const datalist = document.getElementById('listaInsumosLotesAPH');
-      if (!datalist) return;
-
-      datalist.innerHTML = '';
       mapaLotesUnificados = [];
 
       let mestreRes = [];
@@ -1448,12 +1472,6 @@
         const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
         if (cacheLocal) mapaLotesUnificados = JSON.parse(cacheLocal);
       }
-
-      mapaLotesUnificados.forEach(item => {
-        const opt = document.createElement('option');
-        opt.value = item.label;
-        datalist.appendChild(opt);
-      });
     }
 
     async function inicializarDados() {
@@ -1560,14 +1578,15 @@
       salvarLocal();
     }
 
-    /* BUSCA MOBILE E DETECÇÃO COMPATÍVEL COM S25 ULTRA */
+    /* MECANISMO DE AUTOCOMPLETE FLUTUANTE PARA MÓVEIS (SUBSTITUI DATALIST) */
     function addMedRow() {
       const tbody = document.getElementById('meds_body');
       const tr = document.createElement('tr');
 
       tr.innerHTML = `
         <td>
-          <input type="text" list="listaInsumosLotesAPH" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR INSUMO, LOTE OU VALIDADE..." oninput="verificarPsicotropico(this)" onchange="verificarPsicotropico(this)" onkeyup="verificarPsicotropico(this)">
+          <input type="text" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR INSUMO, LOTE OU VALIDADE..." oninput="filtrarEExibirSugestoes(this)" onfocus="filtrarEExibirSugestoes(this)">
+          <div class="mobile-suggest-box"></div>
           
           <div class="psico-box" style="display: none;">
             <label style="color: #c2410c; font-weight: 800;">🔒 CONTROLE DE PSICOTRÓPICO & LACRES</label>
@@ -1600,6 +1619,53 @@
       `;
       tbody.appendChild(tr);
     }
+
+    function filtrarEExibirSugestoes(inputEl) {
+      const valNorm = normalizarString(inputEl.value);
+      const td = inputEl.closest('td');
+      const suggestBox = td.querySelector('.mobile-suggest-box');
+
+      if (!valNorm || valNorm.length < 1) {
+        suggestBox.style.display = 'none';
+        suggestBox.innerHTML = '';
+        verificarPsicotropico(inputEl);
+        return;
+      }
+
+      const resultados = mapaLotesUnificados.filter(item => {
+        const labelNorm = normalizarString(item.label);
+        const descNorm = normalizarString(item.descricao);
+        return labelNorm.includes(valNorm) || descNorm.includes(valNorm);
+      }).slice(0, 10); // Limita a 10 resultados para carregar super rápido na tela
+
+      if (resultados.length > 0) {
+        suggestBox.innerHTML = '';
+        resultados.forEach(item => {
+          const itemDiv = document.createElement('div');
+          itemDiv.className = 'mobile-suggest-item';
+          itemDiv.innerText = item.label;
+          itemDiv.onclick = function() {
+            inputEl.value = item.label;
+            suggestBox.style.display = 'none';
+            verificarPsicotropico(inputEl);
+            salvarLocal();
+          };
+          suggestBox.appendChild(itemDiv);
+        });
+        suggestBox.style.display = 'block';
+      } else {
+        suggestBox.style.display = 'none';
+      }
+
+      verificarPsicotropico(inputEl);
+    }
+
+    // Esconde a caixinha ao clicar fora
+    document.addEventListener('click', function(e) {
+      if (!e.target.classList.contains('med-search-input')) {
+        document.querySelectorAll('.mobile-suggest-box').forEach(box => box.style.display = 'none');
+      }
+    });
 
     function verificarPsicotropico(inputEl) {
       const valRaw = inputEl.value.trim();
@@ -1905,7 +1971,6 @@
 
     document.getElementById('btnClearSig').addEventListener('click', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); });
     
-    // CONFIRMAÇÃO TÁTICA ANTES DE SALVAR E IMPRIMIR
     document.getElementById('btnImprimir').addEventListener('click', () => { 
       const confirmacao = confirm(
         "⚠️ ATENÇÃO: CONFIRMA A IMPRESSÃO DA FICHA?\n\n" +
