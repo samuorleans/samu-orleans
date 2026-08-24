@@ -140,7 +140,7 @@
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
     }
 
-    /* TABELAS COM ALINHAMENTOS AJUSTADOS (ITEM 6 ESQUERDA / QTD CENTRO) */
+    /* ALINHAMENTO ITEM 6 */
     .sv-table, .med-table, .table-expo { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.72rem; }
     .sv-table th, .med-table th, .table-expo th { background: #f1f5f9; padding: 3px; border: 1px solid #cbd5e1; font-size: 0.62rem; text-transform: uppercase; text-align: center; }
     .med-table th:first-child { text-align: left; padding-left: 5px; }
@@ -1560,14 +1560,14 @@
       salvarLocal();
     }
 
-    /* CONTROLE DINÂMICO DE PSICOTRÓPICOS & LACRES */
+    /* BUSCA MOBILE E DETECÇÃO COMPATÍVEL COM S25 ULTRA */
     function addMedRow() {
       const tbody = document.getElementById('meds_body');
       const tr = document.createElement('tr');
 
       tr.innerHTML = `
         <td>
-          <input type="text" list="listaInsumosLotesAPH" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR INSUMO, LOTE OU VALIDADE..." oninput="verificarPsicotropico(this)">
+          <input type="text" list="listaInsumosLotesAPH" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR INSUMO, LOTE OU VALIDADE..." oninput="verificarPsicotropico(this)" onchange="verificarPsicotropico(this)" onkeyup="verificarPsicotropico(this)">
           
           <div class="psico-box" style="display: none;">
             <label style="color: #c2410c; font-weight: 800;">🔒 CONTROLE DE PSICOTRÓPICO & LACRES</label>
@@ -1602,24 +1602,25 @@
     }
 
     function verificarPsicotropico(inputEl) {
-      const val = inputEl.value.trim().toUpperCase();
+      const valRaw = inputEl.value.trim();
+      const valNorm = normalizarString(valRaw);
       const tr = inputEl.closest('tr');
       const psicoBox = tr.querySelector('.psico-box');
       
       if (!psicoBox) return;
 
-      const itemEncontrado = mapaLotesUnificados.find(i => 
-        i.label.toUpperCase() === val || 
-        val.includes(i.descricao.toUpperCase()) ||
-        (i.descricao && i.descricao.toUpperCase().includes(val))
-      );
+      const itemEncontrado = mapaLotesUnificados.find(i => {
+        const labelNorm = normalizarString(i.label);
+        const descNorm = normalizarString(i.descricao);
+        return labelNorm === valNorm || descNorm === valNorm || valNorm.includes(descNorm) || (descNorm && descNorm.includes(valNorm));
+      });
 
-      const ehPsicotropicoGarantido = val.includes("DIAZEPAM") || 
-                                      val.includes("TRAMADOL") || 
-                                      val.includes("MORFINA") || 
-                                      val.includes("FENTANIL") || 
-                                      val.includes("MIDAZOLAM") ||
-                                      val.includes("MEPERIDINA");
+      const ehPsicotropicoGarantido = valNorm.includes("diazepam") || 
+                                      valNorm.includes("tramadol") || 
+                                      valNorm.includes("morfina") || 
+                                      valNorm.includes("fentanil") || 
+                                      valNorm.includes("midazolam") ||
+                                      valNorm.includes("meperidina");
 
       if ((itemEncontrado && itemEncontrado.is_psicotropico) || ehPsicotropicoGarantido) {
         psicoBox.style.display = 'block';
@@ -1653,7 +1654,13 @@
 
         if (inputLabel && inputLabel.value.trim() !== '') {
           const valDigitado = inputLabel.value.trim();
-          const itemEncontrado = mapaLotesUnificados.find(i => i.label === valDigitado);
+          const valNorm = normalizarString(valDigitado);
+          
+          const itemEncontrado = mapaLotesUnificados.find(i => {
+            const labelNorm = normalizarString(i.label);
+            const descNorm = normalizarString(i.descricao);
+            return labelNorm === valNorm || descNorm === valNorm || valNorm.includes(descNorm) || (descNorm && descNorm.includes(valNorm));
+          });
 
           const isPsico = (psicoBox && psicoBox.style.display !== 'none');
           let via = null;
@@ -1720,7 +1727,6 @@
           } catch (e) {}
         }
 
-        /* REGISTRO NA TABELA OPERACIONAL_SAUDE_LACRES PARA PSICOTRÓPICOS */
         if (item.is_psicotropico && item.lacre_rompido && item.lacre_novo) {
           try {
             const lacrePayload = {
