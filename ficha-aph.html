@@ -148,7 +148,7 @@
       box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3); width: calc(100% - 16px); z-index: 1000; text-transform: uppercase; cursor: pointer;
     }
 
-    .j-print-item { display: none; }
+    .j-print-label { display: none; }
 
     @media print {
       @page { size: A4 portrait; margin: 4mm; }
@@ -177,7 +177,6 @@
         display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.5pt solid #000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;
       }
 
-      /* RÓTULOS DOS J'S NA IMPRESSÃO */
       .j-block-container { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 2px !important; }
       .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; border: 0.4pt solid #000 !important; background: transparent !important; padding: 1px !important; }
       .btn-j-badge { display: none !important; }
@@ -189,7 +188,6 @@
       
       canvas { height: 28px !important; border: 0.4pt solid #000 !important; }
 
-      /* ASSINATURAS DINÂMICAS */
       .print-signatures-block {
         display: grid !important;
         grid-template-columns: 1fr 1fr 1fr;
@@ -257,13 +255,13 @@
           <div><label>Data</label><input type="date" id="data"></div>
         </div>
 
-        <!-- RECLASSIFICAÇÃO DO CÓDIGO DE TRIAGEM -->
+        <!-- RECLASSIFICAÇÃO DO CÓDIGO DE TRIAGEM COM HORÁRIO AUTOMÁTICO E BLOQUEADO -->
         <div style="margin-top: 4px; padding: 5px; background: #f8fafc; border: 1px dashed var(--border); border-radius: 4px;">
           <label style="color: #0f172a; font-weight: 800;">RECLASSIFICAÇÃO DE CÓDIGO / ALTERAÇÃO PELA REGULAÇÃO (OPCIONAL)</label>
           <div class="grid-3">
             <div>
               <label>Novo Código</label>
-              <select id="reclassificacao_codigo" onchange="atualizarTextoReclassificacaoImpressao()">
+              <select id="reclassificacao_codigo" onchange="tratarSelecaoReclassificacao(this)">
                 <option value="">SEM ALTERAÇÃO</option>
                 <option value="VM">VERMELHO (VM)</option>
                 <option value="AM">AMARELO (AM)</option>
@@ -272,8 +270,8 @@
               </select>
             </div>
             <div>
-              <label>Horário da Mudança</label>
-              <input type="time" id="reclassificacao_hora" onchange="atualizarTextoReclassificacaoImpressao()">
+              <label>Horário da Mudança (Automático)</label>
+              <input type="time" id="reclassificacao_hora" readonly style="background: #e2e8f0; font-weight: bold;">
             </div>
             <div>
               <label>Médico Autorizador</label>
@@ -751,6 +749,19 @@
       salvarLocal();
     }
 
+    // TRATAMENTO DA RECLASSIFICAÇÃO: ATRIBUI HORÁRIO AUTOMÁTICO E IMPEDE MUDANÇA
+    function tratarSelecaoReclassificacao(selectEl) {
+      const horaInput = document.getElementById('reclassificacao_hora');
+      if (selectEl.value !== '') {
+        const now = new Date();
+        horaInput.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      } else {
+        horaInput.value = '';
+      }
+      atualizarTextoReclassificacaoImpressao();
+      salvarLocal();
+    }
+
     function atualizarTextoReclassificacaoImpressao() {
       const novoCod = document.getElementById('reclassificacao_codigo').value;
       const hora = document.getElementById('reclassificacao_hora').value;
@@ -843,7 +854,6 @@
       alternarExibicaoRecusa();
     }
 
-    // REGRA DE IMPRESSÃO DAS ASSINATURAS DADOS DESFECHO/RECUSA
     function ajustarExibicaoAssinaturasImpressao() {
       const desfecho = document.getElementById('desfecho_vitima').value;
       const houveRecusa = document.getElementById('houve_recusa').value;
@@ -1028,7 +1038,6 @@
       document.getElementById('med_continua_box').style.display = (val === 'SIM') ? 'block' : 'none';
     }
 
-    // FLUXO DE HABILITAÇÃO DOS J'S
     function acionarJTime(jCode, targetInputId) {
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
