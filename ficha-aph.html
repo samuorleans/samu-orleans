@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Ficha APH - SAMU 192 Orleans</title>
-  <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -36,7 +35,6 @@
     header .header-info h1 { font-size: 1rem; font-weight: 800; text-transform: uppercase; color: #fff; }
     header .header-info p { font-size: 0.65rem; color: #94a3b8; font-weight: 600; }
 
-    /* CARD ACCORDION */
     .card {
       background: var(--card-bg);
       border-radius: 6px;
@@ -64,10 +62,7 @@
     .card.active .card-header .icon-toggle { transform: rotate(180deg); }
     .card.active .card-header { background: #e2e8f0; color: var(--primary-dark); }
 
-    .card-body {
-      display: none;
-      padding: 8px;
-    }
+    .card-body { display: none; padding: 8px; }
     .card.active .card-body { display: block; }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
@@ -90,7 +85,13 @@
       font-weight: 500;
     }
 
-    /* SELETOR TÁTICO DE CÓDIGO COR */
+    .auto-expand {
+      resize: none;
+      overflow-y: hidden;
+      min-height: 32px;
+    }
+
+    /* SELETOR CÓDIGO (VERMELHO, AMARELO, VERDE, AZUL) */
     .codigo-group { display: flex; gap: 3px; margin-bottom: 3px; }
     .btn-cor {
       flex: 1;
@@ -102,16 +103,15 @@
       cursor: pointer;
       text-align: center;
       color: #fff;
-      opacity: 0.5;
+      opacity: 0.4;
       transition: all 0.15s ease;
     }
     .btn-cor.active { opacity: 1; transform: scale(1.02); border-color: #000; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-    .cor-vd { background-color: #16a34a; }
-    .cor-am { background-color: #eab308; color: #000; }
     .cor-vm { background-color: #dc2626; }
+    .cor-am { background-color: #eab308; color: #000; }
+    .cor-vd { background-color: #16a34a; }
     .cor-az { background-color: #2563eb; }
 
-    /* BUSCA POR CPF */
     .search-group { display: flex; gap: 3px; }
     .btn-search {
       background: var(--secondary);
@@ -180,7 +180,6 @@
       background: #ffffff !important;
     }
 
-    /* TABELAS */
     .sv-table, .med-table, .table-expo { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.72rem; }
     .sv-table th, .med-table th, .table-expo th { background: #f1f5f9; padding: 3px; border: 1px solid #cbd5e1; font-size: 0.62rem; text-transform: uppercase; text-align: center; }
     .sv-table td, .med-table td, .table-expo td { padding: 2px; border: 1px solid #cbd5e1; text-align: center; }
@@ -242,28 +241,50 @@
       cursor: pointer;
     }
 
-    /* OTIMIZAÇÃO DE IMPRESSÃO A4 - FOLHA ÚNICA */
+    /* ESTILO LIMPO E CENTRALIZADO PARA IMPRESSÃO A4 */
     @media print {
-      @page { size: A4 portrait; margin: 2mm; }
-      html, body { width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 5.5pt !important; line-height: 1.1; }
+      @page { size: A4 portrait; margin: 3mm; }
+      html, body { width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 5.8pt !important; line-height: 1.1; }
       .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, button, script { display: none !important; }
-      header { background: none !important; color: #000 !important; border-bottom: 1pt solid #000; padding: 0 !important; margin-bottom: 1px !important; border-left: none !important; }
-      header img { height: 20px !important; }
-      header h1 { font-size: 7.5pt !important; margin: 0; color: #000 !important; }
-      header p { font-size: 4.5pt !important; margin: 0; font-weight: bold; color: #000 !important; }
-      .card { box-shadow: none !important; border: 0.4pt solid #000 !important; margin-bottom: 1px !important; padding: 0 !important; border-radius: 0 !important; page-break-inside: avoid !important; }
-      .card-header { background: none !important; color: #000 !important; border-bottom: 0.4pt solid #000 !important; padding: 1px 2px !important; font-size: 5.2pt !important; }
-      .card-body { display: block !important; padding: 1px 2px !important; }
-      label { font-size: 4.2pt !important; color: #000 !important; margin-bottom: 0px !important; }
-      input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.4pt solid #444 !important; background: transparent !important; padding: 0px !important; font-weight: bold !important; font-size: 5.2pt !important; margin-bottom: 0px !important; height: auto !important; }
-      textarea { height: 24px !important; resize: none; }
+      
+      select {
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+        background: none !important;
+        border: none !important;
+      }
+
+      header { 
+        background: none !important; 
+        color: #000 !important; 
+        border-bottom: 1.5pt solid #000; 
+        padding: 2px 0 !important; 
+        margin-bottom: 3px !important; 
+        border-left: none !important;
+        display: flex !important;
+        justify-content: center !important;
+        text-align: center !important;
+      }
+      header img { height: 28px !important; }
+      header .header-info { text-align: center !important; }
+      header h1 { font-size: 10pt !important; margin: 0; color: #000 !important; font-weight: 900 !important; }
+      header p { font-size: 6pt !important; margin: 0; font-weight: bold; color: #000 !important; }
+
+      .card { box-shadow: none !important; border: 0.4pt solid #000 !important; margin-bottom: 2px !important; padding: 0 !important; border-radius: 0 !important; page-break-inside: avoid !important; }
+      .card-header { background: none !important; color: #000 !important; border-bottom: 0.4pt solid #000 !important; padding: 1px 3px !important; font-size: 5.8pt !important; font-weight: bold !important; }
+      .card-body { display: block !important; padding: 2px 3px !important; }
+      label { font-size: 4.5pt !important; color: #000 !important; margin-bottom: 0px !important; }
+      input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.4pt solid #444 !important; background: transparent !important; padding: 0px !important; font-weight: bold !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; }
+      textarea { height: auto !important; resize: none; }
+      
       .codigo-group { display: inline-flex !important; gap: 2px !important; }
-      .btn-cor { padding: 1px 4px !important; font-size: 4.8pt !important; opacity: 1 !important; border: 0.4pt solid #000 !important; }
+      .btn-cor { padding: 1px 4px !important; font-size: 5pt !important; opacity: 1 !important; border: 0.4pt solid #000 !important; }
       .j-block-container { grid-template-columns: repeat(7, 1fr) !important; gap: 1px !important; }
-      .btn-j-badge { background: #000 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; height: 13px !important; font-size: 4.8pt !important; min-width: 32px !important; opacity: 1 !important; }
-      .j-time-input { height: 13px !important; font-size: 5pt !important; border-bottom: 0.4pt solid #000 !important; }
-      .sv-table th, .sv-table td, .med-table th, .med-table td { font-size: 4.8pt !important; padding: 0px 1px !important; border: 0.4pt solid #000 !important; }
-      canvas { height: 20px !important; border: 0.4pt solid #000 !important; }
+      .btn-j-badge { background: none !important; color: #000 !important; border: none !important; clip-path: none !important; height: 13px !important; font-size: 5pt !important; min-width: 32px !important; opacity: 1 !important; padding: 0 !important; }
+      .j-time-input { height: 13px !important; font-size: 5.5pt !important; border-bottom: 0.4pt solid #000 !important; }
+      .sv-table th, .sv-table td, .med-table th, .med-table td { font-size: 5.2pt !important; padding: 1px !important; border: 0.4pt solid #000 !important; }
+      canvas { height: 22px !important; border: 0.4pt solid #000 !important; }
     }
   </style>
 </head>
@@ -290,11 +311,11 @@
           <div><label>Nº Ocorrência</label><input type="tel" inputmode="numeric" id="codigo" class="uppercase-input" required placeholder="Nº Ocorrência"></div>
           <div>
             <label>CÓDIGO TRIAGEM</label>
-            <input type="hidden" id="cor_ocorrencia" value="VD">
+            <input type="hidden" id="cor_ocorrencia" value="VM">
             <div class="codigo-group">
-              <button type="button" class="btn-cor cor-vd active" onclick="selecionarCodigo('VD', this)">VD</button>
+              <button type="button" class="btn-cor cor-vm active" onclick="selecionarCodigo('VM', this)">VM</button>
               <button type="button" class="btn-cor cor-am" onclick="selecionarCodigo('AM', this)">AM</button>
-              <button type="button" class="btn-cor cor-vm" onclick="selecionarCodigo('VM', this)">VM</button>
+              <button type="button" class="btn-cor cor-vd" onclick="selecionarCodigo('VD', this)">VD</button>
               <button type="button" class="btn-cor cor-az" onclick="selecionarCodigo('AZ', this)">AZ</button>
             </div>
           </div>
@@ -320,13 +341,13 @@
         <!-- MÓDULO DOS J'S E QTA -->
         <div class="j-block-container">
           <div class="j-row-tactical">
-            <button type="button" class="btn-j-badge" id="btnJ9" data-target="horaJ9">J9 ⏱️</button>
+            <button type="button" class="btn-j-badge" id="btnJ9" data-target="horaJ9">J9</button>
             <input type="time" id="horaJ9" class="j-time-input">
             <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Saída Base</span>
           </div>
 
           <div class="j-row-tactical">
-            <button type="button" class="btn-j-badge" id="btnJ10" data-target="horaJ10" disabled>J10 ⏱️</button>
+            <button type="button" class="btn-j-badge" id="btnJ10" data-target="horaJ10" disabled>J10</button>
             <input type="time" id="horaJ10" class="j-time-input" disabled>
             <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Cheg. Local</span>
           </div>
@@ -338,25 +359,25 @@
           </div>
 
           <div class="j-row-tactical">
-            <button type="button" class="btn-j-badge" id="btnJ9_INT" data-target="horaJ9_INT" disabled>J9-INT ⏱️</button>
+            <button type="button" class="btn-j-badge" id="btnJ9_INT" data-target="horaJ9_INT" disabled>J9-INT</button>
             <input type="time" id="horaJ9_INT" class="j-time-input" disabled>
             <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Saída Local</span>
           </div>
 
           <div class="j-row-tactical">
-            <button type="button" class="btn-j-badge" id="btnJ10_INT" data-target="horaJ10_INT" disabled>J10-INT ⏱️</button>
+            <button type="button" class="btn-j-badge" id="btnJ10_INT" data-target="horaJ10_INT" disabled>J10-INT</button>
             <input type="time" id="horaJ10_INT" class="j-time-input" disabled>
             <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Destino</span>
           </div>
 
           <div class="j-row-tactical">
-            <button type="button" class="btn-j-badge" id="btnJ11" data-target="horaJ11" disabled>J11 ⏱️</button>
+            <button type="button" class="btn-j-badge" id="btnJ11" data-target="horaJ11" disabled>J11</button>
             <input type="time" id="horaJ11" class="j-time-input" disabled>
             <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Disponível</span>
           </div>
 
           <div class="j-row-tactical">
-            <button type="button" class="btn-j-badge" id="btnJ12" data-target="horaJ12" disabled>J12 ⏱️</button>
+            <button type="button" class="btn-j-badge" id="btnJ12" data-target="horaJ12" disabled>J12</button>
             <input type="time" id="horaJ12" class="j-time-input" disabled>
             <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;">Na Base</span>
           </div>
@@ -411,7 +432,7 @@
 
         <div class="grid-endereco" style="margin-top: 2px;">
           <div><label>Rua / Logradouro</label><input type="text" id="rua" placeholder="Nome da rua ou rodovia..."></div>
-          <div><label>Nº Casa / Apto</label><input type="text" id="numero" placeholder="Nº"></div>
+          <div><label>Nº Casa / Apto</label><input type="tel" inputmode="numeric" id="numero" placeholder="Nº"></div>
         </div>
 
         <div class="grid-3">
@@ -505,18 +526,18 @@
         <table class="sv-table">
           <thead>
             <tr>
-              <th style="width: 80px;">Hora</th>
+              <th style="width: 75px;">Hora</th>
               <th>PA (mmHg)</th>
               <th>FC (bpm)</th>
               <th>FR (mpm)</th>
-              <th>SatO2 (%)</th>
+              <th>SpO₂ (%)</th>
               <th>Temp (ºC)</th>
               <th>HGT (mg/dL)</th>
               <th style="width: 25px;">#</th>
             </tr>
           </thead>
           <tbody id="sv_body">
-            <!-- Linhas de sinais vitais -->
+            <!-- Linhas dinâmicas -->
           </tbody>
         </table>
         <button type="button" class="btn-add-sv" onclick="addSvRow(false)">+ Adicionar Reavaliação de Sinais</button>
@@ -568,7 +589,7 @@
           
           <div id="alergia_desc_box" style="display: none;">
             <label style="color: var(--primary-dark);">Relatar Medicamentos / Alergias</label>
-            <input type="text" id="alergia_desc" placeholder="Ex: Dipirona, Penicilina...">
+            <textarea id="alergia_desc" class="auto-expand" placeholder="Ex: Dipirona, Penicilina..." oninput="autoExpandTextarea(this)"></textarea>
           </div>
         </div>
 
@@ -583,7 +604,7 @@
 
           <div id="med_continua_box" style="display: none;">
             <label style="color: var(--primary-dark);">Descrever Medicamentos Contínuos</label>
-            <input type="text" id="meds_continuas" placeholder="Ex: Losartana 50mg, Metformina 850mg...">
+            <textarea id="meds_continuas" class="auto-expand" placeholder="Ex: Losartana 50mg, Metformina 850mg..." oninput="autoExpandTextarea(this)"></textarea>
           </div>
         </div>
 
@@ -592,7 +613,7 @@
             <label>Evolução e Conduta (Com IA Tática de Transcrição)</label>
             <button type="button" class="btn-mic" id="btnMic" onclick="toggleDitadoVoz()">🎙️ Ditar c/ Parser Médico</button>
           </div>
-          <textarea id="evolucao_texto" rows="5" placeholder="Relato completo do atendimento, condutas realizadas e suporte prestado..."></textarea>
+          <textarea id="evolucao_texto" class="auto-expand" rows="5" placeholder="Relato completo do atendimento, condutas realizadas e suporte prestado..." oninput="autoExpandTextarea(this)"></textarea>
         </div>
 
         <div class="grid-2" style="margin-top: 4px;">
@@ -651,7 +672,6 @@
       _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // 1. TELA ACESA
     async function reterTelaAcesa() {
       try {
         if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
@@ -659,7 +679,6 @@
     }
     document.getElementById('aphForm').addEventListener('click', reterTelaAcesa, { once: true });
 
-    // 2. SELEÇÃO DE CÓDIGO
     function selecionarCodigo(cor, btn) {
       document.getElementById('cor_ocorrencia').value = cor;
       document.querySelectorAll('.btn-cor').forEach(b => b.classList.remove('active'));
@@ -667,7 +686,7 @@
       salvarLocal();
     }
 
-    // 3. MÁSCARA E BUSCA AUTOMÁTICA DE CEP (ViaCEP)
+    // BUSCA DE CEP AUTOMÁTICA
     async function mascaraEBuscarCEP(input) {
       let v = input.value.replace(/\D/g, "");
       if (v.length > 8) v = v.slice(0, 8);
@@ -689,20 +708,17 @@
       }
     }
 
-    // 4. ACCORDION
     function toggleCard(cardId) {
       const card = document.getElementById(cardId);
       if (card) card.classList.toggle('active');
     }
 
-    // 5. SINCRONIZAR TÉCNICO RESPONSÁVEL
     function sincronizarTecnicoResp() {
       const selectTec = document.getElementById('tec_enfermeiro');
       document.getElementById('tec_resp').value = selectTec.value;
       salvarLocal();
     }
 
-    // 6. HOSPITAL RECEPTOR DINÂMICO
     function toggleHospitalOutros() {
       const select = document.getElementById('hospital_destino');
       const inputOutros = document.getElementById('hospital_outros');
@@ -710,7 +726,12 @@
       salvarLocal();
     }
 
-    // 7. AUTO-SAVE LOCAL
+    function autoExpandTextarea(element) {
+      element.style.height = 'auto';
+      element.style.height = (element.scrollHeight) + 'px';
+      salvarLocal();
+    }
+
     function salvarLocal() {
       const formData = {};
       document.querySelectorAll('#aphForm input, #aphForm select, #aphForm textarea').forEach(el => {
@@ -725,7 +746,32 @@
     document.getElementById('aphForm').addEventListener('input', salvarLocal);
     document.getElementById('aphForm').addEventListener('change', salvarLocal);
 
-    // 8. PARSER MÉDICO E TRANSCRITOR DE VOZ
+    // MÁSCARA AUTOMÁTICA DE PRESSÃO ARTERIAL (3 DÍGITOS + 'x')
+    function mascaraPA(input) {
+      let v = input.value.replace(/[^0-9xX]/g, "");
+      if (!v.includes('x') && !v.includes('X') && v.length >= 3) {
+        v = v.slice(0, 3) + 'x' + v.slice(3);
+      }
+      input.value = v;
+    }
+
+    // MÁSCARA DE TEMPERATURA (2 DÍGITOS + '.')
+    function mascaraTemp(input) {
+      let v = input.value.replace(/[^0-9.]/g, "");
+      if (!v.includes('.') && v.length >= 2) {
+        v = v.slice(0, 2) + '.' + v.slice(2);
+      }
+      input.value = v;
+    }
+
+    // ALERTA DE SATURAÇÃO SPO2 < 94%
+    function checarSpo2(input) {
+      const val = parseFloat(input.value);
+      if (!isNaN(val) && val > 0 && val < 94) {
+        alert(`⚠️ ATENÇÃO: SpO₂ Baixa (${val}%)! Sugestão tática: Há necessidade de ofertar Oxigênio ao paciente?`);
+      }
+    }
+
     const dicionarioMedico = {
       "pressao alta": "Hipertensão Arterial",
       "pressao baixa": "Hipotensão Arterial",
@@ -775,7 +821,7 @@
       recognition.onresult = function(event) {
         const transcriptBruto = event.results[event.results.length - 1][0].transcript;
         textarea.value += processarTextoMedico(transcriptBruto);
-        salvarLocal();
+        autoExpandTextarea(textarea);
       };
 
       recognition.onend = function() {
@@ -787,7 +833,6 @@
       recognition.start();
     }
 
-    // CAIXA ALTA
     document.querySelectorAll('.uppercase-input').forEach(input => {
       input.addEventListener('input', (e) => { e.target.value = e.target.value.toUpperCase(); });
     });
@@ -802,7 +847,6 @@
       document.getElementById('med_continua_box').style.display = (val === 'SIM') ? 'block' : 'none';
     }
 
-    // 9. BOTOES J & QTA
     function acionarJTime(jCode, targetInputId) {
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -850,13 +894,11 @@
       if (input) { input.disabled = true; input.value = ''; }
     }
 
-    // 10. CONSULTA DE COLABORADORES, HOSPITAIS E ESTOQUE
     async function inicializarDados() {
       addSvRow(true);
 
       if (!_supabase) return;
 
-      // Carrega Todos os Colaboradores Sem Filtros
       try {
         const { data: colabs } = await _supabase.from('colaboradores').select('*').order('nome');
         if (colabs && colabs.length > 0) {
@@ -873,7 +915,6 @@
         }
       } catch(e) {}
 
-      // Carrega Hospitais
       try {
         const { data: hospitais } = await _supabase.from('hospitais').select('*').order('nome');
         const selectHosp = document.getElementById('hospital_destino');
@@ -888,7 +929,6 @@
         document.getElementById('hospital_destino').innerHTML = '<option value="OUTROS">OUTROS (Digitar Nome...)</option>';
       }
 
-      // Carrega Estoque
       try {
         const { data: est } = await _supabase.from('estoque_lotes').select('id, item_nome, lote, data_validade').gt('quantidade', 0);
         if (est) {
@@ -906,7 +946,6 @@
       addMedRow();
     }
 
-    // SINAIS VITAIS DINÂMICOS
     function addSvRow(isFirst = false) {
       const tbody = document.getElementById('sv_body');
       const tr = document.createElement('tr');
@@ -919,11 +958,11 @@
             <button type="button" class="btn-time-sv" onclick="setSvTime(this)">⏱️</button>
           </div>
         </td>
-        <td><input type="tel" inputmode="numeric" placeholder="120x80" ${reqAttr}></td>
+        <td><input type="tel" inputmode="numeric" placeholder="120x80" onkeyup="mascaraPA(this)" ${reqAttr}></td>
         <td><input type="number" inputmode="numeric" placeholder="80" ${reqAttr}></td>
         <td><input type="number" inputmode="numeric" placeholder="16" ${reqAttr}></td>
-        <td><input type="number" inputmode="numeric" placeholder="98" ${reqAttr}></td>
-        <td><input type="number" inputmode="decimal" step="0.1" placeholder="36.5" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" placeholder="98" onchange="checarSpo2(this)" ${reqAttr}></td>
+        <td><input type="tel" inputmode="decimal" placeholder="36.5" onkeyup="mascaraTemp(this)" ${reqAttr}></td>
         <td><input type="number" inputmode="numeric" placeholder="90" ${reqAttr}></td>
         <td>${isFirst ? '' : '<button type="button" class="btn-del-med" onclick="this.closest(\'tr\').remove()">×</button>'}</td>
       `;
@@ -938,7 +977,6 @@
       salvarLocal();
     }
 
-    // BUSCA PACIENTE CPF
     async function buscarPacienteCPF() {
       const cpfRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
       if (cpfRaw.length < 11) {
@@ -973,7 +1011,6 @@
       } catch (err) { alert("Erro ao consultar CPF do paciente."); }
     }
 
-    // MEDICAÇÕES
     function addMedRow() {
       const tbody = document.getElementById('meds_body');
       const tr = document.createElement('tr');
@@ -1004,7 +1041,6 @@
       salvarLocal();
     }
 
-    // BOTOES J E QTA
     document.addEventListener('click', function(e) {
       const badgeBtn = e.target.closest('.btn-j-badge');
       if (badgeBtn && !badgeBtn.disabled) {
@@ -1023,7 +1059,6 @@
       }
     });
 
-    // MÁSCARA CPF
     document.getElementById('cpf_paciente').addEventListener('keyup', (e) => {
       let v = e.target.value.replace(/\D/g, "");
       if (v.length > 11) v = v.slice(0, 11);
@@ -1033,7 +1068,6 @@
       e.target.value = v;
     });
 
-    // GLASGOW CALC
     document.querySelectorAll('.g-calc').forEach(select => {
       select.addEventListener('change', () => {
         const o = parseInt(document.getElementById('g_oc').value) || 0;
@@ -1044,7 +1078,6 @@
       });
     });
 
-    // CANVAS ASSINATURA
     const canvas = document.getElementById('sig-canvas');
     const ctx = canvas.getContext('2d');
     let writing = false;
@@ -1077,13 +1110,11 @@
 
     document.getElementById('btnClearSig').addEventListener('click', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); });
     
-    // PREPARA O FORMULÁRIO PARA IMPRESSÃO EXPANDINDO TODAS AS SEÇÕES EM A4
     document.getElementById('btnImprimir').addEventListener('click', () => { 
       document.querySelectorAll('.card').forEach(c => c.classList.add('active'));
       window.print(); 
     });
 
-    // INICIALIZAÇÃO
     document.getElementById('data').valueAsDate = new Date();
     document.getElementById('data_hora_recusa').value = new Date().toLocaleString('pt-BR');
     inicializarDados();
