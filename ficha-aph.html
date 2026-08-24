@@ -230,17 +230,16 @@
 
   <form id="aphForm">
 
-    <!-- SEÇÃO 1: CONTROLE OPERACIONAL -->
+    <!-- SEÇÃO 1: CONTROLE OPERACIONAL (FIXO E EXPANDIDO) -->
     <div class="card active" id="sec1">
-      <div class="card-header" onclick="toggleCard('sec1')">
+      <div class="card-header">
         <span>1. Controle Operacional & Equipe</span>
-        <span class="icon-toggle">▼</span>
       </div>
       <div class="card-body">
         <div class="grid-3">
           <div><label>Nº Ocorrência</label><input type="tel" inputmode="numeric" id="codigo" class="uppercase-input" required placeholder="Nº OCORRÊNCIA"></div>
           <div>
-            <label>CÓDIGO TRIAGEM (INICIAL)</label>
+            <label>CÓDIGO TRIAGEM</label>
             <input type="hidden" id="cor_ocorrencia" value="VM">
             
             <div class="codigo-group">
@@ -250,7 +249,7 @@
               <button type="button" class="btn-cor cor-az" onclick="selecionarCodigo('AZ', this)">AZ</button>
             </div>
 
-            <div id="printTriagemBox" class="print-triagem-text">CÓDIGO INICIAL: VERMELHO (VM)</div>
+            <div id="printTriagemBox" class="print-triagem-text">VERMELHO (VM)</div>
           </div>
           <div><label>Data</label><input type="date" id="data"></div>
         </div>
@@ -356,7 +355,7 @@
       </div>
     </div>
 
-    <!-- SEÇÃO 2: IDENTIFICAÇÃO DO PACIENTE & LOCAL -->
+    <!-- SEÇÃO 2: IDENTIFICAÇÃO DO PACIENTE & LOCAL (RECOLHIDO POR PADRÃO) -->
     <div class="card" id="sec2">
       <div class="card-header" onclick="toggleCard('sec2')">
         <span>2. Identificação do Paciente & Local</span>
@@ -698,7 +697,7 @@
 
   <script>
     const SUPABASE_URL = 'https://rcpgukslnlfptreiusff.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A';
 
     let _supabase = null;
     let mapaLotesUnificados = [];
@@ -739,17 +738,16 @@
 
       const printBox = document.getElementById('printTriagemBox');
       const nomesTriagem = {
-        'VM': 'CÓDIGO INICIAL: VERMELHO (VM)',
-        'AM': 'CÓDIGO INICIAL: AMARELO (AM)',
-        'VD': 'CÓDIGO INICIAL: VERDE (VD)',
-        'AZ': 'CÓDIGO INICIAL: AZUL (AZ)'
+        'VM': 'VERMELHO (VM)',
+        'AM': 'AMARELO (AM)',
+        'VD': 'VERDE (VD)',
+        'AZ': 'AZUL (AZ)'
       };
       printBox.innerText = nomesTriagem[cor] || cor;
       atualizarTextoReclassificacaoImpressao();
       salvarLocal();
     }
 
-    // TRATAMENTO DA RECLASSIFICAÇÃO: ATRIBUI HORÁRIO AUTOMÁTICO E IMPEDE MUDANÇA
     function tratarSelecaoReclassificacao(selectEl) {
       const horaInput = document.getElementById('reclassificacao_hora');
       if (selectEl.value !== '') {
@@ -1038,6 +1036,34 @@
       document.getElementById('med_continua_box').style.display = (val === 'SIM') ? 'block' : 'none';
     }
 
+    // LIMPEZA E REINICIALIZAÇÃO DO FORMULÁRIO APÓS CONCLUSÃO DO J11
+    function resetarFormularioParaNovaOcorrencia() {
+      const tecVal = document.getElementById('tec_enfermeiro').value;
+      const socVal = document.getElementById('socorrista').value;
+
+      document.getElementById('aphForm').reset();
+      localStorage.removeItem('aph_draft_data');
+
+      document.getElementById('tec_enfermeiro').value = tecVal;
+      document.getElementById('socorrista').value = socVal;
+      sincronizarTecnicoResp();
+
+      document.getElementById('data').valueAsDate = new Date();
+      document.getElementById('data_hora_recusa').value = new Date().toLocaleString('pt-BR');
+
+      document.querySelectorAll('.card').forEach((c, idx) => {
+        if (idx === 0) c.classList.add('active');
+        else c.classList.remove('active');
+      });
+
+      document.getElementById('sv_body').innerHTML = '';
+      addSvRow(true);
+
+      document.getElementById('meds_body').innerHTML = '';
+      addMedRow();
+    }
+
+    // FLUXO TÁTICO DOS J'S E CICLO DE VIDA DA OCORRÊNCIA
     function acionarJTime(jCode, targetInputId) {
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -1067,9 +1093,13 @@
         liberarJ('btnJ10_INT', 'horaJ10_INT');
       } else if (jCode === 'J10_INT') {
         liberarJ('btnJ11', 'horaJ11');
-        liberarJ('btnJ12', 'horaJ12');
       } else if (jCode === 'J11') {
-        liberarJ('btnJ12', 'horaJ12');
+        salvarFichaOcorrenciaAPH().then(() => {
+          resetarFormularioParaNovaOcorrencia();
+          bloquearTodosJsExcecaoJ12();
+        });
+      } else if (jCode === 'J12') {
+        resetarFluxoJsParaProximoAcionamento();
       }
       salvarLocal();
     }
@@ -1086,6 +1116,32 @@
       const input = document.getElementById(inputId);
       if (btn) btn.disabled = true;
       if (input) { input.disabled = true; input.value = ''; }
+    }
+
+    function bloquearTodosJsExcecaoJ12() {
+      const listJs = [
+        { b: 'btnJ9', i: 'horaJ9' },
+        { b: 'btnJ10', i: 'horaJ10' },
+        { b: 'btnQTA', i: 'horaQTA' },
+        { b: 'btnJ9_INT', i: 'horaJ9_INT' },
+        { b: 'btnJ10_INT', i: 'horaJ10_INT' },
+        { b: 'btnJ11', i: 'horaJ11' }
+      ];
+      listJs.forEach(item => bloquearJ(item.b, item.i));
+      liberarJ('btnJ12', 'horaJ12');
+    }
+
+    function resetarFluxoJsParaProximoAcionamento() {
+      const listJs = [
+        { b: 'btnJ10', i: 'horaJ10' },
+        { b: 'btnQTA', i: 'horaQTA' },
+        { b: 'btnJ9_INT', i: 'horaJ9_INT' },
+        { b: 'btnJ10_INT', i: 'horaJ10_INT' },
+        { b: 'btnJ11', i: 'horaJ11' },
+        { b: 'btnJ12', i: 'horaJ12' }
+      ];
+      listJs.forEach(item => bloquearJ(item.b, item.i));
+      liberarJ('btnJ9', 'horaJ9');
     }
 
     async function carregarColaboradoresRobusto() {
@@ -1427,6 +1483,13 @@
           desfecho_vitima: document.getElementById('desfecho_vitima').value,
           houve_recusa: document.getElementById('houve_recusa').value,
           insumos_utilizados: insumosPayload,
+          hora_j9: document.getElementById('horaJ9').value,
+          hora_j10: document.getElementById('horaJ10').value,
+          hora_qta: document.getElementById('horaQTA').value,
+          hora_j9_int: document.getElementById('horaJ9_INT').value,
+          hora_j10_int: document.getElementById('horaJ10_INT').value,
+          hora_j11: document.getElementById('horaJ11').value,
+          hora_j12: document.getElementById('horaJ12').value,
           updated_at: new Date().toISOString()
         };
 
@@ -1438,7 +1501,7 @@
           if (error) {
             alert("Erro ao gravar APH no Supabase: " + error.message);
           } else {
-            alert("Ficha de APH salva com sucesso!");
+            alert("Ficha de APH gravada com sucesso!");
           }
         }
       } catch (err) {
@@ -1520,7 +1583,9 @@
     document.getElementById('btnImprimir').addEventListener('click', () => { 
       document.querySelectorAll('.card').forEach(c => c.classList.add('active'));
       ajustarExibicaoAssinaturasImpressao();
-      window.print(); 
+      salvarFichaOcorrenciaAPH().then(() => {
+        window.print();
+      });
     });
 
     document.getElementById('data').valueAsDate = new Date();
