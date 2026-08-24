@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Ficha APH - SAMU 192 Orleans</title>
+  <style>
+    :root {
+      --primary: #dc2626;
+      --primary-dark: #991b1b;
+      --secondary: #0f172a;
+      --border: #cbd5e1;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 10px; padding-bottom: 90px; }
+
+    header {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: white;
+      padding: 10px;
+      text-align: center;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      border-left: 5px solid var(--primary);
+    }
+    header h1 { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; color: #fff; letter-spacing: 0.5px; }
+    header p { font-size: 0.72rem; color: #94a3b8; font-weight: 600; }
+
+    .card {
+      background: var(--card-bg);
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      border: 1px solid #e2e8f0;
+      border-top: 3px solid var(--primary);
+    }
+    .card h2 {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--secondary);
+      text-transform: uppercase;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .grid-4 { display: grid; grid-template-columns: 1.2fr 1.5fr 0.7fr 0.8fr; gap: 6px; }
+    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+
+    label { font-size: 0.62rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 2px; text-transform: uppercase; }
+    input[type="text"], input[type="number"], input[type="date"], input[type="time"], select, textarea {
+      width: 100%;
+      padding: 6px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 0.8rem;
+      margin-bottom: 4px;
+      background: #f8fafc;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* Módulo J's */
+    .j-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+    .j-card { background: #f1f5f9; padding: 4px; border-radius: 4px; border: 1px solid #e2e8f0; }
+    .j-group { display: flex; gap: 2px; align-items: center; }
+    .j-group input { margin-bottom: 0; font-weight: 700; padding: 4px; font-size: 0.78rem; background: #fff; }
+    .btn-j {
+      background: var(--secondary);
+      color: white;
+      border: none;
+      padding: 6px;
+      border-radius: 4px;
+      font-size: 0.62rem;
+      cursor: pointer;
+    }
+
+    /* Tabelas táticas de Exposição E */
+    .table-expo { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 0.7rem; }
+    .table-expo th { background: #f1f5f9; padding: 4px; border: 1px solid #cbd5e1; font-size: 0.65rem; text-transform: uppercase; }
+    .table-expo td { padding: 4px; border: 1px solid #cbd5e1; text-align: center; }
+    .table-expo label { display: flex; align-items: center; justify-content: center; margin: 0; gap: 2px; font-size: 0.65rem; color: #000; text-transform: none; }
+
+    .checkbox-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+    .checkbox-grid label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+      background: #f8fafc;
+      padding: 5px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+      font-size: 0.72rem;
+    }
+
+    /* Sinais Vitais em 3 Colunas (Réplica Ficha Física) */
+    .sv-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .sv-col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px; }
+    .sv-col-box h3 { font-size: 0.68rem; color: var(--primary-dark); margin-bottom: 4px; text-transform: uppercase; text-align: center; font-weight: 800; }
+
+    canvas { border: 1px dashed var(--border); border-radius: 4px; width: 100%; height: 75px; background: #fff; touch-action: none; margin-top: 2px; }
+
+    .btn-submit {
+      position: fixed;
+      bottom: 8px;
+      left: 8px;
+      right: 8px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+      width: calc(100% - 16px);
+      z-index: 1000;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    /* REGRAS EXCLUSIVAS DE IMPRESSÃO (A4 1 PÁGINA) */
+    @media print {
+      @page { size: A4 portrait; margin: 3mm; }
+      html, body { width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 6.2pt !important; }
+      .btn-submit, .btn-j, button, script { display: none !important; }
+      header { background: none !important; color: #000 !important; border-bottom: 1.5pt solid #000; text-align: center; padding: 0 0 1px 0 !important; margin-bottom: 2px !important; border-left: none !important; }
+      header h1 { font-size: 9pt !important; margin: 0; color: #000 !important; }
+      header p { font-size: 5.5pt !important; margin: 0; font-weight: bold; color: #000 !important; }
+      .card { box-shadow: none !important; border: 0.5pt solid #000 !important; margin-bottom: 1px !important; padding: 1.5px 3px !important; border-radius: 0 !important; page-break-inside: avoid !important; }
+      .card h2 { font-size: 6.5pt !important; color: #000 !important; border-bottom: 0.5pt solid #000 !important; padding-bottom: 1px !important; margin-bottom: 1px !important; }
+      label { font-size: 5pt !important; color: #000 !important; margin-bottom: 0px !important; }
+      input[type="text"], input[type="number"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.5pt solid #666 !important; background: transparent !important; padding: 0px 0 !important; font-weight: bold !important; font-size: 6pt !important; margin-bottom: 0px !important; height: auto !important; }
+      textarea { height: 12px !important; resize: none; }
+      .j-grid { grid-template-columns: repeat(6, 1fr) !important; gap: 1px !important; }
+      .j-card { background: transparent !important; border: none !important; padding: 0 !important; }
+      .checkbox-grid label { background: transparent !important; border: none !important; padding: 0 !important; font-size: 5.5pt !important; }
+      .checkbox-grid input[type="checkbox"] { width: 8px !important; height: 8px !important; }
+      .table-expo th, .table-expo td { padding: 1px !important; font-size: 5.5pt !important; border: 0.5pt solid #000 !important; }
+      canvas { height: 26px !important; border: 0.5pt solid #000 !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>SAMU 192 - ORLEANS</h1>
+    <p>FICHA DE ATENDIMENTO MÓVEL DE URGÊNCIA (USB)</p>
+  </header>
+
+  <form id="aphForm">
+    <!-- CÓDIGO E HORÁRIOS J -->
+    <div class="card">
+      <h2>1. Controle Operacional & Equipe</h2>
+      <div class="grid-3">
+        <div><label>Código Ocorrência</label><input type="text" id="codigo"></div>
+        <div>
+          <label>CÓDIGO COR</label>
+          <select id="cor_ocorrencia">
+            <option value="VD">VD (Verde)</option>
+            <option value="AM">AM (Amarelo)</option>
+            <option value="VM">VM (Vermelho)</option>
+            <option value="AZ">AZ (Azul)</option>
+          </select>
+        </div>
+        <div><label>Data</label><input type="date" id="data"></div>
+      </div>
+
+      <div class="grid-3">
+        <div><label>Médico Regulador</label><input type="text" id="regulador"></div>
+        <div>
+          <label>Téc. de Enfermagem</label>
+          <select id="tec_enfermeiro">
+            <option value="">-- Selecione --</option>
+            <option value="Gicerléia Trindade da Rosa - COREN-SC 870568">Gicerléia Trindade da Rosa</option>
+            <option value="Luis Eduardo Formanski Vitório - COREN-SC 1551746">Luis Eduardo Formanski Vitório</option>
+            <option value="Clênio Borges - COREN-SC 862518">Clênio Borges</option>
+            <option value="Rinaldo Calegario - COREN-SC 331871">Rinaldo Calegario</option>
+            <option value="Suandre Adão Machado - COREN-SC 99894">Suandre Adão Machado</option>
+          </select>
+        </div>
+        <div>
+          <label>Socorrista</label>
+          <select id="socorrista">
+            <option value="">-- Selecione --</option>
+            <option value="Daniel Alexandre Fernandes">Daniel Alexandre Fernandes</option>
+            <option value="Lucas Vieira Mendes">Lucas Vieira Mendes</option>
+            <option value="Márcio Becker">Márcio Becker</option>
+            <option value="Renato Cândido">Renato Cândido</option>
+            <option value="Vanderlei José Tasca">Vanderlei José Tasca</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- MÓDULO DE HORÁRIOS DA FICHA -->
+      <div class="j-grid">
+        <div class="j-card">
+          <label>J9 (Saída Base)</label>
+          <div class="j-group"><input type="time" id="horaJ9"><button type="button" class="btn-j" data-target="horaJ9">AGORA</button></div>
+        </div>
+        <div class="j-card">
+          <label>J10 (Cheg. Local)</label>
+          <div class="j-group"><input type="time" id="horaJ10"><button type="button" class="btn-j" data-target="horaJ10">AGORA</button></div>
+        </div>
+        <div class="j-card">
+          <label>J9-INT (Saída Local)</label>
+          <div class="j-group"><input type="time" id="horaJ9_INT"><button type="button" class="btn-j" data-target="horaJ9_INT">AGORA</button></div>
+        </div>
+        <div class="j-card">
+          <label>J10-INT (Cheg. Destino)</label>
+          <div class="j-group"><input type="time" id="horaJ10_INT"><button type="button" class="btn-j" data-target="horaJ10_INT">AGORA</button></div>
+        </div>
+        <div class="j-card">
+          <label>J11 (Disponível)</label>
+          <div class="j-group"><input type="time" id="horaJ11"><button type="button" class="btn-j" data-target="horaJ11">AGORA</button></div>
+        </div>
+        <div class="j-card">
+          <label>J12 (Na Base)</label>
+          <div class="j-group"><input type="time" id="horaJ12"><button type="button" class="btn-j" data-target="horaJ12">AGORA</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IDENTIFICAÇÃO DO PACIENTE & LOCAL -->
+    <div class="card">
+      <h2>2. Identificação do Paciente & Local</h2>
+      <div class="grid-3">
+        <div><label>Município</label><input type="text" id="municipio" value="Orleans"></div>
+        <div><label>Bairro</label><input type="text" id="bairro"></div>
+        <div><label>Rua</label><input type="text" id="rua"></div>
+      </div>
+      <div class="grid-3">
+        <div><label>Nº</label><input type="text" id="numero"></div>
+        <div><label>Referências</label><input type="text" id="referencias"></div>
+        <div><label>CPF Paciente</label><input type="text" id="cpf_paciente" placeholder="000.000.000-00" maxlength="14"></div>
+      </div>
+      <div class="grid-4">
+        <div><label>Paciente</label><input type="text" id="paciente"></div>
+        <div><label>Idade</label><input type="number" id="idade"></div>
+        <div><label>Sexo</label><select id="sexo"><option>M</option><option>F</option></select></div>
+        <div><label>Telefone</label><input type="text" id="telefone"></div>
+      </div>
+      <div><label>Motivo Ativação</label><input type="text" id="motivo_ativacao"></div>
+    </div>
+
+    <!-- TIPO DE ATENDIMENTO -->
+    <div class="card">
+      <h2>3. Tipo de Atendimento</h2>
+      <div class="checkbox-grid">
+        <label><input type="checkbox" value="Clínico Adulto"> Clínico Adulto</label>
+        <label><input type="checkbox" value="Clínico Pediátrico"> Clin. Pediátrico</label>
+        <label><input type="checkbox" value="Obstétrico"> Obstétrico</label>
+        <label><input type="checkbox" value="Causas Externas / Trauma"> Causas Ext. / Trauma</label>
+        <label><input type="checkbox" value="Psiquiátrico"> Psiquiátrico</label>
+      </div>
+    </div>
+
+    <!-- AVALIAÇÃO TÁTICA ABCDE E EXPOSIÇÃO -->
+    <div class="card">
+      <h2>4. Avaliação Tática & Exame Físico (ABCDE)</h2>
+      
+      <div class="grid-3" style="margin-bottom: 6px;">
+        <div>
+          <label>A - Vias Aéreas</label>
+          <select><option>Pérvea (Livre)</option><option>Obstrução Parcial</option><option>Obstrução Total</option></select>
+        </div>
+        <div>
+          <label>B - Respiração</label>
+          <select><option>Eupneico</option><option>Dispneico</option><option>Apneia</option><option>Parada Respiratória</option></select>
+        </div>
+        <div>
+          <label>C - Pulso / Pele</label>
+          <select><option>Regular</option><option>Irregular</option><option>Filiforme</option><option>Parada Circulatória</option></select>
+        </div>
+      </div>
+
+      <!-- ESCALA DE GLASGOW & PUPILAS -->
+      <div class="grid-2" style="margin-bottom: 6px;">
+        <div>
+          <label>D - Glasgow (Ocular + Verbal + Motor)</label>
+          <div class="grid-3">
+            <select id="g_oc" class="g-calc"><option value="4">O: 4</option><option value="3">O: 3</option><option value="2">O: 2</option><option value="1">O: 1</option></select>
+            <select id="g_verb" class="g-calc"><option value="5">V: 5</option><option value="4">V: 4</option><option value="3">V: 3</option><option value="2">V: 2</option><option value="1">V: 1</option></select>
+            <select id="g_mot" class="g-calc"><option value="6">M: 6</option><option value="5">M: 5</option><option value="4">M: 4</option><option value="3">M: 3</option><option value="2">M: 2</option><option value="1">M: 1</option></select>
+          </div>
+          <div id="glasgow_total_val" style="font-size: 0.72rem; font-weight: bold; color: var(--primary-dark); text-align: center; margin-top: 2px;">Total Glasgow: 15 / 15</div>
+        </div>
+        <div>
+          <label>Pupilas</label>
+          <select><option>Isocóricas</option><option>Anisocóricas</option><option>Miose</option><option>Midríase</option><option>Reagente</option><option>Não Reagente</option></select>
+        </div>
+      </div>
+
+      <!-- TABELA E - EXPOSIÇÃO CORPORAL (RÉPLICA DA FICHA IMPRESSA) -->
+      <label>E - Exposição / Lesões por Região</label>
+      <table class="table-expo">
+        <thead>
+          <tr>
+            <th>REGIÃO</th>
+            <th>Ferida/Corte</th>
+            <th>Fratura/Luxação</th>
+            <th>Queimadura</th>
+            <th>Escoriação</th>
+            <th>Edema/Hematoma</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Cabeça/Pescoço</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+          <tr><td>Tronco</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+          <tr><td>Pelve</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+          <tr><td>M. Superior (D/E)</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+          <tr><td>M. Inferior (D/E)</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+        </tbody>
+      </table>
+
+      <!-- QUEIMADURAS -->
+      <div style="margin-top: 6px;">
+        <label>Queimaduras (Grau & Agente)</label>
+        <div class="checkbox-grid">
+          <label><input type="checkbox"> 1º Grau</label>
+          <label><input type="checkbox"> 2º Grau</label>
+          <label><input type="checkbox"> 3º Grau</label>
+          <label><input type="checkbox"> Térmica</label>
+          <label><input type="checkbox"> Química</label>
+          <label><input type="checkbox"> Elétrica / Atrito</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- SINAIS VITAIS (3 COLUNAS FÍSICAS DA FICHA) -->
+    <div class="card">
+      <h2>5. Sinais Vitais (Medições APH)</h2>
+      <div class="sv-cols">
+        <div class="sv-col-box">
+          <h3>Aferição 1</h3>
+          <label>Hora</label><input type="time" class="sv-time">
+          <label>PA (mmHg)</label><input type="text" placeholder="120x80">
+          <label>FC (bpm)</label><input type="number">
+          <label>FR (mpm)</label><input type="number">
+          <label>SatO2 (%)</label><input type="number">
+          <label>Temp (ºC)</label><input type="number" step="0.1">
+          <label>HGT (mg/dL)</label><input type="number">
+        </div>
+
+        <div class="sv-col-box">
+          <h3>Aferição 2</h3>
+          <label>Hora</label><input type="time" class="sv-time">
+          <label>PA (mmHg)</label><input type="text" placeholder="120x80">
+          <label>FC (bpm)</label><input type="number">
+          <label>FR (mpm)</label><input type="number">
+          <label>SatO2 (%)</label><input type="number">
+          <label>Temp (ºC)</label><input type="number" step="0.1">
+          <label>HGT (mg/dL)</label><input type="number">
+        </div>
+
+        <div class="sv-col-box">
+          <h3>Aferição 3</h3>
+          <label>Hora</label><input type="time" class="sv-time">
+          <label>PA (mmHg)</label><input type="text" placeholder="120x80">
+          <label>FC (bpm)</label><input type="number">
+          <label>FR (mpm)</label><input type="number">
+          <label>SatO2 (%)</label><input type="number">
+          <label>Temp (ºC)</label><input type="number" step="0.1">
+          <label>HGT (mg/dL)</label><input type="number">
+        </div>
+      </div>
+    </div>
+
+    <!-- ANAMNESE E EVOLUÇÃO -->
+    <div class="card">
+      <h2>6. Anamnese, Evolução e Conduta</h2>
+      <div class="grid-2">
+        <div><label>Alergia?</label><select><option>NÃO</option><option>SIM</option></select></div>
+        <div><label>Medicações em Uso</label><input type="text" placeholder="Remédios do paciente"></div>
+      </div>
+      <div><label>Evolução e Conduta</label><textarea rows="2" placeholder="Procedimentos e conduta prestada..."></textarea></div>
+      <div class="grid-2">
+        <div><label>Técnico de Enfermagem Resp.</label><input type="text" id="tec_resp"></div>
+        <div><label>Destino / Hospital Receptor</label><input type="text" placeholder="Ex: Hospital Santa Otília"></div>
+      </div>
+    </div>
+
+    <!-- TERMO DE RECUSA E ASSINATURA -->
+    <div class="card">
+      <h2>7. Recusa de Atendimento / Assinatura</h2>
+      <p style="font-size: 0.6rem; color: #555; margin-bottom: 4px;">
+        "Sabedor da necessidade do atendimento de urgência que necessito, recuso atendimento do SAMU 192, e assumo todos os riscos decorrentes da minha negativa."
+      </p>
+      <div class="grid-2">
+        <div>
+          <label>Assinante</label>
+          <select id="tipo_assinante">
+            <option>Vítima</option>
+            <option>Responsável</option>
+            <option>Testemunha</option>
+            <option>Médico Receptor</option>
+          </select>
+        </div>
+        <div><label>Data / Hora</label><input type="text" id="data_hora_recusa" readonly></div>
+      </div>
+      <label style="margin-top: 4px;">Assinatura Digital</label>
+      <canvas id="sig-canvas"></canvas>
+      <button type="button" id="btnClearSig" style="margin-top: 2px; padding: 4px; font-size: 0.68rem; background: #64748b; color: #fff; border: none; border-radius: 4px;">Limpar Assinatura</button>
+    </div>
+
+    <button type="button" class="btn-submit" id="btnImprimir">Imprimir / Gerar 2 Vias A4</button>
+  </form>
+
+  <script>
+    document.getElementById('data').valueAsDate = new Date();
+
+    function getNowTime() {
+      const now = new Date();
+      return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    }
+
+    // Carimba data e hora da recusa automaticamente
+    const nowStr = new Date().toLocaleString('pt-BR');
+    document.getElementById('data_hora_recusa').value = nowStr;
+
+    // Delegador de Eventos para os botões J
+    document.addEventListener('click', function(e) {
+      if (e.target && e.target.classList.contains('btn-j')) {
+        e.preventDefault();
+        const targetId = e.target.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        if (input) input.value = getNowTime();
+      }
+    });
+
+    // Máscara CPF
+    const cpfInput = document.getElementById('cpf_paciente');
+    cpfInput.addEventListener('keyup', (e) => {
+      let v = e.target.value.replace(/\D/g, "");
+      if (v.length > 11) v = v.slice(0, 11);
+      v = v.replace(/(\d{3})(\d)/, "$1.$2");
+      v = v.replace(/(\d{3})(\d)/, "$1.$2");
+      v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+      e.target.value = v;
+    });
+
+    // Cálculo Glasgow
+    document.querySelectorAll('.g-calc').forEach(select => {
+      select.addEventListener('change', () => {
+        const o = parseInt(document.getElementById('g_oc').value) || 0;
+        const v = parseInt(document.getElementById('g_verb').value) || 0;
+        const m = parseInt(document.getElementById('g_mot').value) || 0;
+        document.getElementById('glasgow_total_val').innerText = `Total Glasgow: ${o + v + m} / 15`;
+      });
+    });
+
+    // Canvas de Assinatura
+    const canvas = document.getElementById('sig-canvas');
+    const ctx = canvas.getContext('2d');
+    let writing = false;
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    setTimeout(resizeCanvas, 300);
+
+    function getTouchPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches ? e.touches[0] : e;
+      return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+    }
+
+    canvas.addEventListener('touchstart', (e) => {
+      writing = true;
+      ctx.beginPath();
+      const pos = getTouchPos(e);
+      ctx.moveTo(pos.x, pos.y);
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', () => { writing = false; });
+    canvas.addEventListener('touchmove', (e) => {
+      if (!writing) return;
+      e.preventDefault();
+      const pos = getTouchPos(e);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#000";
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+    }, { passive: false });
+
+    document.getElementById('btnClearSig').addEventListener('click', () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    document.getElementById('btnImprimir').addEventListener('click', () => {
+      window.print();
+    });
+  </script>
+</body>
+</html>
