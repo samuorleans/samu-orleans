@@ -77,7 +77,7 @@
         <div class="grid-form">
           <div class="form-group" style="grid-column: span 2;">
             <label>Digite ou Selecione o Insumo (Cadastro Mestre):*</label>
-            <input type="text" id="ent_insumo_input" list="listaInsumosMestreBusca" class="uppercase-input" placeholder="🔍 DIGITE O NOME OU CÓDIGO DO INSUMO..." required autocomplete="off">
+            <input type="text" id="ent_insumo_input" list="listaInsumosMestreBusca" class="uppercase-input" placeholder="🔍 DIGITE O NOME DO INSUMO OU CÓDIGO..." required autocomplete="off">
           </div>
 
           <div class="form-group">
@@ -117,7 +117,7 @@
         <div class="grid-form">
           <div class="form-group" style="grid-column: span 2;">
             <label>Digite ou Selecione o Lote com Saldo:*</label>
-            <input type="text" id="baixa_lote_input" list="listaLotesComSaldoBusca" class="uppercase-input" placeholder="🔍 DIGITE O NOME DO INSUMO OU NÚMERO DO LOTE..." required autocomplete="off">
+            <input type="text" id="baixa_lote_input" list="listaLotesComSaldoBusca" class="uppercase-input" placeholder="🔍 DIGITE O INSUMO OU NÚMERO DO LOTE..." required autocomplete="off">
           </div>
 
           <div class="form-group">
@@ -176,21 +176,15 @@
 
     let dbNuvem = null;
     let listaLotesGlobais = [];
-    let listaInsumosMestreGlobais = [];
 
-    function inicializarSupabase() {
+    document.addEventListener('DOMContentLoaded', async () => {
       if (window.supabase) {
         dbNuvem = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
-    }
-
-    document.addEventListener('DOMContentLoaded', async () => {
-      inicializarSupabase();
-      await Promise.all([
-        carregarInsumosMestreBusca(),
-        carregarColaboradores(),
-        carregarLotesSaldo()
-      ]);
+      
+      await carregarInsumosMestreBusca();
+      await carregarColaboradores();
+      await carregarLotesSaldo();
     });
 
     function alternarModo(modo) {
@@ -218,27 +212,26 @@
       let data = null;
 
       try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=*&order=descricao_insumo.asc`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=descricao_insumo,codigo_item&order=descricao_insumo.asc`, {
           headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
         });
         if (response.ok) data = await response.json();
       } catch (e) {}
 
       if (!data && dbNuvem) {
-        const res = await dbNuvem.from('estoque_mestre').select('*');
+        const res = await dbNuvem.from('estoque_mestre').select('descricao_insumo, codigo_item').order('descricao_insumo', { ascending: true });
         data = res.data;
       }
 
       if (data && data.length > 0) {
-        listaInsumosMestreGlobais = data;
         data.forEach(i => {
-          const desc = i.descricao_insumo || i.descricao || i.nome || '';
-          const cod = i.codigo_insumo ? ` [${i.codigo_insumo}]` : '';
+          const desc = i.descricao_insumo || '';
+          const cod = i.codigo_item ? ` [${i.codigo_item}]` : '';
           
           if (desc) {
             const opt = document.createElement('option');
-            opt.value = desc.toUpperCase();
-            opt.label = `${desc}${cod}`.toUpperCase();
+            opt.value = desc;
+            opt.label = `${desc}${cod}`;
             datalist.appendChild(opt);
           }
         });
@@ -251,14 +244,14 @@
       let data = null;
 
       try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/colaboradores?select=*&order=nome.asc`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/colaboradores?select=nome&order=nome.asc`, {
           headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
         });
         if (response.ok) data = await response.json();
       } catch (e) {}
 
       if (!data && dbNuvem) {
-        const res = await dbNuvem.from('colaboradores').select('*').order('nome', { ascending: true });
+        const res = await dbNuvem.from('colaboradores').select('nome').order('nome', { ascending: true });
         data = res.data;
       }
 
@@ -267,7 +260,7 @@
 
       if (data && data.length > 0) {
         data.forEach(c => {
-          if (c.nome && c.status !== 'DESLIGADO' && c.status_admin !== 'DESLIGADO') {
+          if (c.nome) {
             selEnt.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
             selBaixa.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
           }
@@ -317,14 +310,14 @@
           datalistBaixa.appendChild(opt);
         });
       } else {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum lote com saldo disponível.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum lote com saldo disponível. Registre uma entrada de material acima.</td></tr>';
       }
     }
 
     async function registrarEntradaEstoque(e) {
       e.preventDefault();
       
-      const insumo = document.getElementById('ent_insumo_input').value.trim().toUpperCase();
+      const insumo = document.getElementById('ent_insumo_input').value.trim();
       const lote = document.getElementById('ent_lote').value.trim().toUpperCase();
       const validade = document.getElementById('ent_validade').value;
       const qtd = parseInt(document.getElementById('ent_qtd').value) || 0;
