@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SAMU Connect — Movimentação de Estoque & Almoxarifado</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --samu-red: #d32f2f;
@@ -60,13 +61,13 @@
       <p>Entrada de Materiais, Lotes e Baixas Operacionais (Avarias/Vencimento) — USB 11</p>
     </div>
 
-    <!-- TABS -->
+    <!-- TABS DE OPERAÇÃO -->
     <div class="nav-tabs">
       <button class="tab-btn active-entrada" id="btnTabEntrada" onclick="alternarModo('ENTRADA')">📥 Entrada de Insumos & Lotes</button>
       <button class="tab-btn" id="btnTabBaixa" onclick="alternarModo('BAIXA')">📤 Baixa / Ajuste de Estoque</button>
     </div>
 
-    <!-- PAINEL ENTRADA -->
+    <!-- PAINEL ENTRADA DE MATERIAL -->
     <div id="painelEntrada" class="card-form">
       <h3 style="font-size: 0.9rem; color: #16a34a; margin-bottom: 12px; text-transform: uppercase;">📥 Lançamento de Recebimento de Carga</h3>
       <form onsubmit="registrarEntradaEstoque(event)">
@@ -97,7 +98,7 @@
           <div class="form-group">
             <label>Responsável pelo Recebimento:*</label>
             <select id="ent_responsavel" required>
-              <option value="">Carregando servidores...</option>
+              <option value="">Consultando servidores...</option>
             </select>
           </div>
         </div>
@@ -106,7 +107,7 @@
       </form>
     </div>
 
-    <!-- PAINEL BAIXA -->
+    <!-- PAINEL BAIXA DE MATERIAL -->
     <div id="painelBaixa" class="card-form" style="display: none;">
       <h3 style="font-size: 0.9rem; color: var(--samu-red); margin-bottom: 12px; text-transform: uppercase;">📤 Registrar Baixa Manual de Estoque</h3>
       <form onsubmit="registrarBaixaEstoque(event)">
@@ -137,7 +138,7 @@
           <div class="form-group" style="grid-column: span 2;">
             <label>Responsável pela Baixa:*</label>
             <select id="baixa_responsavel" required>
-              <option value="">Carregando servidores...</option>
+              <option value="">Consultando servidores...</option>
             </select>
           </div>
         </div>
@@ -146,7 +147,7 @@
       </form>
     </div>
 
-    <!-- TABELA SALDO -->
+    <!-- VISUALIZAÇÃO DE SALDOS ATUAIS POR LOTE -->
     <div style="margin-top: 25px;">
       <h3 style="font-size: 0.9rem; color: var(--samu-navy); text-transform: uppercase; margin-bottom: 8px;">📊 Saldo Atual por Lote e Validade</h3>
       <div class="table-container">
@@ -170,23 +171,20 @@
   </div>
 
   <script>
-    const API_URL = "https://rcpgukslnlfptreiusff.supabase.co/rest/v1";
-    const API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
+    const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
 
-    const HEADERS = {
-      'apikey': API_KEY,
-      'Authorization': `Bearer ${API_KEY}`,
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    };
-
+    let _db = null;
     let listaLotesGlobais = [];
 
-    window.addEventListener('load', () => {
+    function inicializar() {
+      if (window.supabase) {
+        _db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
       carregarInsumosMestre();
       carregarColaboradores();
       carregarLotesSaldo();
-    });
+    }
 
     function alternarModo(modo) {
       document.getElementById('painelEntrada').style.display = (modo === 'ENTRADA') ? 'block' : 'none';
@@ -198,79 +196,84 @@
     async function carregarInsumosMestre() {
       const dl = document.getElementById('listaInsumosMestreBusca');
       dl.innerHTML = '';
-      try {
-        const res = await fetch(`${API_URL}/estoque_mestre?select=*&order=descricao_insumo.asc`, { headers: HEADERS });
-        if (res.ok) {
-          const dados = await res.json();
-          dados.forEach(item => {
-            const nome = item.descricao_insumo || item.descricao || item.nome;
-            if (nome) {
-              const opt = document.createElement('option');
-              opt.value = nome.toUpperCase();
-              dl.appendChild(opt);
-            }
-          });
-        }
-      } catch (err) { console.error(err); }
+
+      if (!_db) return;
+
+      const { data, error } = await _db.from('estoque_mestre').select('*').order('descricao_insumo', { ascending: true });
+
+      if (data && data.length > 0) {
+        data.forEach(item => {
+          const desc = item.descricao_insumo || item.descricao || item.nome;
+          if (desc) {
+            const opt = document.createElement('option');
+            opt.value = desc.toUpperCase();
+            dl.appendChild(opt);
+          }
+        });
+      }
     }
 
     async function carregarColaboradores() {
       const sEnt = document.getElementById('ent_responsavel');
       const sBaixa = document.getElementById('baixa_responsavel');
-      try {
-        const res = await fetch(`${API_URL}/colaboradores?select=nome&order=nome.asc`, { headers: HEADERS });
-        if (res.ok) {
-          const dados = await res.json();
-          let html = '<option value="">-- Selecione o Servidor --</option>';
-          dados.forEach(c => {
-            if (c.nome) html += `<option value="${c.nome}">${c.nome}</option>`;
-          });
-          sEnt.innerHTML = html;
-          sBaixa.innerHTML = html;
-        }
-      } catch (err) { console.error(err); }
+
+      if (!_db) return;
+
+      const { data, error } = await _db.from('colaboradores').select('nome').order('nome', { ascending: true });
+
+      sEnt.innerHTML = '<option value="">-- Selecione o Servidor --</option>';
+      sBaixa.innerHTML = '<option value="">-- Selecione o Servidor --</option>';
+
+      if (data && data.length > 0) {
+        data.forEach(c => {
+          if (c.nome) {
+            sEnt.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+            sBaixa.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+          }
+        });
+      }
     }
 
     async function carregarLotesSaldo() {
       const tbody = document.getElementById('tbodyLotesSaldo');
       const dlBaixa = document.getElementById('listaLotesComSaldoBusca');
+      
       tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando lotes com saldo...</td></tr>';
       dlBaixa.innerHTML = '';
 
-      try {
-        const res = await fetch(`${API_URL}/estoque_lotes?select=*&quantidade_saldo=gt.0&order=data_validade.asc`, { headers: HEADERS });
-        if (res.ok) {
-          const dados = await res.json();
-          listaLotesGlobais = dados || [];
+      if (!_db) return;
 
-          if (dados.length > 0) {
-            tbody.innerHTML = '';
-            dados.forEach(l => {
-              const valFmt = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : 'N/A';
-              const label = `${l.descricao_insumo} — LOTE: ${l.numero_lote || 'S/L'} | SALDO: ${l.quantidade_saldo} | VAL: ${valFmt}`;
+      const { data, error } = await _db.from('estoque_lotes').select('*').gt('quantidade_saldo', 0).order('data_validade', { ascending: true });
 
-              tbody.innerHTML += `
-                <tr>
-                  <td><b>${l.descricao_insumo}</b></td>
-                  <td>${l.numero_lote || 'SEM LOTE'}</td>
-                  <td>${valFmt}</td>
-                  <td style="text-align: center; font-weight: 800; color: #16a34a;">${l.quantidade_saldo}</td>
-                </tr>
-              `;
+      listaLotesGlobais = data || [];
 
-              const opt = document.createElement('option');
-              opt.value = label;
-              dlBaixa.appendChild(opt);
-            });
-          } else {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum lote com saldo disponível. Registre uma entrada de material acima.</td></tr>';
-          }
-        }
-      } catch (err) { console.error(err); }
+      if (data && data.length > 0) {
+        tbody.innerHTML = '';
+        data.forEach(l => {
+          const valFmt = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : 'N/A';
+          const label = `${l.descricao_insumo} — LOTE: ${l.numero_lote || 'S/L'} | SALDO: ${l.quantidade_saldo} | VAL: ${valFmt}`;
+
+          tbody.innerHTML += `
+            <tr>
+              <td><b>${l.descricao_insumo}</b></td>
+              <td>${l.numero_lote || 'SEM LOTE'}</td>
+              <td>${valFmt}</td>
+              <td style="text-align: center; font-weight: 800; color: #16a34a;">${l.quantidade_saldo}</td>
+            </tr>
+          `;
+
+          const opt = document.createElement('option');
+          opt.value = label;
+          dlBaixa.appendChild(opt);
+        });
+      } else {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum lote com saldo disponível. Registre uma entrada de material acima.</td></tr>';
+      }
     }
 
     async function registrarEntradaEstoque(e) {
       e.preventDefault();
+      
       const insumo = document.getElementById('ent_insumo_input').value.trim().toUpperCase();
       const lote = document.getElementById('ent_lote').value.trim().toUpperCase();
       const validade = document.getElementById('ent_validade').value;
@@ -280,43 +283,33 @@
       if (!insumo || !resp) { alert("Preencha o insumo e o responsável."); return; }
 
       try {
-        const resLote = await fetch(`${API_URL}/estoque_lotes?descricao_insumo=eq.${encodeURIComponent(insumo)}&numero_lote=eq.${encodeURIComponent(lote)}`, { headers: HEADERS });
-        const existente = await resLote.json();
+        const { data: existente } = await _db
+          .from('estoque_lotes')
+          .select('id, quantidade_saldo')
+          .eq('descricao_insumo', insumo)
+          .eq('numero_lote', lote)
+          .maybeSingle();
 
-        if (existente && existente.length > 0) {
-          const item = existente[0];
-          const novoSaldo = (item.quantidade_saldo || 0) + qtd;
-
-          await fetch(`${API_URL}/estoque_lotes?id=eq.${item.id}`, {
-            method: 'PATCH',
-            headers: HEADERS,
-            body: JSON.stringify({ quantidade_saldo: novoSaldo, data_validade: validade })
-          });
+        if (existente) {
+          const novoSaldo = (existente.quantidade_saldo || 0) + qtd;
+          await _db.from('estoque_lotes').update({ quantidade_saldo: novoSaldo, data_validade: validade }).eq('id', existente.id);
         } else {
-          await fetch(`${API_URL}/estoque_lotes`, {
-            method: 'POST',
-            headers: HEADERS,
-            body: JSON.stringify([{
-              descricao_insumo: insumo,
-              numero_lote: lote,
-              data_validade: validade,
-              quantidade_saldo: qtd
-            }])
-          });
-        }
-
-        await fetch(`${API_URL}/estoque_movimentacoes`, {
-          method: 'POST',
-          headers: HEADERS,
-          body: JSON.stringify([{
-            tipo_movimentacao: 'ENTRADA',
+          await _db.from('estoque_lotes').insert([{
             descricao_insumo: insumo,
             numero_lote: lote,
-            quantidade: qtd,
-            motivo: 'RECEBIMENTO_CARGA',
-            responsavel: resp
-          }])
-        });
+            data_validade: validade,
+            quantidade_saldo: qtd
+          }]);
+        }
+
+        await _db.from('estoque_movimentacoes').insert([{
+          tipo_movimentacao: 'ENTRADA',
+          descricao_insumo: insumo,
+          numero_lote: lote,
+          quantidade: qtd,
+          motivo: 'RECEBIMENTO_CARGA',
+          responsavel: resp
+        }]);
 
         alert("✅ Entrada de estoque registrada com sucesso!");
         document.getElementById('ent_insumo_input').value = '';
@@ -328,6 +321,7 @@
 
     async function registrarBaixaEstoque(e) {
       e.preventDefault();
+
       const texto = document.getElementById('baixa_lote_input').value.trim();
       const qtd = parseInt(document.getElementById('baixa_qtd').value) || 0;
       const motivo = document.getElementById('baixa_motivo').value;
@@ -345,29 +339,28 @@
       try {
         const novoSaldo = loteSel.quantidade_saldo - qtd;
 
-        await fetch(`${API_URL}/estoque_lotes?id=eq.${loteSel.id}`, {
-          method: 'PATCH',
-          headers: HEADERS,
-          body: JSON.stringify({ quantidade_saldo: novoSaldo })
-        });
+        await _db.from('estoque_lotes').update({ quantidade_saldo: novoSaldo }).eq('id', loteSel.id);
 
-        await fetch(`${API_URL}/estoque_movimentacoes`, {
-          method: 'POST',
-          headers: HEADERS,
-          body: JSON.stringify([{
-            tipo_movimentacao: 'SAIDA_MANUAL',
-            descricao_insumo: loteSel.descricao_insumo,
-            numero_lote: loteSel.numero_lote,
-            quantidade: qtd,
-            motivo: motivo,
-            responsavel: resp
-          }])
-        });
+        await _db.from('estoque_movimentacoes').insert([{
+          tipo_movimentacao: 'SAIDA_MANUAL',
+          descricao_insumo: loteSel.descricao_insumo,
+          numero_lote: loteSel.numero_lote,
+          quantidade: qtd,
+          motivo: motivo,
+          responsavel: resp
+        }]);
 
         alert("✅ Baixa registrada com sucesso!");
         document.getElementById('baixa_lote_input').value = '';
         carregarLotesSaldo();
       } catch (err) { alert("Erro ao registrar baixa."); }
+    }
+
+    // DISPARO IMEDIATO AO CARREGAR A PÁGINA
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', inicializar);
+    } else {
+      inicializar();
     }
   </script>
 </body>
