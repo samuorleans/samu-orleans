@@ -77,7 +77,7 @@
         <div class="grid-form">
           <div class="form-group" style="grid-column: span 2;">
             <label>Digite ou Selecione o Insumo (Cadastro Mestre):*</label>
-            <input type="text" id="ent_insumo_input" list="listaInsumosMestreBusca" class="uppercase-input" placeholder="🔍 DIGITE O NOME OU CÓDIGO DO INSUMO..." required>
+            <input type="text" id="ent_insumo_input" list="listaInsumosMestreBusca" class="uppercase-input" placeholder="🔍 DIGITE O NOME OU CÓDIGO DO INSUMO..." required autocomplete="off">
           </div>
 
           <div class="form-group">
@@ -98,7 +98,7 @@
           <div class="form-group">
             <label>Responsável pelo Recebimento:*</label>
             <select id="ent_responsavel" required>
-              <option value="">Buscando servidores...</option>
+              <option value="">Carregando servidores...</option>
             </select>
           </div>
         </div>
@@ -111,12 +111,13 @@
     <div id="painelBaixa" class="card-form" style="display: none;">
       <h3 style="font-size: 0.9rem; color: var(--samu-red); margin-bottom: 12px; text-transform: uppercase;">📤 Registrar Baixa Manual de Estoque</h3>
       <form onsubmit="registrarBaixaEstoque(event)">
+        
+        <datalist id="listaLotesComSaldoBusca"></datalist>
+
         <div class="grid-form">
           <div class="form-group" style="grid-column: span 2;">
-            <label>Selecione o Lote Disponível:*</label>
-            <select id="baixa_lote_select" required>
-              <option value="">Carregando lotes com saldo...</option>
-            </select>
+            <label>Digite ou Selecione o Lote com Saldo:*</label>
+            <input type="text" id="baixa_lote_input" list="listaLotesComSaldoBusca" class="uppercase-input" placeholder="🔍 DIGITE O NOME DO INSUMO OU NÚMERO DO LOTE..." required autocomplete="off">
           </div>
 
           <div class="form-group">
@@ -137,7 +138,7 @@
           <div class="form-group" style="grid-column: span 2;">
             <label>Responsável pela Baixa:*</label>
             <select id="baixa_responsavel" required>
-              <option value="">Buscando servidores...</option>
+              <option value="">Carregando servidores...</option>
             </select>
           </div>
         </div>
@@ -174,18 +175,23 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
 
     let dbNuvem = null;
-    if (window.supabase) {
-      dbNuvem = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
-
     let listaLotesGlobais = [];
     let listaInsumosMestreGlobais = [];
 
-    window.onload = function() {
-      carregarInsumosMestreBusca();
-      carregarColaboradores();
-      carregarLotesSaldo();
-    };
+    function inicializarSupabase() {
+      if (window.supabase) {
+        dbNuvem = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      inicializarSupabase();
+      await Promise.all([
+        carregarInsumosMestreBusca(),
+        carregarColaboradores(),
+        carregarLotesSaldo()
+      ]);
+    });
 
     function alternarModo(modo) {
       const pEntrada = document.getElementById('painelEntrada');
@@ -212,19 +218,14 @@
       let data = null;
 
       try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=codigo_insumo,descricao_insumo,descricao,nome&order=descricao_insumo.asc`, {
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-          }
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=*&order=descricao_insumo.asc`, {
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
         });
-        if (response.ok) {
-          data = await response.json();
-        }
+        if (response.ok) data = await response.json();
       } catch (e) {}
 
       if (!data && dbNuvem) {
-        const res = await dbNuvem.from('estoque_mestre').select('codigo_insumo, descricao_insumo, descricao, nome').order('descricao_insumo', { ascending: true });
+        const res = await dbNuvem.from('estoque_mestre').select('*');
         data = res.data;
       }
 
@@ -232,11 +233,14 @@
         listaInsumosMestreGlobais = data;
         data.forEach(i => {
           const desc = i.descricao_insumo || i.descricao || i.nome || '';
-          const cod = i.codigo_insumo ? ` (${i.codigo_insumo})` : '';
-          const opt = document.createElement('option');
-          opt.value = desc;
-          opt.label = `${desc}${cod}`;
-          datalist.appendChild(opt);
+          const cod = i.codigo_insumo ? ` [${i.codigo_insumo}]` : '';
+          
+          if (desc) {
+            const opt = document.createElement('option');
+            opt.value = desc.toUpperCase();
+            opt.label = `${desc}${cod}`.toUpperCase();
+            datalist.appendChild(opt);
+          }
         });
       }
     }
@@ -247,39 +251,41 @@
       let data = null;
 
       try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/colaboradores?select=nome&order=nome.asc`, {
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-          }
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/colaboradores?select=*&order=nome.asc`, {
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
         });
         if (response.ok) data = await response.json();
       } catch (e) {}
 
       if (!data && dbNuvem) {
-        const res = await dbNuvem.from('colaboradores').select('nome').order('nome', { ascending: true });
+        const res = await dbNuvem.from('colaboradores').select('*').order('nome', { ascending: true });
         data = res.data;
       }
 
-      const options = data ? data.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('') : '';
-      selEnt.innerHTML = '<option value="">-- Selecione o Servidor --</option>' + options;
-      selBaixa.innerHTML = '<option value="">-- Selecione o Servidor --</option>' + options;
+      selEnt.innerHTML = '<option value="">-- Selecione o Servidor --</option>';
+      selBaixa.innerHTML = '<option value="">-- Selecione o Servidor --</option>';
+
+      if (data && data.length > 0) {
+        data.forEach(c => {
+          if (c.nome && c.status !== 'DESLIGADO' && c.status_admin !== 'DESLIGADO') {
+            selEnt.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+            selBaixa.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+          }
+        });
+      }
     }
 
     async function carregarLotesSaldo() {
       const tbody = document.getElementById('tbodyLotesSaldo');
-      const selBaixaLotes = document.getElementById('baixa_lote_select');
+      const datalistBaixa = document.getElementById('listaLotesComSaldoBusca');
+      
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando lotes com saldo...</td></tr>';
+      datalistBaixa.innerHTML = '';
       let data = null;
-
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando lotes...</td></tr>';
-      selBaixaLotes.innerHTML = '<option value="">-- Selecione o Lote com Saldo --</option>';
 
       try {
         const response = await fetch(`${SUPABASE_URL}/rest/v1/estoque_lotes?select=*&quantidade_saldo=gt.0&order=data_validade.asc`, {
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-          }
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
         });
         if (response.ok) data = await response.json();
       } catch (e) {}
@@ -295,7 +301,8 @@
         tbody.innerHTML = '';
         data.forEach(l => {
           const valFmt = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : 'N/A';
-          
+          const labelCompleta = `${l.descricao_insumo} — LOTE: ${l.numero_lote || 'S/L'} | SALDO: ${l.quantidade_saldo} | VAL: ${valFmt}`;
+
           tbody.innerHTML += `
             <tr>
               <td><b>${l.descricao_insumo}</b></td>
@@ -305,7 +312,9 @@
             </tr>
           `;
 
-          selBaixaLotes.innerHTML += `<option value="${l.id}">${l.descricao_insumo} — Lote: ${l.numero_lote} | Saldo: ${l.quantidade_saldo} | Val: ${valFmt}</option>`;
+          const opt = document.createElement('option');
+          opt.value = labelCompleta;
+          datalistBaixa.appendChild(opt);
         });
       } else {
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum lote com saldo disponível.</td></tr>';
@@ -321,10 +330,7 @@
       const qtd = parseInt(document.getElementById('ent_qtd').value) || 0;
       const resp = document.getElementById('ent_responsavel').value;
 
-      if (!insumo) {
-        alert("Digite ou selecione um insumo válido.");
-        return;
-      }
+      if (!insumo) { alert("Digite ou selecione um insumo válido."); return; }
 
       try {
         const { data: loteExistente } = await dbNuvem
@@ -356,7 +362,9 @@
         }]);
 
         alert("✅ Entrada de estoque registrada com sucesso!");
-        e.target.reset();
+        document.getElementById('ent_insumo_input').value = '';
+        document.getElementById('ent_lote').value = '';
+        document.getElementById('ent_validade').value = '';
         carregarLotesSaldo();
       } catch (err) { alert("Erro ao registrar entrada no banco."); }
     }
@@ -364,13 +372,21 @@
     async function registrarBaixaEstoque(e) {
       e.preventDefault();
 
-      const loteId = document.getElementById('baixa_lote_select').value;
+      const textoDigitado = document.getElementById('baixa_lote_input').value.trim();
       const qtdBaixa = parseInt(document.getElementById('baixa_qtd').value) || 0;
       const motivo = document.getElementById('baixa_motivo').value;
       const resp = document.getElementById('baixa_responsavel').value;
 
-      const loteSel = listaLotesGlobais.find(l => l.id == loteId);
-      if (!loteSel) { alert("Selecione um lote válido."); return; }
+      const loteSel = listaLotesGlobais.find(l => {
+        const valFmt = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : 'N/A';
+        const labelCompleta = `${l.descricao_insumo} — LOTE: ${l.numero_lote || 'S/L'} | SALDO: ${l.quantidade_saldo} | VAL: ${valFmt}`;
+        return labelCompleta === textoDigitado || l.descricao_insumo === textoDigitado;
+      });
+
+      if (!loteSel) {
+        alert("Selecione um lote válido da lista apresentada.");
+        return;
+      }
 
       if (qtdBaixa > loteSel.quantidade_saldo) {
         alert(`A quantidade da baixa (${qtdBaixa}) não pode ser maior que o saldo em estoque (${loteSel.quantidade_saldo}).`);
@@ -379,7 +395,7 @@
 
       try {
         const novoSaldo = loteSel.quantidade_saldo - qtdBaixa;
-        await dbNuvem.from('estoque_lotes').update({ quantidade_saldo: novoSaldo }).eq('id', loteId);
+        await dbNuvem.from('estoque_lotes').update({ quantidade_saldo: novoSaldo }).eq('id', loteSel.id);
 
         await dbNuvem.from('estoque_movimentacoes').insert([{
           tipo_movimentacao: 'SAIDA_MANUAL',
@@ -391,7 +407,8 @@
         }]);
 
         alert("✅ Baixa de estoque registrada com sucesso!");
-        e.target.reset();
+        document.getElementById('baixa_lote_input').value = '';
+        document.getElementById('baixa_qtd').value = '1';
         carregarLotesSaldo();
       } catch (err) { alert("Erro ao registrar baixa no banco."); }
     }
