@@ -148,9 +148,6 @@
       box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3); width: calc(100% - 16px); z-index: 1000; text-transform: uppercase; cursor: pointer;
     }
 
-    /* =========================================================
-       ESTILO HOSPITALAR/OFICIAL PADRONIZADO PARA IMPRESSÃO A4 (P&B)
-       ========================================================= */
     @media print {
       @page { size: A4 portrait; margin: 4mm; }
       html, body { width: 100%; height: 100%; background: #fff !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 5.5pt !important; line-height: 1.15; }
@@ -185,7 +182,6 @@
       
       canvas { height: 28px !important; border: 0.4pt solid #000 !important; }
 
-      /* BLOCO EXCLUSIVO DE ASSINATURAS E CARIMBOS HOSPITALARES NA IMPRESSÃO */
       .print-signatures-block {
         display: grid !important;
         grid-template-columns: 1fr 1fr 1fr;
@@ -556,63 +552,93 @@
       </div>
     </div>
 
-    <!-- SEÇÃO 8: TERMO DE RECUSA E ASSINATURA -->
+    <!-- SEÇÃO 8: DESFECHO DA VÍTIMA, TERMO DE RECUSA E ASSINATURAS -->
     <div class="card" id="sec8">
       <div class="card-header" onclick="toggleCard('sec8')">
-        <span>8. Recusa de Atendimento / Assinatura</span>
+        <span>8. Desfecho do Atendimento & Recusa / Assinatura</span>
         <span class="icon-toggle">▼</span>
       </div>
       <div class="card-body">
-        <p style="font-size: 0.58rem; color: #555; margin-bottom: 3px;">
-          "Sabedor da necessidade do atendimento de urgência que necessito, recuso atendimento do SAMU 192, e assumo todos os riscos decorrentes da minha negativa."
-        </p>
+        
+        <!-- DESFECHO DO ATENDIMENTO -->
         <div class="grid-2">
           <div>
-            <label>Assinante / Declarante</label>
-            <select id="tipo_assinante" onchange="atualizarCamposAssinante()">
-              <option value="Vítima">Vítima</option>
-              <option value="Responsável">Responsável</option>
-              <option value="Testemunha">Testemunha</option>
-              <option value="Médico Receptor">Médico Receptor</option>
+            <label>Desfecho / Destino da Vítima</label>
+            <select id="desfecho_vitima" onchange="alternarDesfechoVitima()">
+              <option value="TRANSPORTADO">TRANSPORTADO AO HOSPITAL RECEPTOR</option>
+              <option value="PERMANECEU_LOCAL">PERMANECEU NO LOCAL (ORIENTADO / LIBERADO PELA REGULAÇÃO)</option>
+              <option value="RECUSA">RECUSA DE ATENDIMENTO / TRANSPORTE</option>
+              <option value="OBITO">ÓBITO NO LOCAL</option>
             </select>
           </div>
-          <div><label>Data / Hora</label><input type="text" id="data_hora_recusa" readonly></div>
-        </div>
-
-        <div id="box_dados_assinante" style="display: none; margin-top: 4px; padding: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;">
-          <div class="grid-assinante-proporcional">
-            <div>
-              <label id="lbl_cpf_assinante">CPF</label>
-              <div class="search-group">
-                <input type="tel" inputmode="numeric" id="cpf_assinante" class="cpf-mask" placeholder="000.000.000-00" maxlength="14">
-                <button type="button" class="btn-search" onclick="buscarPessoaAssinanteCPF()">🔍</button>
-              </div>
-            </div>
-            <div>
-              <label id="lbl_nome_assinante">Nome Completo</label>
-              <input type="text" id="nome_assinante" class="uppercase-input" style="font-weight: 700;" placeholder="NOME COMPLETO DO DECLARANTE">
-            </div>
-            <div id="box_tel_assinante">
-              <label>Telefone Contato</label>
-              <input type="tel" inputmode="numeric" id="tel_assinante" placeholder="(00) 00000-0000">
-            </div>
+          <div>
+            <label>Houve Recusa de Atendimento ou Transporte?</label>
+            <select id="houve_recusa" onchange="alternarExibicaoRecusa()">
+              <option value="NAO">NÃO HOUVE RECUSA</option>
+              <option value="SIM">SIM (EXIGIR TERMO E ASSINATURA)</option>
+            </select>
           </div>
         </div>
 
-        <label style="margin-top: 4px;">Assinatura Digital (Recusa / Declaração)</label>
-        <canvas id="sig-canvas"></canvas>
-        <button type="button" id="btnClearSig" style="margin-top: 2px; padding: 3px; font-size: 0.65rem; background: #64748b; color: #fff; border: none; border-radius: 4px;">Limpar Assinatura</button>
+        <!-- MENSAGEM PADRÃO SEM RECUSA -->
+        <div id="box_sem_recusa" style="margin-top: 4px; padding: 6px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; color: #166534; font-size: 0.68rem; font-weight: 700; text-align: center;">
+          ✅ ATENDIMENTO CONCLUÍDO SEM DECLARAÇÃO DE RECUSA.
+        </div>
+
+        <!-- ESTRUTURA COMPLETA DE RECUSA -->
+        <div id="box_com_recusa" style="display: none; margin-top: 4px; padding: 6px; background: #fff5f5; border: 1px solid #fecaca; border-radius: 4px;">
+          <p style="font-size: 0.62rem; color: #991b1b; font-weight: 700; margin-bottom: 4px;">
+            "Declaro estar ciente dos riscos decorrentes da recusa de atendimento/transporte médico, isentando a equipe do SAMU 192 de responsabilidades sobre eventuais complicações."
+          </p>
+
+          <div class="grid-2">
+            <div>
+              <label>Assinante / Declarante</label>
+              <select id="tipo_assinante" onchange="atualizarCamposAssinante()">
+                <option value="Vítima">Vítima</option>
+                <option value="Responsável">Responsável</option>
+                <option value="Testemunha">Testemunha</option>
+              </select>
+            </div>
+            <div><label>Data / Hora Registro</label><input type="text" id="data_hora_recusa" readonly></div>
+          </div>
+
+          <div id="box_dados_assinante" style="display: none; margin-top: 4px; padding: 4px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px;">
+            <div class="grid-assinante-proporcional">
+              <div>
+                <label id="lbl_cpf_assinante">CPF</label>
+                <div class="search-group">
+                  <input type="tel" inputmode="numeric" id="cpf_assinante" class="cpf-mask" placeholder="000.000.000-00" maxlength="14">
+                  <button type="button" class="btn-search" onclick="buscarPessoaAssinanteCPF()">🔍</button>
+                </div>
+              </div>
+              <div>
+                <label id="lbl_nome_assinante">Nome Completo</label>
+                <input type="text" id="nome_assinante" class="uppercase-input" style="font-weight: 700;" placeholder="NOME COMPLETO DO DECLARANTE">
+              </div>
+              <div id="box_tel_assinante">
+                <label>Telefone Contato</label>
+                <input type="tel" inputmode="numeric" id="tel_assinante" placeholder="(00) 00000-0000">
+              </div>
+            </div>
+          </div>
+
+          <label style="margin-top: 4px; color: #991b1b;">Assinatura Digital do Declarante (Pressione e assine abaixo)</label>
+          <canvas id="sig-canvas"></canvas>
+          <button type="button" id="btnClearSig" style="margin-top: 2px; padding: 3px 6px; font-size: 0.65rem; background: #64748b; color: #fff; border: none; border-radius: 4px; font-weight: bold;">Limpar Assinatura</button>
+        </div>
+
       </div>
     </div>
 
-    <!-- CAMPO EXCLUSIVO DA IMPRESSÃO P&B: CARIMBOS E ASSINATURAS MÉRICO/TÉCNICO/DECLARANTE -->
+    <!-- CAMPO EXCLUSIVO DA IMPRESSÃO P&B: CARIMBOS E ASSINATURAS MÉDICO/TÉCNICO/DECLARANTE -->
     <div class="print-signatures-block">
       <div class="sig-box">
         <div style="font-size: 4.5pt; font-weight: bold;">TÉCNICO DE ENFERMAGEM</div>
         <div class="sig-line">ASSINATURA E CARIMBO / COREN</div>
       </div>
       <div class="sig-box">
-        <div style="font-size: 4.5pt; font-weight: bold;">DECLARANTE / RECUSA</div>
+        <div style="font-size: 4.5pt; font-weight: bold;">DECLARANTE / VÍTIMA / RESPONSÁVEL</div>
         <div class="sig-line">ASSINATURA FÍSICA DO DECLARANTE</div>
       </div>
       <div class="sig-box">
@@ -717,6 +743,83 @@
       const inputOutros = document.getElementById('hospital_outros');
       inputOutros.style.display = (select.value === 'OUTROS') ? 'block' : 'none';
       salvarLocal();
+    }
+
+    // LÓGICA DE RECUSA E DESFECHO DA VÍTIMA (SEÇÃO 8)
+    function alternarExibicaoRecusa() {
+      const houveRecusa = document.getElementById('houve_recusa').value;
+      const boxSem = document.getElementById('box_sem_recusa');
+      const boxCom = document.getElementById('box_com_recusa');
+
+      if (houveRecusa === 'SIM') {
+        boxSem.style.display = 'none';
+        boxCom.style.display = 'block';
+        atualizarCamposAssinante();
+      } else {
+        boxSem.style.display = 'block';
+        boxCom.style.display = 'none';
+      }
+      salvarLocal();
+    }
+
+    function alternarDesfechoVitima() {
+      const desfecho = document.getElementById('desfecho_vitima').value;
+      const houveRecusaSelect = document.getElementById('houve_recusa');
+
+      if (desfecho === 'RECUSA') {
+        houveRecusaSelect.value = 'SIM';
+      } else if (desfecho === 'PERMANECEU_LOCAL') {
+        // Se o paciente permaneceu no local sem recusa, permite assinar termo de ciência
+      }
+      alternarExibicaoRecusa();
+    }
+
+    function atualizarCamposAssinante() {
+      const tipo = document.getElementById('tipo_assinante').value;
+      const box = document.getElementById('box_dados_assinante');
+      const boxTel = document.getElementById('box_tel_assinante');
+      const lblCpf = document.getElementById('lbl_cpf_assinante');
+      const lblNome = document.getElementById('lbl_nome_assinante');
+
+      if (tipo === 'Vítima') {
+        box.style.display = 'none';
+      } else if (tipo === 'Responsável') {
+        box.style.display = 'block';
+        boxTel.style.display = 'none';
+        lblCpf.innerText = 'CPF Responsável';
+        lblNome.innerText = 'Nome Completo do Responsável';
+      } else if (tipo === 'Testemunha') {
+        box.style.display = 'block';
+        boxTel.style.display = 'block';
+        lblCpf.innerText = 'CPF Testemunha';
+        lblNome.innerText = 'Nome Completo da Testemunha';
+      }
+      salvarLocal();
+    }
+
+    async function buscarPessoaAssinanteCPF() {
+      const cpfRaw = document.getElementById('cpf_assinante').value.replace(/\D/g, "");
+      if (cpfRaw.length < 11) {
+        alert("Digite um CPF válido com 11 dígitos para buscar.");
+        return;
+      }
+
+      try {
+        const { data, error } = await _supabase
+          .from('pacientes')
+          .select('nome, telefone')
+          .eq('cpf', cpfRaw)
+          .single();
+
+        if (error || !data) {
+          alert("Pessoa não encontrada no cadastro. Preencha o nome manualmente.");
+          return;
+        }
+
+        document.getElementById('nome_assinante').value = (data.nome || '').toUpperCase();
+        if (data.telefone) document.getElementById('tel_assinante').value = data.telefone;
+        salvarLocal();
+      } catch (err) { alert("Erro ao consultar CPF."); }
     }
 
     function autoExpandTextarea(element) {
@@ -837,54 +940,6 @@
     function toggleMedContinuaInput() {
       const val = document.getElementById('med_continua_select').value;
       document.getElementById('med_continua_box').style.display = (val === 'SIM') ? 'block' : 'none';
-    }
-
-    function atualizarCamposAssinante() {
-      const tipo = document.getElementById('tipo_assinante').value;
-      const box = document.getElementById('box_dados_assinante');
-      const boxTel = document.getElementById('box_tel_assinante');
-      const lblCpf = document.getElementById('lbl_cpf_assinante');
-      const lblNome = document.getElementById('lbl_nome_assinante');
-
-      if (tipo === 'Vítima' || tipo === 'Médico Receptor') {
-        box.style.display = 'none';
-      } else if (tipo === 'Responsável') {
-        box.style.display = 'block';
-        boxTel.style.display = 'none';
-        lblCpf.innerText = 'CPF Responsável';
-        lblNome.innerText = 'Nome Completo do Responsável';
-      } else if (tipo === 'Testemunha') {
-        box.style.display = 'block';
-        boxTel.style.display = 'block';
-        lblCpf.innerText = 'CPF Testemunha';
-        lblNome.innerText = 'Nome Completo da Testemunha';
-      }
-      salvarLocal();
-    }
-
-    async function buscarPessoaAssinanteCPF() {
-      const cpfRaw = document.getElementById('cpf_assinante').value.replace(/\D/g, "");
-      if (cpfRaw.length < 11) {
-        alert("Digite um CPF válido com 11 dígitos para buscar.");
-        return;
-      }
-
-      try {
-        const { data, error } = await _supabase
-          .from('pacientes')
-          .select('nome, telefone')
-          .eq('cpf', cpfRaw)
-          .single();
-
-        if (error || !data) {
-          alert("Pessoa não encontrada no cadastro. Preencha o nome manualmente.");
-          return;
-        }
-
-        document.getElementById('nome_assinante').value = (data.nome || '').toUpperCase();
-        if (data.telefone) document.getElementById('tel_assinante').value = data.telefone;
-        salvarLocal();
-      } catch (err) { alert("Erro ao consultar CPF."); }
     }
 
     function acionarJTime(jCode, targetInputId) {
