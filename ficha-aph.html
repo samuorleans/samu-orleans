@@ -69,8 +69,6 @@
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
     .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; }
     .grid-endereco { display: grid; grid-template-columns: 3fr 1fr; gap: 4px; }
-
-    /* LAYOUT ESPAÇOSO PARA O TERMO DE RECUSA (NOME AMPLO) */
     .grid-assinante-proporcional { display: grid; grid-template-columns: 1.2fr 2.5fr 1.1fr; gap: 4px; }
 
     label { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 1px; text-transform: uppercase; }
@@ -88,25 +86,12 @@
       font-weight: 500;
     }
 
-    .auto-expand {
-      resize: none;
-      overflow-y: hidden;
-      min-height: 32px;
-    }
+    .auto-expand { resize: none; overflow-y: hidden; min-height: 32px; }
 
     .codigo-group { display: flex; gap: 3px; margin-bottom: 3px; }
     .btn-cor {
-      flex: 1;
-      border: 2px solid transparent;
-      padding: 5px 2px;
-      font-size: 0.7rem;
-      font-weight: 800;
-      border-radius: 4px;
-      cursor: pointer;
-      text-align: center;
-      color: #fff;
-      opacity: 0.4;
-      transition: all 0.15s ease;
+      flex: 1; border: 2px solid transparent; padding: 5px 2px; font-size: 0.7rem; font-weight: 800;
+      border-radius: 4px; cursor: pointer; text-align: center; color: #fff; opacity: 0.4; transition: all 0.15s ease;
     }
     .btn-cor.active { opacity: 1; transform: scale(1.02); border-color: #000; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     .cor-vm { background-color: #dc2626; }
@@ -114,73 +99,29 @@
     .cor-vd { background-color: #16a34a; }
     .cor-az { background-color: #2563eb; }
 
-    .print-triagem-text { display: none; }
+    .print-triagem-text, .print-signatures-block { display: none; }
 
     .search-group { display: flex; gap: 3px; }
     .btn-search {
-      background: var(--secondary);
-      color: #fff;
-      border: none;
-      padding: 0 8px;
-      border-radius: 4px;
-      font-size: 0.68rem;
-      font-weight: bold;
-      cursor: pointer;
-      height: 29px;
+      background: var(--secondary); color: #fff; border: none; padding: 0 8px; border-radius: 4px;
+      font-size: 0.68rem; font-weight: bold; cursor: pointer; height: 29px;
     }
 
-    .j-block-container {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 4px;
-      margin-top: 4px;
-    }
-
-    .j-row-tactical {
-      display: flex;
-      align-items: center;
-      gap: 3px;
-      background: #f1f5f9;
-      padding: 2px 4px;
-      border-radius: 4px;
-      border: 1px solid #e2e8f0;
-    }
+    .j-block-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 4px; }
+    .j-row-tactical { display: flex; align-items: center; gap: 3px; background: #f1f5f9; padding: 2px 4px; border-radius: 4px; border: 1px solid #e2e8f0; }
 
     .btn-j-badge {
-      background: #1e293b;
-      color: #ffffff;
-      border: none;
-      padding: 4px 10px;
-      font-size: 0.72rem;
-      font-weight: 800;
-      border-radius: 4px;
-      clip-path: polygon(0% 0%, 85% 0%, 100% 50%, 85% 100%, 0% 100%);
-      min-width: 78px;
-      height: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      touch-action: manipulation;
-      user-select: none;
-      transition: all 0.15s ease;
+      background: #1e293b; color: #ffffff; border: none; padding: 4px 10px; font-size: 0.72rem; font-weight: 800;
+      border-radius: 4px; clip-path: polygon(0% 0%, 85% 0%, 100% 50%, 85% 100%, 0% 100%); min-width: 78px; height: 30px;
+      display: flex; align-items: center; justify-content: space-between; cursor: pointer; touch-action: manipulation; user-select: none;
     }
-
     .btn-j-badge.btn-qta { background: #991b1b !important; }
     .btn-j-badge:disabled { background: #94a3b8 !important; opacity: 0.4; cursor: not-allowed; }
-    .btn-j-badge:active:not(:disabled) { background: var(--primary); transform: scale(0.96); }
 
     .j-time-input {
-      width: 75px !important;
-      height: 28px !important;
-      font-size: 0.85rem !important;
-      font-weight: 800 !important;
-      text-align: center !important;
-      margin-bottom: 0 !important;
-      padding: 0 !important;
-      border: 1px solid var(--border) !important;
-      border-radius: 3px !important;
-      background: #ffffff !important;
+      width: 75px !important; height: 28px !important; font-size: 0.85rem !important; font-weight: 800 !important;
+      text-align: center !important; margin-bottom: 0 !important; padding: 0 !important; border: 1px solid var(--border) !important;
+      border-radius: 3px !important; background: #ffffff !important;
     }
 
     .sv-table, .med-table, .table-expo { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.72rem; }
@@ -193,111 +134,82 @@
     .btn-del-med { background: #991b1b; color: white; border: none; padding: 2px 5px; border-radius: 3px; font-weight: bold; cursor: pointer; }
 
     .checkbox-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
-    .checkbox-grid label {
-      display: flex;
-      align-items: center;
-      gap: 3px;
-      font-weight: 600;
-      background: #f8fafc;
-      padding: 4px;
-      border-radius: 4px;
-      border: 1px solid #e2e8f0;
-      font-size: 0.68rem;
-    }
+    .checkbox-grid label { display: flex; align-items: center; gap: 3px; font-weight: 600; background: #f8fafc; padding: 4px; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 0.68rem; }
 
-    .btn-mic {
-      background: #0284c7;
-      color: #fff;
-      border: none;
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-size: 0.68rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      margin-top: 2px;
-      float: right;
-    }
+    .btn-mic { background: #0284c7; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; float: right; }
     .btn-mic.recording { background: #dc2626; animation: pulse 1s infinite; }
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
     canvas { border: 1px dashed var(--border); border-radius: 4px; width: 100%; height: 70px; background: #fff; touch-action: none; margin-top: 2px; }
 
     .btn-submit {
-      position: fixed;
-      bottom: 8px;
-      left: 8px;
-      right: 8px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-      border: none;
-      padding: 11px;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 800;
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-      width: calc(100% - 16px);
-      z-index: 1000;
-      text-transform: uppercase;
-      cursor: pointer;
+      position: fixed; bottom: 8px; left: 8px; right: 8px; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white; border: none; padding: 11px; border-radius: 6px; font-size: 0.85rem; font-weight: 800;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3); width: calc(100% - 16px); z-index: 1000; text-transform: uppercase; cursor: pointer;
     }
 
+    /* =========================================================
+       ESTILO HOSPITALAR/OFICIAL PADRONIZADO PARA IMPRESSÃO A4 (P&B)
+       ========================================================= */
     @media print {
-      @page { size: A4 portrait; margin: 3mm; }
-      html, body { width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 5.8pt !important; line-height: 1.1; }
+      @page { size: A4 portrait; margin: 4mm; }
+      html, body { width: 100%; height: 100%; background: #fff !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 5.5pt !important; line-height: 1.15; }
       .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, button, script { display: none !important; }
       
-      select {
-        -webkit-appearance: none !important;
-        -moz-appearance: none !important;
-        appearance: none !important;
-        background: none !important;
-        border: none !important;
-      }
+      select { -webkit-appearance: none !important; appearance: none !important; background: none !important; border: none !important; }
 
-      header { 
-        background: none !important; 
-        color: #000 !important; 
-        border-bottom: 1.5pt solid #000; 
-        padding: 2px 0 !important; 
-        margin-bottom: 3px !important; 
-        border-left: none !important;
-        display: flex !important;
-        justify-content: center !important;
-        text-align: center !important;
+      header {
+        background: #fff !important; color: #000 !important; border-bottom: 1.5pt solid #000; padding: 2px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-content: space-between !important; align-items: center !important;
       }
-      header img { height: 28px !important; }
-      header .header-info { text-align: center !important; }
-      header h1 { font-size: 10pt !important; margin: 0; color: #000 !important; font-weight: 900 !important; }
-      header p { font-size: 6pt !important; margin: 0; font-weight: bold; color: #000 !important; }
+      header img { height: 32px !important; }
+      header .header-info { text-align: right !important; }
+      header h1 { font-size: 9pt !important; margin: 0; color: #000 !important; font-weight: 900 !important; letter-spacing: 0.5px; }
+      header p { font-size: 5.5pt !important; margin: 0; font-weight: bold; color: #000 !important; }
 
-      .card { box-shadow: none !important; border: 0.4pt solid #000 !important; margin-bottom: 2px !important; padding: 0 !important; border-radius: 0 !important; page-break-inside: avoid !important; }
-      .card-header { background: none !important; color: #000 !important; border-bottom: 0.4pt solid #000 !important; padding: 1px 3px !important; font-size: 5.8pt !important; font-weight: bold !important; }
+      .card { box-shadow: none !important; border: 0.5pt solid #000 !important; margin-bottom: 2px !important; padding: 0 !important; border-radius: 0 !important; page-break-inside: avoid !important; }
+      .card-header { background: #f1f5f9 !important; color: #000 !important; border-bottom: 0.5pt solid #000 !important; padding: 1px 3px !important; font-size: 5.5pt !important; font-weight: 900 !important; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .card-body { display: block !important; padding: 2px 3px !important; }
-      label { font-size: 4.5pt !important; color: #000 !important; margin-bottom: 0px !important; }
-      input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.4pt solid #444 !important; background: transparent !important; padding: 0px !important; font-weight: bold !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; }
+      label { font-size: 4.5pt !important; color: #000 !important; margin-bottom: 0px !important; font-weight: 800 !important; }
+      input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.3pt solid #666 !important; background: transparent !important; padding: 0px !important; font-weight: 800 !important; font-size: 5.5pt !important; margin-bottom: 0px !important; height: auto !important; color: #000 !important; }
       textarea { height: auto !important; resize: none; }
       
       .codigo-group { display: none !important; }
       .print-triagem-text {
-        display: block !important;
-        font-size: 7pt !important;
-        font-weight: 900 !important;
-        border: 1pt solid #000 !important;
-        padding: 2px 4px !important;
-        text-align: center !important;
-        background: #f1f5f9 !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+        display: block !important; font-size: 6.5pt !important; font-weight: 900 !important; border: 1pt solid #000 !important; padding: 1px 3px !important; text-align: center !important; background: #e2e8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;
       }
 
       .j-block-container { grid-template-columns: repeat(7, 1fr) !important; gap: 1px !important; }
-      .btn-j-badge { background: none !important; color: #000 !important; border: none !important; clip-path: none !important; height: 13px !important; font-size: 5pt !important; min-width: 32px !important; opacity: 1 !important; padding: 0 !important; }
-      .j-time-input { height: 13px !important; font-size: 5.5pt !important; border-bottom: 0.4pt solid #000 !important; }
-      .sv-table th, .sv-table td, .med-table th, .med-table td { font-size: 5.2pt !important; padding: 1px !important; border: 0.4pt solid #000 !important; }
-      canvas { height: 22px !important; border: 0.4pt solid #000 !important; }
+      .btn-j-badge { background: none !important; color: #000 !important; border: none !important; clip-path: none !important; height: 12px !important; font-size: 5pt !important; min-width: 30px !important; opacity: 1 !important; padding: 0 !important; font-weight: bold !important; }
+      .j-time-input { height: 12px !important; font-size: 5.5pt !important; border-bottom: 0.4pt solid #000 !important; }
+      .sv-table th, .sv-table td, .med-table th, .med-table td, .table-expo th, .table-expo td { font-size: 5pt !important; padding: 1px !important; border: 0.4pt solid #000 !important; }
+      
+      canvas { height: 28px !important; border: 0.4pt solid #000 !important; }
+
+      /* BLOCO EXCLUSIVO DE ASSINATURAS E CARIMBOS HOSPITALARES NA IMPRESSÃO */
+      .print-signatures-block {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 6px;
+        margin-top: 4px;
+        padding-top: 2px;
+        page-break-inside: avoid;
+      }
+      .sig-box {
+        border: 0.4pt solid #000;
+        padding: 3px;
+        text-align: center;
+        min-height: 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .sig-line {
+        border-top: 0.4pt solid #000;
+        margin-top: 22px;
+        font-size: 4.8pt;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
     }
   </style>
 </head>
@@ -306,7 +218,7 @@
   <header>
     <img src="logo.png" alt="SAMU Logo" onerror="this.style.display='none'">
     <div class="header-info">
-      <h1>SAMU 192 - ORLEANS</h1>
+      <h1>SAMU 192 - ORLEANS / SC</h1>
       <p>FICHA DE ATENDIMENTO MÓVEL DE URGÊNCIA (USB 11)</p>
     </div>
   </header>
@@ -321,7 +233,7 @@
       </div>
       <div class="card-body">
         <div class="grid-3">
-          <div><label>Nº Ocorrência</label><input type="tel" inputmode="numeric" id="codigo" class="uppercase-input" required placeholder="Nº Ocorrência"></div>
+          <div><label>Nº Ocorrência</label><input type="tel" inputmode="numeric" id="codigo" class="uppercase-input" required placeholder="Nº OCORRÊNCIA"></div>
           <div>
             <label>CÓDIGO TRIAGEM</label>
             <input type="hidden" id="cor_ocorrencia" value="VM">
@@ -667,7 +579,6 @@
           <div><label>Data / Hora</label><input type="text" id="data_hora_recusa" readonly></div>
         </div>
 
-        <!-- LAYOUT PROPORCIONAL COM CAMPO DE NOME MAIOR -->
         <div id="box_dados_assinante" style="display: none; margin-top: 4px; padding: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;">
           <div class="grid-assinante-proporcional">
             <div>
@@ -688,9 +599,25 @@
           </div>
         </div>
 
-        <label style="margin-top: 4px;">Assinatura Digital</label>
+        <label style="margin-top: 4px;">Assinatura Digital (Recusa / Declaração)</label>
         <canvas id="sig-canvas"></canvas>
         <button type="button" id="btnClearSig" style="margin-top: 2px; padding: 3px; font-size: 0.65rem; background: #64748b; color: #fff; border: none; border-radius: 4px;">Limpar Assinatura</button>
+      </div>
+    </div>
+
+    <!-- CAMPO EXCLUSIVO DA IMPRESSÃO P&B: CARIMBOS E ASSINATURAS MÉRICO/TÉCNICO/DECLARANTE -->
+    <div class="print-signatures-block">
+      <div class="sig-box">
+        <div style="font-size: 4.5pt; font-weight: bold;">TÉCNICO DE ENFERMAGEM</div>
+        <div class="sig-line">ASSINATURA E CARIMBO / COREN</div>
+      </div>
+      <div class="sig-box">
+        <div style="font-size: 4.5pt; font-weight: bold;">DECLARANTE / RECUSA</div>
+        <div class="sig-line">ASSINATURA FÍSICA DO DECLARANTE</div>
+      </div>
+      <div class="sig-box">
+        <div style="font-size: 4.5pt; font-weight: bold;">MÉDICO RECEPTOR / REGULADOR</div>
+        <div class="sig-line">ASSINATURA E CARIMBO / CRM</div>
       </div>
     </div>
 
@@ -749,7 +676,6 @@
       salvarLocal();
     }
 
-    // BUSCA CEP REFORÇADA (LIMPA CAMPOS ANTERIORES E TRATA CEP GERAL)
     async function mascaraEBuscarCEP(input) {
       let v = input.value.replace(/\D/g, "");
       if (v.length > 8) v = v.slice(0, 8);
@@ -757,8 +683,6 @@
       input.value = v;
 
       const cepSemMascara = v.replace("-", "");
-      
-      // Quando atinge 8 dígitos limpa os dados de rua e bairro anteriores
       if (cepSemMascara.length === 8) {
         document.getElementById('rua').value = '';
         document.getElementById('bairro').value = '';
@@ -769,11 +693,8 @@
           if (!data.erro) {
             if (data.localidade) document.getElementById('municipio').value = data.localidade.toUpperCase();
             if (data.uf) document.getElementById('estado').value = data.uf.toUpperCase();
-            
-            // Só preenche se a API tiver rua e bairro (se for CEP geral deixa em branco)
             if (data.bairro) document.getElementById('bairro').value = data.bairro.toUpperCase();
             if (data.logradouro) document.getElementById('rua').value = data.logradouro.toUpperCase();
-            
             salvarLocal();
           }
         } catch(e) {}
