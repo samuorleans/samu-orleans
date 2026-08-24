@@ -91,6 +91,7 @@
       min-height: 32px;
     }
 
+    /* SELETOR CÓDIGO (TELA) */
     .codigo-group { display: flex; gap: 3px; margin-bottom: 3px; }
     .btn-cor {
       flex: 1;
@@ -110,6 +111,9 @@
     .cor-am { background-color: #eab308; color: #000; }
     .cor-vd { background-color: #16a34a; }
     .cor-az { background-color: #2563eb; }
+
+    /* TEXTO DE IMPRESSÃO OCULTO NA TELA POR PADRÃO */
+    .print-triagem-text { display: none; }
 
     .search-group { display: flex; gap: 3px; }
     .btn-search {
@@ -239,6 +243,7 @@
       cursor: pointer;
     }
 
+    /* ESTILO MONOCROMÁTICO LIMPO PARA IMPRESSÃO A4 PRETO E BRANCO */
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
       html, body { width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 5.8pt !important; line-height: 1.1; }
@@ -275,8 +280,20 @@
       input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.4pt solid #444 !important; background: transparent !important; padding: 0px !important; font-weight: bold !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; }
       textarea { height: auto !important; resize: none; }
       
-      .codigo-group { display: inline-flex !important; gap: 2px !important; }
-      .btn-cor { padding: 1px 4px !important; font-size: 5pt !important; opacity: 1 !important; border: 0.4pt solid #000 !important; }
+      /* OCULTAR OS BOTÕES DE COR NA IMPRESSÃO E EXIBIR O TEXTO EM DESTAQUE */
+      .codigo-group { display: none !important; }
+      .print-triagem-text {
+        display: block !important;
+        font-size: 7pt !important;
+        font-weight: 900 !important;
+        border: 1pt solid #000 !important;
+        padding: 2px 4px !important;
+        text-align: center !important;
+        background: #f1f5f9 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
       .j-block-container { grid-template-columns: repeat(7, 1fr) !important; gap: 1px !important; }
       .btn-j-badge { background: none !important; color: #000 !important; border: none !important; clip-path: none !important; height: 13px !important; font-size: 5pt !important; min-width: 32px !important; opacity: 1 !important; padding: 0 !important; }
       .j-time-input { height: 13px !important; font-size: 5.5pt !important; border-bottom: 0.4pt solid #000 !important; }
@@ -309,12 +326,17 @@
           <div>
             <label>CÓDIGO TRIAGEM</label>
             <input type="hidden" id="cor_ocorrencia" value="VM">
+            
+            <!-- Botões coloridos na tela -->
             <div class="codigo-group">
               <button type="button" class="btn-cor cor-vm active" onclick="selecionarCodigo('VM', this)">VM</button>
               <button type="button" class="btn-cor cor-am" onclick="selecionarCodigo('AM', this)">AM</button>
               <button type="button" class="btn-cor cor-vd" onclick="selecionarCodigo('VD', this)">VD</button>
               <button type="button" class="btn-cor cor-az" onclick="selecionarCodigo('AZ', this)">AZ</button>
             </div>
+
+            <!-- Texto otimizado para impressão P&B -->
+            <div id="printTriagemBox" class="print-triagem-text">VERMELHO (VM)</div>
           </div>
           <div><label>Data</label><input type="date" id="data"></div>
         </div>
@@ -669,7 +691,6 @@
       _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // LISTA DE SEGURANÇA (FALLBACK LOCAL PARA MODO OFFLINE)
     const COLABORADORES_FALLBACK = [
       { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "" }
     ];
@@ -685,6 +706,17 @@
       document.getElementById('cor_ocorrencia').value = cor;
       document.querySelectorAll('.btn-cor').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+
+      // Atualiza o texto que aparece na impressão P&B
+      const printBox = document.getElementById('printTriagemBox');
+      const nomesTriagem = {
+        'VM': 'VERMELHO (VM)',
+        'AM': 'AMARELO (AM)',
+        'VD': 'VERDE (VD)',
+        'AZ': 'AZUL (AZ)'
+      };
+      printBox.innerText = nomesTriagem[cor] || cor;
+
       salvarLocal();
     }
 
@@ -892,7 +924,6 @@
       if (input) { input.disabled = true; input.value = ''; }
     }
 
-    // BUSCA DE COLABORADORES HÍBRIDA (REST + SDK + CACHE LOCAL)
     async function carregarColaboradoresRobusto() {
       const selectTec = document.getElementById('tec_enfermeiro');
       const selectSoc = document.getElementById('socorrista');
