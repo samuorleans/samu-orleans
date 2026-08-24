@@ -192,7 +192,6 @@
         display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.5pt solid #000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;
       }
 
-      /* OCULTA O CAIXÃO DE RESUMO INFERIOR NA IMPRESSÃO PARA EVITAR REPETIÇÃO */
       #printReclassificacaoBox { display: none !important; }
 
       .j-block-container { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 2px !important; }
@@ -280,7 +279,7 @@
           <div><label>Data</label><input type="date" id="data"></div>
         </div>
 
-        <!-- RECLASSIFICAÇÃO DE CÓDIGO - ALINHADO EM 3 COLUNAS -->
+        <!-- RECLASSIFICAÇÃO DE CÓDIGO -->
         <div style="margin-top: 4px; padding: 5px; background: #f8fafc; border: 1px dashed var(--border); border-radius: 4px;">
           <label style="color: #0f172a; font-weight: 800;">RECLASSIFICAÇÃO DE CÓDIGO (REGULAÇÃO MÉDICA)</label>
           <div class="grid-reclassificacao-otimizado">
@@ -1584,8 +1583,6 @@
 
           if (error) {
             alert("Erro ao gravar APH no Supabase: " + error.message);
-          } else {
-            alert("Ficha de APH gravada com sucesso!");
           }
         }
       } catch (err) {
@@ -1684,11 +1681,27 @@
 
     document.getElementById('btnClearSig').addEventListener('click', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); });
     
+    // CONFIRMAÇÃO TÁTICA ANTES DE SALVAR E IMPRIMIR
     document.getElementById('btnImprimir').addEventListener('click', () => { 
+      const confirmacao = confirm(
+        "⚠️ ATENÇÃO: CONFIRMA A IMPRESSÃO DA FICHA?\n\n" +
+        "• Certifique-se de que todos os dados estão corretos.\n" +
+        "• Após a impressão, os dados serão salvos definitivamente na base de dados.\n" +
+        "• Os campos desta ficha serão LIMPOS e não será possível editar esta ocorrência localmente.\n\n" +
+        "Deseja realmente prosseguir com a impressão?"
+      );
+
+      if (!confirmacao) {
+        return;
+      }
+
       document.querySelectorAll('.card').forEach(c => c.classList.add('active'));
       ajustarExibicaoAssinaturasImpressao();
+
       salvarFichaOcorrenciaAPH().then(() => {
         window.print();
+        localStorage.removeItem('aph_draft_data');
+        resetarFormularioParaNovaOcorrencia();
       });
     });
 
