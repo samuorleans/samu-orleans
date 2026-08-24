@@ -140,46 +140,84 @@
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
     }
 
-    /* ALINHAMENTO E BUSCA MOBILE */
+    /* ALINHAMENTO ITEM 6 */
     .sv-table, .med-table, .table-expo { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.72rem; }
     .sv-table th, .med-table th, .table-expo th { background: #f1f5f9; padding: 3px; border: 1px solid #cbd5e1; font-size: 0.62rem; text-transform: uppercase; text-align: center; }
     .med-table th:first-child { text-align: left; padding-left: 5px; }
     
     .sv-table td, .table-expo td { padding: 2px; border: 1px solid #cbd5e1; text-align: center; }
-    .med-table td { padding: 2px; border: 1px solid #cbd5e1; text-align: left; position: relative; }
+    .med-table td { padding: 2px; border: 1px solid #cbd5e1; text-align: left; }
     .med-table td.td-center { text-align: center; }
 
     .sv-table input { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: center; }
-    .med-table input.med-search-input { margin-bottom: 0; font-size: 0.78rem; padding: 5px; text-align: left; }
+    .med-table input.med-search-input { margin-bottom: 0; font-size: 0.78rem; padding: 5px; text-align: left; cursor: pointer; }
     .med-table input.med-qtd { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: center; }
 
-    /* MENU FLUTUANTE DE SUGESTÕES MOBILE */
-    .mobile-suggest-box {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: #ffffff;
-      border: 1px solid #0284c7;
-      border-top: none;
-      border-radius: 0 0 6px 6px;
-      max-height: 160px;
-      overflow-y: auto;
-      z-index: 9999;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    /* MODAL DE BUSCA MÓVEL E TABLET */
+    .modal-med-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.75);
+      z-index: 99999;
       display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 12px;
+      backdrop-filter: blur(2px);
     }
-    .mobile-suggest-item {
-      padding: 8px 6px;
-      font-size: 0.72rem;
+    .modal-med-container {
+      background: #ffffff;
+      width: 100%;
+      max-width: 600px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      max-height: 85vh;
+      overflow: hidden;
+      margin-top: 10px;
+      border: 2px solid var(--primary);
+    }
+    .modal-med-header {
+      background: var(--secondary);
+      color: #fff;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 800;
+      font-size: 0.85rem;
+    }
+    .modal-med-close {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .modal-med-search-box {
+      padding: 8px;
+      background: #f1f5f9;
+      border-bottom: 1px solid #cbd5e1;
+    }
+    .modal-med-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px;
+    }
+    .modal-med-item {
+      padding: 10px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.8rem;
       font-weight: 700;
-      border-bottom: 1px solid #f1f5f9;
       color: #0f172a;
       cursor: pointer;
     }
-    .mobile-suggest-item:active {
-      background: #e0f2fe;
-      color: #0369a1;
+    .modal-med-item:active {
+      background: #fee2e2;
+      color: #991b1b;
     }
 
     .psico-box {
@@ -214,7 +252,7 @@
     @media print {
       @page { size: A4 portrait; margin: 4mm; }
       html, body { width: 100%; height: 100%; background: #fff !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 5.5pt !important; line-height: 1.15; }
-      .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .mobile-suggest-box, button, script { display: none !important; }
+      .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .modal-med-overlay, button, script { display: none !important; }
       
       select, input[type="time"], input[type="date"] {
         -webkit-appearance: none !important;
@@ -736,7 +774,7 @@
           </div>
 
           <div id="med_continua_box" style="display: none;">
-            <label style="color: var(--primary-dark);">Descrever Medicamentos Contíduos</label>
+            <label style="color: var(--primary-dark);">Descrever Medicamentos Contínuos</label>
             <textarea id="meds_continuas" class="auto-expand uppercase-input" placeholder="EX: LOSARTANA 50MG, METFORMINA 850MG..." oninput="autoExpandTextarea(this)"></textarea>
           </div>
         </div>
@@ -836,6 +874,22 @@
       </div>
     </div>
 
+    <!-- ESTRUTURA DO POPUP MODAL DE BUSCA DE MEDICAÇÃO -->
+    <div class="modal-med-overlay" id="modalMedOverlay">
+      <div class="modal-med-container">
+        <div class="modal-med-header">
+          <span>🔍 SELEÇÃO DE INSUMO / MEDICAÇÃO</span>
+          <button type="button" class="modal-med-close" onclick="fecharModalBuscaMed()">✕ FECHAR</button>
+        </div>
+        <div class="modal-med-search-box">
+          <input type="text" id="modalMedInput" class="uppercase-input" placeholder="DIGITE NOME, LOTE OU VALIDADE..." oninput="filtrarListaModal(this.value)">
+        </div>
+        <div class="modal-med-list" id="modalMedList">
+          <!-- Itens renderizados via JS -->
+        </div>
+      </div>
+    </div>
+
     <!-- CAMPO EXCLUSIVO DA IMPRESSÃO P&B -->
     <div class="print-signatures-block" id="printSigBlock">
       <div class="sig-box">
@@ -864,6 +918,7 @@
     let wakeLock = null;
     let recognition = null;
     let isRecording = false;
+    let inputMedAtualFocus = null;
 
     if (window.supabase) {
       _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1578,15 +1633,14 @@
       salvarLocal();
     }
 
-    /* MECANISMO DE AUTOCOMPLETE FLUTUANTE PARA MÓVEIS (SUBSTITUI DATALIST) */
+    /* MÓDULO POPUP MODAL EXCLUSIVO PARA SMARTPHONES E TABLETS */
     function addMedRow() {
       const tbody = document.getElementById('meds_body');
       const tr = document.createElement('tr');
 
       tr.innerHTML = `
         <td>
-          <input type="text" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR INSUMO, LOTE OU VALIDADE..." oninput="filtrarEExibirSugestoes(this)" onfocus="filtrarEExibirSugestoes(this)">
-          <div class="mobile-suggest-box"></div>
+          <input type="text" class="med-search-input uppercase-input" placeholder="CLIQUE AQUI PARA BUSCAR INSUMO..." readonly onclick="abrirModalBuscaMed(this)">
           
           <div class="psico-box" style="display: none;">
             <label style="color: #c2410c; font-weight: 800;">🔒 CONTROLE DE PSICOTRÓPICO & LACRES</label>
@@ -1620,52 +1674,56 @@
       tbody.appendChild(tr);
     }
 
-    function filtrarEExibirSugestoes(inputEl) {
-      const valNorm = normalizarString(inputEl.value);
-      const td = inputEl.closest('td');
-      const suggestBox = td.querySelector('.mobile-suggest-box');
+    function abrirModalBuscaMed(inputEl) {
+      inputMedAtualFocus = inputEl;
+      const overlay = document.getElementById('modalMedOverlay');
+      const modalInput = document.getElementById('modalMedInput');
+      
+      overlay.style.display = 'flex';
+      modalInput.value = '';
+      filtrarListaModal('');
+      
+      setTimeout(() => modalInput.focus(), 100);
+    }
 
-      if (!valNorm || valNorm.length < 1) {
-        suggestBox.style.display = 'none';
-        suggestBox.innerHTML = '';
-        verificarPsicotropico(inputEl);
+    function fecharModalBuscaMed() {
+      document.getElementById('modalMedOverlay').style.display = 'none';
+      inputMedAtualFocus = null;
+    }
+
+    function filtrarListaModal(termo) {
+      const listContainer = document.getElementById('modalMedList');
+      const termNorm = normalizarString(termo);
+
+      const filtrados = mapaLotesUnificados.filter(item => {
+        if (!termNorm) return true;
+        const labelNorm = normalizarString(item.label);
+        const descNorm = normalizarString(item.descricao);
+        return labelNorm.includes(termNorm) || descNorm.includes(termNorm);
+      });
+
+      listContainer.innerHTML = '';
+
+      if (filtrados.length === 0) {
+        listContainer.innerHTML = '<div style="padding:15px; text-align:center; color:#64748b; font-weight:bold;">NENHUM INSUMO ENCONTRADO</div>';
         return;
       }
 
-      const resultados = mapaLotesUnificados.filter(item => {
-        const labelNorm = normalizarString(item.label);
-        const descNorm = normalizarString(item.descricao);
-        return labelNorm.includes(valNorm) || descNorm.includes(valNorm);
-      }).slice(0, 10); // Limita a 10 resultados para carregar super rápido na tela
-
-      if (resultados.length > 0) {
-        suggestBox.innerHTML = '';
-        resultados.forEach(item => {
-          const itemDiv = document.createElement('div');
-          itemDiv.className = 'mobile-suggest-item';
-          itemDiv.innerText = item.label;
-          itemDiv.onclick = function() {
-            inputEl.value = item.label;
-            suggestBox.style.display = 'none';
-            verificarPsicotropico(inputEl);
+      filtrados.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'modal-med-item';
+        itemDiv.innerText = item.label;
+        itemDiv.onclick = function() {
+          if (inputMedAtualFocus) {
+            inputMedAtualFocus.value = item.label;
+            verificarPsicotropico(inputMedAtualFocus);
             salvarLocal();
-          };
-          suggestBox.appendChild(itemDiv);
-        });
-        suggestBox.style.display = 'block';
-      } else {
-        suggestBox.style.display = 'none';
-      }
-
-      verificarPsicotropico(inputEl);
+          }
+          fecharModalBuscaMed();
+        };
+        listContainer.appendChild(itemDiv);
+      });
     }
-
-    // Esconde a caixinha ao clicar fora
-    document.addEventListener('click', function(e) {
-      if (!e.target.classList.contains('med-search-input')) {
-        document.querySelectorAll('.mobile-suggest-box').forEach(box => box.style.display = 'none');
-      }
-    });
 
     function verificarPsicotropico(inputEl) {
       const valRaw = inputEl.value.trim();
