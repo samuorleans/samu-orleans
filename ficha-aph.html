@@ -112,7 +112,6 @@
     .cor-vd { background-color: #16a34a; }
     .cor-az { background-color: #2563eb; }
 
-    /* TEXTO DE IMPRESSÃO OCULTO NA TELA POR PADRÃO */
     .print-triagem-text { display: none; }
 
     .search-group { display: flex; gap: 3px; }
@@ -243,7 +242,7 @@
       cursor: pointer;
     }
 
-    /* ESTILO MONOCROMÁTICO LIMPO PARA IMPRESSÃO A4 PRETO E BRANCO */
+    /* ESTILO MONOCROMÁTICO PARA IMPRESSÃO A4 PRETO E BRANCO */
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
       html, body { width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 5.8pt !important; line-height: 1.1; }
@@ -280,7 +279,6 @@
       input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.4pt solid #444 !important; background: transparent !important; padding: 0px !important; font-weight: bold !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; }
       textarea { height: auto !important; resize: none; }
       
-      /* OCULTAR OS BOTÕES DE COR NA IMPRESSÃO E EXIBIR O TEXTO EM DESTAQUE */
       .codigo-group { display: none !important; }
       .print-triagem-text {
         display: block !important;
@@ -327,7 +325,6 @@
             <label>CÓDIGO TRIAGEM</label>
             <input type="hidden" id="cor_ocorrencia" value="VM">
             
-            <!-- Botões coloridos na tela -->
             <div class="codigo-group">
               <button type="button" class="btn-cor cor-vm active" onclick="selecionarCodigo('VM', this)">VM</button>
               <button type="button" class="btn-cor cor-am" onclick="selecionarCodigo('AM', this)">AM</button>
@@ -335,7 +332,6 @@
               <button type="button" class="btn-cor cor-az" onclick="selecionarCodigo('AZ', this)">AZ</button>
             </div>
 
-            <!-- Texto otimizado para impressão P&B -->
             <div id="printTriagemBox" class="print-triagem-text">VERMELHO (VM)</div>
           </div>
           <div><label>Data</label><input type="date" id="data"></div>
@@ -343,7 +339,7 @@
 
         <div class="grid-2">
           <div><label>Médico Regulador</label><input type="text" id="regulador" class="uppercase-input" placeholder="MÉDICO REGULADOR"></div>
-          <div><label>Motivo do Acionamento</label><input type="text" id="motivo_acionamento" placeholder="Ex: Acidente de Trânsito, Dor Torácica..."></div>
+          <div><label>Motivo do Acionamento</label><input type="text" id="motivo_acionamento" class="uppercase-input" placeholder="EX: ACIDENTE DE TRÂNSITO, DOR TORÁCICA..."></div>
         </div>
 
         <div class="grid-2">
@@ -404,7 +400,7 @@
 
         <div id="qta_box" style="display: none; margin-top: 6px; background: #fef2f2; padding: 6px; border: 1px solid #fca5a5; border-radius: 4px;">
           <label style="color: #991b1b;">Justificativa do QTA (Cancelamento do Atendimento)*</label>
-          <input type="text" id="qta_motivo" placeholder="Informe o motivo da dispensa/cancelamento pela regulação...">
+          <input type="text" id="qta_motivo" class="uppercase-input" placeholder="INFORME O MOTIVO DA DISPENSA/CANCELAMENTO PELA REGULAÇÃO...">
         </div>
       </div>
     </div>
@@ -450,14 +446,15 @@
         </div>
 
         <div class="grid-endereco" style="margin-top: 2px;">
-          <div><label>Rua / Logradouro</label><input type="text" id="rua" placeholder="Nome da rua ou rodovia..."></div>
-          <div><label>Nº Casa / Apto</label><input type="tel" inputmode="numeric" id="numero" placeholder="Nº"></div>
+          <div><label>Rua / Logradouro</label><input type="text" id="rua" class="uppercase-input" placeholder="NOME DA RUA OU RODOVIA..."></div>
+          <div><label>Nº Casa / Apto</label><input type="tel" inputmode="numeric" id="numero" class="uppercase-input" placeholder="Nº"></div>
         </div>
 
-        <div class="grid-3">
-          <div><label>Bairro</label><input type="text" id="bairro"></div>
-          <div><label>Ponto de Referência</label><input type="text" id="ponto_ref"></div>
-          <div><label>Município</label><input type="text" id="municipio" value="Orleans"></div>
+        <div class="grid-4">
+          <div><label>Bairro</label><input type="text" id="bairro" class="uppercase-input"></div>
+          <div><label>Ponto de Referência</label><input type="text" id="ponto_ref" class="uppercase-input"></div>
+          <div><label>Município</label><input type="text" id="municipio" class="uppercase-input" value="ORLEANS"></div>
+          <div><label>Estado (UF)</label><input type="text" id="estado" class="uppercase-input" value="SC" maxlength="2"></div>
         </div>
       </div>
     </div>
@@ -608,7 +605,7 @@
           
           <div id="alergia_desc_box" style="display: none;">
             <label style="color: var(--primary-dark);">Relatar Medicamentos / Alergias</label>
-            <textarea id="alergia_desc" class="auto-expand" placeholder="Ex: Dipirona, Penicilina..." oninput="autoExpandTextarea(this)"></textarea>
+            <textarea id="alergia_desc" class="auto-expand uppercase-input" placeholder="EX: DIPIRONA, PENICILINA..." oninput="autoExpandTextarea(this)"></textarea>
           </div>
         </div>
 
@@ -623,7 +620,7 @@
 
           <div id="med_continua_box" style="display: none;">
             <label style="color: var(--primary-dark);">Descrever Medicamentos Contínuos</label>
-            <textarea id="meds_continuas" class="auto-expand" placeholder="Ex: Losartana 50mg, Metformina 850mg..." oninput="autoExpandTextarea(this)"></textarea>
+            <textarea id="meds_continuas" class="auto-expand uppercase-input" placeholder="EX: LOSARTANA 50MG, METFORMINA 850MG..." oninput="autoExpandTextarea(this)"></textarea>
           </div>
         </div>
 
@@ -632,7 +629,7 @@
             <label>Evolução e Conduta (Com IA Tática de Transcrição)</label>
             <button type="button" class="btn-mic" id="btnMic" onclick="toggleDitadoVoz()">🎙️ Ditar c/ Parser Médico</button>
           </div>
-          <textarea id="evolucao_texto" class="auto-expand" rows="5" placeholder="Relato completo do atendimento, condutas realizadas e suporte prestado..." oninput="autoExpandTextarea(this)"></textarea>
+          <textarea id="evolucao_texto" class="auto-expand uppercase-input" rows="5" placeholder="RELATO COMPLETO DO ATENDIMENTO, CONDUTAS REALIZADAS E SUPORTE PRESTADO..." oninput="autoExpandTextarea(this)"></textarea>
         </div>
 
         <div class="grid-2" style="margin-top: 4px;">
@@ -640,7 +637,7 @@
           <div>
             <label>Destino / Hospital Receptor</label>
             <select id="hospital_destino" onchange="toggleHospitalOutros()"><option value="">Buscando Hospitais...</option></select>
-            <input type="text" id="hospital_outros" placeholder="Digite o nome do Hospital..." style="display: none; margin-top: 3px;">
+            <input type="text" id="hospital_outros" class="uppercase-input" placeholder="DIGITE O NOME DO HOSPITAL..." style="display: none; margin-top: 3px;">
           </div>
         </div>
       </div>
@@ -658,17 +655,39 @@
         </p>
         <div class="grid-2">
           <div>
-            <label>Assinante</label>
-            <select id="tipo_assinante">
-              <option>Vítima</option>
-              <option>Responsável</option>
-              <option>Testemunha</option>
-              <option>Médico Receptor</option>
+            <label>Assinante / Declarante</label>
+            <select id="tipo_assinante" onchange="atualizarCamposAssinante()">
+              <option value="Vítima">Vítima</option>
+              <option value="Responsável">Responsável</option>
+              <option value="Testemunha">Testemunha</option>
+              <option value="Médico Receptor">Médico Receptor</option>
             </select>
           </div>
           <div><label>Data / Hora</label><input type="text" id="data_hora_recusa" readonly></div>
         </div>
-        <label style="margin-top: 3px;">Assinatura Digital</label>
+
+        <!-- CAMPOS DINÂMICOS CONFORME O ASSINANTE SELECIONADO -->
+        <div id="box_dados_assinante" style="display: none; margin-top: 4px; padding: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;">
+          <div class="grid-3">
+            <div>
+              <label id="lbl_cpf_assinante">CPF</label>
+              <div class="search-group">
+                <input type="tel" inputmode="numeric" id="cpf_assinante" class="cpf-mask" placeholder="000.000.000-00" maxlength="14">
+                <button type="button" class="btn-search" onclick="buscarPessoaAssinanteCPF()">🔍 Buscar</button>
+              </div>
+            </div>
+            <div>
+              <label id="lbl_nome_assinante">Nome Completo</label>
+              <input type="text" id="nome_assinante" class="uppercase-input" placeholder="NOME COMPLETO">
+            </div>
+            <div id="box_tel_assinante">
+              <label>Telefone Contato</label>
+              <input type="tel" inputmode="numeric" id="tel_assinante" placeholder="(00) 00000-0000">
+            </div>
+          </div>
+        </div>
+
+        <label style="margin-top: 4px;">Assinatura Digital</label>
         <canvas id="sig-canvas"></canvas>
         <button type="button" id="btnClearSig" style="margin-top: 2px; padding: 3px; font-size: 0.65rem; background: #64748b; color: #fff; border: none; border-radius: 4px;">Limpar Assinatura</button>
       </div>
@@ -695,19 +714,31 @@
       { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "" }
     ];
 
-    async function reterTelaAcesa() {
+    // 1. MANTER TELA SEMPRE LIGADA (WAKE LOCK)
+    async function ativarWakeLockPermanente() {
       try {
-        if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
       } catch (err) {}
     }
-    document.getElementById('aphForm').addEventListener('click', reterTelaAcesa, { once: true });
+    ativarWakeLockPermanente();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') ativarWakeLockPermanente();
+    });
+
+    // 2. BLOQUEAR ATUALIZAÇÃO DA PÁGINA PARA NÃO PERDER DADOS
+    window.addEventListener('beforeunload', function (e) {
+      e.preventDefault();
+      e.returnValue = 'Atenção: Os dados do APH não salvos podem ser perdidos. Deseja realmente sair?';
+      return e.returnValue;
+    });
 
     function selecionarCodigo(cor, btn) {
       document.getElementById('cor_ocorrencia').value = cor;
       document.querySelectorAll('.btn-cor').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
-      // Atualiza o texto que aparece na impressão P&B
       const printBox = document.getElementById('printTriagemBox');
       const nomesTriagem = {
         'VM': 'VERMELHO (VM)',
@@ -716,10 +747,10 @@
         'AZ': 'AZUL (AZ)'
       };
       printBox.innerText = nomesTriagem[cor] || cor;
-
       salvarLocal();
     }
 
+    // BUSCA DE CEP COM PREENCHIMENTO DE UF EM MAIÚSCULAS
     async function mascaraEBuscarCEP(input) {
       let v = input.value.replace(/\D/g, "");
       if (v.length > 8) v = v.slice(0, 8);
@@ -732,9 +763,10 @@
           const res = await fetch(`https://viacep.com.br/ws/${cepSemMascara}/json/`);
           const data = await res.json();
           if (!data.erro) {
-            if (data.localidade) document.getElementById('municipio').value = data.localidade;
-            if (data.bairro) document.getElementById('bairro').value = data.bairro;
-            if (data.logradouro) document.getElementById('rua').value = data.logradouro;
+            if (data.localidade) document.getElementById('municipio').value = data.localidade.toUpperCase();
+            if (data.uf) document.getElementById('estado').value = data.uf.toUpperCase();
+            if (data.bairro) document.getElementById('bairro').value = data.bairro.toUpperCase();
+            if (data.logradouro) document.getElementById('rua').value = data.logradouro.toUpperCase();
             salvarLocal();
           }
         } catch(e) {}
@@ -803,18 +835,18 @@
     }
 
     const dicionarioMedico = {
-      "pressao alta": "Hipertensão Arterial",
-      "pressao baixa": "Hipotensão Arterial",
-      "falta de ar": "Dispneia",
-      "dor de cabeca": "Cefaleia",
-      "dor no peito": "Precordialgia",
-      "parada": "PCR (Parada Cardiorrespiratória)",
-      "vomito": "Êmese",
-      "enjoo": "Náusea",
-      "desmaio": "Síncope",
-      "sangramento": "Hemorragia",
-      "batimento acelerado": "Taquicardia",
-      "batimento lento": "Bradicardia"
+      "pressao alta": "HIPERTENSÃO ARTERIAL",
+      "pressao baixa": "HIPOTENSÃO ARTERIAL",
+      "falta de ar": "DISPNEIA",
+      "dor de cabeca": "CEFALEIA",
+      "dor no peito": "PRECORDIALGIA",
+      "parada": "PCR (PARADA CARDIORRESPIRATÓRIA)",
+      "vomito": "ÊMESE",
+      "enjoo": "NÁUSEA",
+      "desmaio": "SÍNCOPE",
+      "sangramento": "HEMORRAGIA",
+      "batimento acelerado": "TAQUICARDIA",
+      "batimento lento": "BRADICARDIA"
     };
 
     function processarTextoMedico(textoFala) {
@@ -823,7 +855,7 @@
         const regex = new RegExp(`\\b${termoLeigo}\\b`, 'gi');
         textoFormatado = textoFormatado.replace(regex, dicionarioMedico[termoLeigo]);
       });
-      return textoFormatado.charAt(0).toUpperCase() + textoFormatado.slice(1) + ". ";
+      return textoFormatado.toUpperCase() + ". ";
     }
 
     function toggleDitadoVoz() {
@@ -863,8 +895,11 @@
       recognition.start();
     }
 
-    document.querySelectorAll('.uppercase-input').forEach(input => {
-      input.addEventListener('input', (e) => { e.target.value = e.target.value.toUpperCase(); });
+    // FORÇAR MAIÚSCULAS EM CAMPOS DE TEXTO
+    document.addEventListener('input', (e) => {
+      if (e.target.classList && e.target.classList.contains('uppercase-input')) {
+        e.target.value = e.target.value.toUpperCase();
+      }
     });
 
     function toggleAlergiaInput() {
@@ -875,6 +910,55 @@
     function toggleMedContinuaInput() {
       const val = document.getElementById('med_continua_select').value;
       document.getElementById('med_continua_box').style.display = (val === 'SIM') ? 'block' : 'none';
+    }
+
+    // DINÂMICA DO TERMO DE RECUSA (SEÇÃO 8)
+    function atualizarCamposAssinante() {
+      const tipo = document.getElementById('tipo_assinante').value;
+      const box = document.getElementById('box_dados_assinante');
+      const boxTel = document.getElementById('box_tel_assinante');
+      const lblCpf = document.getElementById('lbl_cpf_assinante');
+      const lblNome = document.getElementById('lbl_nome_assinante');
+
+      if (tipo === 'Vítima' || tipo === 'Médico Receptor') {
+        box.style.display = 'none';
+      } else if (tipo === 'Responsável') {
+        box.style.display = 'block';
+        boxTel.style.display = 'none';
+        lblCpf.innerText = 'CPF do Responsável';
+        lblNome.innerText = 'Nome do Responsável';
+      } else if (tipo === 'Testemunha') {
+        box.style.display = 'block';
+        boxTel.style.display = 'block';
+        lblCpf.innerText = 'CPF da Testemunha';
+        lblNome.innerText = 'Nome da Testemunha';
+      }
+      salvarLocal();
+    }
+
+    async function buscarPessoaAssinanteCPF() {
+      const cpfRaw = document.getElementById('cpf_assinante').value.replace(/\D/g, "");
+      if (cpfRaw.length < 11) {
+        alert("Digite um CPF válido com 11 dígitos para buscar.");
+        return;
+      }
+
+      try {
+        const { data, error } = await _supabase
+          .from('pacientes')
+          .select('nome, telefone')
+          .eq('cpf', cpfRaw)
+          .single();
+
+        if (error || !data) {
+          alert("Pessoa não encontrada no cadastro. Preencha o nome manualmente.");
+          return;
+        }
+
+        document.getElementById('nome_assinante').value = (data.nome || '').toUpperCase();
+        if (data.telefone) document.getElementById('tel_assinante').value = data.telefone;
+        salvarLocal();
+      } catch (err) { alert("Erro ao consultar CPF."); }
     }
 
     function acionarJTime(jCode, targetInputId) {
@@ -1064,10 +1148,11 @@
         document.getElementById('idade').value = data.idade || '';
         if (data.sexo) document.getElementById('sexo').value = data.sexo;
         document.getElementById('telefone').value = data.telefone || '';
-        document.getElementById('municipio').value = data.municipio || 'Orleans';
-        document.getElementById('bairro').value = data.bairro || '';
-        document.getElementById('rua').value = data.rua || '';
-        document.getElementById('numero').value = data.numero || '';
+        document.getElementById('municipio').value = (data.municipio || 'ORLEANS').toUpperCase();
+        document.getElementById('estado').value = (data.estado || 'SC').toUpperCase();
+        document.getElementById('bairro').value = (data.bairro || '').toUpperCase();
+        document.getElementById('rua').value = (data.rua || '').toUpperCase();
+        document.getElementById('numero').value = (data.numero || '').toUpperCase();
         if (data.cep) document.getElementById('cep_paciente').value = data.cep;
         salvarLocal();
 
@@ -1079,9 +1164,9 @@
       const tr = document.createElement('tr');
 
       tr.innerHTML = `
-        <td><input type="text" list="lista_insumos_datalist" class="med-search-input" placeholder="Digite p/ buscar..." onchange="updateMedDetailsSearch(this)"></td>
-        <td><input type="text" class="med-lote" readonly placeholder="Lote"></td>
-        <td><input type="text" class="med-val" readonly placeholder="Validade"></td>
+        <td><input type="text" list="lista_insumos_datalist" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR..." onchange="updateMedDetailsSearch(this)"></td>
+        <td><input type="text" class="med-lote uppercase-input" readonly placeholder="LOTE"></td>
+        <td><input type="text" class="med-val uppercase-input" readonly placeholder="VALIDADE"></td>
         <td><input type="number" inputmode="numeric" value="1" min="1"></td>
         <td><button type="button" class="btn-del-med" onclick="this.closest('tr').remove()">×</button></td>
       `;
@@ -1122,13 +1207,16 @@
       }
     });
 
-    document.getElementById('cpf_paciente').addEventListener('keyup', (e) => {
-      let v = e.target.value.replace(/\D/g, "");
-      if (v.length > 11) v = v.slice(0, 11);
-      v = v.replace(/(\d{3})(\d)/, "$1.$2");
-      v = v.replace(/(\d{3})(\d)/, "$1.$2");
-      v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-      e.target.value = v;
+    // MÁSCARA UNIVERSAL PARA CPFS
+    document.addEventListener('keyup', (e) => {
+      if (e.target && (e.target.id === 'cpf_paciente' || e.target.classList.contains('cpf-mask'))) {
+        let v = e.target.value.replace(/\D/g, "");
+        if (v.length > 11) v = v.slice(0, 11);
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        e.target.value = v;
+      }
     });
 
     document.querySelectorAll('.g-calc').forEach(select => {
