@@ -68,6 +68,7 @@
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
     .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; }
+    .grid-glasgow { display: grid; grid-template-columns: 1fr 1fr 1fr 0.8fr; gap: 4px; }
     .grid-endereco { display: grid; grid-template-columns: 3fr 1fr; gap: 4px; }
     .grid-assinante-proporcional { display: grid; grid-template-columns: 1.2fr 2.5fr 1.1fr; gap: 4px; }
 
@@ -122,6 +123,20 @@
       width: 75px !important; height: 28px !important; font-size: 0.85rem !important; font-weight: 800 !important;
       text-align: center !important; margin-bottom: 0 !important; padding: 0 !important; border: 1px solid var(--border) !important;
       border-radius: 3px !important; background: #ffffff !important;
+    }
+
+    /* ESTILO VISUAL DESTACADO DO TOTAL GLASGOW */
+    .glasgow-total-box {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #991b1b;
+      background: #fef2f2;
+      border: 2px solid #fca5a5;
+      padding: 6px;
+      border-radius: 6px;
+      text-align: center;
+      margin-top: 2px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
     }
 
     .sv-table, .med-table, .table-expo { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.72rem; }
@@ -214,6 +229,14 @@
         font-size: 4.8pt;
         font-weight: bold;
         text-transform: uppercase;
+      }
+
+      .glasgow-total-box {
+        font-size: 7pt !important;
+        padding: 1px !important;
+        border: 0.4pt solid #000 !important;
+        background: transparent !important;
+        box-shadow: none !important;
       }
     }
   </style>
@@ -355,7 +378,7 @@
       </div>
     </div>
 
-    <!-- SEÇÃO 2: IDENTIFICAÇÃO DO PACIENTE & LOCAL (RECOLHIDO POR PADRÃO) -->
+    <!-- SEÇÃO 2: IDENTIFICAÇÃO DO PACIENTE & LOCAL -->
     <div class="card" id="sec2">
       <div class="card-header" onclick="toggleCard('sec2')">
         <span>2. Identificação do Paciente & Local</span>
@@ -409,7 +432,7 @@
       </div>
     </div>
 
-    <!-- SEÇÃO 3: TIPO DE ATENDIMENTO -->
+    <!-- SEÇÃO 3: TIPO DE ATENDIMENTO COM DISPARO CONDICIONAL DA EXPOSIÇÃO -->
     <div class="card" id="sec3">
       <div class="card-header" onclick="toggleCard('sec3')">
         <span>3. Tipo de Atendimento</span>
@@ -420,13 +443,13 @@
           <label><input type="checkbox" value="Clínico Adulto"> Clínico Adulto</label>
           <label><input type="checkbox" value="Clínico Pediátrico"> Clin. Pediátrico</label>
           <label><input type="checkbox" value="Obstétrico"> Obstétrico</label>
-          <label><input type="checkbox" value="Causas Externas / Trauma"> Causas Ext. / Trauma</label>
+          <label><input type="checkbox" id="chk_trauma" value="Causas Externas / Trauma" onchange="alternarExibicaoExposicaoTrauma()"> Causas Ext. / Trauma</label>
           <label><input type="checkbox" value="Psiquiátrico"> Psiquiátrico</label>
         </div>
       </div>
     </div>
 
-    <!-- SEÇÃO 4: AVALIAÇÃO TÁTICA ABCDE -->
+    <!-- SEÇÃO 4: AVALIAÇÃO TÁTICA ABCDE COM GLASGOW DETALHADO E DESTACADO -->
     <div class="card" id="sec4">
       <div class="card-header" onclick="toggleCard('sec4')">
         <span>4. Avaliação Tática & Exame Físico (ABCDE)</span>
@@ -448,37 +471,76 @@
           </div>
         </div>
 
-        <div class="grid-2" style="margin-bottom: 4px;">
-          <div>
-            <label>D - Glasgow (Ocular + Verbal + Motor)</label>
-            <div class="grid-3">
-              <select id="g_oc" class="g-calc"><option value="4">O: 4</option><option value="3">O: 3</option><option value="2">O: 2</option><option value="1">O: 1</option></select>
-              <select id="g_verb" class="g-calc"><option value="5">V: 5</option><option value="4">V: 4</option><option value="3">V: 3</option><option value="2">V: 2</option><option value="1">V: 1</option></select>
-              <select id="g_mot" class="g-calc"><option value="6">M: 6</option><option value="5">M: 5</option><option value="4">M: 4</option><option value="3">M: 3</option><option value="2">M: 2</option><option value="1">M: 1</option></select>
+        <div style="margin-bottom: 4px; border: 1px solid #e2e8f0; padding: 6px; border-radius: 4px; background: #fafafa;">
+          <label style="font-weight: 800; color: #1e293b; margin-bottom: 3px;">D - ESCALA DE COMA DE GLASGOW (AVALIAÇÃO NEUROLÓGICA)</label>
+          <div class="grid-glasgow">
+            <div>
+              <label>Abertura Ocular (O)</label>
+              <select id="g_oc" class="g-calc">
+                <option value="4">4 - Espontânea</option>
+                <option value="3">3 - À voz / Estímulo sonoro</option>
+                <option value="2">2 - À dor / Estímulo de pressão</option>
+                <option value="1">1 - Nenhuma</option>
+              </select>
             </div>
-            <div id="glasgow_total_val" style="font-size: 0.68rem; font-weight: bold; color: var(--primary-dark); text-align: center; margin-top: 1px;">Total Glasgow: 15 / 15</div>
+            <div>
+              <label>Resposta Verbal (V)</label>
+              <select id="g_verb" class="g-calc">
+                <option value="5">5 - Orientado</option>
+                <option value="4">4 - Confuso</option>
+                <option value="3">3 - Palavras inapropriadas</option>
+                <option value="2">2 - Sons incompreensíveis</option>
+                <option value="1">1 - Nenhuma</option>
+              </select>
+            </div>
+            <div>
+              <label>Resposta Motora (M)</label>
+              <select id="g_mot" class="g-calc">
+                <option value="6">6 - Odedece a comandos</option>
+                <option value="5">5 - Localiza a dor</option>
+                <option value="4">4 - Flexão normal (retirada)</option>
+                <option value="3">3 - Flexão anormal (decorticação)</option>
+                <option value="2">2 - Extensão (descerebração)</option>
+                <option value="1">1 - Nenhuma</option>
+              </select>
+            </div>
+            <div>
+              <label>Pupilas</label>
+              <select style="font-size: 0.72rem;">
+                <option>Isocóricas</option>
+                <option>Anisocóricas</option>
+                <option>Miose</option>
+                <option>Midríase</option>
+                <option>Reagente</option>
+                <option>Não Reagente</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label>Pupilas</label>
-            <select><option>Isocóricas</option><option>Anisocóricas</option><option>Miose</option><option>Midríase</option><option>Reagente</option><option>Não Reagente</option></select>
+          
+          <!-- CAMPO DESTACADO COM A PONTUAÇÃO FINAL DE GLASGOW -->
+          <div id="glasgow_total_val" class="glasgow-total-box">
+            TOTAL GLASGOW: 15 / 15
           </div>
         </div>
 
-        <label>E - Exposição / Lesões por Região</label>
-        <table class="table-expo">
-          <thead>
-            <tr>
-              <th>REGIÃO</th><th>Ferida/Corte</th><th>Fratura/Luxação</th><th>Queimadura</th><th>Escoriação</th><th>Edema/Hematoma</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>Cabeça/Pescoço</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
-            <tr><td>Tronco</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
-            <tr><td>Pelve</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
-            <tr><td>M. Superior (D/E)</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
-            <tr><td>M. Inferior (D/E)</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
-          </tbody>
-        </table>
+        <!-- E - EXPOSIÇÃO EXIBIDO SOMENTE AO MARCAR "CAUSAS EXTERNAS / TRAUMA" -->
+        <div id="box_exposicao_lesoes" style="display: none; margin-top: 4px;">
+          <label style="color: var(--primary-dark); font-weight: 800;">E - Exposição / Lesões por Região (Trauma)</label>
+          <table class="table-expo">
+            <thead>
+              <tr>
+                <th>REGIÃO</th><th>Ferida/Corte</th><th>Fratura/Luxação</th><th>Queimadura</th><th>Escoriação</th><th>Edema/Hematoma</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Cabeça/Pescoço</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr><td>Tronco</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr><td>Pelve</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr><td>M. Superior (D/E)</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr><td>M. Inferior (D/E)</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -730,6 +792,17 @@
       e.returnValue = 'Atenção: Os dados do APH não salvos podem ser perdidos. Deseja realmente sair?';
       return e.returnValue;
     });
+
+    function alternarExibicaoExposicaoTrauma() {
+      const chk = document.getElementById('chk_trauma');
+      const boxExpo = document.getElementById('box_exposicao_lesoes');
+      if (chk && chk.checked) {
+        boxExpo.style.display = 'block';
+      } else {
+        boxExpo.style.display = 'none';
+      }
+      salvarLocal();
+    }
 
     function selecionarCodigo(cor, btn) {
       document.getElementById('cor_ocorrencia').value = cor;
@@ -1036,7 +1109,6 @@
       document.getElementById('med_continua_box').style.display = (val === 'SIM') ? 'block' : 'none';
     }
 
-    // LIMPEZA E REINICIALIZAÇÃO DO FORMULÁRIO APÓS CONCLUSÃO DO J11
     function resetarFormularioParaNovaOcorrencia() {
       const tecVal = document.getElementById('tec_enfermeiro').value;
       const socVal = document.getElementById('socorrista').value;
@@ -1061,9 +1133,9 @@
 
       document.getElementById('meds_body').innerHTML = '';
       addMedRow();
+      alternarExibicaoExposicaoTrauma();
     }
 
-    // FLUXO TÁTICO DOS J'S E CICLO DE VIDA DA OCORRÊNCIA
     function acionarJTime(jCode, targetInputId) {
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -1313,6 +1385,7 @@
 
       addMedRow();
       ajustarExibicaoAssinaturasImpressao();
+      alternarExibicaoExposicaoTrauma();
     }
 
     function addSvRow(isFirst = false) {
@@ -1479,6 +1552,7 @@
           bairro: document.getElementById('bairro').value,
           municipio: document.getElementById('municipio').value,
           estado: document.getElementById('estado').value,
+          glasgow_total: (parseInt(document.getElementById('g_oc').value) || 0) + (parseInt(document.getElementById('g_verb').value) || 0) + (parseInt(document.getElementById('g_mot').value) || 0),
           evolucao_texto: document.getElementById('evolucao_texto').value,
           desfecho_vitima: document.getElementById('desfecho_vitima').value,
           houve_recusa: document.getElementById('houve_recusa').value,
@@ -1543,7 +1617,7 @@
         const o = parseInt(document.getElementById('g_oc').value) || 0;
         const v = parseInt(document.getElementById('g_verb').value) || 0;
         const m = parseInt(document.getElementById('g_mot').value) || 0;
-        document.getElementById('glasgow_total_val').innerText = `Total Glasgow: ${o + v + m} / 15`;
+        document.getElementById('glasgow_total_val').innerText = `TOTAL GLASGOW: ${o + v + m} / 15`;
         salvarLocal();
       });
     });
