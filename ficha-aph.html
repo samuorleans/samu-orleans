@@ -69,6 +69,7 @@
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
     .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; }
     .grid-glasgow { display: grid; grid-template-columns: 1fr 1fr 1fr 0.8fr; gap: 4px; }
+    .grid-reclassificacao-otimizado { display: grid; grid-template-columns: 1.2fr 1fr 1.2fr; gap: 4px; }
     .grid-endereco { display: grid; grid-template-columns: 3fr 1fr; gap: 4px; }
     .grid-assinante-proporcional { display: grid; grid-template-columns: 1.2fr 2.5fr 1.1fr; gap: 4px; }
 
@@ -191,7 +192,6 @@
         display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.5pt solid #000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;
       }
 
-      /* OCULTAR O CAMPO DE HORÁRIO NA IMPRESSÃO PARA EVITAR REPETIÇÃO */
       #box_reclassificacao_hora_form { display: none !important; }
 
       .j-block-container { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 2px !important; }
@@ -279,10 +279,10 @@
           <div><label>Data</label><input type="date" id="data"></div>
         </div>
 
-        <!-- RECLASSIFICAÇÃO DE CÓDIGO -->
+        <!-- RECLASSIFICAÇÃO DE CÓDIGO - LAYOUT OTIMIZADO -->
         <div style="margin-top: 4px; padding: 5px; background: #f8fafc; border: 1px dashed var(--border); border-radius: 4px;">
           <label style="color: #0f172a; font-weight: 800;">RECLASSIFICAÇÃO DE CÓDIGO / ALTERAÇÃO PELA REGULAÇÃO (OPCIONAL)</label>
-          <div class="grid-3">
+          <div class="grid-reclassificacao-otimizado">
             <div>
               <label>Novo Código</label>
               <select id="reclassificacao_codigo" onchange="tratarSelecaoReclassificacao(this)">
@@ -833,7 +833,6 @@
       salvarLocal();
     }
 
-    /* AJUSTADO: EXIBE 'DR(A).' E UNIFICA O HORÁRIO SEM REPETIÇÕES */
     function atualizarTextoReclassificacaoImpressao() {
       const novoCod = document.getElementById('reclassificacao_codigo').value;
       const hora = document.getElementById('reclassificacao_hora').value;
@@ -1611,16 +1610,13 @@
       }
     });
 
-    /* MÁSCARA DINÂMICA PARA TELEFONE FIXO E CELULAR */
     function aplicarMascaraTelefone(el) {
       let v = el.value.replace(/\D/g, "");
       if (v.length > 11) v = v.slice(0, 11);
       
       if (v.length > 10) {
-        // Celular com 9 dígitos: (XX) XXXXX-XXXX
         v = v.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
       } else if (v.length > 5) {
-        // Telefone Fixo com 8 dígitos: (XX) XXXX-XXXX
         v = v.replace(/^(\d{2})(\d{4})(\d{0,4})$/, "($1) $2-$3");
       } else if (v.length > 2) {
         v = v.replace(/^(\d{2})(\d{0,5})$/, "($1) $2");
