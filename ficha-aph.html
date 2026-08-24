@@ -70,6 +70,9 @@
     .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; }
     .grid-endereco { display: grid; grid-template-columns: 3fr 1fr; gap: 4px; }
 
+    /* LAYOUT ESPAÇOSO PARA O TERMO DE RECUSA (NOME AMPLO) */
+    .grid-assinante-proporcional { display: grid; grid-template-columns: 1.2fr 2.5fr 1.1fr; gap: 4px; }
+
     label { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 1px; text-transform: uppercase; }
     .uppercase-input { text-transform: uppercase; }
 
@@ -91,7 +94,6 @@
       min-height: 32px;
     }
 
-    /* SELETOR CÓDIGO (TELA) */
     .codigo-group { display: flex; gap: 3px; margin-bottom: 3px; }
     .btn-cor {
       flex: 1;
@@ -242,7 +244,6 @@
       cursor: pointer;
     }
 
-    /* ESTILO MONOCROMÁTICO PARA IMPRESSÃO A4 PRETO E BRANCO */
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
       html, body { width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 5.8pt !important; line-height: 1.1; }
@@ -666,19 +667,19 @@
           <div><label>Data / Hora</label><input type="text" id="data_hora_recusa" readonly></div>
         </div>
 
-        <!-- CAMPOS DINÂMICOS CONFORME O ASSINANTE SELECIONADO -->
+        <!-- LAYOUT PROPORCIONAL COM CAMPO DE NOME MAIOR -->
         <div id="box_dados_assinante" style="display: none; margin-top: 4px; padding: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;">
-          <div class="grid-3">
+          <div class="grid-assinante-proporcional">
             <div>
               <label id="lbl_cpf_assinante">CPF</label>
               <div class="search-group">
                 <input type="tel" inputmode="numeric" id="cpf_assinante" class="cpf-mask" placeholder="000.000.000-00" maxlength="14">
-                <button type="button" class="btn-search" onclick="buscarPessoaAssinanteCPF()">🔍 Buscar</button>
+                <button type="button" class="btn-search" onclick="buscarPessoaAssinanteCPF()">🔍</button>
               </div>
             </div>
             <div>
               <label id="lbl_nome_assinante">Nome Completo</label>
-              <input type="text" id="nome_assinante" class="uppercase-input" placeholder="NOME COMPLETO">
+              <input type="text" id="nome_assinante" class="uppercase-input" style="font-weight: 700;" placeholder="NOME COMPLETO DO DECLARANTE">
             </div>
             <div id="box_tel_assinante">
               <label>Telefone Contato</label>
@@ -714,7 +715,6 @@
       { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "" }
     ];
 
-    // 1. MANTER TELA SEMPRE LIGADA (WAKE LOCK)
     async function ativarWakeLockPermanente() {
       try {
         if ('wakeLock' in navigator) {
@@ -727,7 +727,6 @@
       if (document.visibilityState === 'visible') ativarWakeLockPermanente();
     });
 
-    // 2. BLOQUEAR ATUALIZAÇÃO DA PÁGINA PARA NÃO PERDER DADOS
     window.addEventListener('beforeunload', function (e) {
       e.preventDefault();
       e.returnValue = 'Atenção: Os dados do APH não salvos podem ser perdidos. Deseja realmente sair?';
@@ -750,7 +749,7 @@
       salvarLocal();
     }
 
-    // BUSCA DE CEP COM PREENCHIMENTO DE UF EM MAIÚSCULAS
+    // BUSCA CEP REFORÇADA (LIMPA CAMPOS ANTERIORES E TRATA CEP GERAL)
     async function mascaraEBuscarCEP(input) {
       let v = input.value.replace(/\D/g, "");
       if (v.length > 8) v = v.slice(0, 8);
@@ -758,15 +757,23 @@
       input.value = v;
 
       const cepSemMascara = v.replace("-", "");
+      
+      // Quando atinge 8 dígitos limpa os dados de rua e bairro anteriores
       if (cepSemMascara.length === 8) {
+        document.getElementById('rua').value = '';
+        document.getElementById('bairro').value = '';
+
         try {
           const res = await fetch(`https://viacep.com.br/ws/${cepSemMascara}/json/`);
           const data = await res.json();
           if (!data.erro) {
             if (data.localidade) document.getElementById('municipio').value = data.localidade.toUpperCase();
             if (data.uf) document.getElementById('estado').value = data.uf.toUpperCase();
+            
+            // Só preenche se a API tiver rua e bairro (se for CEP geral deixa em branco)
             if (data.bairro) document.getElementById('bairro').value = data.bairro.toUpperCase();
             if (data.logradouro) document.getElementById('rua').value = data.logradouro.toUpperCase();
+            
             salvarLocal();
           }
         } catch(e) {}
@@ -895,7 +902,6 @@
       recognition.start();
     }
 
-    // FORÇAR MAIÚSCULAS EM CAMPOS DE TEXTO
     document.addEventListener('input', (e) => {
       if (e.target.classList && e.target.classList.contains('uppercase-input')) {
         e.target.value = e.target.value.toUpperCase();
@@ -912,7 +918,6 @@
       document.getElementById('med_continua_box').style.display = (val === 'SIM') ? 'block' : 'none';
     }
 
-    // DINÂMICA DO TERMO DE RECUSA (SEÇÃO 8)
     function atualizarCamposAssinante() {
       const tipo = document.getElementById('tipo_assinante').value;
       const box = document.getElementById('box_dados_assinante');
@@ -925,13 +930,13 @@
       } else if (tipo === 'Responsável') {
         box.style.display = 'block';
         boxTel.style.display = 'none';
-        lblCpf.innerText = 'CPF do Responsável';
-        lblNome.innerText = 'Nome do Responsável';
+        lblCpf.innerText = 'CPF Responsável';
+        lblNome.innerText = 'Nome Completo do Responsável';
       } else if (tipo === 'Testemunha') {
         box.style.display = 'block';
         boxTel.style.display = 'block';
-        lblCpf.innerText = 'CPF da Testemunha';
-        lblNome.innerText = 'Nome da Testemunha';
+        lblCpf.innerText = 'CPF Testemunha';
+        lblNome.innerText = 'Nome Completo da Testemunha';
       }
       salvarLocal();
     }
@@ -1207,7 +1212,6 @@
       }
     });
 
-    // MÁSCARA UNIVERSAL PARA CPFS
     document.addEventListener('keyup', (e) => {
       if (e.target && (e.target.id === 'cpf_paciente' || e.target.classList.contains('cpf-mask'))) {
         let v = e.target.value.replace(/\D/g, "");
