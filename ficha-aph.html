@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Ficha APH - SAMU 192 Orleans</title>
-  <!-- Supabase CDN para busca automática na tabela colaboradores -->
+  <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -71,7 +71,21 @@
       font-weight: 500;
     }
 
-    /* MÓDULO J'S EMPILHADO E COMPACTO */
+    /* BUSCA POR CPF */
+    .search-group { display: flex; gap: 4px; }
+    .btn-search {
+      background: var(--secondary);
+      color: #fff;
+      border: none;
+      padding: 0 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      cursor: pointer;
+      height: 31px;
+    }
+
+    /* MÓDULO J'S COMPACTO */
     .j-vertical-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 4px; }
     .j-compact-item { background: #f1f5f9; padding: 3px 5px; border-radius: 4px; border: 1px solid #e2e8f0; }
     .j-compact-item label { font-size: 0.58rem; margin-bottom: 1px; color: var(--secondary); font-weight: 800; }
@@ -89,6 +103,14 @@
       cursor: pointer;
       white-space: nowrap;
     }
+
+    /* TABELA DE MEDICAÇÕES & INSUMOS */
+    .med-table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 0.75rem; }
+    .med-table th { background: #f1f5f9; padding: 4px; border: 1px solid #cbd5e1; text-align: left; font-size: 0.65rem; text-transform: uppercase; }
+    .med-table td { padding: 4px; border: 1px solid #cbd5e1; }
+    .med-table input, .med-table select { margin-bottom: 0; font-size: 0.75rem; padding: 3px; }
+    .btn-add-med { background: #166534; color: white; border: none; padding: 5px 8px; border-radius: 4px; font-size: 0.68rem; font-weight: bold; cursor: pointer; margin-top: 4px; }
+    .btn-del-med { background: #991b1b; color: white; border: none; padding: 2px 6px; border-radius: 3px; font-weight: bold; cursor: pointer; }
 
     .table-expo { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 0.7rem; }
     .table-expo th { background: #f1f5f9; padding: 4px; border: 1px solid #cbd5e1; font-size: 0.65rem; text-transform: uppercase; }
@@ -135,7 +157,7 @@
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
       html, body { width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 6.2pt !important; }
-      .btn-submit, .btn-j-small, button, script { display: none !important; }
+      .btn-submit, .btn-j-small, .btn-search, .btn-add-med, .btn-del-med, button, script { display: none !important; }
       header { background: none !important; color: #000 !important; border-bottom: 1.5pt solid #000; padding: 0 !important; margin-bottom: 2px !important; border-left: none !important; }
       header img { height: 30px !important; }
       header h1 { font-size: 9pt !important; margin: 0; color: #000 !important; }
@@ -147,9 +169,7 @@
       textarea { height: 12px !important; resize: none; }
       .j-vertical-list { grid-template-columns: repeat(6, 1fr) !important; gap: 1px !important; }
       .j-compact-item { background: transparent !important; border: none !important; padding: 0 !important; }
-      .checkbox-grid label { background: transparent !important; border: none !important; padding: 0 !important; font-size: 5.5pt !important; }
-      .checkbox-grid input[type="checkbox"] { width: 8px !important; height: 8px !important; }
-      .table-expo th, .table-expo td { padding: 1px !important; font-size: 5.5pt !important; border: 0.5pt solid #000 !important; }
+      .med-table th, .med-table td { font-size: 5.5pt !important; padding: 1px !important; border: 0.5pt solid #000 !important; }
       canvas { height: 26px !important; border: 0.5pt solid #000 !important; }
     }
   </style>
@@ -186,19 +206,15 @@
         <div><label>Médico Regulador</label><input type="text" id="regulador"></div>
         <div>
           <label>Téc. de Enfermagem</label>
-          <select id="tec_enfermeiro">
-            <option value="">Buscando colaboradores...</option>
-          </select>
+          <select id="tec_enfermeiro"><option value="">Carregando...</option></select>
         </div>
         <div>
           <label>Socorrista (Condutor)</label>
-          <select id="socorrista">
-            <option value="">Buscando colaboradores...</option>
-          </select>
+          <select id="socorrista"><option value="">Carregando...</option></select>
         </div>
       </div>
 
-      <!-- HORÁRIOS J EMPILHADOS E COMPACTOS -->
+      <!-- HORÁRIOS J COMPACTOS -->
       <div class="j-vertical-list">
         <div class="j-compact-item">
           <label>J9 (Saída Base)</label>
@@ -227,24 +243,32 @@
       </div>
     </div>
 
-    <!-- IDENTIFICAÇÃO DO PACIENTE & LOCAL -->
+    <!-- IDENTIFICAÇÃO DO PACIENTE & LOCAL (BUSCA CPF & CNS) -->
     <div class="card">
       <h2>2. Identificação do Paciente & Local</h2>
       <div class="grid-3">
-        <div><label>Município</label><input type="text" id="municipio" value="Orleans"></div>
-        <div><label>Bairro</label><input type="text" id="bairro"></div>
-        <div><label>Rua</label><input type="text" id="rua"></div>
+        <div>
+          <label>CPF Paciente (Busca Auto)</label>
+          <div class="search-group">
+            <input type="text" id="cpf_paciente" placeholder="000.000.000-00" maxlength="14">
+            <button type="button" class="btn-search" onclick="buscarPacienteCPF()">🔍 Buscar</button>
+          </div>
+        </div>
+        <div><label>CNS (Cartão SUS)</label><input type="text" id="cns_paciente" placeholder="000 0000 0000 0000" maxlength="15"></div>
+        <div><label>Paciente (Nome Completo)</label><input type="text" id="paciente"></div>
       </div>
-      <div class="grid-3">
-        <div><label>Nº</label><input type="text" id="numero"></div>
-        <div><label>Referências</label><input type="text" id="referencias"></div>
-        <div><label>CPF Paciente</label><input type="text" id="cpf_paciente" placeholder="000.000.000-00" maxlength="14"></div>
-      </div>
+
       <div class="grid-4">
-        <div><label>Paciente</label><input type="text" id="paciente"></div>
         <div><label>Idade</label><input type="number" id="idade"></div>
         <div><label>Sexo</label><select id="sexo"><option>M</option><option>F</option></select></div>
         <div><label>Telefone</label><input type="text" id="telefone"></div>
+        <div><label>Município</label><input type="text" id="municipio" value="Orleans"></div>
+      </div>
+
+      <div class="grid-3">
+        <div><label>Bairro</label><input type="text" id="bairro"></div>
+        <div><label>Rua</label><input type="text" id="rua"></div>
+        <div><label>Nº / Ref.</label><input type="text" id="numero"></div>
       </div>
       <div><label>Motivo Ativação</label><input type="text" id="motivo_ativacao"></div>
     </div>
@@ -261,10 +285,9 @@
       </div>
     </div>
 
-    <!-- AVALIAÇÃO TÁTICA ABCDE E EXPOSIÇÃO -->
+    <!-- AVALIAÇÃO TÁTICA ABCDE -->
     <div class="card">
       <h2>4. Avaliação Tática & Exame Físico (ABCDE)</h2>
-      
       <div class="grid-3" style="margin-bottom: 6px;">
         <div>
           <label>A - Vias Aéreas</label>
@@ -300,12 +323,7 @@
       <table class="table-expo">
         <thead>
           <tr>
-            <th>REGIÃO</th>
-            <th>Ferida/Corte</th>
-            <th>Fratura/Luxação</th>
-            <th>Queimadura</th>
-            <th>Escoriação</th>
-            <th>Edema/Hematoma</th>
+            <th>REGIÃO</th><th>Ferida/Corte</th><th>Fratura/Luxação</th><th>Queimadura</th><th>Escoriação</th><th>Edema/Hematoma</th>
           </tr>
         </thead>
         <tbody>
@@ -316,18 +334,6 @@
           <tr><td>M. Inferior (D/E)</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
         </tbody>
       </table>
-
-      <div style="margin-top: 6px;">
-        <label>Queimaduram (Grau & Agente)</label>
-        <div class="checkbox-grid">
-          <label><input type="checkbox"> 1º Grau</label>
-          <label><input type="checkbox"> 2º Grau</label>
-          <label><input type="checkbox"> 3º Grau</label>
-          <label><input type="checkbox"> Térmica</label>
-          <label><input type="checkbox"> Química</label>
-          <label><input type="checkbox"> Elétrica / Atrito</label>
-        </div>
-      </div>
     </div>
 
     <!-- SINAIS VITAIS -->
@@ -369,12 +375,32 @@
       </div>
     </div>
 
+    <!-- MEDICAÇÕES E INSUMOS UTILIZADOS (BUSCA NO SUPABASE: estoque_mestre / estoque_lotes) -->
+    <div class="card">
+      <h2>6. Medicações & Insumos Utilizados (Baixa de Estoque)</h2>
+      <table class="med-table" id="tabela_meds">
+        <thead>
+          <tr>
+            <th>Insumo / Medicamento</th>
+            <th style="width: 80px;">Lote</th>
+            <th style="width: 85px;">Validade</th>
+            <th style="width: 55px;">Qtd</th>
+            <th style="width: 30px;">#</th>
+          </tr>
+        </thead>
+        <tbody id="meds_body">
+          <!-- Linhas adicionadas dinamicamente -->
+        </tbody>
+      </table>
+      <button type="button" class="btn-add-med" onclick="addMedRow()">+ Adicionar Medicamento / Insumo</button>
+    </div>
+
     <!-- ANAMNESE E EVOLUÇÃO -->
     <div class="card">
-      <h2>6. Anamnese, Evolução e Conduta</h2>
+      <h2>7. Anamnese, Evolução e Conduta</h2>
       <div class="grid-2">
         <div><label>Alergia?</label><select><option>NÃO</option><option>SIM</option></select></div>
-        <div><label>Medicações em Uso</label><input type="text" placeholder="Remédios do paciente"></div>
+        <div><label>Medicações de Uso Contínuo</label><input type="text" placeholder="Remédios do paciente"></div>
       </div>
       <div><label>Evolução e Conduta</label><textarea rows="2" placeholder="Procedimentos e conduta prestada..."></textarea></div>
       <div class="grid-2">
@@ -385,7 +411,7 @@
 
     <!-- TERMO DE RECUSA E ASSINATURA -->
     <div class="card">
-      <h2>7. Recusa de Atendimento / Assinatura</h2>
+      <h2>8. Recusa de Atendimento / Assinatura</h2>
       <p style="font-size: 0.6rem; color: #555; margin-bottom: 4px;">
         "Sabedor da necessidade do atendimento de urgência que necessito, recuso atendimento do SAMU 192, e assumo todos os riscos decorrentes da minha negativa."
       </p>
@@ -410,83 +436,135 @@
   </form>
 
   <script>
-    // 1. CONEXÃO AUTOMÁTICA AO SUPABASE (BUSCA COLABORADORES)
-    const SUPABASE_URL = 'https://rcpgukslnlfptreiusff.supabase.co'; // Projeto conforme o print do Dashboard
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Chave pública Anon (Injetada automaticamente se já estiver no ambiente)
+    const SUPABASE_URL = 'https://rcpgukslnlfptreiusff.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
 
     let _supabase = null;
+    let listaInsumosEstoque = [];
+
     if (window.supabase) {
       _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    async function carregarColaboradores() {
-      const selectTec = document.getElementById('tec_enfermeiro');
-      const selectSoc = document.getElementById('socorrista');
+    // 1. CARREGA COLABORADORES E INSUMOS DO SUPABASE
+    async function inicializarDados() {
+      if (!_supabase) return;
+
+      // Carrega Colaboradores
+      try {
+        const { data: colabs } = await _supabase.from('colaboradores').select('nome, funcao, coren').order('nome');
+        if (colabs) {
+          const selectTec = document.getElementById('tec_enfermeiro');
+          const selectSoc = document.getElementById('socorrista');
+          selectTec.innerHTML = '<option value="">-- Selecione o Téc. --</option>';
+          selectSoc.innerHTML = '<option value="">-- Selecione o Condutor --</option>';
+
+          colabs.forEach(c => {
+            if (c.coren && c.coren !== 'N/A') {
+              selectTec.innerHTML += `<option value="${c.nome} - COREN ${c.coren}">${c.nome} (${c.coren})</option>`;
+            }
+            if (c.funcao && c.funcao.toLowerCase().includes('condutor')) {
+              selectSoc.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+            }
+          });
+        }
+      } catch(e) { console.warn("Erro ao carregar colaboradores:", e); }
+
+      // Carrega Estoque de Medicações / Insumos
+      try {
+        const { data: est } = await _supabase.from('estoque_lotes').select('id, item_nome, lote, data_validade').gt('quantidade', 0);
+        if (est) listaInsumosEstoque = est;
+      } catch(e) { console.warn("Erro ao carregar estoque:", e); }
+
+      // Adiciona a primeira linha de insumo
+      addMedRow();
+    }
+
+    // 2. BUSCA PACIENTE POR CPF
+    async function buscarPacienteCPF() {
+      const cpfRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
+      if (cpfRaw.length < 11) {
+        alert("Digite um CPF válido com 11 dígitos para realizar a busca.");
+        return;
+      }
 
       try {
-        if (!_supabase) throw new Error("Supabase não inicializado");
-        
         const { data, error } = await _supabase
-          .from('colaboradores')
-          .select('nome, funcao, coren')
-          .order('nome', { ascending: true });
+          .from('pacientes')
+          .select('*')
+          .eq('cpf', cpfRaw)
+          .single();
 
-        if (error) throw error;
+        if (error || !data) {
+          alert("Paciente não encontrado na base de dados. Preencha os campos manualmente.");
+          return;
+        }
 
-        selectTec.innerHTML = '<option value="">-- Selecione o Téc. --</option>';
-        selectSoc.innerHTML = '<option value="">-- Selecione o Condutor --</option>';
-
-        data.forEach(colab => {
-          // Popula Técnicos/Enfermeiros
-          if (colab.coren && colab.coren !== 'N/A') {
-            const opt = document.createElement('option');
-            opt.value = `${colab.nome} - COREN ${colab.coren}`;
-            opt.textContent = `${colab.nome} (COREN ${colab.coren})`;
-            selectTec.appendChild(opt);
-          }
-
-          // Popula Condutores Socorristas
-          if (colab.funcao && colab.funcao.toLowerCase().includes('condutor')) {
-            const opt = document.createElement('option');
-            opt.value = colab.nome;
-            opt.textContent = colab.nome;
-            selectSoc.appendChild(opt);
-          }
-        });
+        // Autopreenchimento
+        document.getElementById('paciente').value = data.nome || '';
+        document.getElementById('cns_paciente').value = data.cns || '';
+        document.getElementById('idade').value = data.idade || '';
+        if (data.sexo) document.getElementById('sexo').value = data.sexo;
+        document.getElementById('telefone').value = data.telefone || '';
+        document.getElementById('municipio').value = data.municipio || 'Orleans';
+        document.getElementById('bairro').value = data.bairro || '';
+        document.getElementById('rua').value = data.rua || '';
+        document.getElementById('numero').value = data.numero || '';
 
       } catch (err) {
-        console.warn("Falha na busca remota Supabase, utilizando lista local pré-carregada:", err);
-        // Lista fallback padrão caso esteja offline sem cache prévio
-        selectTec.innerHTML = `
-          <option value="">-- Selecione o Téc. --</option>
-          <option value="Clênio Borges - COREN 862518">Clênio Borges</option>
-          <option value="Gicerléia Trindade da Rosa - COREN 870568">Gicerléia Trindade da Rosa</option>
-          <option value="Luis Eduardo Formanski Vitório - COREN 1551746">Luis Eduardo Formanski Vitório</option>
-          <option value="Rinaldo Calegario - COREN 331871">Rinaldo Calegario</option>
-          <option value="Suandre Adão Machado - COREN 99894">Suandre Adão Machado</option>
-        `;
-        selectSoc.innerHTML = `
-          <option value="">-- Selecione o Condutor --</option>
-          <option value="Daniel Alexandre Fernandes">Daniel Alexandre Fernandes</option>
-          <option value="Lucas Vieira Mendes">Lucas Vieira Mendes</option>
-          <option value="Márcio Becker">Márcio Becker</option>
-          <option value="Renato Cândido">Renato Cândido</option>
-          <option value="Vanderlei Jose Tasca">Vanderlei Jose Tasca</option>
-        `;
+        alert("Erro na consulta de paciente.");
       }
     }
 
-    // Inicialização da página
-    document.getElementById('data').valueAsDate = new Date();
-    document.getElementById('data_hora_recusa').value = new Date().toLocaleString('pt-BR');
-    carregarColaboradores();
+    // 3. ADICIONA LINHA NA TABELA DE MEDICAÇÕES
+    function addMedRow() {
+      const tbody = document.getElementById('meds_body');
+      const tr = document.createElement('tr');
 
+      let optionsHTML = '<option value="">-- Selecione o Item --</option>';
+      listaInsumosEstoque.forEach((item, idx) => {
+        optionsHTML += `<option value="${idx}">${item.item_nome}</option>`;
+      });
+
+      tr.innerHTML = `
+        <td><select onchange="updateMedDetails(this)">${optionsHTML}</select></td>
+        <td><input type="text" class="med-lote" readonly placeholder="Lote"></td>
+        <td><input type="text" class="med-val" readonly placeholder="Validade"></td>
+        <td><input type="number" value="1" min="1"></td>
+        <td><button type="button" class="btn-del-med" onclick="this.closest('tr').remove()">×</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    function updateMedDetails(select) {
+      const tr = select.closest('tr');
+      const idx = select.value;
+      if (idx !== "" && listaInsumosEstoque[idx]) {
+        const item = listaInsumosEstoque[idx];
+        tr.querySelector('.med-lote').value = item.lote || 'N/A';
+        tr.querySelector('.med-val').value = item.data_validade ? new Date(item.data_validade).toLocaleDateString('pt-BR') : 'N/A';
+      } else {
+        tr.querySelector('.med-lote').value = '';
+        tr.querySelector('.med-val').value = '';
+      }
+    }
+
+    // Máscara CPF
+    document.getElementById('cpf_paciente').addEventListener('keyup', (e) => {
+      let v = e.target.value.replace(/\D/g, "");
+      if (v.length > 11) v = v.slice(0, 11);
+      v = v.replace(/(\d{3})(\d)/, "$1.$2");
+      v = v.replace(/(\d{3})(\d)/, "$1.$2");
+      v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+      e.target.value = v;
+    });
+
+    // Horário nos J's
     function getNowTime() {
       const now = new Date();
       return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     }
 
-    // Delegador de Eventos para os botões J
     document.addEventListener('click', function(e) {
       if (e.target && e.target.classList.contains('btn-j-small')) {
         e.preventDefault();
@@ -496,18 +574,7 @@
       }
     });
 
-    // Máscara CPF
-    const cpfInput = document.getElementById('cpf_paciente');
-    cpfInput.addEventListener('keyup', (e) => {
-      let v = e.target.value.replace(/\D/g, "");
-      if (v.length > 11) v = v.slice(0, 11);
-      v = v.replace(/(\d{3})(\d)/, "$1.$2");
-      v = v.replace(/(\d{3})(\d)/, "$1.$2");
-      v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-      e.target.value = v;
-    });
-
-    // Cálculo Glasgow
+    // Glasgow Calc
     document.querySelectorAll('.g-calc').forEach(select => {
       select.addEventListener('change', () => {
         const o = parseInt(document.getElementById('g_oc').value) || 0;
@@ -517,7 +584,7 @@
       });
     });
 
-    // Canvas de Assinatura
+    // Canvas Assinatura
     const canvas = document.getElementById('sig-canvas');
     const ctx = canvas.getContext('2d');
     let writing = false;
@@ -537,30 +604,24 @@
     }
 
     canvas.addEventListener('touchstart', (e) => {
-      writing = true;
-      ctx.beginPath();
-      const pos = getTouchPos(e);
-      ctx.moveTo(pos.x, pos.y);
+      writing = true; ctx.beginPath();
+      const pos = getTouchPos(e); ctx.moveTo(pos.x, pos.y);
     }, { passive: false });
 
     canvas.addEventListener('touchend', () => { writing = false; });
     canvas.addEventListener('touchmove', (e) => {
-      if (!writing) return;
-      e.preventDefault();
-      const pos = getTouchPos(e);
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "#000";
-      ctx.lineTo(pos.x, pos.y);
-      ctx.stroke();
+      if (!writing) return; e.preventDefault();
+      const pos = getTouchPos(e); ctx.lineWidth = 2; ctx.strokeStyle = "#000";
+      ctx.lineTo(pos.x, pos.y); ctx.stroke();
     }, { passive: false });
 
-    document.getElementById('btnClearSig').addEventListener('click', () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    });
+    document.getElementById('btnClearSig').addEventListener('click', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); });
+    document.getElementById('btnImprimir').addEventListener('click', () => { window.print(); });
 
-    document.getElementById('btnImprimir').addEventListener('click', () => {
-      window.print();
-    });
+    // Inicializa ao carregar
+    document.getElementById('data').valueAsDate = new Date();
+    document.getElementById('data_hora_recusa').value = new Date().toLocaleString('pt-BR');
+    inicializarDados();
   </script>
 </body>
 </html>
