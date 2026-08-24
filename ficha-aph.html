@@ -156,7 +156,7 @@
       select { -webkit-appearance: none !important; appearance: none !important; background: none !important; border: none !important; }
 
       header {
-        background: #fff !important; color: #000 !important; border-bottom: 1.5pt solid #000; padding: 2px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-content: space-between !important; align-items: center !important;
+        background: #fff !important; color: #000 !important; border-bottom: 1.5pt solid #000; padding: 2px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-space-between !important; align-items: center !important;
       }
       header img { height: 32px !important; }
       header .header-info { text-align: right !important; }
@@ -476,12 +476,12 @@
         <span class="icon-toggle">▼</span>
       </div>
       <div class="card-body">
-        <datalist id="listaInsumosAPH"></datalist>
+        <datalist id="listaInsumosLotesAPH"></datalist>
 
         <table class="med-table">
           <thead>
             <tr>
-              <th>Insumo / Medicamento (Digite p/ Buscar)</th>
+              <th>Insumo Selecionado (Com Lote e Validade)</th>
               <th style="width: 70px;">Qtd</th>
               <th>Via de Aplicação / Observações</th>
               <th style="width: 35px;">#</th>
@@ -651,7 +651,7 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A';
 
     let _supabase = null;
-    let listaInsumosEstoqueMestre = [];
+    let mapaLotesUnificados = [];
     let wakeLock = null;
     let recognition = null;
     let isRecording = false;
@@ -1032,51 +1032,90 @@
       });
     }
 
-    // BUSCA DE INSUMOS DA TABELA estoque_mestre
-    async function carregarInsumosParaAPH() {
-      const datalist = document.getElementById('listaInsumosAPH');
+    // CONSULTA UNIFICADA: ESTOQUE_MESTRE X ESTOQUE_LOTE
+    async function carregarInsumosELotesUnificados() {
+      const datalist = document.getElementById('listaInsumosLotesAPH');
       if (!datalist) return;
 
       datalist.innerHTML = '';
-      let insumos = null;
+      mapaLotesUnificados = [];
+
+      let mestreRes = [];
+      let lotesRes = [];
 
       try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=codigo_insumo,descricao_insumo,categoria&exibir_no_aph=eq.true&order=descricao_insumo.asc`, {
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-          }
-        });
+        const [resMestre, resLotes] = await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=codigo_insumo,descricao_insumo,categoria&exibir_no_aph=eq.true&order=descricao_insumo.asc`, {
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+          }),
+          fetch(`${SUPABASE_URL}/rest/v1/estoque_lote?select=descricao_insumo,numero_lote,data_validade,saldo_lote&saldo_lote=gt.0&order=data_validade.asc`, {
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+          })
+        ]);
 
-        if (response.ok) {
-          insumos = await response.json();
-        }
+        if (resMestre.ok) mestreRes = await resMestre.json();
+        if (resLotes.ok) lotesRes = await resLotes.json();
       } catch (errRest) {}
 
-      if (!insumos && _supabase) {
+      if ((!mestreRes.length || !lotesRes.length) && _supabase) {
         try {
-          const { data, error } = await _supabase
+          const { data: dMestre } = await _supabase
             .from('estoque_mestre')
             .select('codigo_insumo, descricao_insumo, categoria')
             .eq('exibir_no_aph', true)
             .order('descricao_insumo', { ascending: true });
 
-          if (!error && data) insumos = data;
+          const { data: dLotes } = await _supabase
+            .from('estoque_lote')
+            .select('descricao_insumo, numero_lote, data_validade, saldo_lote')
+            .gt('saldo_lote', 0)
+            .order('data_validade', { ascending: true });
+
+          if (dMestre) mestreRes = dMestre;
+          if (dLotes) lotesRes = dLotes;
         } catch (errSdk) {}
       }
 
-      if (insumos && insumos.length > 0) {
-        listaInsumosEstoqueMestre = insumos;
-        localStorage.setItem('aph_insumos_mestre_cache', JSON.stringify(insumos));
+      if (mestreRes.length > 0) {
+        mestreRes.forEach(m => {
+          const lotesDoItem = lotesRes.filter(l => l.descricao_insumo && l.descricao_insumo.trim().toUpperCase() === m.descricao_insumo.trim().toUpperCase());
+
+          if (lotesDoItem.length > 0) {
+            lotesDoItem.forEach(l => {
+              const dataValFmt = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : 'N/A';
+              const labelExibicao = `${m.descricao_insumo} — Lote: ${l.numero_lote || 'S/L'} | Val: ${dataValFmt} | Saldo: ${l.saldo_lote}`;
+
+              mapaLotesUnificados.push({
+                label: labelExibicao,
+                codigo: m.codigo_insumo || '',
+                descricao: m.descricao_insumo,
+                numero_lote: l.numero_lote || '',
+                data_validade: l.data_validade || '',
+                saldo_lote: l.saldo_lote || 0
+              });
+            });
+          } else {
+            const labelExibicao = `${m.descricao_insumo} — Lote: SEM LOTE | Val: N/A | Saldo: 0`;
+            mapaLotesUnificados.push({
+              label: labelExibicao,
+              codigo: m.codigo_insumo || '',
+              descricao: m.descricao_insumo,
+              numero_lote: 'SEM LOTE',
+              data_validade: '',
+              saldo_lote: 0
+            });
+          }
+        });
+
+        localStorage.setItem('aph_insumos_unificados_cache', JSON.stringify(mapaLotesUnificados));
       } else {
-        const cacheLocal = localStorage.getItem('aph_insumos_mestre_cache');
-        if (cacheLocal) listaInsumosEstoqueMestre = JSON.parse(cacheLocal);
+        const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
+        if (cacheLocal) mapaLotesUnificados = JSON.parse(cacheLocal);
       }
 
-      listaInsumosEstoqueMestre.forEach(item => {
+      mapaLotesUnificados.forEach(item => {
         const opt = document.createElement('option');
-        opt.value = item.descricao_insumo;
-        opt.dataset.codigo = item.codigo_insumo || '';
+        opt.value = item.label;
         datalist.appendChild(opt);
       });
     }
@@ -1084,7 +1123,7 @@
     async function inicializarDados() {
       addSvRow(true);
       await carregarColaboradoresRobusto();
-      await carregarInsumosParaAPH();
+      await carregarInsumosELotesUnificados();
 
       try {
         const { data: hospitais } = await _supabase.from('hospitais').select('*').order('nome');
@@ -1175,7 +1214,7 @@
 
       tr.innerHTML = `
         <td>
-          <input type="text" list="listaInsumosAPH" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR INSUMO..." onchange="salvarLocal()">
+          <input type="text" list="listaInsumosLotesAPH" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR INSUMO/LOTE..." onchange="salvarLocal()">
         </td>
         <td>
           <input type="number" inputmode="numeric" class="med-qtd" value="1" min="1" onchange="salvarLocal()">
@@ -1195,20 +1234,33 @@
       const linhas = document.querySelectorAll('#meds_body tr');
 
       linhas.forEach(tr => {
-        const inputDesc = tr.querySelector('.med-search-input');
+        const inputLabel = tr.querySelector('.med-search-input');
         const inputQtd = tr.querySelector('.med-qtd');
         const inputVia = tr.querySelector('.med-via');
 
-        if (inputDesc && inputDesc.value.trim() !== '') {
-          const desc = inputDesc.value.trim().toUpperCase();
-          const itemEncontrado = listaInsumosEstoqueMestre.find(i => i.descricao_insumo.toUpperCase() === desc);
+        if (inputLabel && inputLabel.value.trim() !== '') {
+          const valDigitado = inputLabel.value.trim();
+          const itemEncontrado = mapaLotesUnificados.find(i => i.label === valDigitado);
 
-          insumosArray.push({
-            codigo: itemEncontrado ? itemEncontrado.codigo_insumo : null,
-            descricao: desc,
-            quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
-            via_aplicacao: inputVia ? inputVia.value.trim().toUpperCase() : ''
-          });
+          if (itemEncontrado) {
+            insumosArray.push({
+              codigo: itemEncontrado.codigo,
+              descricao: itemEncontrado.descricao,
+              numero_lote: itemEncontrado.numero_lote,
+              data_validade: itemEncontrado.data_validade,
+              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
+              via_aplicacao: inputVia ? inputVia.value.trim().toUpperCase() : ''
+            });
+          } else {
+            insumosArray.push({
+              codigo: null,
+              descricao: valDigitado.toUpperCase(),
+              numero_lote: 'N/A',
+              data_validade: null,
+              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
+              via_aplicacao: inputVia ? inputVia.value.trim().toUpperCase() : ''
+            });
+          }
         }
       });
 
