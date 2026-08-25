@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAMU Connect — Movimentação de Estoque & Almoxarifado</title>
+  <title>SAMU Connect — Controle de Movimentação de Estoque</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -25,26 +25,24 @@
     .header h1 { font-size: 1.3rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; display: flex; align-items: center; gap: 8px; }
     .header p { font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 20px; }
 
-    .nav-tabs { display: flex; gap: 8px; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; }
-    .tab-btn { padding: 10px 18px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.85rem; border-radius: 8px; cursor: pointer; color: var(--samu-navy); transition: 0.2s; }
-    .tab-btn.active-entrada { background: #16a34a; color: white; }
-    .tab-btn.active-baixa { background: var(--samu-red); color: white; }
+    .nav-tabs { display: flex; gap: 8px; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; overflow-x: auto; }
+    .tab-btn { padding: 10px 16px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.85rem; border-radius: 8px; cursor: pointer; color: var(--samu-navy); white-space: nowrap; transition: 0.2s; }
+    .tab-btn.active { background: #16a34a; color: white; }
+    .tab-btn.active-baixa { background: #d32f2f; color: white; }
 
-    .card-form { background: #f8fafc; border: 1.5px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-    .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .form-box { background: #f8fafc; border: 1.5px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 24px; }
+    .form-box h3 { font-size: 0.95rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
 
+    .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
     .form-group { display: flex; flex-direction: column; text-align: left; }
     .form-group label { font-size: 0.72rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 4px; text-transform: uppercase; }
-    .form-group input, .form-group select { padding: 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none; background: white; width: 100%; }
+    .form-group input, .form-group select { padding: 9px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none; background: white; width: 100%; }
     .form-group input:focus, .form-group select:focus { border-color: var(--samu-blue); }
 
-    .uppercase-input { text-transform: uppercase; }
+    .btn-salvar { margin-top: 16px; background: #16a34a; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%; font-size: 0.9rem; display: flex; justify-content: center; align-items: center; gap: 8px; }
+    .btn-salvar-baixa { background: #d32f2f; }
 
-    .btn-acao { margin-top: 16px; border: none; padding: 12px; border-radius: 8px; font-weight: 800; cursor: pointer; width: 100%; font-size: 0.95rem; text-transform: uppercase; }
-    .btn-entrada { background: #16a34a; color: white; }
-    .btn-baixa { background: var(--samu-red); color: white; }
-
-    .table-container { overflow-x: auto; margin-top: 15px; }
+    .table-container { overflow-x: auto; margin-top: 10px; }
     .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left; }
     .data-table th, .data-table td { border: 1px solid var(--border); padding: 10px; }
     .data-table th { background: var(--samu-navy); color: white; text-transform: uppercase; font-size: 0.75rem; }
@@ -57,345 +55,337 @@
 
   <div class="container">
     <div class="header">
-      <h1>📦 Controle de Movimentação de Estoque</h1>
+      <h1>📦 CONTROLE DE MOVIMENTAÇÃO DE ESTOQUE</h1>
       <p>Entrada de Materiais, Lotes e Baixas Operacionais (Avarias/Vencimento) — USB 11</p>
     </div>
 
-    <!-- TABS DE OPERAÇÃO -->
+    <!-- ABAS PRINCIPAIS -->
     <div class="nav-tabs">
-      <button class="tab-btn active-entrada" id="btnTabEntrada" onclick="alternarModo('ENTRADA')">📥 Entrada de Insumos & Lotes</button>
-      <button class="tab-btn" id="btnTabBaixa" onclick="alternarModo('BAIXA')">📤 Baixa / Ajuste de Estoque</button>
+      <button class="tab-btn active" id="tabEntrada" onclick="alternarAba('entrada')">📦 Entrada de Insumos & Lotes</button>
+      <button class="tab-btn" id="tabBaixa" onclick="alternarAba('baixa')">🚨 Baixa / Ajuste de Estoque</button>
     </div>
 
-    <!-- PAINEL ENTRADA DE MATERIAL -->
-    <div id="painelEntrada" class="card-form">
-      <h3 style="font-size: 0.9rem; color: #16a34a; margin-bottom: 12px; text-transform: uppercase;">📥 Lançamento de Recebimento de Carga</h3>
-      <form onsubmit="registrarEntradaEstoque(event)">
-        
-        <datalist id="listaInsumosMestreBusca"></datalist>
-
+    <!-- ABA 1: ENTRADA DE INSUMOS -->
+    <div id="secaoEntrada" class="form-box">
+      <h3>🚛 LANÇAMENTO DE RECEBIMENTO DE CARGA</h3>
+      <form id="formEntrada" onsubmit="registrarEntradaLote(event)">
         <div class="grid-form">
           <div class="form-group" style="grid-column: span 2;">
-            <label>Digite ou Selecione o Insumo (Cadastro Mestre):*</label>
-            <input type="text" id="ent_insumo_input" list="listaInsumosMestreBusca" class="uppercase-input" placeholder="🔍 DIGITE O NOME DO INSUMO..." required autocomplete="off">
+            <label>DIGITE OU SELECIONE O INSUMO (CADASTRO MESTRE):*</label>
+            <input type="text" id="input_insumo_nome" list="listaInsumosAuto" placeholder="🔍 DIGITE O NOME DO INSUMO..." required autocomplete="off">
+            <datalist id="listaInsumosAuto"></datalist>
           </div>
 
           <div class="form-group">
-            <label>Nº do Lote:*</label>
-            <input type="text" id="ent_lote" class="uppercase-input" placeholder="EX: L123456" required>
+            <label>Nº DO LOTE:*</label>
+            <input type="text" id="input_lote_num" placeholder="EX: L123456" required>
           </div>
 
           <div class="form-group">
-            <label>Data de Validade:*</label>
-            <input type="date" id="ent_validade" required>
+            <label>DATA DE VALIDADE:*</label>
+            <input type="date" id="input_lote_validade" required>
           </div>
 
           <div class="form-group">
-            <label>Quantidade Recebida:*</label>
-            <input type="number" id="ent_qtd" min="1" value="1" required>
+            <label>QUANTIDADE RECEBIDA:*</label>
+            <input type="number" id="input_lote_qtd" value="1" min="1" required>
           </div>
 
           <div class="form-group">
-            <label>Responsável pelo Recebimento:*</label>
-            <select id="ent_responsavel" required>
-              <option value="">Consultando servidores...</option>
+            <label>RESPONSÁVEL PELO RECEBIMENTO:*</label>
+            <select id="select_resp_entrada" required>
+              <option value="">Carregando servidores...</option>
             </select>
           </div>
         </div>
 
-        <button type="submit" class="btn-acao btn-entrada">💾 Registrar Entrada no Lote</button>
+        <button type="submit" class="btn-salvar">💾 REGISTRAR ENTRADA NO LOTE</button>
       </form>
     </div>
 
-    <!-- PAINEL BAIXA DE MATERIAL -->
-    <div id="painelBaixa" class="card-form" style="display: none;">
-      <h3 style="font-size: 0.9rem; color: var(--samu-red); margin-bottom: 12px; text-transform: uppercase;">📤 Registrar Baixa Manual de Estoque</h3>
-      <form onsubmit="registrarBaixaEstoque(event)">
-        
-        <datalist id="listaLotesComSaldoBusca"></datalist>
-
+    <!-- ABA 2: BAIXA DE INSUMOS -->
+    <div id="secaoBaixa" class="form-box" style="display: none;">
+      <h3>🚨 REGISTRO DE BAIXA DE ESTOQUE</h3>
+      <form id="formBaixa" onsubmit="registrarBaixaLote(event)">
         <div class="grid-form">
           <div class="form-group" style="grid-column: span 2;">
-            <label>Digite ou Selecione o Lote com Saldo:*</label>
-            <input type="text" id="baixa_lote_input" list="listaLotesComSaldoBusca" class="uppercase-input" placeholder="🔍 DIGITE O INSUMO OU LOTE..." required autocomplete="off">
+            <label>SELECIONE O LOTE PARA DAR BAIXA:*</label>
+            <select id="select_lote_baixa" required onchange="carregarDetalhesLote(this.value)">
+              <option value="">Carregando lotes com saldo...</option>
+            </select>
           </div>
 
           <div class="form-group">
-            <label>Quantidade para Baixa:*</label>
-            <input type="number" id="baixa_qtd" min="1" value="1" required>
+            <label>QUANTIDADE PARA BAIXA:*</label>
+            <input type="number" id="input_baixa_qtd" value="1" min="1" required>
           </div>
 
           <div class="form-group">
-            <label>Motivo da Baixa:*</label>
-            <select id="baixa_motivo" required>
-              <option value="VALIDADE_EXPIRADA">Vencimento / Validade Expirada</option>
-              <option value="AVARIA_QUEBRA">Avaria / Danificado / Frasco Quebrado</option>
-              <option value="DESCARTE_CONTAMINACAO">Descarte / Contaminação</option>
-              <option value="AJUSTE_INVENTARIO">Ajuste de Inventário / Divergência</option>
+            <label>MOTIVO DA BAIXA:*</label>
+            <select id="select_baixa_motivo" required>
+              <option value="AVARIA">💥 Avaria / Quebra</option>
+              <option value="VENCIMENTO">📅 Vencimento de Validade</option>
+              <option value="AJUSTE">🔧 Ajuste de Inventário</option>
+              <option value="PERDA">❓ Perda / Extravio</option>
             </select>
           </div>
 
           <div class="form-group" style="grid-column: span 2;">
-            <label>Responsável pela Baixa:*</label>
-            <select id="baixa_responsavel" required>
-              <option value="">Consultando servidores...</option>
+            <label>RESPONSÁVEL PELA BAIXA:*</label>
+            <select id="select_resp_baixa" required>
+              <option value="">Carregando servidores...</option>
             </select>
           </div>
         </div>
 
-        <button type="submit" class="btn-acao btn-baixa">🗑️ Confirmar Baixa de Estoque</button>
+        <button type="submit" class="btn-salvar btn-salvar-baixa">🚨 CONFIRMAR BAIXA NO ESTOQUE</button>
       </form>
     </div>
 
-    <!-- VISUALIZAÇÃO DE SALDOS ATUAIS POR LOTE -->
-    <div style="margin-top: 25px;">
-      <h3 style="font-size: 0.9rem; color: var(--samu-navy); text-transform: uppercase; margin-bottom: 8px;">📊 Saldo Atual por Lote e Validade</h3>
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Insumo</th>
-              <th>Nº Lote</th>
-              <th>Data Validade</th>
-              <th style="text-align: center;">Quantidade em Saldo</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyLotesSaldo">
-            <tr><td colspan="4" style="text-align:center;">Consultando saldos...</td></tr>
-          </tbody>
-        </table>
-      </div>
+    <!-- TABELA DE SALDOS POR LOTE -->
+    <h3 style="font-size: 0.9rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; margin-bottom: 8px;">📊 SALDO ATUAL POR LOTE E VALIDADE</h3>
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>INSUMO</th>
+            <th>Nº LOTE</th>
+            <th>DATA VALIDADE</th>
+            <th style="text-align: center;">QUANTIDADE EM SALDO</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyLotesSaldo">
+          <tr><td colspan="4" style="text-align:center;">Consultando lotes no banco de dados...</td></tr>
+        </tbody>
+      </table>
     </div>
 
     <a href="index.html" class="btn-voltar">⬅️ Voltar ao Painel Principal</a>
   </div>
 
   <script>
-    const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
+    const dbNuvem = supabase.createClient(
+      "https://rcpgukslnlfptreiusff.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
+    );
 
-    let _db = null;
-    let listaLotesGlobais = [];
+    let listaInsumosMestre = [];
+    let listaLotesComSaldo = [];
 
-    function obterConexaoSupabase() {
-      if (!_db && window.supabase) {
-        _db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.onload = function() {
+      carregarInsumosMestre();
+      carregarServidores();
+      carregarTabelaLotes();
+    };
+
+    function alternarAba(aba) {
+      document.getElementById('secaoEntrada').style.display = aba === 'entrada' ? 'block' : 'none';
+      document.getElementById('secaoBaixa').style.display = aba === 'baixa' ? 'block' : 'none';
+
+      const btnEntrada = document.getElementById('tabEntrada');
+      const btnBaixa = document.getElementById('tabBaixa');
+
+      if (aba === 'entrada') {
+        btnEntrada.className = 'tab-btn active';
+        btnBaixa.className = 'tab-btn';
+      } else {
+        btnEntrada.className = 'tab-btn';
+        btnBaixa.className = 'tab-btn active-baixa';
+        carregarLotesParaBaixa();
       }
-      return _db;
     }
 
-    async function inicializar() {
-      await carregarInsumosMestre();
-      await carregarColaboradores();
-      await carregarLotesSaldo();
-    }
-
-    function alternarModo(modo) {
-      document.getElementById('painelEntrada').style.display = (modo === 'ENTRADA') ? 'block' : 'none';
-      document.getElementById('painelBaixa').style.display = (modo === 'BAIXA') ? 'block' : 'none';
-      document.getElementById('btnTabEntrada').className = (modo === 'ENTRADA') ? 'tab-btn active-entrada' : 'tab-btn';
-      document.getElementById('btnTabBaixa').className = (modo === 'BAIXA') ? 'tab-btn active-baixa' : 'tab-btn';
-    }
-
+    /* CARREGA INSUMOS DA TABELA estoque_mestre PARA O DATALIST */
     async function carregarInsumosMestre() {
-      const dl = document.getElementById('listaInsumosMestreBusca');
-      dl.innerHTML = '';
-      
-      const client = obterConexaoSupabase();
-      if (!client) return;
+      const datalist = document.getElementById('listaInsumosAuto');
+      datalist.innerHTML = '';
 
       try {
-        const { data, error } = await client.from('estoque_mestre').select('descricao_insumo').order('descricao_insumo', { ascending: true });
-        
-        if (error) {
-          console.error("Erro ao carregar estoque_mestre:", error);
-          return;
-        }
+        const { data, error } = await dbNuvem.from('estoque_mestre').select('*');
+        if (error) throw error;
 
-        if (data && data.length > 0) {
-          data.forEach(item => {
-            if (item.descricao_insumo) {
-              const opt = document.createElement('option');
-              opt.value = item.descricao_insumo.toUpperCase();
-              dl.appendChild(opt);
-            }
-          });
-        }
+        listaInsumosMestre = data || [];
+        listaInsumosMestre.sort((a, b) => {
+          const descA = (a.descricao_insumo || a.descricao || a.nome || '').toUpperCase();
+          const descB = (b.descricao_insumo || b.descricao || b.nome || '').toUpperCase();
+          return descA.localeCompare(descB);
+        });
+
+        listaInsumosMestre.forEach(item => {
+          const nome = item.descricao_insumo || item.descricao || item.nome || '';
+          const cod = item.codigo_insumo || '';
+          if (nome) {
+            const option = document.createElement('option');
+            option.value = nome;
+            option.label = cod ? `${cod} - ${nome}` : nome;
+            datalist.appendChild(option);
+          }
+        });
       } catch (err) {
-        console.error("Exceção insumos:", err);
+        console.error("Erro ao carregar insumos:", err);
       }
     }
 
-    async function carregarColaboradores() {
-      const sEnt = document.getElementById('ent_responsavel');
-      const sBaixa = document.getElementById('baixa_responsavel');
-      
-      const client = obterConexaoSupabase();
-      if (!client) return;
+    /* CARREGA OS SERVIDORES PARA OS SELECTS DE RESPONSÁVEL */
+    async function carregarServidores() {
+      const selectEntrada = document.getElementById('select_resp_entrada');
+      const selectBaixa = document.getElementById('select_resp_baixa');
+
+      selectEntrada.innerHTML = '<option value="">-- SELECIONE O RESPONSÁVEL --</option>';
+      selectBaixa.innerHTML = '<option value="">-- SELECIONE O RESPONSÁVEL --</option>';
 
       try {
-        const { data, error } = await client.from('colaboradores').select('nome').order('nome', { ascending: true });
-
-        if (error) {
-          console.error("Erro ao carregar colaboradores:", error);
-          return;
-        }
-
-        sEnt.innerHTML = '<option value="">-- Selecione o Servidor --</option>';
-        sBaixa.innerHTML = '<option value="">-- Selecione o Servidor --</option>';
+        const { data, error } = await dbNuvem.from('colaboradores').select('id, nome, funcao, status').order('nome', { ascending: true });
+        if (error) throw error;
 
         if (data && data.length > 0) {
-          data.forEach(c => {
-            if (c.nome) {
-              sEnt.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
-              sBaixa.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
-            }
+          const ativos = data.filter(s => s.status !== 'DESLIGADO');
+          ativos.forEach(s => {
+            const opt1 = document.createElement('option');
+            opt1.value = s.nome;
+            opt1.textContent = `${s.nome} (${s.funcao || 'Servidor'})`;
+            selectEntrada.appendChild(opt1);
+
+            const opt2 = document.createElement('option');
+            opt2.value = s.nome;
+            opt2.textContent = `${s.nome} (${s.funcao || 'Servidor'})`;
+            selectBaixa.appendChild(opt2);
           });
         }
       } catch (err) {
-        console.error("Exceção colaboradores:", err);
+        console.error("Erro ao carregar servidores:", err);
+        selectEntrada.innerHTML = '<option value="">Erro ao carregar servidores</option>';
+        selectBaixa.innerHTML = '<option value="">Erro ao carregar servidores</option>';
       }
     }
 
-    async function carregarLotesSaldo() {
+    /* CARREGA A TABELA DE SALDO DE LOTES */
+    async function carregarTabelaLotes() {
       const tbody = document.getElementById('tbodyLotesSaldo');
-      const dlBaixa = document.getElementById('listaLotesComSaldoBusca');
-      
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando lotes com saldo...</td></tr>';
-      dlBaixa.innerHTML = '';
-
-      const client = obterConexaoSupabase();
-      if (!client) return;
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando lotes no banco de dados...</td></tr>';
 
       try {
-        const { data, error } = await client.from('estoque_lotes').select('*').gt('quantidade_saldo', 0).order('data_validade', { ascending: true });
-
-        if (error) {
-          console.error("Erro ao carregar estoque_lotes:", error);
-        }
-
-        listaLotesGlobais = data || [];
+        const { data, error } = await dbNuvem.from('estoque_lotes').select('*').order('data_validade', { ascending: true });
+        if (error) throw error;
 
         if (data && data.length > 0) {
           tbody.innerHTML = '';
           data.forEach(l => {
-            const valFmt = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : 'N/A';
-            const label = `${l.descricao_insumo} — LOTE: ${l.numero_lote || 'S/L'} | SALDO: ${l.quantidade_saldo} | VAL: ${valFmt}`;
-
+            const val = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : '—';
             tbody.innerHTML += `
               <tr>
-                <td><b>${l.descricao_insumo}</b></td>
-                <td>${l.numero_lote || 'SEM LOTE'}</td>
-                <td>${valFmt}</td>
-                <td style="text-align: center; font-weight: 800; color: #16a34a;">${l.quantidade_saldo}</td>
+                <td><b>${l.insumo_nome || '—'}</b></td>
+                <td>${l.numero_lote || '—'}</td>
+                <td>${val}</td>
+                <td style="text-align: center; font-weight: 800; color: ${l.quantidade_saldo > 0 ? '#15803d' : '#b91c1c'};">${l.quantidade_saldo || 0}</td>
               </tr>
             `;
-
-            const opt = document.createElement('option');
-            opt.value = label;
-            dlBaixa.appendChild(opt);
           });
         } else {
-          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum lote com saldo disponível. Registre uma entrada de material acima.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 15px; color:#64748b;">Nenhum lote com saldo disponível. Registre uma entrada de material acima.</td></tr>';
         }
       } catch (err) {
-        console.error("Exceção lotes:", err);
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#d32f2f;">Erro ao consultar saldo dos lotes.</td></tr>';
       }
     }
 
-    async function registrarEntradaEstoque(e) {
+    /* REGISTRAR ENTRADA DE LOTE */
+    async function registrarEntradaLote(e) {
       e.preventDefault();
-      
-      const insumo = document.getElementById('ent_insumo_input').value.trim().toUpperCase();
-      const lote = document.getElementById('ent_lote').value.trim().toUpperCase();
-      const validade = document.getElementById('ent_validade').value;
-      const qtd = parseInt(document.getElementById('ent_qtd').value) || 0;
-      const resp = document.getElementById('ent_responsavel').value;
 
-      if (!insumo || !resp) { alert("Preencha o insumo e o responsável."); return; }
+      const insumoNome = document.getElementById('input_insumo_nome').value.trim();
+      const numLote = document.getElementById('input_lote_num').value.trim();
+      const validade = document.getElementById('input_lote_validade').value;
+      const qtd = parseInt(document.getElementById('input_lote_qtd').value) || 0;
+      const responsavel = document.getElementById('select_resp_entrada').value;
 
-      const client = obterConexaoSupabase();
+      if (!insumoNome || !numLote || !validade || qtd <= 0 || !responsavel) {
+        alert("Por favor, preencha todos os campos obrigatórios.");
+        return;
+      }
 
       try {
-        const { data: existente } = await client
-          .from('estoque_lotes')
-          .select('id, quantidade_saldo')
-          .eq('descricao_insumo', insumo)
-          .eq('numero_lote', lote)
-          .maybeSingle();
+        const payload = {
+          insumo_nome: insumoNome,
+          numero_lote: numLote,
+          data_validade: validade,
+          quantidade_saldo: qtd,
+          responsavel_entrada: responsavel
+        };
 
-        if (existente) {
-          const novoSaldo = (existente.quantidade_saldo || 0) + qtd;
-          await client.from('estoque_lotes').update({ quantidade_saldo: novoSaldo, data_validade: validade }).eq('id', existente.id);
+        const { error } = await dbNuvem.from('estoque_lotes').insert([payload]);
+        if (error) throw error;
+
+        alert("✅ Entrada de lote registrada com sucesso!");
+        document.getElementById('formEntrada').reset();
+        carregarTabelaLotes();
+      } catch (err) {
+        console.error("Erro ao registrar entrada:", err);
+        alert("Erro ao salvar entrada no banco de dados.");
+      }
+    }
+
+    /* CARREGAR LOTES DISPONÍVEIS PARA BAIXA */
+    async function carregarLotesParaBaixa() {
+      const select = document.getElementById('select_lote_baixa');
+      select.innerHTML = '<option value="">-- SELECIONE O LOTE --</option>';
+
+      try {
+        const { data, error } = await dbNuvem.from('estoque_lotes').select('*').gt('quantidade_saldo', 0).order('data_validade', { ascending: true });
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          listaLotesComSaldo = data;
+          data.forEach(l => {
+            const val = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : '—';
+            const opt = document.createElement('option');
+            opt.value = l.id;
+            opt.textContent = `${l.insumo_nome} | Lote: ${l.numero_lote} | Val: ${val} | Saldo: ${l.quantidade_saldo}`;
+            select.appendChild(opt);
+          });
         } else {
-          await client.from('estoque_lotes').insert([{
-            descricao_insumo: insumo,
-            numero_lote: lote,
-            data_validade: validade,
-            quantidade_saldo: qtd
-          }]);
+          select.innerHTML = '<option value="">Nenhum lote com saldo positivo disponível</option>';
         }
-
-        await client.from('estoque_movimentacoes').insert([{
-          tipo_movimentacao: 'ENTRADA',
-          descricao_insumo: insumo,
-          numero_lote: lote,
-          quantidade: qtd,
-          motivo: 'RECEBIMENTO_CARGA',
-          responsavel: resp
-        }]);
-
-        alert("✅ Entrada de estoque registrada com sucesso!");
-        document.getElementById('ent_insumo_input').value = '';
-        document.getElementById('ent_lote').value = '';
-        document.getElementById('ent_validade').value = '';
-        carregarLotesSaldo();
-      } catch (err) { alert("Erro ao registrar entrada."); }
+      } catch (err) {
+        select.innerHTML = '<option value="">Erro ao carregar lotes</option>';
+      }
     }
 
-    async function registrarBaixaEstoque(e) {
+    /* REGISTRAR BAIXA DE LOTE */
+    async function registrarBaixaLote(e) {
       e.preventDefault();
 
-      const texto = document.getElementById('baixa_lote_input').value.trim();
-      const qtd = parseInt(document.getElementById('baixa_qtd').value) || 0;
-      const motivo = document.getElementById('baixa_motivo').value;
-      const resp = document.getElementById('baixa_responsavel').value;
+      const loteId = document.getElementById('select_lote_baixa').value;
+      const qtdBaixa = parseInt(document.getElementById('input_baixa_qtd').value) || 0;
+      const motivo = document.getElementById('select_baixa_motivo').value;
+      const responsavel = document.getElementById('select_resp_baixa').value;
 
-      const loteSel = listaLotesGlobais.find(l => {
-        const valFmt = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : 'N/A';
-        const label = `${l.descricao_insumo} — LOTE: ${l.numero_lote || 'S/L'} | SALDO: ${l.quantidade_saldo} | VAL: ${valFmt}`;
-        return label === texto || l.descricao_insumo === texto;
-      });
+      if (!loteId || qtdBaixa <= 0 || !responsavel) {
+        alert("Preencha todos os campos da baixa.");
+        return;
+      }
 
-      if (!loteSel) { alert("Selecione um lote válido da lista."); return; }
-      if (qtd > loteSel.quantidade_saldo) { alert(`Quantidade maior que o saldo (${loteSel.quantidade_saldo}).`); return; }
+      const loteAtual = listaLotesComSaldo.find(l => String(l.id) === String(loteId));
+      if (!loteAtual) return;
 
-      const client = obterConexaoSupabase();
+      if (qtdBaixa > loteAtual.quantidade_saldo) {
+        alert(`A quantidade da baixa (${qtdBaixa}) não pode ser maior que o saldo atual (${loteAtual.quantidade_saldo}).`);
+        return;
+      }
 
       try {
-        const novoSaldo = loteSel.quantidade_saldo - qtd;
+        const novoSaldo = loteAtual.quantidade_saldo - qtdBaixa;
+        const { error } = await dbNuvem.from('estoque_lotes').update({ quantidade_saldo: novoSaldo }).eq('id', loteId);
+        if (error) throw error;
 
-        await client.from('estoque_lotes').update({ quantidade_saldo: novoSaldo }).eq('id', loteSel.id);
-
-        await client.from('estoque_movimentacoes').insert([{
-          tipo_movimentacao: 'SAIDA_MANUAL',
-          descricao_insumo: loteSel.descricao_insumo,
-          numero_lote: loteSel.numero_lote,
-          quantidade: qtd,
-          motivo: motivo,
-          responsavel: resp
-        }]);
-
-        alert("✅ Baixa registrada com sucesso!");
-        document.getElementById('baixa_lote_input').value = '';
-        carregarLotesSaldo();
-      } catch (err) { alert("Erro ao registrar baixa."); }
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', inicializar);
-    } else {
-      inicializar();
+        alert("✅ Baixa de estoque realizada com sucesso!");
+        document.getElementById('formBaixa').reset();
+        carregarLotesParaBaixa();
+        carregarTabelaLotes();
+      } catch (err) {
+        console.error("Erro ao registrar baixa:", err);
+        alert("Erro ao registrar baixa no banco.");
+      }
     }
   </script>
 </body>
