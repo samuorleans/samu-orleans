@@ -102,7 +102,7 @@
     .cor-vd { background-color: #16a34a; }
     .cor-az { background-color: #2563eb; }
 
-    .print-triagem-text, .print-signatures-block { display: none; }
+    .print-triagem-text, .print-signatures-block, .print-tipo-ocorrencia-text { display: none; }
 
     .search-group { display: flex; gap: 3px; }
     .btn-search {
@@ -259,6 +259,7 @@
     }
     .btn-vitima-tab.active { background: var(--primary); color: #fff; }
 
+    /* ESTILO DE IMPRESSÃO A4 REFINADO */
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
       html, body {
@@ -302,8 +303,18 @@
         display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.6pt solid #000000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; color: #000000 !important;
       }
 
+      /* OCULTAÇÃO DO BLOCO DE RECLASSIFICAÇÃO QUANDO NÃO HOUVER MUDANÇA */
+      #box_reclassificacao_wrapper.sem-reclassificacao { display: none !important; }
+
+      /* IMPRESSÃO DO TIPO DE OCORRÊNCIA EXCLUSIVO */
+      .radio-grid-ocorrencia { display: none !important; }
+      .print-tipo-ocorrencia-text {
+        display: block !important; font-size: 6.5pt !important; font-weight: 900 !important; color: #000000 !important; padding: 2px 0 !important; text-transform: uppercase;
+      }
+
       #printReclassificacaoBox:empty, .print-ocultar-vazio { display: none !important; }
 
+      /* CENTRALIZAÇÃO DA HORA E DOS J'S */
       .j-block-container { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 2px !important; }
       .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; text-align: center !important; border: 0.4pt solid #000000 !important; background: transparent !important; padding: 1px !important; }
       .btn-j-badge { display: none !important; }
@@ -319,6 +330,14 @@
       .med-table input.med-search-input { text-align: left !important; }
       .med-table input.med-qtd { text-align: center !important; }
       
+      .sv-time-val { text-align: center !important; }
+
+      /* OCULTA COLUNA DA HASHTAG (# EXCLUIR) NA IMPRESSÃO */
+      .col-excluir-print { display: none !important; }
+      
+      /* OCULTA O AVISO "NENHUM INSUMO" SE TIVER MEDICAÇÕES/INSUMOS */
+      #box_nenhum_insumo_wrapper.ocultar-aviso-print { display: none !important; }
+
       .med-row-insumo-comum { display: none !important; }
 
       canvas { height: 26px !important; border: 0.4pt solid #000000 !important; }
@@ -371,7 +390,7 @@
           <div><label>Data</label><input type="date" id="data"></div>
         </div>
 
-        <div id="box_reclassificacao_wrapper" style="margin-top: 4px; padding: 5px; background: #f8fafc; border: 1px dashed var(--border); border-radius: 4px;">
+        <div id="box_reclassificacao_wrapper" class="sem-reclassificacao" style="margin-top: 4px; padding: 5px; background: #f8fafc; border: 1px dashed var(--border); border-radius: 4px;">
           <label style="color: #0f172a; font-weight: 800;">RECLASSIFICAÇÃO DE CÓDIGO (REGULAÇÃO MÉDICA)</label>
           <div class="grid-reclassificacao-otimizado">
             <div>
@@ -543,6 +562,9 @@
           <label><input type="radio" name="tipo_ocorrencia" value="Clínico - Psiquiátrico" onchange="tratarSelecaoTipoOcorrencia(this)"> Clínico - Psiquiátrico</label>
           <label><input type="radio" name="tipo_ocorrencia" value="APH - Trauma" onchange="tratarSelecaoTipoOcorrencia(this)"> APH - Trauma</label>
         </div>
+        
+        <!-- EXIBIÇÃO EXCLUSIVA DO TIPO SELECIONADO NA IMPRESSÃO -->
+        <div id="printTipoOcorrenciaBox" class="print-tipo-ocorrencia-text">TIPO OCORRÊNCIA: NÃO INFORMADO</div>
       </div>
     </div>
 
@@ -684,14 +706,14 @@
         <table class="sv-table">
           <thead>
             <tr>
-              <th style="width: 75px;">Hora</th>
+              <th style="width: 75px; text-align: center;">Hora</th>
               <th>PA (mmHg)</th>
               <th>FC (bpm)</th>
               <th>FR (mpm)</th>
               <th>SpO₂ (%)</th>
               <th>Temp (ºC)</th>
               <th>HGT (mg/dL)</th>
-              <th style="width: 25px;">#</th>
+              <th style="width: 25px;" class="col-excluir-print">#</th>
             </tr>
           </thead>
           <tbody id="sv_body">
@@ -710,7 +732,7 @@
       </div>
       <div class="card-body">
 
-        <div style="margin-bottom: 6px; background: #f8fafc; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
+        <div id="box_nenhum_insumo_wrapper" class="ocultar-aviso-print" style="margin-bottom: 6px; background: #f8fafc; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
           <label style="display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 800; color: #1e293b; cursor: pointer;">
             <input type="checkbox" id="chk_nenhum_insumo" onchange="alternarNenhumInsumo(this)" style="width: 16px; height: 16px;">
             🚫 NENHUM INSUMO OU MEDICAÇÃO FOI UTILIZADO NESTE ATENDIMENTO
@@ -723,7 +745,7 @@
               <tr>
                 <th>Insumo Selecionado (Com Lote e Validade)</th>
                 <th style="width: 80px; text-align: center;">Qtd</th>
-                <th style="width: 35px; text-align: center;">#</th>
+                <th style="width: 35px; text-align: center;" class="col-excluir-print">#</th>
               </tr>
             </thead>
             <tbody id="meds_body">
@@ -912,7 +934,6 @@
     let inputMedAtualFocus = null;
     let vitimaAtual = 1;
 
-    // Rascunho individualizado por Vítima para evitar perda de dados
     let rascunhoVitimas = {
       1: {},
       2: {}
@@ -980,9 +1001,7 @@
     function alternarVitima(numVitima) {
       if (vitimaAtual === numVitima) return;
 
-      // Salva rascunho da vítima que estava sendo editada
       rascunhoVitimas[vitimaAtual] = capturarEstadoFormularioClinico();
-
       vitimaAtual = numVitima;
 
       document.getElementById('tabVitima1').classList.toggle('active', numVitima === 1);
@@ -994,7 +1013,6 @@
       if (Object.keys(rascunhoVitimas[numVitima]).length > 0) {
         restaurarEstadoFormularioClinico(rascunhoVitimas[numVitima]);
       } else {
-        // Limpa formulário da Vítima 2 se for o primeiro acesso
         const camposLimpar = ['cpf_paciente', 'cns_paciente', 'paciente', 'idade', 'telefone', 'evolucao_texto', 'cpf_assinante', 'nome_assinante', 'tel_assinante'];
         camposLimpar.forEach(id => {
           const el = document.getElementById(id);
@@ -1016,6 +1034,9 @@
       } else {
         boxExpo.style.display = 'none';
       }
+
+      // Atualiza texto para impressão única
+      document.getElementById('printTipoOcorrenciaBox').innerText = `TIPO OCORRÊNCIA: ${val.toUpperCase()}`;
       salvarLocal();
     }
 
@@ -1052,11 +1073,15 @@
 
     function tratarSelecaoReclassificacao(selectEl) {
       const horaInput = document.getElementById('reclassificacao_hora');
+      const wrapper = document.getElementById('box_reclassificacao_wrapper');
+
       if (selectEl.value !== '') {
         const now = new Date();
         horaInput.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        wrapper.classList.remove('sem-reclassificacao');
       } else {
         horaInput.value = '';
+        wrapper.classList.add('sem-reclassificacao');
       }
       atualizarTextoReclassificacaoImpressao();
       salvarLocal();
@@ -1669,7 +1694,7 @@
         <td><input type="number" inputmode="numeric" placeholder="98" onchange="checarSpo2(this)" ${reqAttr}></td>
         <td><input type="tel" inputmode="decimal" placeholder="36.5" onkeyup="mascaraTemp(this)" ${reqAttr}></td>
         <td><input type="number" inputmode="numeric" placeholder="90" ${reqAttr}></td>
-        <td>${isFirst ? '' : '<button type="button" class="btn-del-med" onclick="this.closest(\'tr\').remove()">×</button>'}</td>
+        <td class="col-excluir-print">${isFirst ? '' : '<button type="button" class="btn-del-med" onclick="this.closest(\'tr\').remove()">×</button>'}</td>
       `;
       tbody.appendChild(tr);
     }
@@ -1762,10 +1787,14 @@
 
     function alternarNenhumInsumo(chk) {
       const boxTabela = document.getElementById('box_tabela_insumos');
+      const wrapperAviso = document.getElementById('box_nenhum_insumo_wrapper');
+
       if (chk.checked) {
         boxTabela.style.display = 'none';
+        wrapperAviso.classList.remove('ocultar-aviso-print');
       } else {
         boxTabela.style.display = 'block';
+        wrapperAviso.classList.add('ocultar-aviso-print');
       }
       salvarLocal();
     }
@@ -1803,7 +1832,7 @@
         <td class="td-center">
           <input type="number" inputmode="numeric" class="med-qtd" value="1" min="1" onchange="salvarLocal()">
         </td>
-        <td class="td-center">
+        <td class="td-center col-excluir-print">
           <button type="button" class="btn-del-med" onclick="this.closest('tr').remove(); reavaliarTodosPsicotropicos(); salvarLocal();">🗑️</button>
         </td>
       `;
