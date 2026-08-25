@@ -159,7 +159,6 @@
   </div>
 
   <script>
-    // Inicialização com a Publishable Key oficial
     const dbNuvem = supabase.createClient(
       "https://rcpgukslnlfptreiusff.supabase.co",
       "sb_publishable_LaC2YnoF3htaAh0f_X8tNg_V9hOkEQ8"
@@ -202,9 +201,10 @@
       const selT = document.getElementById('j3_tecnico');
 
       try {
+        // Consulta usando o nome correto do campo: status_cadastro
         const { data: servidores, error } = await dbNuvem
           .from('colaboradores')
-          .select('nome, funcao, status')
+          .select('nome, funcao, status_cadastro')
           .order('nome', { ascending: true });
 
         if (error) throw error;
@@ -213,7 +213,7 @@
           selC.innerHTML = '<option value="">(Selecione o Condutor)</option>';
           selT.innerHTML = '<option value="">(Selecione a Enfermagem)</option>';
 
-          const ativos = servidores.filter(s => s.status !== 'DESLIGADO');
+          const ativos = servidores.filter(s => (s.status_cadastro || '').toUpperCase() === 'ATIVO');
 
           ativos.forEach(s => {
             const rotulo = (s.funcao || '').toUpperCase();
@@ -224,10 +224,10 @@
             }
           });
         } else {
-          throw new Error("Sem registros de colaboradores no banco");
+          throw new Error("Sem registros no banco");
         }
       } catch (err) {
-        console.warn("Conexão direta ou RLS bloqueou. Carregando lista de redundância local:", err);
+        console.warn("Recorrendo à lista de redundância local:", err);
         
         selC.innerHTML = '<option value="">(Selecione o Condutor)</option>';
         selT.innerHTML = '<option value="">(Selecione a Enfermagem)</option>';
@@ -437,7 +437,7 @@
           tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>';
         }
       } catch (err) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Erro na consulta. Verifique o RLS no Supabase.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Erro na consulta.</td></tr>';
       }
     }
   </script>
