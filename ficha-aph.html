@@ -543,7 +543,10 @@
         <div class="grid-4">
           <div><label>Bairro</label><input type="text" id="bairro" class="uppercase-input"></div>
           <div><label>Ponto de Referência</label><input type="text" id="ponto_ref" class="uppercase-input"></div>
-          <div><label>Município</label><input type="text" id="municipio" class="uppercase-input" value="ORLEANS"></div>
+          <div>
+            <label>Município</label>
+            <input type="text" id="municipio" class="uppercase-input" value="ORLEANS" onchange="atualizarHospitaisPorMunicipio()">
+          </div>
           <div><label>Estado (UF)</label><input type="text" id="estado" class="uppercase-input" value="SC" maxlength="2"></div>
         </div>
       </div>
@@ -563,7 +566,6 @@
           <label><input type="radio" name="tipo_ocorrencia" value="APH - Trauma" onchange="tratarSelecaoTipoOcorrencia(this)"> APH - Trauma</label>
         </div>
         
-        <!-- EXIBIÇÃO EXCLUSIVA DO TIPO SELECIONADO NA IMPRESSÃO -->
         <div id="printTipoOcorrenciaBox" class="print-tipo-ocorrencia-text">TIPO OCORRÊNCIA: NÃO INFORMADO</div>
       </div>
     </div>
@@ -789,7 +791,7 @@
           </div>
 
           <div id="med_continua_box" style="display: none;">
-            <label style="color: var(--primary-dark);">Descrever Medicamentos Contínuos</label>
+            <label style="color: var(--primary-dark);">Descrever Medicamentos Contíduos</label>
             <textarea id="meds_continuas" class="auto-expand uppercase-input" placeholder="EX: LOSARTANA 50MG, METFORMINA 850MG..." oninput="autoExpandTextarea(this)"></textarea>
           </div>
         </div>
@@ -806,7 +808,9 @@
           <div><label>Técnico Resp. (Automático)</label><input type="text" id="tec_resp" readonly style="background: #e2e8f0; font-weight: bold;"></div>
           <div>
             <label>Destino / Hospital Receptor</label>
-            <select id="hospital_destino" onchange="toggleHospitalOutros()"><option value="">Buscando Hospitais...</option></select>
+            <select id="hospital_destino" onchange="toggleHospitalOutros()">
+              <option value="">Carregando hospitais...</option>
+            </select>
             <input type="text" id="hospital_outros" class="uppercase-input" placeholder="DIGITE O NOME DO HOSPITAL..." style="display: none; margin-top: 3px;">
           </div>
         </div>
@@ -996,6 +1000,7 @@
       toggleAlergiaInput();
       toggleMedContinuaInput();
       alternarExibicaoRecusa();
+      atualizarHospitaisPorMunicipio();
     }
 
     function alternarVitima(numVitima) {
@@ -1035,7 +1040,6 @@
         boxExpo.style.display = 'none';
       }
 
-      // Atualiza texto para impressão única
       document.getElementById('printTipoOcorrenciaBox').innerText = `TIPO OCORRÊNCIA: ${val.toUpperCase()}`;
       salvarLocal();
     }
@@ -1122,7 +1126,10 @@
           const res = await fetch(`https://viacep.com.br/ws/${cepSemMascara}/json/`);
           const data = await res.json();
           if (!data.erro) {
-            if (data.localidade) document.getElementById('municipio').value = data.localidade.toUpperCase();
+            if (data.localidade) {
+              document.getElementById('municipio').value = data.localidade.toUpperCase();
+              atualizarHospitaisPorMunicipio();
+            }
             if (data.uf) document.getElementById('estado').value = data.uf.toUpperCase();
             if (data.bairro) document.getElementById('bairro').value = data.bairro.toUpperCase();
             if (data.logradouro) document.getElementById('rua').value = data.logradouro.toUpperCase();
@@ -1141,6 +1148,90 @@
       const selectTec = document.getElementById('tec_enfermeiro');
       document.getElementById('tec_resp').value = selectTec.value;
       salvarLocal();
+    }
+
+    // BUSCA INTELIGENTE DE HOSPITAIS POR MUNICÍPIO (operacional_hospitais)
+    async function atualizarHospitaisPorMunicipio() {
+      const selectHosp = document.getElementById('hospital_destino');
+      const municipioAtual = (document.getElementById('municipio').value || '').trim().toUpperCase();
+
+      if (!selectHosp) return;
+
+      const valorAnterior = selectHosp.value;
+      selectHosp.innerHTML = '<option value="">Buscando hospitais...</option>';
+
+      let hospitais = [];
+
+      try {
+        const { data, error } = await _supabase
+          .from('operacional_hospitais')
+          .select('nome, municipio, status')
+          .eq('status', 'ATIVO')
+          .order('nome', { ascending: true });
+
+        if (!error && data) {
+          hospitais = data;
+        }
+      } catch (err) {
+        console.warn("Falha ao buscar hospitais do Supabase.");
+      }
+
+      selectHosp.innerHTML = '<option value="">-- Selecione o Hospital --</option>';
+
+      if (!hospitais || hospitais.length === 0) {
+        selectHosp.innerHTML += '<option value="OUTROS">OUTRO / Unidade Não Listada</option>';
+        toggleHospitalOutros();
+        return;
+      }
+
+      const hospitaisLocais = hospitais.filter(h => (h.municipio || '').trim().toUpperCase() === municipioAtual);
+      const hospitaisRegiao = hospitais.filter(h => (h.municipio || '').trim().toUpperCase() !== municipioAtual);
+
+      // 1. Grupo: Hospitais do Município do Atendimento
+      if (hospitaisLocais.length > 0) {
+        const optGroupLocal = document.createElement('optgroup');
+        optGroupLocal.label = `📍 HOSPITAIS DE ${municipioAtual}`;
+
+        hospitaisLocais.forEach(h => {
+          const opt = document.createElement('option');
+          opt.value = h.nome.toUpperCase();
+          opt.innerText = h.nome.toUpperCase();
+          optGroupLocal.appendChild(opt);
+        });
+
+        selectHosp.appendChild(optGroupLocal);
+      }
+
+      // 2. Grupo: Outras Regiões e Referências
+      if (hospitaisRegiao.length > 0) {
+        const optGroupRegiao = document.createElement('optgroup');
+        optGroupRegiao.label = "🏥 OUTRAS REGIÕES / REFERÊNCIAS";
+
+        hospitaisRegiao.forEach(h => {
+          const opt = document.createElement('option');
+          opt.value = h.nome.toUpperCase();
+          const munStr = h.municipio ? ` (${h.municipio.toUpperCase()})` : '';
+          opt.innerText = `${h.nome.toUpperCase()}${munStr}`;
+          optGroupRegiao.appendChild(opt);
+        });
+
+        selectHosp.appendChild(optGroupRegiao);
+      }
+
+      // 3. Opção de Exceção
+      const optOutros = document.createElement('option');
+      optOutros.value = "OUTROS";
+      optOutros.innerText = "OUTRO / Unidade Não Listada";
+      selectHosp.appendChild(optOutros);
+
+      // 4. Pré-Seleção Automática se houver exatamente 1 hospital no município
+      if (valorAnterior && Array.from(selectHosp.options).some(o => o.value === valorAnterior)) {
+        selectHosp.value = valorAnterior;
+      } else if (hospitaisLocais.length === 1) {
+        selectHosp.value = hospitaisLocais[0].nome.toUpperCase();
+      }
+
+      toggleHospitalOutros();
     }
 
     function toggleHospitalOutros() {
@@ -1407,6 +1498,7 @@
 
       document.getElementById('meds_body').innerHTML = '';
       addMedRow();
+      atualizarHospitaisPorMunicipio();
     }
 
     function checarEAtivarBotaoImpressao() {
@@ -1657,20 +1749,7 @@
       addSvRow(true);
       await carregarInsumosELotesUnificados();
       await carregarColaboradoresRobusto();
-
-      try {
-        const { data: hospitais } = await _supabase.from('hospitais').select('*').order('nome');
-        const selectHosp = document.getElementById('hospital_destino');
-        selectHosp.innerHTML = '<option value="">-- Selecione o Hospital --</option>';
-        if (hospitais && hospitais.length > 0) {
-          hospitais.forEach(h => {
-            selectHosp.innerHTML += `<option value="${h.nome}">${h.nome}</option>`;
-          });
-        }
-        selectHosp.innerHTML += '<option value="OUTROS">OUTROS (Digitar Nome...)</option>';
-      } catch(e) {
-        document.getElementById('hospital_destino').innerHTML = '<option value="OUTROS">OUTROS (Digitar Nome...)</option>';
-      }
+      await atualizarHospitaisPorMunicipio();
 
       addMedRow();
       ajustarExibicaoAssinaturasImpressao();
@@ -1748,6 +1827,8 @@
         document.getElementById('bairro').value = (data.bairro || '').toUpperCase();
         document.getElementById('municipio').value = (data.municipio || 'ORLEANS').toUpperCase();
         document.getElementById('estado').value = (data.estado || 'SC').toUpperCase();
+
+        await atualizarHospitaisPorMunicipio();
 
         if (data.tipo_ocorrencia) {
           const radioToSelect = document.querySelector(`input[name="tipo_ocorrencia"][value="${data.tipo_ocorrencia}"]`);
@@ -2113,6 +2194,9 @@
         const radioTipoSel = document.querySelector('input[name="tipo_ocorrencia"]:checked');
         const tipoOcorrenciaVal = radioTipoSel ? radioTipoSel.value : '';
 
+        const selHosp = document.getElementById('hospital_destino');
+        const hospitalFinal = (selHosp.value === 'OUTROS') ? document.getElementById('hospital_outros').value : selHosp.value;
+
         const payload = {
           codigo_ocorrencia: codFinalOcorrencia,
           cor_ocorrencia: document.getElementById('cor_ocorrencia').value,
@@ -2139,6 +2223,7 @@
           bio_tipo_agente: bioTipoAgente,
           bio_desinfeccao: bioDesinfeccao,
           evolucao_texto: document.getElementById('evolucao_texto').value,
+          hospital_destino: hospitalFinal,
           desfecho_vitima: document.getElementById('desfecho_vitima').value,
           houve_recusa: document.getElementById('houve_recusa').value,
           insumos_utilizados: insumosPayload,
