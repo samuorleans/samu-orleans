@@ -152,7 +152,6 @@
     .med-table input.med-search-input { margin-bottom: 0; font-size: 0.78rem; padding: 5px; text-align: left; cursor: pointer; }
     .med-table input.med-qtd { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: center; }
 
-    /* MODAL DE BUSCA MÓVEL E TABLET */
     .modal-med-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -260,7 +259,6 @@
     }
     .btn-vitima-tab.active { background: var(--primary); color: #fff; }
 
-    /* ESTILO DE IMPRESSÃO A4 DE ALTO CONTRASTE, J's CENTRALIZADOS E ASSINATURAS REFINADAS */
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
       html, body {
@@ -306,7 +304,6 @@
 
       #printReclassificacaoBox:empty, .print-ocultar-vazio { display: none !important; }
 
-      /* CENTRALIZAÇÃO DOS J'S E HORÁRIOS NA IMPRESSÃO */
       .j-block-container { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 2px !important; }
       .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; text-align: center !important; border: 0.4pt solid #000000 !important; background: transparent !important; padding: 1px !important; }
       .btn-j-badge { display: none !important; }
@@ -350,7 +347,7 @@
 
   <form id="aphForm">
 
-    <!-- SEÇÃO 1: CONTROLE OPERACIONAL (CONGELÁVEL) -->
+    <!-- SEÇÃO 1: CONTROLE OPERACIONAL -->
     <div class="card active" id="sec1">
       <div class="card-header">
         <span>1. Controle Operacional & Equipe</span>
@@ -374,7 +371,6 @@
           <div><label>Data</label><input type="date" id="data"></div>
         </div>
 
-        <!-- RECLASSIFICAÇÃO DE CÓDIGO -->
         <div id="box_reclassificacao_wrapper" style="margin-top: 4px; padding: 5px; background: #f8fafc; border: 1px dashed var(--border); border-radius: 4px;">
           <label style="color: #0f172a; font-weight: 800;">RECLASSIFICAÇÃO DE CÓDIGO (REGULAÇÃO MÉDICA)</label>
           <div class="grid-reclassificacao-otimizado">
@@ -416,7 +412,6 @@
           </div>
         </div>
 
-        <!-- MÓDULO DOS J'S E QTA -->
         <div class="j-block-container">
           <div class="j-row-tactical">
             <span class="j-print-label">J9 (Saída Base)</span>
@@ -475,7 +470,7 @@
       </div>
     </div>
 
-    <!-- SEÇÃO 2: IDENTIFICAÇÃO DO PACIENTE & BUSCA SUPABASE -->
+    <!-- SEÇÃO 2: IDENTIFICAÇÃO DO PACIENTE & MULTI-VÍTIMAS -->
     <div class="card" id="sec2">
       <div class="card-header" onclick="toggleCard('sec2')">
         <span>2. Identificação do Paciente & Local</span>
@@ -483,7 +478,6 @@
       </div>
       <div class="card-body">
         
-        <!-- BARRA MULTI-VÍTIMAS -->
         <div class="vitima-selector-bar">
           <button type="button" class="btn-vitima-tab active" id="tabVitima1" onclick="alternarVitima(1)">Vítima 1 (Principal)</button>
           <button type="button" class="btn-vitima-tab" id="tabVitima2" onclick="alternarVitima(2)">+ Vítima 2 (Secundária)</button>
@@ -536,7 +530,7 @@
       </div>
     </div>
 
-    <!-- SEÇÃO 3: TIPO DE OCORRÊNCIA (4 OPÇÕES OFICIAIS) -->
+    <!-- SEÇÃO 3: TIPO DE OCORRÊNCIA -->
     <div class="card" id="sec3">
       <div class="card-header" onclick="toggleCard('sec3')">
         <span>3. Tipo Ocorrência *</span>
@@ -643,7 +637,6 @@
           </table>
         </div>
 
-        <!-- ÁRVORE DE DECISÃO DE BIOSSEGURANÇA -->
         <div id="box_bio_wrapper" style="margin-top: 6px; padding: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;">
           <label style="color: var(--secondary); font-weight: 800; font-size: 0.68rem;">
             ☣️ BIOSSEGURANÇA: PACIENTE COM SUSPEITA OU CONFIRMAÇÃO DE DOENÇA INFECTOCONTAGIOSA / MATERIAL BIOLÓGICO?
@@ -884,9 +877,7 @@
         <div class="modal-med-search-box">
           <input type="text" id="modalMedInput" class="uppercase-input" placeholder="DIGITE NOME, LOTE OU VALIDADE..." oninput="filtrarListaModal(this.value)" onkeyup="filtrarListaModal(this.value)">
         </div>
-        <div class="modal-med-list" id="modalMedList">
-          <!-- Itens renderizados via JS -->
-        </div>
+        <div class="modal-med-list" id="modalMedList"></div>
       </div>
     </div>
 
@@ -906,7 +897,7 @@
       </div>
     </div>
 
-    <button type="button" class="btn-submit" id="btnImprimir" disabled>Imprimir / Gerar Via Hospital (Liberado após J10-INT)</button>
+    <button type="button" class="btn-submit" id="btnImprimir" disabled>Imprimir Ficha (Vítima 1)</button>
   </form>
 
   <script>
@@ -920,6 +911,12 @@
     let isRecording = false;
     let inputMedAtualFocus = null;
     let vitimaAtual = 1;
+
+    // Rascunho individualizado por Vítima para evitar perda de dados
+    let rascunhoVitimas = {
+      1: {},
+      2: {}
+    };
 
     if (window.supabase) {
       _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -947,6 +944,70 @@
       return e.returnValue;
     });
 
+    function capturarEstadoFormularioClinico() {
+      const obj = {};
+      const campos = ['cpf_paciente', 'cns_paciente', 'cep_paciente', 'paciente', 'idade', 'sexo', 'telefone', 'rua', 'numero', 'bairro', 'ponto_ref', 'municipio', 'estado', 'vias_aereas', 'respiracao', 'circulacao', 'g_oc', 'g_verb', 'g_mot', 'pupilas', 'bio_suspeita', 'bio_tipo_agente', 'bio_agente_outros', 'bio_desinfeccao', 'alergia_select', 'alergia_desc', 'med_continua_select', 'meds_continuas', 'evolucao_texto', 'hospital_destino', 'hospital_outros', 'desfecho_vitima', 'houve_recusa', 'tipo_assinante', 'cpf_assinante', 'nome_assinante', 'tel_assinante'];
+      
+      campos.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) obj[id] = el.value;
+      });
+
+      const radioSel = document.querySelector('input[name="tipo_ocorrencia"]:checked');
+      if (radioSel) obj['tipo_ocorrencia'] = radioSel.value;
+
+      return obj;
+    }
+
+    function restaurarEstadoFormularioClinico(obj) {
+      if (!obj) return;
+      Object.keys(obj).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = obj[id];
+      });
+
+      if (obj['tipo_ocorrencia']) {
+        const r = document.querySelector(`input[name="tipo_ocorrencia"][value="${obj['tipo_ocorrencia']}"]`);
+        if (r) { r.checked = true; tratarSelecaoTipoOcorrencia(r); }
+      }
+
+      alternarBiosseguranca(document.getElementById('bio_suspeita'));
+      toggleAlergiaInput();
+      toggleMedContinuaInput();
+      alternarExibicaoRecusa();
+    }
+
+    function alternarVitima(numVitima) {
+      if (vitimaAtual === numVitima) return;
+
+      // Salva rascunho da vítima que estava sendo editada
+      rascunhoVitimas[vitimaAtual] = capturarEstadoFormularioClinico();
+
+      vitimaAtual = numVitima;
+
+      document.getElementById('tabVitima1').classList.toggle('active', numVitima === 1);
+      document.getElementById('tabVitima2').classList.toggle('active', numVitima === 2);
+
+      const btnImp = document.getElementById('btnImprimir');
+      btnImp.innerText = `Imprimir Ficha (Vítima ${numVitima})`;
+
+      if (Object.keys(rascunhoVitimas[numVitima]).length > 0) {
+        restaurarEstadoFormularioClinico(rascunhoVitimas[numVitima]);
+      } else {
+        // Limpa formulário da Vítima 2 se for o primeiro acesso
+        const camposLimpar = ['cpf_paciente', 'cns_paciente', 'paciente', 'idade', 'telefone', 'evolucao_texto', 'cpf_assinante', 'nome_assinante', 'tel_assinante'];
+        camposLimpar.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        document.getElementById('sv_body').innerHTML = '';
+        document.getElementById('meds_body').innerHTML = '';
+        addSvRow(true);
+        addMedRow();
+      }
+      checarEAtivarBotaoImpressao();
+    }
+
     function tratarSelecaoTipoOcorrencia(radioEl) {
       const val = radioEl.value;
       const boxExpo = document.getElementById('box_exposicao_lesoes');
@@ -956,25 +1017,6 @@
         boxExpo.style.display = 'none';
       }
       salvarLocal();
-    }
-
-    function alternarVitima(numVitima) {
-      vitimaAtual = numVitima;
-      document.getElementById('tabVitima1').classList.toggle('active', numVitima === 1);
-      document.getElementById('tabVitima2').classList.toggle('active', numVitima === 2);
-
-      if (numVitima === 2) {
-        document.getElementById('cpf_paciente').value = '';
-        document.getElementById('cns_paciente').value = '';
-        document.getElementById('paciente').value = '';
-        document.getElementById('idade').value = '';
-        document.getElementById('telefone').value = '';
-        document.getElementById('evolucao_texto').value = '';
-        document.getElementById('sv_body').innerHTML = '';
-        document.getElementById('meds_body').innerHTML = '';
-        addSvRow(true);
-        addMedRow();
-      }
     }
 
     function alternarBiosseguranca(selectEl) {
@@ -1001,10 +1043,7 @@
 
       const printBox = document.getElementById('printTriagemBox');
       const nomesTriagem = {
-        'VM': 'VERMELHO (VM)',
-        'AM': 'AMARELO (AM)',
-        'VD': 'VERDE (VD)',
-        'AZ': 'AZUL (AZ)'
+        'VM': 'VERMELHO (VM)', 'AM': 'AMARELO (AM)', 'VD': 'VERDE (VD)', 'AZ': 'AZUL (AZ)'
       };
       printBox.innerText = nomesTriagem[cor] || cor;
       atualizarTextoReclassificacaoImpressao();
@@ -1031,10 +1070,7 @@
 
       if (novoCod) {
         const nomesTriagem = {
-          'VM': 'VERMELHO (VM)',
-          'AM': 'AMARELO (AM)',
-          'VD': 'VERDE (VD)',
-          'AZ': 'AZUL (AZ)'
+          'VM': 'VERMELHO (VM)', 'AM': 'AMARELO (AM)', 'VD': 'VERDE (VD)', 'AZ': 'AZUL (AZ)'
         };
         const horaStr = hora ? ` ÀS ${hora}` : '';
         const medStr = med ? ` (AUTORIZADO DR(A). ${med})` : '';
@@ -1117,7 +1153,6 @@
       alternarExibicaoRecusa();
     }
 
-    /* REGRA DINÂMICA DE EXIBIÇÃO DE ASSINATURAS NO PAPEL DE ACORDO COM O DESFECHO */
     function ajustarExibicaoAssinaturasImpressao() {
       const desfecho = document.getElementById('desfecho_vitima').value;
       const houveRecusa = document.getElementById('houve_recusa').value;
@@ -1326,6 +1361,7 @@
 
       document.getElementById('aphForm').reset();
       localStorage.removeItem('aph_draft_data');
+      rascunhoVitimas = { 1: {}, 2: {} };
 
       desbloquearInsumosECorpoFormulario();
 
@@ -1357,10 +1393,10 @@
 
       if (j10Int || (j10 && (desfecho === 'RECUSA' || desfecho === 'PERMANECEU_LOCAL' || desfecho === 'OBITO' || recusa === 'SIM'))) {
         btnImp.disabled = false;
-        btnImp.innerText = "Imprimir / Gerar 2 Vias A4";
+        btnImp.innerText = `Imprimir Ficha (Vítima ${vitimaAtual})`;
       } else {
         btnImp.disabled = true;
-        btnImp.innerText = "Imprimir / Gerar Via Hospital (Liberado após J10-INT)";
+        btnImp.innerText = "Imprimir / Gerar Via (Liberado após J10 / J10-INT)";
       }
     }
 
@@ -2196,10 +2232,10 @@
     
     document.getElementById('btnImprimir').addEventListener('click', () => { 
       const confirmacao = confirm(
-        "⚠️ CONFIRMA A IMPRESSÃO DA FICHA NO HOSPITAL?\n\n" +
-        "• Os dados parciais até o J10-INT serão salvos no Supabase.\n" +
-        "• Os campos do Item 1 serão CONGELADOS para edição.\n" +
-        "• O formulário ficará aberto aguardando a liberação no J11 / J12."
+        `⚠️ CONFIRMA A IMPRESSÃO DA FICHA DA VÍTIMA ${vitimaAtual}?\n\n` +
+        "• Os dados parciais desta vítima serão salvos no Supabase.\n" +
+        "• Os campos do Item 1 serão congelados para edição.\n" +
+        "• As outras abas permanecerão salvas em rascunho sem perder dados."
       );
 
       if (!confirmacao) return;
