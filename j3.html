@@ -83,7 +83,7 @@
     </div>
 
     <div class="alert-banner">
-      ℹ️ <b>Rendição Operacional:</b> A assunção sincroniza automaticamente com o banco do Supabase e baixa a base offline para atendimento em áreas sem sinal de celular.
+      ℹ️ <b>Rendição Operacional:</b> A assunção valida a escala oficial (incluindo licenças e trocas do sistema) e grava o plantão ativo no banco de dados.
     </div>
 
     <!-- ABAS -->
@@ -98,14 +98,14 @@
         <div class="form-group">
           <label>1. Condutor Socorrista:</label>
           <select id="j3_condutor">
-            <option value="">Carregando da base de dados...</option>
+            <option value="">Carregando colaboradores...</option>
           </select>
         </div>
 
         <div class="form-group">
           <label>2. Técnico / Enfermeiro:</label>
           <select id="j3_tecnico">
-            <option value="">Carregando da base de dados...</option>
+            <option value="">Carregando colaboradores...</option>
           </select>
         </div>
 
@@ -127,7 +127,7 @@
         </div>
 
         <button type="submit" class="btn-j3">💾 Confirmar J3 & Ativar Sessão</button>
-        <div id="syncStatusMsg" class="sync-status">🔄 Sincronizando dados para atendimento offline...</div>
+        <div id="syncStatusMsg" class="sync-status">🔄 Sincronizando dados da escala...</div>
       </form>
 
       <!-- WHATSAPP REGULAÇÃO -->
@@ -164,12 +164,21 @@
       "sb_publishable_LaC2YnoF3htaAh0f_X8tNg_V9hOkEQ8"
     );
 
-    const duplasPadraoEscala = [
-      { cond: "Vanderlei José Tasca", tec: "Suandre Adão Machado" },
-      { cond: "Márcio Becker", tec: "Rinaldo Calegario" },
-      { cond: "Lucas Vieira Mendes", tec: "Clênio Borges" },
-      { cond: "Renato Cândido", tec: "Luis Eduardo Formanski Vitório" },
-      { cond: "Daniel Alexandre Fernandes", tec: "Gicerléia Trindade da Rosa" }
+    // Listas base de rotação
+    const condutoresBase = [
+      "Vanderlei José Tasca",
+      "Márcio Becker",
+      "Lucas Vieira Mendes",
+      "Renato Cândido",
+      "Daniel Alexandre Fernandes"
+    ];
+
+    const tecnicosBase = [
+      "Suandre Adão Machado",
+      "Rinaldo Calegario",
+      "Clênio Borges",
+      "Luis Eduardo Formanski Vitório",
+      "Gicerléia Trindade da Rosa"
     ];
 
     window.onload = function() {
@@ -201,7 +210,6 @@
       const selT = document.getElementById('j3_tecnico');
 
       try {
-        // Consulta usando o nome correto do campo: status_cadastro
         const { data: servidores, error } = await dbNuvem
           .from('colaboradores')
           .select('nome, funcao, status_cadastro')
@@ -227,55 +235,89 @@
           throw new Error("Sem registros no banco");
         }
       } catch (err) {
-        console.warn("Recorrendo à lista de redundância local:", err);
-        
+        console.warn("Recorrendo à lista local:", err);
         selC.innerHTML = '<option value="">(Selecione o Condutor)</option>';
         selT.innerHTML = '<option value="">(Selecione a Enfermagem)</option>';
 
-        const condutoresUnicos = [...new Set(duplasPadraoEscala.map(d => d.cond))];
-        const tecUnicos = [...new Set(duplasPadraoEscala.map(d => d.tec))];
-
-        condutoresUnicos.forEach(c => {
-          selC.innerHTML += `<option value="${c}">${c}</option>`;
-        });
-        tecUnicos.forEach(t => {
-          selT.innerHTML += `<option value="${t}">${t}</option>`;
-        });
+        condutoresBase.forEach(c => selC.innerHTML += `<option value="${c}">${c}</option>`);
+        tecnicosBase.forEach(t => selT.innerHTML += `<option value="${t}">${t}</option>`);
       }
     }
 
-    async function sincronizarDadosParaOffline() {
-      const msg = document.getElementById('syncStatusMsg');
-      msg.style.display = 'block';
-      msg.innerText = '🔄 Baixando lotes e pacientes para uso offline...';
+    /* MOTOR DE VALIDAÇÃO DINÂMICA DA ESCALA (24x96, 24x72, AFASTAMENTOS E TROCAS) */
+    async function obterEscalaOficialHoje() {
+      const hojeStr = new Date().toISOString().split('T')[0];
+      const dataHoje = new Date();
+      dataHoje.setHours(0,0,0,0);
+
+      // 1. Escala Base Algorítmica 24x96 (A partir de 01/09/2026)
+      const dataBase = new Date("2026-09-01T00:00:00");
+      const diffDias = Math.floor((dataHoje.getTime() - dataBase.getTime()) / (1000 * 3600 * 24));
+      
+      let idxC = ((diffDias % condutoresBase.length) + condutoresBase.length) % condutoresBase.length;
+      let idxT = ((diffDias % tecnicosBase.length) + tecnicosBase.length) % tecnicosBase.length;
+
+      let condutorEsperado = condutoresBase[idxC];
+      let tecnicoEsperado = tecnicosBase[idxT];
+      let regimeEspecialAtivo = false;
 
       try {
-        const [resInsumos, resLotes, resPacientes] = await Promise.all([
-          dbNuvem.from('estoque_mestre').select('*'),
-          dbNuvem.from('estoque_lotes').select('*'),
-          dbNuvem.from('pacientes').select('*').limit(100)
-        ]);
+        // 2. Consulta Tabela 'afastamentos'
+        const { data: afastamentos } = await dbNuvem
+          .from('afastamentos')
+          .select('*');
 
-        if (resInsumos.data) localStorage.setItem('offline_estoque_mestre', JSON.stringify(resInsumos.data));
-        if (resLotes.data) localStorage.setItem('offline_estoque_lotes', JSON.stringify(resLotes.data));
-        if (resPacientes.data) localStorage.setItem('offline_pacientes', JSON.stringify(resPacientes.data));
+        if (afastamentos && afastamentos.length > 0) {
+          afastamentos.forEach(af => {
+            const afInicio = af.inicio || af.data_inicio;
+            const afFim = af.fim || af.data_fim;
 
-        msg.innerText = '✅ Dados sincronizados! Ficha APH liberada para uso sem internet.';
-      } catch (e) {
-        msg.innerText = '⚠️ Erro ao atualizar offline. O APH usará o último cachê salvo.';
+            if (hojeStr >= afInicio && hojeStr <= afFim) {
+              regimeEspecialAtivo = true;
+
+              // Caso A: Regime 24x72 (Rodízio por Categoria)
+              if ((af.regime || '').includes('24x72')) {
+                const condutoresAtivos = condutoresBase.filter(c => c !== af.servidor);
+                let idx72 = ((diffDias % condutoresAtivos.length) + condutoresAtivos.length) % condutoresAtivos.length;
+                condutorEsperado = condutoresAtivos[idx72];
+              }
+
+              // Caso B: Regime 24x96 com Substituto Fixo Escalado
+              if ((af.regime || '').includes('Substituto') || af.substitutos) {
+                try {
+                  const mapaSubst = typeof af.substitutos === 'string' ? JSON.parse(af.substitutos) : af.substitutos;
+                  if (mapaSubst && mapaSubst[hojeStr]) {
+                    condutorEsperado = mapaSubst[hojeStr];
+                  }
+                } catch(e) {}
+              }
+            }
+          });
+        }
+
+        // 3. Consulta Tabela 'trocas' (Substituição pontual aprovada)
+        const { data: trocas } = await dbNuvem
+          .from('trocas')
+          .select('*')
+          .eq('data_plantao', hojeStr)
+          .eq('status', 'APROVADA');
+
+        if (trocas && trocas.length > 0) {
+          trocas.forEach(tr => {
+            if (tr.sai_servidor === condutorEsperado) condutorEsperado = tr.entra_servidor;
+            if (tr.sai_servidor === tecnicoEsperado) tecnicoEsperado = tr.entra_servidor;
+          });
+        }
+
+      } catch (err) {
+        console.warn("Erro ao consultar exceções na nuvem, mantendo escala base:", err);
       }
-    }
 
-    function obterDuplaEscalaHoje() {
-      const dataBase = new Date("2026-09-01T00:00:00");
-      const hoje = new Date();
-      hoje.setHours(0,0,0,0);
-
-      const diffTime = hoje.getTime() - dataBase.getTime();
-      const diasCorridos = Math.floor(diffTime / (1000 * 3600 * 24));
-      const idx = ((diasCorridos % duplasPadraoEscala.length) + duplasPadraoEscala.length) % duplasPadraoEscala.length;
-
-      return duplasPadraoEscala[idx];
+      return {
+        condutor: condutorEsperado,
+        tecnico: tecnicoEsperado,
+        regimeEspecial: regimeEspecialAtivo
+      };
     }
 
     async function processarJ3(e) {
@@ -291,12 +333,15 @@
         return;
       }
 
-      // VALIDAÇÃO DA ESCALA PADRÃO
-      const duplaOficialHoje = obterDuplaEscalaHoje();
-      const ehDuplaOficial = (condutor === duplaOficialHoje.cond && tecnico === duplaOficialHoje.tec);
+      // Validação contra a Escala do Dia calculada
+      const escalaOficial = await obterEscalaOficialHoje();
+      
+      const condutorValido = (!condutor || condutor === escalaOficial.condutor);
+      const tecnicoValido = (!tecnico || tecnico === escalaOficial.tecnico);
+      const ehEscalaCorreta = condutorValido && tecnicoValido;
 
-      if (!ehDuplaOficial && !ehExcepcional) {
-        alert(`⚠️ ATENÇÃO: A dupla selecionada (${condutor} e ${tecnico}) não corresponde à escala padrão do dia.\n\nPor favor, marque a opção "Troca de última hora / Fora da Escala" e preencha a justificativa.`);
+      if (!ehEscalaCorreta && !ehExcepcional) {
+        alert(`⚠️ ATENÇÃO: A equipe selecionada não corresponde à escala oficial calculada para hoje.\n\nEscala Esperada: ${escalaOficial.condutor} e ${escalaOficial.tecnico}\n\nPor favor, marque a opção "Troca de última hora / Fora da Escala" e preencha a justificativa.`);
         document.getElementById('j3_chk_excepcional').checked = true;
         alternarJustificativa();
         document.getElementById('j3_justificativa').focus();
@@ -320,9 +365,7 @@
             if (uC && (uC.senha_unica || uC.senha) === senha) usuarioValido = uC;
             else if (uT && (uT.senha_unica || uT.senha) === senha) usuarioValido = uT;
           }
-        } catch (e) {
-          console.warn("Validação em nuvem offline, aplicando validação local.");
-        }
+        } catch (e) {}
 
         if (usuarioValido || senha === 'samu192' || senha === '123456') {
           
@@ -371,7 +414,7 @@
             } catch(e) {}
           }
 
-          // GRAVA A SESSÃO NO NAVEGADOR
+          // Grava Sessão Local
           const plantaoSessao = {
             condutor: condutorFinal,
             tecnico: tecnicoFinal,
@@ -380,10 +423,7 @@
           };
           localStorage.setItem('samu_plantao_ativo', JSON.stringify(plantaoSessao));
 
-          // SINCRONIZA BANCO LOCAL PARA FICHA APH
-          await sincronizarDadosParaOffline();
-
-          // GERADOR MENSAGEM WHATSAPP
+          // Gerador de Mensagem
           const agora = new Date().toLocaleString('pt-BR');
           const textoZapFormatado = `🚨 *PASSAGEM DE PLANTÃO J3 - USB 11*\n📅 Data/Hora: ${agora}\n🚑 Condutor: ${condutorFinal || 'Aguardando'}\n🩺 Enfermagem: ${tecnicoFinal || 'Aguardando'}\nStatus: ${statusFinal === 'ATIVO' ? 'Viatura Operacional e Equipe Confirmada' : 'Equipe em Rendição'}.`;
           
@@ -396,8 +436,8 @@
           alert("❌ Senha Única incorreta.");
         }
       } catch (err) {
-        console.error("Erro no processamento J3:", err);
-        alert("Falha na gravação do J3.");
+        console.error("Erro no J3:", err);
+        alert("Falha no processamento do J3.");
       }
     }
 
