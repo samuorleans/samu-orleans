@@ -159,9 +159,10 @@
   </div>
 
   <script>
+    // Inicialização com a Publishable Key oficial
     const dbNuvem = supabase.createClient(
       "https://rcpgukslnlfptreiusff.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
+      "sb_publishable_LaC2YnoF3htaAh0f_X8tNg_V9hOkEQ8"
     );
 
     const duplasPadraoEscala = [
@@ -223,15 +224,14 @@
             }
           });
         } else {
-          throw new Error("Sem registros de colaboradores");
+          throw new Error("Sem registros de colaboradores no banco");
         }
       } catch (err) {
-        console.warn("Conexão direta falhou ou RLS bloqueou. Carregando lista de redundância local:", err);
+        console.warn("Conexão direta ou RLS bloqueou. Carregando lista de redundância local:", err);
         
         selC.innerHTML = '<option value="">(Selecione o Condutor)</option>';
         selT.innerHTML = '<option value="">(Selecione a Enfermagem)</option>';
 
-        // Preenchimento de redundância garantido
         const condutoresUnicos = [...new Set(duplasPadraoEscala.map(d => d.cond))];
         const tecUnicos = [...new Set(duplasPadraoEscala.map(d => d.tec))];
 
@@ -311,7 +311,6 @@
       try {
         let usuarioValido = null;
 
-        // TENTA VALIDAR A SENHA NO SUPABASE OU VIA FALLBACK
         try {
           const { data: colaboradores } = await dbNuvem.from('colaboradores').select('*');
           if (colaboradores) {
@@ -438,7 +437,7 @@
           tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>';
         }
       } catch (err) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Erro na consulta.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Erro na consulta. Verifique o RLS no Supabase.</td></tr>';
       }
     }
   </script>
