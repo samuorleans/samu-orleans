@@ -140,7 +140,6 @@
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
     }
 
-    /* ALINHAMENTO ITEM 6 */
     .sv-table, .med-table, .table-expo { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.72rem; }
     .sv-table th, .med-table th, .table-expo th { background: #f1f5f9; padding: 3px; border: 1px solid #cbd5e1; font-size: 0.62rem; text-transform: uppercase; text-align: center; }
     .med-table th:first-child { text-align: left; padding-left: 5px; }
@@ -248,101 +247,93 @@
       color: white; border: none; padding: 11px; border-radius: 6px; font-size: 0.85rem; font-weight: 800;
       box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3); width: calc(100% - 16px); z-index: 1000; text-transform: uppercase; cursor: pointer;
     }
+    .btn-submit:disabled { background: #94a3b8 !important; box-shadow: none !important; cursor: not-allowed; }
 
     .j-print-label { display: none; }
 
+    .vitima-selector-bar {
+      display: flex; gap: 6px; margin-bottom: 6px; background: #e2e8f0; padding: 4px; border-radius: 6px;
+    }
+    .btn-vitima-tab {
+      flex: 1; padding: 6px; border: none; background: #cbd5e1; font-weight: 800; font-size: 0.72rem; border-radius: 4px; cursor: pointer; color: #334155;
+    }
+    .btn-vitima-tab.active { background: var(--primary); color: #fff; }
+
+    /* ESTILO DE IMPRESSÃO A4 DE ALTO CONTRASTE E ENQUADRAMENTO EM FOLHA ÚNICA */
     @media print {
-      @page { size: A4 portrait; margin: 4mm; }
-      html, body { width: 100%; height: 100%; background: #fff !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 5.5pt !important; line-height: 1.15; }
-      .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .modal-med-overlay, button, script { display: none !important; }
+      @page { size: A4 portrait; margin: 3mm; }
+      html, body {
+        width: 100%; height: 100%; background: #fff !important; padding: 0 !important; margin: 0 !important;
+        color: #000000 !important; font-size: 6pt !important; line-height: 1.1;
+        -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        text-rendering: optimizeLegibility !important;
+      }
+      
+      .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .modal-med-overlay, .vitima-selector-bar, button, script { display: none !important; }
       
       select, input[type="time"], input[type="date"] {
-        -webkit-appearance: none !important;
-        -moz-appearance: none !important;
-        appearance: none !important;
-        background: transparent !important;
-        background-image: none !important;
+        -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important;
+        background: transparent !important; background-image: none !important;
       }
 
-      input[type="time"]::-webkit-calendar-picker-indicator,
-      input[type="time"]::-webkit-inner-spin-button,
-      input[type="date"]::-webkit-calendar-picker-indicator {
-        display: none !important;
-        -webkit-appearance: none !important;
+      input[type="time"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-inner-spin-button, input[type="date"]::-webkit-calendar-picker-indicator {
+        display: none !important; -webkit-appearance: none !important;
       }
 
       header {
-        background: #fff !important; color: #000 !important; border-bottom: 1.5pt solid #000; padding: 2px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-content: space-between !important; align-items: center !important;
+        background: #fff !important; color: #000000 !important; border-bottom: 1.5pt solid #000000; padding: 1px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-content: space-between !important; align-items: center !important;
       }
-      header img { height: 32px !important; }
+      header img { height: 28px !important; }
       header .header-info { text-align: right !important; }
-      header h1 { font-size: 9pt !important; margin: 0; color: #000 !important; font-weight: 900 !important; letter-spacing: 0.5px; }
-      header p { font-size: 5.5pt !important; margin: 0; font-weight: bold; color: #000 !important; }
+      header h1 { font-size: 8.5pt !important; margin: 0; color: #000000 !important; font-weight: 900 !important; letter-spacing: 0.5px; }
+      header p { font-size: 5pt !important; margin: 0; font-weight: 900; color: #000000 !important; }
 
-      .card { box-shadow: none !important; border: 0.5pt solid #000 !important; margin-bottom: 2px !important; padding: 0 !important; border-radius: 0 !important; page-break-inside: avoid !important; }
-      .card-header { background: #f1f5f9 !important; color: #000 !important; border-bottom: 0.5pt solid #000 !important; padding: 1px 3px !important; font-size: 5.5pt !important; font-weight: 900 !important; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .card { box-shadow: none !important; border: 0.6pt solid #000000 !important; margin-bottom: 2px !important; padding: 0 !important; border-radius: 0 !important; page-break-inside: avoid !important; }
+      .card-header { background: #f1f5f9 !important; color: #000000 !important; border-bottom: 0.6pt solid #000000 !important; padding: 1px 3px !important; font-size: 5.5pt !important; font-weight: 900 !important; text-transform: uppercase; }
       .card-body { display: block !important; padding: 2px 3px !important; }
-      label { font-size: 4.5pt !important; color: #000 !important; margin-bottom: 0px !important; font-weight: 800 !important; }
-      input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.3pt solid #666 !important; background: transparent !important; padding: 0px !important; font-weight: 800 !important; font-size: 5.5pt !important; margin-bottom: 0px !important; height: auto !important; color: #000 !important; }
+      
+      label { font-size: 4.5pt !important; color: #000000 !important; margin-bottom: 0px !important; font-weight: 900 !important; }
+      input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea {
+        border: none !important; border-bottom: 0.4pt solid #000000 !important; background: transparent !important; padding: 0px !important; font-weight: 900 !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; color: #000000 !important;
+      }
       textarea { height: auto !important; resize: none; }
       
       .codigo-group { display: none !important; }
       .print-triagem-text {
-        display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.5pt solid #000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;
+        display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.6pt solid #000000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; color: #000000 !important;
       }
 
-      #printReclassificacaoBox { display: none !important; }
+      /* OCULTAÇÃO DINÂMICA DE BLOCOS VAZIOS NA IMPRESSÃO PARA ECONOMIZAR PAPEL */
+      #printReclassificacaoBox:empty, .print-ocultar-vazio { display: none !important; }
 
       .j-block-container { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 2px !important; }
-      .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; border: 0.4pt solid #000 !important; background: transparent !important; padding: 1px !important; }
+      .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; border: 0.4pt solid #000000 !important; background: transparent !important; padding: 1px !important; }
       .btn-j-badge { display: none !important; }
-      .j-print-label { display: block !important; font-size: 4.2pt !important; font-weight: 900 !important; text-transform: uppercase; text-align: center; }
-      .j-time-input { height: 11px !important; font-size: 5.5pt !important; font-weight: 900 !important; border: none !important; text-align: center !important; width: 100% !important; }
+      .j-print-label { display: block !important; font-size: 4.2pt !important; font-weight: 900 !important; text-transform: uppercase; text-align: center; color: #000000 !important; }
+      .j-time-input { height: 11px !important; font-size: 5.5pt !important; font-weight: 900 !important; border: none !important; text-align: center !important; width: 100% !important; color: #000000 !important; }
 
-      .sv-table th, .sv-table td, .table-expo th, .table-expo td { font-size: 5pt !important; padding: 1px !important; border: 0.4pt solid #000 !important; text-align: center !important; }
-      .med-table th, .med-table td { font-size: 5pt !important; padding: 1px !important; border: 0.4pt solid #000 !important; }
+      .sv-table th, .sv-table td, .table-expo th, .table-expo td, .med-table th, .med-table td {
+        font-size: 5.2pt !important; padding: 1px !important; border: 0.4pt solid #000000 !important; color: #000000 !important; font-weight: 900 !important;
+      }
+      .sv-table td, .table-expo td { text-align: center !important; }
       .med-table td { text-align: left !important; }
       .med-table td.td-center { text-align: center !important; }
       .med-table input.med-search-input { text-align: left !important; }
       .med-table input.med-qtd { text-align: center !important; }
       
-      canvas { height: 28px !important; border: 0.4pt solid #000 !important; }
+      /* Oculta insumos não-medicamentosos no papel impresso para focar no prontuário limpo */
+      .med-row-insumo-comum { display: none !important; }
+
+      canvas { height: 26px !important; border: 0.4pt solid #000000 !important; }
 
       .print-signatures-block {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 4px;
-        margin-top: 4px;
-        padding-top: 2px;
-        page-break-inside: avoid;
+        display: grid !important; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-top: 3px; padding-top: 1px; page-break-inside: avoid;
       }
-      .print-signatures-block.duas-colunas {
-        grid-template-columns: 1fr 1fr !important;
-      }
-      .sig-box {
-        border: 0.4pt solid #000;
-        padding: 3px;
-        text-align: center;
-        min-height: 44px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
-      .sig-line {
-        border-top: 0.4pt solid #000;
-        margin-top: 20px;
-        font-size: 4.8pt;
-        font-weight: bold;
-        text-transform: uppercase;
-      }
+      .print-signatures-block.duas-colunas { grid-template-columns: 1fr 1fr !important; }
+      .sig-box { border: 0.4pt solid #000000; padding: 2px; text-align: center; min-height: 40px; display: flex; flex-direction: column; justify-content: space-between; }
+      .sig-line { border-top: 0.4pt solid #000000; margin-top: 18px; font-size: 4.5pt; font-weight: 900; text-transform: uppercase; color: #000000; }
 
-      .glasgow-total-box {
-        font-size: 7pt !important;
-        padding: 1px !important;
-        border: 0.4pt solid #000 !important;
-        background: transparent !important;
-        box-shadow: none !important;
-      }
+      .glasgow-total-box { font-size: 7pt !important; padding: 1px !important; border: 0.4pt solid #000000 !important; background: transparent !important; box-shadow: none !important; color: #000000 !important; }
     }
   </style>
 </head>
@@ -358,7 +349,7 @@
 
   <form id="aphForm">
 
-    <!-- SEÇÃO 1: CONTROLE OPERACIONAL (FIXO E EXPANDIDO) -->
+    <!-- SEÇÃO 1: CONTROLE OPERACIONAL (CONGELÁVEL) -->
     <div class="card active" id="sec1">
       <div class="card-header">
         <span>1. Controle Operacional & Equipe</span>
@@ -383,7 +374,7 @@
         </div>
 
         <!-- RECLASSIFICAÇÃO DE CÓDIGO -->
-        <div style="margin-top: 4px; padding: 5px; background: #f8fafc; border: 1px dashed var(--border); border-radius: 4px;">
+        <div id="box_reclassificacao_wrapper" style="margin-top: 4px; padding: 5px; background: #f8fafc; border: 1px dashed var(--border); border-radius: 4px;">
           <label style="color: #0f172a; font-weight: 800;">RECLASSIFICAÇÃO DE CÓDIGO (REGULAÇÃO MÉDICA)</label>
           <div class="grid-reclassificacao-otimizado">
             <div>
@@ -483,16 +474,23 @@
       </div>
     </div>
 
-    <!-- SEÇÃO 2: IDENTIFICAÇÃO DO PACIENTE & LOCAL -->
+    <!-- SEÇÃO 2: IDENTIFICAÇÃO DO PACIENTE & BUSCA SUPABASE -->
     <div class="card" id="sec2">
       <div class="card-header" onclick="toggleCard('sec2')">
         <span>2. Identificação do Paciente & Local</span>
         <span class="icon-toggle">▼</span>
       </div>
       <div class="card-body">
+        
+        <!-- BARRA MULTI-VÍTIMAS -->
+        <div class="vitima-selector-bar">
+          <button type="button" class="btn-vitima-tab active" id="tabVitima1" onclick="alternarVitima(1)">Vítima 1 (Principal)</button>
+          <button type="button" class="btn-vitima-tab" id="tabVitima2" onclick="alternarVitima(2)">+ Vítima 2 (Secundária)</button>
+        </div>
+
         <div class="grid-3">
           <div>
-            <label>CPF Paciente</label>
+            <label>CPF Paciente / Busca Prontuário</label>
             <div class="search-group">
               <input type="tel" inputmode="numeric" id="cpf_paciente" placeholder="000.000.000-00" maxlength="14">
               <button type="button" class="btn-search" onclick="buscarPacienteCPF()">🔍 Buscar</button>
@@ -545,11 +543,11 @@
       </div>
       <div class="card-body">
         <div class="checkbox-grid">
-          <label><input type="checkbox" value="Clínico Adulto"> Clínico Adulto</label>
-          <label><input type="checkbox" value="Clínico Pediátrico"> Clin. Pediátrico</label>
-          <label><input type="checkbox" value="Obstétrico"> Obstétrico</label>
-          <label><input type="checkbox" id="chk_trauma" value="Causas Externas / Trauma" onchange="alternarExibicaoExposicaoTrauma()"> Causas Ext. / Trauma</label>
-          <label><input type="checkbox" value="Psiquiátrico"> Psiquiátrico</label>
+          <label><input type="checkbox" value="Clínico Adulto" class="chk-tipo-atend"> Clínico Adulto</label>
+          <label><input type="checkbox" value="Clínico Pediátrico" class="chk-tipo-atend"> Clin. Pediátrico</label>
+          <label><input type="checkbox" value="Obstétrico" class="chk-tipo-atend"> Obstétrico</label>
+          <label><input type="checkbox" id="chk_trauma" value="Causas Externas / Trauma" class="chk-tipo-atend" onchange="alternarExibicaoExposicaoTrauma()"> Causas Ext. / Trauma</label>
+          <label><input type="checkbox" value="Psiquiátrico" class="chk-tipo-atend"> Psiquiátrico</label>
         </div>
       </div>
     </div>
@@ -564,15 +562,15 @@
         <div class="grid-3" style="margin-bottom: 4px;">
           <div>
             <label>A - Vias Aéreas</label>
-            <select><option>Pérvea (Livre)</option><option>Obstrução Parcial</option><option>Obstrução Total</option></select>
+            <select id="vias_aereas"><option>Pérvea (Livre)</option><option>Obstrução Parcial</option><option>Obstrução Total</option></select>
           </div>
           <div>
             <label>B - Respiração</label>
-            <select><option>Eupneico</option><option>Dispneico</option><option>Apneia</option><option>Parada Respiratória</option></select>
+            <select id="respiracao"><option>Eupneico</option><option>Dispneico</option><option>Apneia</option><option>Parada Respiratória</option></select>
           </div>
           <div>
             <label>C - Pulso / Pele</label>
-            <select><option>Regular</option><option>Irregular</option><option>Filiforme</option><option>Parada Circulatória</option></select>
+            <select id="circulacao"><option>Regular</option><option>Irregular</option><option>Filiforme</option><option>Parada Circulatória</option></select>
           </div>
         </div>
 
@@ -611,7 +609,7 @@
             </div>
             <div>
               <label>Pupilas</label>
-              <select style="font-size: 0.72rem;">
+              <select id="pupilas" style="font-size: 0.72rem;">
                 <option>Isocóricas</option>
                 <option>Anisocóricas</option>
                 <option>Miose</option>
@@ -646,7 +644,7 @@
         </div>
 
         <!-- ÁRVORE DE DECISÃO DE BIOSSEGURANÇA -->
-        <div style="margin-top: 6px; padding: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;">
+        <div id="box_bio_wrapper" style="margin-top: 6px; padding: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;">
           <label style="color: var(--secondary); font-weight: 800; font-size: 0.68rem;">
             ☣️ BIOSSEGURANÇA: PACIENTE COM SUSPEITA OU CONFIRMAÇÃO DE DOENÇA INFECTOCONTAGIOSA / MATERIAL BIOLÓGICO?
           </label>
@@ -908,7 +906,7 @@
       </div>
     </div>
 
-    <button type="button" class="btn-submit" id="btnImprimir">Imprimir / Gerar 2 Vias A4</button>
+    <button type="button" class="btn-submit" id="btnImprimir" disabled>Imprimir / Gerar Via Hospital (Liberado após J10-INT)</button>
   </form>
 
   <script>
@@ -921,6 +919,7 @@
     let recognition = null;
     let isRecording = false;
     let inputMedAtualFocus = null;
+    let vitimaAtual = 1;
 
     if (window.supabase) {
       _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -948,9 +947,34 @@
       return e.returnValue;
     });
 
+    function alternarVitima(numVitima) {
+      vitimaAtual = numVitima;
+      document.getElementById('tabVitima1').classList.toggle('active', numVitima === 1);
+      document.getElementById('tabVitima2').classList.toggle('active', numVitima === 2);
+
+      if (numVitima === 2) {
+        // Limpa apenas os dados do paciente secundário mantendo dados fixos
+        document.getElementById('cpf_paciente').value = '';
+        document.getElementById('cns_paciente').value = '';
+        document.getElementById('paciente').value = '';
+        document.getElementById('idade').value = '';
+        document.getElementById('telefone').value = '';
+        document.getElementById('evolucao_texto').value = '';
+        document.getElementById('sv_body').innerHTML = '';
+        document.getElementById('meds_body').innerHTML = '';
+        addSvRow(true);
+        addMedRow();
+      }
+    }
+
     function alternarBiosseguranca(selectEl) {
       const box = document.getElementById('box_bio_detalhes');
       box.style.display = (selectEl.value === 'SIM') ? 'block' : 'none';
+      
+      const wrapper = document.getElementById('box_bio_wrapper');
+      if (selectEl.value === 'NAO') wrapper.classList.add('print-ocultar-vazio');
+      else wrapper.classList.remove('print-ocultar-vazio');
+      
       salvarLocal();
     }
 
@@ -1018,6 +1042,7 @@
         box.innerText = `🔄 RECLASSIFICADO PARA: ${nomesTriagem[novoCod]}${horaStr}${medStr}`;
         box.style.display = 'block';
       } else {
+        box.innerText = '';
         box.style.display = 'none';
       }
     }
@@ -1079,6 +1104,7 @@
         boxCom.style.display = 'none';
       }
       ajustarExibicaoAssinaturasImpressao();
+      checarEAtivarBotaoImpressao();
       salvarLocal();
     }
 
@@ -1227,6 +1253,7 @@
       return textoFormatado.toUpperCase() + ". ";
     }
 
+    /* FILTRO DITADO POR VOZ ANTI-DUPLICAÇÃO (OFFLINE CLEAN) */
     function toggleDitadoVoz() {
       const btn = document.getElementById('btnMic');
       const textarea = document.getElementById('evolucao_texto');
@@ -1250,9 +1277,13 @@
       };
 
       recognition.onresult = function(event) {
-        const transcriptBruto = event.results[event.results.length - 1][0].transcript;
-        textarea.value += processarTextoMedico(transcriptBruto);
-        autoExpandTextarea(textarea);
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            const transcriptBruto = event.results[i][0].transcript;
+            textarea.value += processarTextoMedico(transcriptBruto);
+            autoExpandTextarea(textarea);
+          }
+        }
       };
 
       recognition.onend = function() {
@@ -1280,12 +1311,14 @@
       document.getElementById('med_continua_box').style.display = (val === 'SIM') ? 'block' : 'none';
     }
 
-    function resetarFormularioParaNovaOcorrencia() {
+    function resetarFormularioAposJ12() {
       const tecVal = document.getElementById('tec_enfermeiro').value;
       const socVal = document.getElementById('socorrista').value;
 
       document.getElementById('aphForm').reset();
       localStorage.removeItem('aph_draft_data');
+
+      desbloquearInsumosECorpoFormulario();
 
       document.getElementById('tec_enfermeiro').value = tecVal;
       document.getElementById('socorrista').value = socVal;
@@ -1305,6 +1338,33 @@
       document.getElementById('meds_body').innerHTML = '';
       addMedRow();
       alternarExibicaoExposicaoTrauma();
+    }
+
+    function checarEAtivarBotaoImpressao() {
+      const btnImp = document.getElementById('btnImprimir');
+      const j10Int = document.getElementById('horaJ10_INT').value;
+      const j10 = document.getElementById('horaJ10').value;
+      const desfecho = document.getElementById('desfecho_vitima').value;
+      const recusa = document.getElementById('houve_recusa').value;
+
+      if (j10Int || (j10 && (desfecho === 'RECUSA' || desfecho === 'PERMANECEU_LOCAL' || desfecho === 'OBITO' || recusa === 'SIM'))) {
+        btnImp.disabled = false;
+        btnImp.innerText = "Imprimir / Gerar 2 Vias A4";
+      } else {
+        btnImp.disabled = true;
+        btnImp.innerText = "Imprimir / Gerar Via Hospital (Liberado após J10-INT)";
+      }
+    }
+
+    function congelarSecao1Operacional() {
+      const inputs = document.querySelectorAll('#sec1 input, #sec1 select, #sec1 button:not(#btnJ11):not(#btnJ12)');
+      inputs.forEach(el => el.disabled = true);
+    }
+
+    function desbloquearInsumosECorpoFormulario() {
+      const inputs = document.querySelectorAll('#aphForm input, #aphForm select, #aphForm button, #aphForm textarea');
+      inputs.forEach(el => el.disabled = false);
+      resetarFluxoJsParaProximoAcionamento();
     }
 
     function acionarJTime(jCode, targetInputId) {
@@ -1337,13 +1397,13 @@
       } else if (jCode === 'J10_INT') {
         liberarJ('btnJ11', 'horaJ11');
       } else if (jCode === 'J11') {
-        salvarFichaOcorrenciaAPH().then(() => {
-          resetarFormularioParaNovaOcorrencia();
-          bloquearTodosJsExcecaoJ12();
-        });
+        liberarJ('btnJ12', 'horaJ12');
       } else if (jCode === 'J12') {
-        resetarFluxoJsParaProximoAcionamento();
+        salvarFichaOcorrenciaAPH().then(() => {
+          resetarFormularioAposJ12();
+        });
       }
+      checarEAtivarBotaoImpressao();
       salvarLocal();
     }
 
@@ -1359,19 +1419,6 @@
       const input = document.getElementById(inputId);
       if (btn) btn.disabled = true;
       if (input) { input.disabled = true; input.value = ''; }
-    }
-
-    function bloquearTodosJsExcecaoJ12() {
-      const listJs = [
-        { b: 'btnJ9', i: 'horaJ9' },
-        { b: 'btnJ10', i: 'horaJ10' },
-        { b: 'btnQTA', i: 'horaQTA' },
-        { b: 'btnJ9_INT', i: 'horaJ9_INT' },
-        { b: 'btnJ10_INT', i: 'horaJ10_INT' },
-        { b: 'btnJ11', i: 'horaJ11' }
-      ];
-      listJs.forEach(item => bloquearJ(item.b, item.i));
-      liberarJ('btnJ12', 'horaJ12');
     }
 
     function resetarFluxoJsParaProximoAcionamento() {
@@ -1512,7 +1559,8 @@
                 numero_lote: l.numero_lote || '',
                 data_validade: l.data_validade || '',
                 saldo: l.quantidade_saldo || 0,
-                is_psicotropico: !!m.is_psicotropico
+                is_psicotropico: !!m.is_psicotropico,
+                categoria: m.categoria || ''
               });
             });
           } else {
@@ -1525,7 +1573,8 @@
               numero_lote: 'SEM LOTE',
               data_validade: '',
               saldo: 0,
-              is_psicotropico: !!m.is_psicotropico
+              is_psicotropico: !!m.is_psicotropico,
+              categoria: m.categoria || ''
             });
           }
         });
@@ -1590,43 +1639,77 @@
       salvarLocal();
     }
 
+    /* MÓDULO DE BUSCA E RESGATE DA OCORRÊNCIA NO SUPABASE */
     async function buscarPacienteCPF() {
       const cpfRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
-      if (cpfRaw.length < 11) {
-        alert("Digite um CPF válido com 11 dígitos para buscar.");
+      const codigoOcorr = document.getElementById('codigo').value.trim();
+
+      if (cpfRaw.length < 11 && !codigoOcorr) {
+        alert("Digite um CPF com 11 dígitos ou informe o Nº da Ocorrência no Item 1 para buscar.");
         return;
       }
 
       try {
-        const { data, error } = await _supabase
-          .from('pacientes')
-          .select('*')
-          .eq('cpf', cpfRaw)
-          .single();
+        let query = _supabase.from('ocorrencias_aph').select('*');
+        if (codigoOcorr) {
+          query = query.eq('codigo_ocorrencia', codigoOcorr);
+        } else {
+          query = query.eq('cpf_paciente', cpfRaw);
+        }
+
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(1).single();
 
         if (error || !data) {
-          alert("Paciente não encontrado. Preencha os campos manualmente.");
+          alert("Nenhuma ocorrência anterior encontrada com estes dados.");
           return;
         }
 
-        document.getElementById('paciente').value = (data.nome || '').toUpperCase();
-        document.getElementById('cns_paciente').value = data.cns || '';
+        // Resgate e preenchimento automático dos blocos
+        document.getElementById('codigo').value = data.codigo_ocorrencia || '';
+        document.getElementById('cor_ocorrencia').value = data.cor_ocorrencia || 'VM';
+        document.getElementById('data').value = data.data || '';
+        document.getElementById('regulador').value = data.regulador || '';
+        document.getElementById('motivo_acionamento').value = data.motivo_acionamento || '';
+        document.getElementById('tec_enfermeiro').value = data.tec_enfermeiro || '';
+        document.getElementById('socorrista').value = data.socorrista || '';
+
+        document.getElementById('cpf_paciente').value = data.cpf_paciente || '';
+        document.getElementById('paciente').value = (data.paciente || '').toUpperCase();
         document.getElementById('idade').value = data.idade || '';
-        if (data.sexo) document.getElementById('sexo').value = data.sexo;
-        if (data.telefone) {
-          const elTel = document.getElementById('telefone');
-          elTel.value = data.telefone;
-          aplicarMascaraTelefone(elTel);
-        }
+        document.getElementById('sexo').value = data.sexo || 'M';
+        document.getElementById('telefone').value = data.telefone || '';
+        document.getElementById('rua').value = (data.rua || '').toUpperCase();
+        document.getElementById('bairro').value = (data.bairro || '').toUpperCase();
         document.getElementById('municipio').value = (data.municipio || 'ORLEANS').toUpperCase();
         document.getElementById('estado').value = (data.estado || 'SC').toUpperCase();
-        document.getElementById('bairro').value = (data.bairro || '').toUpperCase();
-        document.getElementById('rua').value = (data.rua || '').toUpperCase();
-        document.getElementById('numero').value = (data.numero || '').toUpperCase();
-        if (data.cep) document.getElementById('cep_paciente').value = data.cep;
-        salvarLocal();
 
-      } catch (err) { alert("Erro ao consultar CPF do paciente."); }
+        document.getElementById('horaJ9').value = data.hora_j9 || '';
+        document.getElementById('horaJ10').value = data.hora_j10 || '';
+        document.getElementById('horaQTA').value = data.hora_qta || '';
+        document.getElementById('horaJ9_INT').value = data.hora_j9_int || '';
+        document.getElementById('horaJ10_INT').value = data.hora_j10_int || '';
+        document.getElementById('horaJ11').value = data.hora_j11 || '';
+        document.getElementById('horaJ12').value = data.hora_j12 || '';
+
+        // Traz insumos e medicações salvas
+        if (data.insumos_utilizados && Array.isArray(data.insumos_utilizados)) {
+          document.getElementById('meds_body').innerHTML = '';
+          data.insumos_utilizados.forEach(item => {
+            addMedRow();
+            const ultTr = document.querySelector('#meds_body tr:last-child');
+            const inInput = ultTr.querySelector('.med-search-input');
+            const inQtd = ultTr.querySelector('.med-qtd');
+            if (inInput) inInput.value = item.descricao || '';
+            if (inQtd) inQtd.value = item.quantidade || 1;
+            verificarPsicotropico(inInput);
+          });
+        }
+
+        checarEAtivarBotaoImpressao();
+        salvarLocal();
+        alert("✅ Prontuário resgatado do Supabase! Sinais vitais e evolução liberados para reavaliação.");
+
+      } catch (err) { alert("Erro ao resgatar histórico da ocorrência."); }
     }
 
     function alternarNenhumInsumo(chk) {
@@ -1740,6 +1823,15 @@
           if (e) e.preventDefault();
           if (inputMedAtualFocus) {
             inputMedAtualFocus.value = item.label;
+            
+            // Marca classe CSS se for insumo comum para suprimir na impressão
+            const tr = inputMedAtualFocus.closest('tr');
+            if (item.categoria && item.categoria.toLowerCase().includes('insumo')) {
+              tr.classList.add('med-row-insumo-comum');
+            } else {
+              tr.classList.remove('med-row-insumo-comum');
+            }
+
             verificarPsicotropico(inputMedAtualFocus);
             salvarLocal();
           }
@@ -1782,7 +1874,6 @@
       if (ehPsico) {
         psicoBox.style.display = 'block';
 
-        // Lógica: se já existir outra linha de psicotrópico antes desta, oculta os campos de lacre
         const todasLinhasPsico = Array.from(document.querySelectorAll('#meds_body tr')).filter(r => {
           const b = r.querySelector('.psico-box');
           return b && b.style.display !== 'none';
@@ -1888,7 +1979,6 @@
       return insumosArray;
     }
 
-    /* BAIXA AUTOMÁTICA DE ESTOQUE NOS LOTES */
     async function processarBaixaEstoqueELacres(insumosPayload, codigoOcorrencia) {
       if (!insumosPayload || !insumosPayload.length) return;
 
@@ -1942,8 +2032,11 @@
           : 'NÃO';
         const bioDesinfeccao = (bioSuspeita === 'SIM') ? document.getElementById('bio_desinfeccao').value : 'NÃO SE APLICA';
 
+        const codBase = document.getElementById('codigo').value;
+        const codFinalOcorrencia = (vitimaAtual === 2) ? `${codBase}-V2` : codBase;
+
         const payload = {
-          codigo_ocorrencia: document.getElementById('codigo').value,
+          codigo_ocorrencia: codFinalOcorrencia,
           cor_ocorrencia: document.getElementById('cor_ocorrencia').value,
           reclassificacao_codigo: document.getElementById('reclassificacao_codigo').value,
           reclassificacao_hora: document.getElementById('reclassificacao_hora').value,
@@ -2089,24 +2182,20 @@
     
     document.getElementById('btnImprimir').addEventListener('click', () => { 
       const confirmacao = confirm(
-        "⚠️ ATENÇÃO: CONFIRMA A IMPRESSÃO DA FICHA?\n\n" +
-        "• Certifique-se de que todos os dados estão corretos.\n" +
-        "• Após a impressão, os dados serão salvos e o estoque será abatido no Supabase.\n" +
-        "• Os campos desta ficha serão LIMPOS e não será possível editar esta ocorrência localmente.\n\n" +
-        "Deseja realmente prosseguir com a impressão?"
+        "⚠️ CONFIRMA A IMPRESSÃO DA FICHA NO HOSPITAL?\n\n" +
+        "• Os dados parciais até o J10-INT serão salvos no Supabase.\n" +
+        "• Os campos do Item 1 serão CONGELADOS para edição.\n" +
+        "• O formulário ficará aberto aguardando a liberação no J11 / J12."
       );
 
-      if (!confirmacao) {
-        return;
-      }
+      if (!confirmacao) return;
 
       document.querySelectorAll('.card').forEach(c => c.classList.add('active'));
       ajustarExibicaoAssinaturasImpressao();
 
       salvarFichaOcorrenciaAPH().then(() => {
         window.print();
-        localStorage.removeItem('aph_draft_data');
-        resetarFormularioParaNovaOcorrencia();
+        congelarSecao1Operacional();
       });
     });
 
