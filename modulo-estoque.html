@@ -164,9 +164,10 @@
   </div>
 
   <script>
+    // CHAVE CORRIGIDA EXATAMENTE COMO ENVIADA PELO USUÁRIO
     const dbNuvem = supabase.createClient(
       "https://rcpgukslnlfptreiusff.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
     let listaLotesComSaldo = [];
@@ -266,7 +267,7 @@
         if (data && data.length > 0) {
           tbody.innerHTML = '';
           data.forEach(l => {
-            const val = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : '—';
+            const val = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
             const nomeInsumo = l.descricao_insumo || l.insumo_nome || '—';
             const qtd = l.quantidade_entrada !== undefined ? l.quantidade_entrada : (l.quantidade_saldo || 0);
 
@@ -319,7 +320,7 @@
         carregarTabelaLotes();
       } catch (err) {
         console.error("Erro ao registrar entrada:", err);
-        alert("Erro ao salvar entrada. Execute o SQL de permissão no Supabase.");
+        alert("Erro ao salvar entrada.");
       }
     }
 
@@ -328,13 +329,13 @@
       select.innerHTML = '<option value="">-- SELECIONE O LOTE --</option>';
 
       try {
-        const { data, error } = await dbNuvem.from('estoque_lotes').select('*');
+        const { data, error } = await dbNuvem.from('estoque_lotes').select('*').order('data_validade', { ascending: true });
         if (error) throw error;
 
         if (data && data.length > 0) {
           listaLotesComSaldo = data;
           data.forEach(l => {
-            const val = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : '—';
+            const val = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
             const nomeInsumo = l.descricao_insumo || l.insumo_nome || '—';
             const qtd = l.quantidade_entrada !== undefined ? l.quantidade_entrada : (l.quantidade_saldo || 0);
 
