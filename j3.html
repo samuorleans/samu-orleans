@@ -51,12 +51,13 @@
     .area-justificativa { width: 100%; margin-top: 12px; }
     .area-justificativa label { font-size: 0.75rem; font-weight: 700; color: #78350f; display: block; margin-bottom: 6px; }
     .area-justificativa textarea { 
-      width: 100%; min-height: 110px; padding: 12px; border: 1.5px solid #f59e0b; border-radius: 10px; font-size: 0.9rem; outline: none; background: #ffffff; resize: vertical; line-height: 1.4;
+      width: 100%; min-height: 100px; padding: 12px; border: 1.5px solid #f59e0b; border-radius: 10px; font-size: 0.9rem; outline: none; background: #ffffff; resize: vertical; line-height: 1.4;
     }
-    .area-justificativa textarea:focus { border-color: var(--samu-navy); box-shadow: 0 0 0 3px rgba(13, 35, 58, 0.1); }
 
     .btn-j3 { width: 100%; background: var(--amber-j3); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
     .btn-j3:hover { background: #b45309; }
+
+    .sync-status { font-size: 0.75rem; color: #15803d; font-weight: bold; margin-top: 8px; display: none; }
 
     .btn-voltar { display: inline-block; margin-top: 15px; font-size: 0.8rem; color: var(--samu-blue); text-decoration: none; font-weight: 600; }
 
@@ -78,20 +79,20 @@
   <div class="j3-card">
     <div class="j3-header">
       <h1>🚨 Módulo de Assunção J3</h1>
-      <p>Confirmação de Plantão (24h/12h) & Envio para Regulação — USB 11</p>
+      <p>Confirmação de Plantão (24h/12h) & Sincronização em Nuvem — USB 11</p>
     </div>
 
     <div class="alert-banner">
-      ℹ️ <b>Rendição Operacional:</b> O servidor que chega antecipadamente pode selecionar seu nome para liberar o checklist. Ao chegar o colega de equipe, o plantão é consolidado automaticamente como 🟢 ATIVO.
+      ℹ️ <b>Rendição Operacional:</b> A assunção sincroniza automaticamente com o banco do Supabase e baixa a base offline para atendimento em áreas sem sinal de celular.
     </div>
 
-    <!-- NAVEGAÇÃO DE ABAS -->
+    <!-- ABAS -->
     <div class="tab-btn-group">
       <button class="tab-btn active" id="tab1" onclick="mudarAba(1)">🚨 Assumir Plantão</button>
       <button class="tab-btn" id="tab2" onclick="mudarAba(2)">🔍 Consultar Plantões</button>
     </div>
 
-    <!-- CONTEÚDO 1: FORMULÁRIO DE ASSUNÇÃO DE PLANTÃO -->
+    <!-- CONTEÚDO TAB 1 -->
     <div id="conteudoTab1">
       <form id="formJ3" onsubmit="processarJ3(event)">
         <div class="form-group">
@@ -116,19 +117,20 @@
         <div class="box-excepcional">
           <label>
             <input type="checkbox" id="j3_chk_excepcional" onchange="alternarJustificativa()">
-            Troca de última hora (Fora da Escala Regular)?
+            Troca de última hora / Fora da Escala Regular?
           </label>
 
           <div id="div_justificativa" class="area-justificativa" style="display: none;">
-            <label>JUSTIFICATIVA OBRIGATÓRIA DA TROCA DE ÚLTIMA HORA:*</label>
-            <textarea id="j3_justificativa" rows="4" placeholder="Descreva aqui detalhadamente o motivo da substituição emergencial / troca fora do horário padrão da escala..."></textarea>
+            <label>JUSTIFICATIVA OBRIGATÓRIA DA TROCA:*</label>
+            <textarea id="j3_justificativa" placeholder="Informe o motivo da substituição emergencial / troca fora do padrão da escala..."></textarea>
           </div>
         </div>
 
-        <button type="submit" class="btn-j3">💾 Confirmar e Registrar J3</button>
+        <button type="submit" class="btn-j3">💾 Confirmar J3 & Ativar Sessão</button>
+        <div id="syncStatusMsg" class="sync-status">🔄 Sincronizando dados para atendimento offline...</div>
       </form>
 
-      <!-- ATALHO PARA WHATSAPP DA REGULAÇÃO -->
+      <!-- WHATSAPP REGULAÇÃO -->
       <div id="whatsappBox" class="whatsapp-box">
         <h4>📱 Mensagem Pronta para a Regulação (WhatsApp):</h4>
         <textarea id="textoZap" rows="4" readonly></textarea>
@@ -136,7 +138,7 @@
       </div>
     </div>
 
-    <!-- CONTEÚDO 2: TABELA DE HISTÓRICO DE PLANTÕES -->
+    <!-- CONTEÚDO TAB 2 -->
     <div id="conteudoTab2" style="display: none;">
       <table class="table-plantao">
         <thead>
@@ -159,8 +161,16 @@
   <script>
     const dbNuvem = supabase.createClient(
       "https://rcpgukslnlfptreiusff.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
+
+    const duplasPadraoEscala = [
+      { cond: "Vanderlei José Tasca", tec: "Suandre Adão Machado" },
+      { cond: "Márcio Becker", tec: "Rinaldo Calegario" },
+      { cond: "Lucas Vieira Mendes", tec: "Clênio Borges" },
+      { cond: "Renato Cândido", tec: "Luis Eduardo Formanski Vitório" },
+      { cond: "Daniel Alexandre Fernandes", tec: "Gicerléia Trindade da Rosa" }
+    ];
 
     window.onload = function() {
       carregarEquipeDoBanco();
@@ -186,7 +196,6 @@
       document.getElementById('div_justificativa').style.display = chk ? 'block' : 'none';
     }
 
-    /* FILTRAGEM DINÂMICA PELA COLUNA 'funcao' DA SUA IMAGEM DO SUPABASE */
     async function carregarEquipeDoBanco() {
       const selC = document.getElementById('j3_condutor');
       const selT = document.getElementById('j3_tecnico');
@@ -194,91 +203,96 @@
       try {
         const { data: servidores, error } = await dbNuvem
           .from('colaboradores')
-          .select('nome, funcao')
+          .select('nome, funcao, status')
           .order('nome', { ascending: true });
 
         if (!error && servidores && servidores.length > 0) {
-          selC.innerHTML = '<option value="">(Selecione ou deixe Rendição)</option>';
-          selT.innerHTML = '<option value="">(Selecione ou deixe Rendição)</option>';
+          selC.innerHTML = '<option value="">(Selecione o Condutor)</option>';
+          selT.innerHTML = '<option value="">(Selecione a Enfermagem)</option>';
 
-          servidores.forEach(s => {
-            const rotuloFuncao = (s.funcao || '').toUpperCase();
+          const ativos = servidores.filter(s => s.status !== 'DESLIGADO');
 
-            // Filtro dinâmico para Condutores
-            if (rotuloFuncao.includes('CONDUTOR') || rotuloFuncao.includes('MOTORISTA')) {
+          ativos.forEach(s => {
+            const rotulo = (s.funcao || '').toUpperCase();
+            if (rotulo.includes('CONDUTOR') || rotulo.includes('MOTORISTA')) {
               selC.innerHTML += `<option value="${s.nome}">${s.nome}</option>`;
-            } 
-            // Filtro dinâmico para Enfermagem (Técnicos e Enfermeiros)
-            else if (rotuloFuncao.includes('TÉCNICO') || rotuloFuncao.includes('TECNICO') || rotuloFuncao.includes('ENFERMEIR')) {
+            } else if (rotulo.includes('TÉCNICO') || rotulo.includes('TECNICO') || rotulo.includes('ENFERMEIR')) {
               selT.innerHTML += `<option value="${s.nome}">${s.nome} (${s.funcao})</option>`;
             }
           });
-        } else {
-          alert("Erro ao carregar colaboradores do banco de dados.");
         }
       } catch (err) {
-        alert("Erro na conexão com o banco de dados.");
+        console.error("Erro ao carregar colaboradores:", err);
       }
     }
 
-    /* PROCESSAMENTO DA ASSUNÇÃO J3 E VALIDAÇÃO */
+    /* FUNÇÃO DE PRE-CACHING PARA ATENDIMENTO OFFLINE NA RUA */
+    async function sincronizarDadosParaOffline() {
+      const msg = document.getElementById('syncStatusMsg');
+      msg.style.display = 'block';
+      msg.innerText = '🔄 Baixando lotes e pacientes para uso offline...';
+
+      try {
+        const [resInsumos, resLotes, resPacientes] = await Promise.all([
+          dbNuvem.from('estoque_mestre').select('*'),
+          dbNuvem.from('estoque_lotes').select('*'),
+          dbNuvem.from('pacientes').select('*').limit(100)
+        ]);
+
+        if (resInsumos.data) localStorage.setItem('offline_estoque_mestre', JSON.stringify(resInsumos.data));
+        if (resLotes.data) localStorage.setItem('offline_estoque_lotes', JSON.stringify(resLotes.data));
+        if (resPacientes.data) localStorage.setItem('offline_pacientes', JSON.stringify(resPacientes.data));
+
+        msg.innerText = '✅ Dados sincronizados! Ficha APH liberada para uso sem internet.';
+      } catch (e) {
+        msg.innerText = '⚠️ Erro ao atualizar offline. O APH usará o último cachê salvo.';
+      }
+    }
+
+    function obterDuplaEscalaHoje() {
+      const dataBase = new Date("2026-09-01T00:00:00");
+      const hoje = new Date();
+      hoje.setHours(0,0,0,0);
+
+      const diffTime = hoje.getTime() - dataBase.getTime();
+      const diasCorridos = Math.floor(diffTime / (1000 * 3600 * 24));
+      const idx = ((diasCorridos % duplasPadraoEscala.length) + duplasPadraoEscala.length) % duplasPadraoEscala.length;
+
+      return duplasPadraoEscala[idx];
+    }
+
     async function processarJ3(e) {
       e.preventDefault();
       const condutor = document.getElementById('j3_condutor').value;
       const tecnico = document.getElementById('j3_tecnico').value;
       const senha = document.getElementById('j3_senha').value.trim();
-      const ehExcepcional = document.getElementById('j3_chk_excepcional').checked;
+      let ehExcepcional = document.getElementById('j3_chk_excepcional').checked;
       const justificativa = document.getElementById('j3_justificativa').value.trim();
 
       if (!condutor && !tecnico) {
-        alert("⚠️ Selecione pelo menos 1 integrante (Condutor ou Enfermagem) para registrar o J3.");
+        alert("Selecione pelo menos um integrante para registrar o J3.");
+        return;
+      }
+
+      // VERIFICAÇÃO AUTOMÁTICA DA ESCALA DO DIA
+      const duplaOficialHoje = obterDuplaEscalaHoje();
+      const ehDuplaOficial = (condutor === duplaOficialHoje.cond && tecnico === duplaOficialHoje.tec);
+
+      if (!ehDuplaOficial && !ehExcepcional) {
+        alert(`⚠️ ATENÇÃO: A dupla selecionada (${condutor} e ${tecnico}) não corresponde à escala padrão do dia.\n\nPor favor, marque a opção "Troca de última hora / Fora da Escala" e preencha a justificativa.`);
+        document.getElementById('j3_chk_excepcional').checked = true;
+        alternarJustificativa();
+        document.getElementById('j3_justificativa').focus();
+        return;
+      }
+
+      if (ehExcepcional && !justificativa) {
+        alert("Informe a justificativa da troca fora da escala.");
         return;
       }
 
       try {
-        const { data: ultimosPlantoes } = await dbNuvem
-          .from('plantoes_j3')
-          .select('*')
-          .order('id', { ascending: false })
-          .limit(5);
-
-        let plantaoPendente = null;
-        let plantaoAtivo = null;
-
-        if (ultimosPlantoes && ultimosPlantoes.length > 0) {
-          plantaoPendente = ultimosPlantoes.find(p => p.status === 'EM RENDIÇÃO');
-          plantaoAtivo = ultimosPlantoes.find(p => p.status === 'ATIVO');
-        }
-
-        // TRAVA DE SEGURANÇA 24 HORAS
-        if (plantaoAtivo && !plantaoPendente) {
-          const timeUltimo = new Date(plantaoAtivo.data_confirmacao || plantaoAtivo.created_at).getTime();
-          const timeAgora = new Date().getTime();
-          const horasDecorridas = (timeAgora - timeUltimo) / (1000 * 60 * 60);
-
-          const houveAlteracaoDupla = (
-            (condutor && plantaoAtivo.condutor !== condutor) ||
-            (tecnico && plantaoAtivo.enfermagem !== tecnico)
-          );
-
-          if (horasDecorridas < 24 && houveAlteracaoDupla) {
-            if (!ehExcepcional || !justificativa) {
-              alert(`⚠️ TRAVA OPERACIONAL DE SEGURANÇA:\n\nJá existe um plantão ativo lançado há ${horasDecorridas.toFixed(1)} horas.\n\nPara alterar a equipe antes das 24h, marque a opção "Troca de última hora" e digite a justificativa.`);
-              
-              document.getElementById('j3_chk_excepcional').checked = true;
-              alternarJustificativa();
-              document.getElementById('j3_justificativa').focus();
-              return;
-            }
-          }
-        }
-
-        if (ehExcepcional && !justificativa) {
-          alert("Por favor, preencha a justificativa informando o motivo da troca.");
-          return;
-        }
-
-        // VALIDAÇÃO DA SENHA ÚNICA CONSULTANDO O SUPABASE
+        // VALIDAR SENHA NO SUPABASE
         const { data: colaboradores } = await dbNuvem.from('colaboradores').select('*');
         let usuarioValido = null;
 
@@ -291,6 +305,11 @@
         }
 
         if (usuarioValido || senha === 'samu192' || senha === '123456') {
+          
+          // VERIFICA SE HÁ RENDIÇÃO ANTERIOR
+          const { data: ultimosPlantoes } = await dbNuvem.from('plantoes_j3').select('*').order('id', { ascending: false }).limit(3);
+          let plantaoPendente = ultimosPlantoes ? ultimosPlantoes.find(p => p.status === 'EM RENDIÇÃO') : null;
+
           let statusFinal = 'EM RENDIÇÃO';
           let condutorFinal = condutor;
           let tecnicoFinal = tecnico;
@@ -298,7 +317,6 @@
           if (plantaoPendente) {
             condutorFinal = condutor || plantaoPendente.condutor;
             tecnicoFinal = tecnico || plantaoPendente.enfermagem;
-
             if (condutorFinal && tecnicoFinal && condutorFinal !== 'Pendente' && tecnicoFinal !== 'Pendente') {
               statusFinal = 'ATIVO';
             }
@@ -309,6 +327,7 @@
               status: statusFinal,
               data_confirmacao: new Date().toISOString()
             }).eq('id', plantaoPendente.id);
+
           } else {
             if (condutorFinal && tecnicoFinal) statusFinal = 'ATIVO';
 
@@ -320,37 +339,38 @@
               condutor: condutorFinal || 'Pendente',
               enfermagem: tecnicoFinal || 'Pendente',
               tipo_registro: ehExcepcional ? 'EXCEPCIONAL' : 'REGULAR',
-              justificativa: justificativa || 'Assunção de Plantão',
+              justificativa: justificativa || 'Assunção de Plantão Regular',
               status: statusFinal,
               data_confirmacao: new Date().toISOString()
             }]);
           }
 
-          // GRAVAÇÃO DE AUDITORIA NOS LOGS
-          const cpfLog = usuarioValido ? usuarioValido.cpf : '075.486.369-70';
-          const nomeLog = usuarioValido ? usuarioValido.nome : `${condutorFinal} / ${tecnicoFinal}`;
+          // GRAVA A SESSÃO DO PLANTÃO NO NAVEGADOR
+          const plantaoSessao = {
+            condutor: condutorFinal,
+            tecnico: tecnicoFinal,
+            status: statusFinal,
+            data_assuncao: new Date().toISOString()
+          };
+          localStorage.setItem('samu_plantao_ativo', JSON.stringify(plantaoSessao));
 
-          await dbNuvem.from('logs_alteracoes').insert([{
-            usuario_cpf: cpfLog,
-            usuario_nome: nomeLog,
-            acao: ehExcepcional ? 'Assunção J3 Excepcional' : `Assunção J3 ${statusFinal}`,
-            detalhes: `Equipe: Condutor (${condutorFinal || 'Pendente'}) + Enfermagem (${tecnicoFinal || 'Pendente'}). ${justificativa}`,
-            data_hora: new Date().toISOString()
-          }]);
+          // SINCRONIZA DADOS PARA MODO OFFLINE
+          await sincronizarDadosParaOffline();
 
-          // GERA MENSAGEM DO WHATSAPP DA REGULAÇÃO
+          // GERA MENSAGEM DO WHATSAPP
           const agora = new Date().toLocaleString('pt-BR');
-          const textoZapFormatado = `🚨 *PASSAGEM DE PLANTÃO J3 - USB 11*\n📅 Data/Hora: ${agora}\n🚑 Condutor: ${condutorFinal || 'Aguardando'}\n🩺 Enfermagem: ${tecnicoFinal || 'Aguardando'}\nStatus: ${statusFinal === 'ATIVO' ? 'Viatura Operacional e Equipe Confirmada' : 'Equipe em Rendição Antecipada'}.`;
+          const textoZapFormatado = `🚨 *PASSAGEM DE PLANTÃO J3 - USB 11*\n📅 Data/Hora: ${agora}\n🚑 Condutor: ${condutorFinal || 'Aguardando'}\n🩺 Enfermagem: ${tecnicoFinal || 'Aguardando'}\nStatus: ${statusFinal === 'ATIVO' ? 'Viatura Operacional e Equipe Confirmada' : 'Equipe em Rendição'}.`;
           
           document.getElementById('textoZap').value = textoZapFormatado;
           document.getElementById('whatsappBox').style.display = 'block';
 
-          alert(`✅ J3 Registrado com Sucesso!\nStatus: ${statusFinal}\n\n🚑 Condutor: ${condutorFinal || 'Aguardando'}\n🩺 Enfermagem: ${tecnicoFinal || 'Aguardando'}`);
+          alert(`✅ J3 Confirmado com Sucesso!\nStatus: ${statusFinal}\n\n🚑 Condutor: ${condutorFinal}\n🩺 Enfermagem: ${tecnicoFinal}`);
           document.getElementById('j3_senha').value = '';
         } else {
           alert("❌ Senha Única incorreta.");
         }
       } catch (err) {
+        console.error("Erro no J3:", err);
         alert("Erro ao conectar com a base de dados.");
       }
     }
@@ -359,7 +379,7 @@
       const textarea = document.getElementById('textoZap');
       textarea.select();
       document.execCommand('copy');
-      alert("📋 Mensagem copiada com sucesso! Cole no WhatsApp da Regulação.");
+      alert("📋 Mensagem copiada com sucesso!");
     }
 
     async function carregarHistorico() {
