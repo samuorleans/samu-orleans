@@ -33,7 +33,6 @@
     .btn-novo { background: #16a34a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
     .btn-novo:hover { background: #15803d; }
 
-    /* FILTROS E PESQUISA DE INSUMOS */
     .filter-box { display: flex; gap: 8px; flex-grow: 1; max-width: 600px; }
     .input-busca, .select-filtro { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.85rem; outline: none; background: white; width: 100%; }
     .input-busca:focus, .select-filtro:focus { border-color: var(--samu-blue); }
@@ -50,15 +49,12 @@
     .btn-editar { background: #1976d2; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer; margin-right: 4px; }
     .btn-excluir { background: #d32f2f; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
 
-    /* BADGES DE STATUS */
     .badge-status { padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 0.7rem; display: inline-block; }
     .status-ativo { background: #dcfce7; color: #15803d; }
     .status-desligado { background: #fee2e2; color: #b91c1c; }
     .status-ferias { background: #fef3c7; color: #b45309; }
     .status-atestado { background: #e0e7ff; color: #4338ca; }
     
-    .status-aph-sim { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
-    .status-aph-nao { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
     .badge-psico { background: #fdf2f8; color: #9d174d; border: 1px solid #f472b6; padding: 2px 6px; border-radius: 4px; font-weight: 800; font-size: 0.68rem; margin-left: 6px; display: inline-block; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
@@ -83,7 +79,7 @@
   <div class="container">
     <div class="header">
       <h1>⚙️ Painel do Gestor — Parâmetros & Cadastros</h1>
-      <p>Gerenciamento Integrado de Servidores, Frota, Insumos e Convênios — USB 11</p>
+      <p>Gerenciamento Integrado de Servidores, Frota, Insumos, Hospitais e Convênios — USB 11</p>
     </div>
 
     <!-- ABAS PRINCIPAIS -->
@@ -92,6 +88,7 @@
       <button class="tab-btn" id="tabViaturas" onclick="alternarAba('viaturas')">🚐 Frota & Viaturas</button>
       <button class="tab-btn" id="tabInsumos" onclick="alternarAba('insumos')">📦 Insumos & Medicamentos</button>
       <button class="tab-btn" id="tabPostos" onclick="alternarAba('postos')">⛽ Postos de Gasolina</button>
+      <button class="tab-btn" id="tabHospitais" onclick="alternarAba('hospitais')">🏥 Hospitais & Destinos</button>
     </div>
 
     <!-- ABA 1: SERVIDORES -->
@@ -145,7 +142,7 @@
       </div>
     </div>
 
-    <!-- ABA 3: INSUMOS (COM BUSCA LOCAL, FILTRO E TOGGLE DIRETO NA TABELA) -->
+    <!-- ABA 3: INSUMOS -->
     <div id="secaoInsumos" style="display: none;">
       <div class="action-bar">
         <div class="filter-box">
@@ -208,10 +205,36 @@
       </div>
     </div>
 
+    <!-- ABA 5: HOSPITAIS & DESTINOS -->
+    <div id="secaoHospitais" style="display: none;">
+      <div class="action-bar">
+        <span style="font-size: 0.85rem; color:#64748b; font-weight:600;">Hospitais de destino e unidades de saúde para a Ficha APH.</span>
+        <button class="btn-novo" onclick="abrirModalHospital()">➕ Novo Hospital</button>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>CNPJ</th>
+              <th>Nome do Hospital / Unidade</th>
+              <th>Cidade / UF</th>
+              <th>Endereço</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyHospitais">
+            <tr><td colspan="6" style="text-align:center;">Consultando hospitais no banco...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <a href="index.html" class="btn-voltar">⬅️ Voltar ao Painel Principal</a>
   </div>
 
-  <!-- MODAL DE EDICAO DO SERVIDOR E UNIFORMES -->
+  <!-- MODAL DE SERVIDOR -->
   <div class="modal-overlay" id="modalColaborador">
     <div class="modal-box">
       <div class="modal-header">
@@ -329,7 +352,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE INSUMO COM GERAÇÃO DE CÓDIGO E CONTROLE DE ESTOQUE -->
+  <!-- MODAL DE INSUMO -->
   <div class="modal-overlay" id="modalInsumo">
     <div class="modal-box">
       <div class="modal-header">
@@ -417,6 +440,59 @@
     </div>
   </div>
 
+  <!-- MODAL DE HOSPITAL DE DESTINO COM BUSCA CNPJ RECEITA FEDERAL -->
+  <div class="modal-overlay" id="modalHospital">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalHospitalTitulo">🏥 Cadastrar Hospital de Destino</h3>
+        <button class="close-modal" onclick="fecharModalHospital()">&times;</button>
+      </div>
+      <form id="formModalHospital" onsubmit="salvarHospitalModal(event)">
+        <input type="hidden" id="modal_hosp_id">
+
+        <div class="form-group">
+          <label>CNPJ da Instituição:</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="modal_hosp_cnpj" placeholder="00.000.000/0000-00">
+            <button type="button" onclick="buscarCNPJHospital()" style="padding: 9px 14px; background: #1976d2; color: #fff; border:none; border-radius: 8px; font-weight: bold; cursor: pointer; white-space: nowrap;">🔍 Buscar CNPJ</button>
+          </div>
+        </div>
+
+        <div class="grid-form" style="margin-top: 12px;">
+          <div class="form-group" style="grid-column: span 2;">
+            <label>Nome Fantasia / Exibição APH:*</label>
+            <input type="text" id="modal_hosp_nome" placeholder="Ex: Hospital Santa Otília" required>
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label>Razão Social:</label>
+            <input type="text" id="modal_hosp_razao" placeholder="Ex: Associação Hospitalar...">
+          </div>
+          <div class="form-group">
+            <label>Cidade:*</label>
+            <input type="text" id="modal_hosp_cidade" placeholder="Ex: Orleans" required>
+          </div>
+          <div class="form-group">
+            <label>UF:*</label>
+            <input type="text" id="modal_hosp_uf" value="SC" required>
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label>Endereço Completo:</label>
+            <input type="text" id="modal_hosp_endereco" placeholder="Rua, Número, Bairro">
+          </div>
+          <div class="form-group">
+            <label>Status:*</label>
+            <select id="modal_hosp_status">
+              <option value="ATIVO">🟢 ATIVO</option>
+              <option value="INATIVO">🔴 INATIVO</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-salvar-modal">💾 Salvar Hospital no Banco</button>
+      </form>
+    </div>
+  </div>
+
   <script>
     const dbNuvem = supabase.createClient(
       "https://rcpgukslnlfptreiusff.supabase.co",
@@ -434,15 +510,18 @@
       document.getElementById('secaoViaturas').style.display = aba === 'viaturas' ? 'block' : 'none';
       document.getElementById('secaoInsumos').style.display = aba === 'insumos' ? 'block' : 'none';
       document.getElementById('secaoPostos').style.display = aba === 'postos' ? 'block' : 'none';
+      document.getElementById('secaoHospitais').style.display = aba === 'hospitais' ? 'block' : 'none';
 
       document.getElementById('tabColab').classList.toggle('active', aba === 'colaboradores');
       document.getElementById('tabViaturas').classList.toggle('active', aba === 'viaturas');
       document.getElementById('tabInsumos').classList.toggle('active', aba === 'insumos');
       document.getElementById('tabPostos').classList.toggle('active', aba === 'postos');
+      document.getElementById('tabHospitais').classList.toggle('active', aba === 'hospitais');
 
       if (aba === 'viaturas') carregarViaturas();
       if (aba === 'postos') carregarPostos();
       if (aba === 'insumos') carregarInsumos();
+      if (aba === 'hospitais') carregarHospitais();
     }
 
     /* CARREGAMENTO DE SERVIDORES */
@@ -534,7 +613,108 @@
       } else { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum posto.</td></tr>'; }
     }
 
-    /* CARREGAMENTO DE INSUMOS EM ORDEM ALFABÉTICA + BUSCA LOCAL */
+    /* CARREGAMENTO E MANTENÇÃO DE HOSPITAIS DE DESTINO */
+    async function carregarHospitais() {
+      const tbody = document.getElementById('tbodyHospitais');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando hospitais...</td></tr>';
+      
+      try {
+        const { data, error } = await dbNuvem.from('operacional_hospitais').select('*').order('cidade', { ascending: true });
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          tbody.innerHTML = '';
+          data.forEach(h => {
+            tbody.innerHTML += `<tr>
+              <td>${h.cnpj || '—'}</td>
+              <td><b>${h.nome_fantasia}</b></td>
+              <td>${h.cidade} / ${h.uf || 'SC'}</td>
+              <td>${h.endereco || '—'}</td>
+              <td><span class="badge-status status-ativo">🟢 ${h.status || 'ATIVO'}</span></td>
+              <td>
+                <button class="btn-editar" onclick="abrirModalHospital('${h.id}')">✏️ Editar</button>
+                <button class="btn-excluir" onclick="deletarItem('operacional_hospitais', ${h.id}, carregarHospitais)">🗑️ Excluir</button>
+              </td>
+            </tr>`;
+          });
+        } else { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum hospital cadastrado.</td></tr>'; }
+      } catch (err) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Erro ao carregar lista de hospitais.</td></tr>'; }
+    }
+
+    /* CONSULTA CNPJ VIA RECEITA FEDERAL */
+    function buscarCNPJHospital() {
+      const cnpjLimpo = document.getElementById('modal_hosp_cnpj').value.replace(/\D/g, '');
+
+      if (cnpjLimpo.length !== 14) {
+        alert("Informe um CNPJ válido com 14 dígitos.");
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = `https://receitaws.com.br/v1/cnpj/${cnpjLimpo}?callback=retornoCNPJHospital`;
+      document.body.appendChild(script);
+    }
+
+    function retornoCNPJHospital(resposta) {
+      if (resposta.status === "ERROR") {
+        alert("CNPJ não localizado na Receita Federal: " + resposta.message);
+        return;
+      }
+
+      document.getElementById('modal_hosp_nome').value = resposta.fantasia || resposta.nome;
+      document.getElementById('modal_hosp_razao').value = resposta.nome;
+      document.getElementById('modal_hosp_cidade').value = resposta.municipio;
+      document.getElementById('modal_hosp_uf').value = resposta.uf;
+      document.getElementById('modal_hosp_endereco').value = `${resposta.logradouro}, ${resposta.numero} - ${resposta.bairro}`;
+      
+      alert("✅ Dados do hospital carregados automaticamente!");
+    }
+
+    async function abrirModalHospital(id) {
+      document.getElementById('formModalHospital').reset();
+      document.getElementById('modal_hosp_id').value = '';
+      document.getElementById('modalHospitalTitulo').innerText = '🏥 Cadastrar Hospital de Destino';
+
+      if (id) {
+        document.getElementById('modalHospitalTitulo').innerText = '✏️ Editar Hospital';
+        const { data } = await dbNuvem.from('operacional_hospitais').select('*').eq('id', id).single();
+        if (data) {
+          document.getElementById('modal_hosp_id').value = data.id;
+          document.getElementById('modal_hosp_cnpj').value = data.cnpj || '';
+          document.getElementById('modal_hosp_nome').value = data.nome_fantasia || '';
+          document.getElementById('modal_hosp_razao').value = data.razas_social || '';
+          document.getElementById('modal_hosp_cidade').value = data.cidade || '';
+          document.getElementById('modal_hosp_uf').value = data.uf || 'SC';
+          document.getElementById('modal_hosp_endereco').value = data.endereco || '';
+          document.getElementById('modal_hosp_status').value = data.status || 'ATIVO';
+        }
+      }
+      document.getElementById('modalHospital').style.display = 'flex';
+    }
+
+    function fecharModalHospital() { document.getElementById('modalHospital').style.display = 'none'; }
+
+    async function salvarHospitalModal(e) {
+      e.preventDefault();
+      const id = document.getElementById('modal_hosp_id').value;
+      const payload = {
+        cnpj: document.getElementById('modal_hosp_cnpj').value.trim(),
+        nome_fantasia: document.getElementById('modal_hosp_nome').value.trim(),
+        razas_social: document.getElementById('modal_hosp_razao').value.trim(),
+        cidade: document.getElementById('modal_hosp_cidade').value.trim(),
+        uf: document.getElementById('modal_hosp_uf').value.trim(),
+        endereco: document.getElementById('modal_hosp_endereco').value.trim(),
+        status: document.getElementById('modal_hosp_status').value
+      };
+
+      if (id) await dbNuvem.from('operacional_hospitais').update(payload).eq('id', id);
+      else await dbNuvem.from('operacional_hospitais').insert([payload]);
+
+      fecharModalHospital();
+      carregarHospitais();
+    }
+
+    /* CARREGAMENTO DE INSUMOS */
     async function carregarInsumos() {
       const tbody = document.getElementById('tbodyInsumos');
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando estoque mestre...</td></tr>';
@@ -596,7 +776,6 @@
 
         const badgePsico = ehPsico ? '<span class="badge-psico">🔒 PSICOTRÓPICO</span>' : '';
 
-        // SELETOR CLICÁVEL DIRETO NA TABELA (TOGGLE EM TEMPO REAL)
         const toggleAPH = `
           <label style="display: inline-flex; align-items: center; cursor: pointer; gap: 6px;">
             <input type="checkbox" 
@@ -623,7 +802,6 @@
       });
     }
 
-    // ATUALIZA O CAMPO exibir_no_aph DIRETO NO SUPABASE
     async function alternarExibicaoAPH(id, novoStatus, nomeInsumo) {
       try {
         const { error } = await dbNuvem
@@ -807,7 +985,7 @@
       }
     }
 
-    /* MODAL DE INSUMOS COM CAMPOS MÍN/MÁX E CÓDIGO AUTO */
+    /* MODAL DE INSUMOS */
     async function abrirModalInsumo(id) {
       document.getElementById('formModalInsumo').reset();
       document.getElementById('modal_insumo_id').value = '';
