@@ -103,16 +103,15 @@
       </form>
     </div>
 
-    <!-- ABA 2: BAIXA DE INSUMOS -->
+    <!-- ABA 2: BAIXA DE INSUMOS COM BUSCA POR NOME OU LOTE -->
     <div id="secaoBaixa" class="form-box" style="display: none;">
       <h3>🚨 REGISTRO DE BAIXA DE ESTOQUE</h3>
       <form id="formBaixa" onsubmit="registrarBaixaLote(event)">
         <div class="grid-form">
           <div class="form-group" style="grid-column: span 2;">
-            <label>SELECIONE O LOTE PARA DAR BAIXA:*</label>
-            <select id="select_lote_baixa" required>
-              <option value="">Carregando lotes disponíveis...</option>
-            </select>
+            <label>DIGITE OU SELECIONE O LOTE PARA BAIXA (NOME, LOTE OU VALIDADE):*</label>
+            <input type="text" id="input_lote_baixa_busca" list="listaLotesBaixaAuto" placeholder="🔍 DIGITE O NOME DO MEDICAMENTO OU Nº DO LOTE..." required autocomplete="off">
+            <datalist id="listaLotesBaixaAuto"></datalist>
           </div>
 
           <div class="form-group">
@@ -164,10 +163,9 @@
   </div>
 
   <script>
-    // CHAVE CORRIGIDA EXATAMENTE COMO ENVIADA PELO USUÁRIO
     const dbNuvem = supabase.createClient(
       "https://rcpgukslnlfptreiusff.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
     let listaLotesComSaldo = [];
@@ -324,9 +322,10 @@
       }
     }
 
+    /* CARREGAR LOTES EM DATALIST DE BUSCA PARA A ABA DE BAIXA */
     async function carregarLotesParaBaixa() {
-      const select = document.getElementById('select_lote_baixa');
-      select.innerHTML = '<option value="">-- SELECIONE O LOTE --</option>';
+      const datalist = document.getElementById('listaLotesBaixaAuto');
+      datalist.innerHTML = '';
 
       try {
         const { data, error } = await dbNuvem.from('estoque_lotes').select('*').order('data_validade', { ascending: true });
@@ -339,33 +338,49 @@
             const nomeInsumo = l.descricao_insumo || l.insumo_nome || '—';
             const qtd = l.quantidade_entrada !== undefined ? l.quantidade_entrada : (l.quantidade_saldo || 0);
 
-            const opt = document.createElement('option');
-            opt.value = l.id;
-            opt.textContent = `${nomeInsumo} | Lote: ${l.numero_lote} | Val: ${val} | Saldo: ${qtd}`;
-            select.appendChild(opt);
+            const option = document.createElement('option');
+            option.value = `[ID:${l.id}] ${nomeInsumo} | Lote: ${l.numero_lote} | Val: ${val} | Saldo: ${qtd}`;
+            datalist.appendChild(option);
           });
-        } else {
-          select.innerHTML = '<option value="">Nenhum lote disponível</option>';
         }
       } catch (err) {
-        select.innerHTML = '<option value="">Erro ao carregar lotes</option>';
+        console.error("Erro ao carregar lotes para baixa:", err);
       }
     }
 
+    /* REGISTRAR BAIXA DE LOTE COM SUPORTE A BUSCA */
     async function registrarBaixaLote(e) {
       e.preventDefault();
 
-      const loteId = document.getElementById('select_lote_baixa').value;
+      const buscaTexto = document.getElementById('input_lote_baixa_busca').value.trim();
       const qtdBaixa = parseInt(document.getElementById('input_baixa_qtd').value) || 0;
       const responsavel = document.getElementById('select_resp_baixa').value;
 
-      if (!loteId || qtdBaixa <= 0 || !responsavel) {
+      if (!buscaTexto || qtdBaixa <= 0 || !responsavel) {
         alert("Preencha todos os campos da baixa.");
         return;
       }
 
-      const loteAtual = listaLotesComSaldo.find(l => String(l.id) === String(loteId));
-      if (!loteAtual) return;
+      // Extrai o ID do lote formatado no datalist [ID:123] ou faz a correspondência por nome/lote
+      let loteAtual = null;
+      const matchId = buscaTexto.match(/\[ID:(\d+)\]/);
+
+      if (matchId && matchId[1]) {
+        const idExtraido = matchId[1];
+        loteAtual = listaLotesComSaldo.find(l => String(l.id) === String(idExtraido));
+      } else {
+        loteAtual = listaLotesComSaldo.find(l => {
+          const nome = (l.descricao_insumo || l.insumo_nome || '').toLowerCase();
+          const numLote = (l.numero_lote || '').toLowerCase();
+          const busca = buscaTexto.toLowerCase();
+          return nome.includes(busca) || numLote.includes(busca);
+        });
+      }
+
+      if (!loteAtual) {
+        alert("Lote não encontrado. Selecione uma opção válida da lista de busca.");
+        return;
+      }
 
       const qtdAtual = loteAtual.quantidade_entrada !== undefined ? loteAtual.quantidade_entrada : (loteAtual.quantidade_saldo || 0);
 
@@ -376,7 +391,7 @@
 
       try {
         const novoSaldo = qtdAtual - qtdBaixa;
-        const { error } = await dbNuvem.from('estoque_lotes').update({ quantidade_entrada: novoSaldo }).eq('id', loteId);
+        const { error } = await dbNuvem.from('estoque_lotes').update({ quantidade_entrada: novoSaldo }).eq('id', loteAtual.id);
         if (error) throw error;
 
         alert("✅ Baixa de estoque realizada com sucesso!");
