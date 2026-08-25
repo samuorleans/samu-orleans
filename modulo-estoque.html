@@ -103,14 +103,14 @@
       </form>
     </div>
 
-    <!-- ABA 2: BAIXA DE INSUMOS COM BUSCA POR NOME OU LOTE -->
+    <!-- ABA 2: BAIXA DE INSUMOS COM BUSCA LIMPA -->
     <div id="secaoBaixa" class="form-box" style="display: none;">
       <h3>🚨 REGISTRO DE BAIXA DE ESTOQUE</h3>
       <form id="formBaixa" onsubmit="registrarBaixaLote(event)">
         <div class="grid-form">
           <div class="form-group" style="grid-column: span 2;">
-            <label>DIGITE OU SELECIONE O LOTE PARA BAIXA (NOME, LOTE OU VALIDADE):*</label>
-            <input type="text" id="input_lote_baixa_busca" list="listaLotesBaixaAuto" placeholder="🔍 DIGITE O NOME DO MEDICAMENTO OU Nº DO LOTE..." required autocomplete="off">
+            <label>DIGITE OU SELECIONE O LOTE PARA BAIXA (NOME OU Nº DO LOTE):*</label>
+            <input type="text" id="input_lote_baixa_busca" list="listaLotesBaixaAuto" placeholder="🔍 BUSQUE POR MEDICAMENTO OU LOTE..." required autocomplete="off">
             <datalist id="listaLotesBaixaAuto"></datalist>
           </div>
 
@@ -163,7 +163,6 @@
   </div>
 
   <script>
-    // CHAVE E URL SUPABASE CORRIGIDAS DEFINITIVAMENTE
     const dbNuvem = supabase.createClient(
       "https://rcpgukslnlfptreiusff.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
@@ -265,6 +264,14 @@
 
         if (data && data.length > 0) {
           tbody.innerHTML = '';
+
+          // Ordenação por nome de medicamento
+          data.sort((a, b) => {
+            const descA = (a.descricao_insumo || a.insumo_nome || '').toUpperCase();
+            const descB = (b.descricao_insumo || b.insumo_nome || '').toUpperCase();
+            return descA.localeCompare(descB);
+          });
+
           data.forEach(l => {
             const val = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
             const nomeInsumo = l.descricao_insumo || l.insumo_nome || '—';
@@ -323,24 +330,33 @@
       }
     }
 
-    /* CARREGAR LOTES EM DATALIST DE BUSCA PARA A ABA DE BAIXA */
+    /* CARREGAR LOTES EM DATALIST FORMATADO E LIMPO PARA A ABA DE BAIXA */
     async function carregarLotesParaBaixa() {
       const datalist = document.getElementById('listaLotesBaixaAuto');
       datalist.innerHTML = '';
 
       try {
-        const { data, error } = await dbNuvem.from('estoque_lotes').select('*').order('data_validade', { ascending: true });
+        const { data, error } = await dbNuvem.from('estoque_lotes').select('*');
         if (error) throw error;
 
         if (data && data.length > 0) {
           listaLotesComSaldo = data;
-          data.forEach(l => {
+
+          // Ordenação alfabética
+          listaLotesComSaldo.sort((a, b) => {
+            const descA = (a.descricao_insumo || a.insumo_nome || '').toUpperCase();
+            const descB = (b.descricao_insumo || b.insumo_nome || '').toUpperCase();
+            return descA.localeCompare(descB);
+          });
+
+          listaLotesComSaldo.forEach(l => {
             const val = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
             const nomeInsumo = l.descricao_insumo || l.insumo_nome || '—';
             const qtd = l.quantidade_entrada !== undefined ? l.quantidade_entrada : (l.quantidade_saldo || 0);
 
             const option = document.createElement('option');
-            option.value = `[ID:${l.id}] ${nomeInsumo} | Lote: ${l.numero_lote} | Val: ${val} | Saldo: ${qtd}`;
+            // Formatação limpa sem ID no texto do autocomplete
+            option.value = `${nomeInsumo} — Lote: ${l.numero_lote} (Saldo: ${qtd} | Val: ${val})`;
             datalist.appendChild(option);
           });
         }
@@ -349,7 +365,7 @@
       }
     }
 
-    /* REGISTRAR BAIXA DE LOTE COM SUPORTE A BUSCA */
+    /* REGISTRAR BAIXA COMPATÍVEL COM O FORMATO LIMPO */
     async function registrarBaixaLote(e) {
       e.preventDefault();
 
@@ -362,23 +378,20 @@
         return;
       }
 
-      let loteAtual = null;
-      const matchId = buscaTexto.match(/\[ID:(\d+)\]/);
-
-      if (matchId && matchId[1]) {
-        const idExtraido = matchId[1];
-        loteAtual = listaLotesComSaldo.find(l => String(l.id) === String(idExtraido));
-      } else {
-        loteAtual = listaLotesComSaldo.find(l => {
-          const nome = (l.descricao_insumo || l.insumo_nome || '').toLowerCase();
-          const numLote = (l.numero_lote || '').toLowerCase();
-          const busca = buscaTexto.toLowerCase();
-          return nome.includes(busca) || numLote.includes(busca);
-        });
-      }
+      // Localiza o objeto do lote correspondente pela busca do texto
+      const loteAtual = listaLotesComSaldo.find(l => {
+        const val = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
+        const nomeInsumo = l.descricao_insumo || l.insumo_nome || '—';
+        const qtd = l.quantidade_entrada !== undefined ? l.quantidade_entrada : (l.quantidade_saldo || 0);
+        
+        const formatoExato = `${nomeInsumo} — Lote: ${l.numero_lote} (Saldo: ${qtd} | Val: ${val})`;
+        
+        return buscaTexto === formatoExato || 
+               buscaTexto.toLowerCase().includes((l.numero_lote || '').toLowerCase()) && buscaTexto.toLowerCase().includes(nomeInsumo.toLowerCase());
+      });
 
       if (!loteAtual) {
-        alert("Lote não encontrado. Selecione uma opção válida da lista de busca.");
+        alert("Lote não encontrado. Por favor, selecione uma das opções sugeridas na lista.");
         return;
       }
 
