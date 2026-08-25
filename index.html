@@ -265,61 +265,77 @@
 
   <div class="container">
 
-    <!-- SEÇÃO 1: FORMULÁRIOS E SISTEMAS PÚBLICOS OPERACIONAIS -->
-    <h2 class="section-title">📋 Registros e Controles Diários</h2>
+    <!-- SEÇÃO 1: ROTINA OPERACIONAL E APH (NA ORDEM LÓGICA DE DEPENDÊNCIA) -->
+    <h2 class="section-title">🚨 Rotina Operacional & APH</h2>
     <div class="grid-container">
 
-      <!-- Card 1: Checklist & Abastecimento -->
-     <a href="operacional.html" class="card">
-        <div>
-          <div class="card-icon">🚑</div>
-          <div class="card-title">Checklist & Abastecimento</div>
-          <div class="card-desc">Conferência diária de materiais, viaturas e abastecimento com validação J3.</div>
-        </div>
-        <span class="badge">Acessar Sistema</span>
-      </a>
-
-      <!-- Card 2: Escalas Operacionais -->
-      <a href="escala.html" class="card">
-        <div>
-          <div class="card-icon">📅</div>
-          <div class="card-title">Escalas Operacionais</div>
-          <div class="card-desc">Módulo integrado de consulta e gestão de escalas de plantão.</div>
-        </div>
-        <span class="badge">Acessar Sistema</span>
-      </a>
-
-      <!-- Card 3: Assunção de Plantão / J3 (Aponta diretamente para o j3.html) -->
+      <!-- Card 1: Assunção de Plantão / J3 (ETAPA 1 - OBRIGATÓRIA) -->
       <a href="j3.html" class="card" style="border-top-color: var(--amber-j3);">
         <div>
           <div class="card-icon">🚨</div>
-          <div class="card-title">Assumir Plantão / J3</div>
-          <div class="card-desc">Validação de entrada em serviço, rendição antecipada e consulta de equipes.</div>
+          <div class="card-title">1. Assumir Plantão / J3</div>
+          <div class="card-desc">Validação de entrada em serviço, rendição antecipada e confirmação da dupla. <b>Obrigatório para liberar os sistemas.</b></div>
         </div>
         <span class="badge" style="color: var(--amber-j3);">Acessar Módulo J3</span>
       </a>
 
-      <!-- Card 4: Ocorrência APH / Paciente -->
+      <!-- Card 2: Checklist & Abastecimento (ETAPA 2 - REQUER J3 ATIVO) -->
+      <a href="operacional.html" class="card">
+        <div>
+          <div class="card-icon">📋</div>
+          <div class="card-title">2. Checklist & Abastecimento</div>
+          <div class="card-desc">Conferência diária da viatura, materiais, lacres de psicotrópicos e combustível. <i>(Requer J3 Ativo)</i></div>
+        </div>
+        <span class="badge">Acessar Checklists</span>
+      </a>
+
+      <!-- Card 3: Ocorrência APH / Paciente (ETAPA 3 - REQUER J3 ATIVO) -->
       <a href="ficha-aph.html" class="card">
         <div>
           <div class="card-icon">🩺</div>
-          <div class="card-title">Ocorrência APH / Paciente</div>
-          <div class="card-desc">Registro de atendimento de socorro a pacientes e fichas de APH.</div>
+          <div class="card-title">3. Ocorrência APH / Paciente</div>
+          <div class="card-desc">Registro de atendimento pré-hospitalar, procedimentos médicos e fichas clínicas. <i>(Requer J3 Ativo)</i></div>
         </div>
         <span class="badge">Acessar Formulário</span>
       </a>
 
-      <!-- Card 5: Cursos & Capacitações -->
+    </div>
+
+    <!-- SEÇÃO 2: ÁREA DO SERVIDOR, ESCALAS E ENSINO -->
+    <h2 class="section-title">👤 Área do Servidor & Ensino</h2>
+    <div class="grid-container">
+
+      <!-- Card 4: Portal do Servidor -->
+      <a href="portal.html" class="card">
+        <div>
+          <div class="card-icon">🔐</div>
+          <div class="card-title">Portal do Servidor</div>
+          <div class="card-desc">Acesso individual a dados cadastrais, perfil de acesso, logs e redefinição de senha.</div>
+        </div>
+        <span class="badge">Acessar Portal</span>
+      </a>
+
+      <!-- Card 5: Escalas Operacionais -->
+      <a href="escala.html" class="card">
+        <div>
+          <div class="card-icon">📅</div>
+          <div class="card-title">Escalas Operacionais</div>
+          <div class="card-desc">Módulo integrado de consulta e gestão de escalas de plantão (24x96, 24x72 e trocas).</div>
+        </div>
+        <span class="badge">Acessar Escalas</span>
+      </a>
+
+      <!-- Card 6: Cursos & Capacitações -->
       <a href="cursos.html" class="card">
         <div>
           <div class="card-icon">🎓</div>
           <div class="card-title">Cursos & Capacitações</div>
-          <div class="card-desc">Lançamento de treinamentos, controle de horas e relatórios.</div>
+          <div class="card-desc">Lançamento de treinamentos, controle de horas/aulas e relatórios.</div>
         </div>
-        <span class="badge">Acessar Módulo</span>
+        <span class="badge">Acessar Cursos</span>
       </a>
 
-      <!-- Card 6: Lista de Presença -->
+      <!-- Card 7: Lista de Presença -->
       <a href="lista-presenca.html" class="card">
         <div>
           <div class="card-icon">📝</div>
@@ -329,28 +345,38 @@
         <span class="badge">Gerar Folha</span>
       </a>
 
-      <!-- Card 7: Portal do Servidor -->
-      <a href="portal.html" class="card">
-        <div>
-          <div class="card-icon">🔐</div>
-          <div class="card-title">Portal do Servidor</div>
-          <div class="card-desc">Acesso a dados cadastrais, perfil de acesso e registro de logs.</div>
-        </div>
-        <span class="badge">Acessar Portal</span>
-      </a>
-
     </div>
 
-    <!-- SEÇÃO 2: ÁREA RESTRITA / GESTÃO (LIBERADA APÓS SENHA) -->
+    <!-- SEÇÃO 3: ÁREA RESTRITA / GESTÃO, CONTROLE & ESTOQUE (LIBERADA APÓS SENHA) -->
     <div id="admin-section">
-      <h2 class="section-title" style="border-bottom-color: var(--navy-blue);">📊 Banco de Dados & Gestão de Frotas/Materiais</h2>
+      <h2 class="section-title" style="border-bottom-color: var(--navy-blue);">📊 Gestão, Controle & Estoque Administrativo</h2>
       <div class="grid-container">
+
+        <!-- Módulo de Estoque e Insumos -->
+        <a href="modulo-estoque.html" class="card" style="border-top-color: var(--navy-blue);">
+          <div>
+            <div class="card-icon">📦</div>
+            <div class="card-title">Gestão de Estoque & Insumos</div>
+            <div class="card-desc">Lançamento de entradas, controle de lotes, validade de farmácia e baixas operacionais.</div>
+          </div>
+          <span class="badge" style="color: var(--navy-blue);">Acessar Estoque</span>
+        </a>
+
+        <!-- Gestão de Cadastros e Frota -->
+        <a href="gestao-cadastros.html" class="card" style="border-top-color: var(--navy-blue);">
+          <div>
+            <div class="card-icon">⚙️</div>
+            <div class="card-title">Gestão de Cadastros & Frota</div>
+            <div class="card-desc">Painel administrativo para controle de equipe, colaboradores, viaturas e permissões.</div>
+          </div>
+          <span class="badge" style="color: var(--navy-blue);">Acessar Cadastros</span>
+        </a>
 
         <!-- Planilha 1: SGM-SAMU -->
         <a href="https://docs.google.com/spreadsheets/d/12a8Dan853g2KWDgbDMuFK1HnzjhxEDte-ZpzQX5tcJk/edit?gid=1531210653#gid=1531210653" target="_blank" class="card" style="border-top-color: var(--navy-blue);">
           <div>
-            <div class="card-icon">📦</div>
-            <div class="card-title">SGM-SAMU</div>
+            <div class="card-icon">📊</div>
+            <div class="card-title">Planilha SGM-SAMU</div>
             <div class="card-desc">Sistema Gestor de Materiais, Validades & Fichas APH.</div>
           </div>
           <span class="badge" style="color: var(--navy-blue);">Abrir Planilha</span>
@@ -360,7 +386,7 @@
         <a href="https://docs.google.com/spreadsheets/d/1JZqoKfclPrSTjsWQj7JR4dqvNvcmWIRQQRzMfjFqFAw/edit?gid=1179310506#gid=1179310506" target="_blank" class="card" style="border-top-color: var(--navy-blue);">
           <div>
             <div class="card-icon">🚐</div>
-            <div class="card-title">SGF-SAMU</div>
+            <div class="card-title">Planilha SGF-SAMU</div>
             <div class="card-desc">Sistema Gestor de Frotas, Viaturas e Operações.</div>
           </div>
           <span class="badge" style="color: var(--navy-blue);">Abrir Planilha</span>
@@ -386,7 +412,7 @@
     <div class="modal-box">
       <span class="close-modal" onclick="closeLoginModal()">&times;</span>
       <h3>Acesso Restrito</h3>
-      <p>Digite a senha da coordenação/gestão para liberar os sistemas e bancos de dados.</p>
+      <p>Digite a senha da coordenação/gestão para liberar os sistemas de estoque, cadastros e bancos de dados.</p>
       <input type="password" id="passInput" class="input-field" placeholder="Digite a senha">
       <button class="btn-submit" onclick="validatePassword()">Entrar</button>
       <div class="error-msg" id="errorMsg">Senha incorreta. Tente novamente.</div>
