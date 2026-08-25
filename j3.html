@@ -83,7 +83,7 @@
     </div>
 
     <div class="alert-banner">
-      ℹ️ <b>Rendição Operacional:</b> Selecione a viatura em operação. A assunção valida a escala oficial (incluindo turnos de 12h) e atualiza o plantão ativo no banco.
+      ℹ️ <b>Rendição Operacional:</b> Selecione a viatura em operação. A assunção valida a escala oficial e grava a equipe ativa no banco de dados.
     </div>
 
     <!-- ABAS -->
@@ -98,8 +98,7 @@
         <div class="form-group">
           <label>Viatura em Operação:*</label>
           <select id="j3_viatura" required>
-            <option value="USB 11">🚑 USB 11 (Viatura Titular Orleans)</option>
-            <option value="USB RESERVA">🚑 USB Reserva / Evento Especial</option>
+            <option value="">Carregando viaturas cadastradas...</option>
           </select>
         </div>
 
@@ -190,6 +189,7 @@
     ];
 
     window.onload = function() {
+      carregarViaturasDoBanco();
       carregarEquipeDoBanco();
     };
 
@@ -213,6 +213,43 @@
       document.getElementById('div_justificativa').style.display = chk ? 'block' : 'none';
     }
 
+    /* CARREGA AS VIATURAS DA TABELA 'operacional_viaturas' */
+    async function carregarViaturasDoBanco() {
+      const selV = document.getElementById('j3_viatura');
+
+      try {
+        const { data: viaturas, error } = await dbNuvem
+          .from('operacional_viaturas')
+          .select('placa, status, modelo')
+          .order('id', { ascending: true });
+
+        if (error) throw error;
+
+        if (viaturas && viaturas.length > 0) {
+          selV.innerHTML = '';
+          viaturas.forEach(v => {
+            const statusUpper = (v.status || '').toUpperCase();
+            const ehAtiva = (statusUpper === 'ATIVA' || statusUpper === 'TITULAR');
+            
+            const rotulo = ehAtiva 
+              ? `🚑 USB 11 (Titular em Operação — ${v.placa})` 
+              : `🚑 USB 11 (Reserva / Apoio & Eventos — ${v.placa})`;
+            
+            const valorParaBanco = ehAtiva ? `USB 11 (Titular - ${v.placa})` : `USB 11 (Reserva - ${v.placa})`;
+            
+            selV.innerHTML += `<option value="${valorParaBanco}">${rotulo}</option>`;
+          });
+        }
+      } catch (err) {
+        console.warn("Usando seletores padrão de viatura:", err);
+        selV.innerHTML = `
+          <option value="USB 11 (Titular)">🚑 USB 11 (Titular em Operação)</option>
+          <option value="USB 11 (Reserva)">🚑 USB 11 (Reserva / Apoio & Eventos)</option>
+        `;
+      }
+    }
+
+    /* CARREGA COLABORADORES DA TABELA 'colaboradores' */
     async function carregarEquipeDoBanco() {
       const selC = document.getElementById('j3_condutor');
       const selT = document.getElementById('j3_tecnico');
@@ -252,18 +289,17 @@
       }
     }
 
-    /* MOTOR DE VALIDAÇÃO DINÂMICA (INCLUINDO TROCAS DE 12H DIURNO/NOTURNO) */
+    /* MOTOR DE VALIDAÇÃO DA ESCALA (TURNO 12H DIURNO/NOTURNO, AFASTAMENTOS E TROCAS) */
     async function obterEscalaOficialHoje() {
       const hoje = new Date();
       const hojeStr = hoje.toISOString().split('T')[0];
       const horaAtual = hoje.getHours();
       
-      // Identifica o turno atual: Diurno (07h as 19h) vs Noturno (19h as 07h)
       const ehTurnoDiurno = (horaAtual >= 7 && horaAtual < 19);
 
-      // 1. Escala Base Algorítmica 24x96
+      // Escala Base 24x96 (Início em 01/09/2026)
       const dataBase = new Date("2026-09-01T00:00:00");
-      dataHoje = new Date(hojeStr + "T00:00:00");
+      const dataHoje = new Date(hojeStr + "T00:00:00");
       const diffDias = Math.floor((dataHoje.getTime() - dataBase.getTime()) / (1000 * 3600 * 24));
       
       let idxC = ((diffDias % condutoresBase.length) + condutoresBase.length) % condutoresBase.length;
@@ -273,7 +309,7 @@
       let tecnicoEsperado = tecnicosBase[idxT];
 
       try {
-        // 2. Consulta Tabela 'afastamentos'
+        // Consulta 'afastamentos'
         const { data: afastamentos } = await dbNuvem.from('afastamentos').select('*');
 
         if (afastamentos && afastamentos.length > 0) {
@@ -300,7 +336,7 @@
           });
         }
 
-        // 3. Consulta Tabela 'trocas' (Filtro por Turno 12h ou 24h)
+        // Consulta 'trocas' (Com checagem do turno de 12h Diurno / Noturno)
         const { data: trocas } = await dbNuvem.from('trocas').select('*').eq('status', 'APROVADO');
 
         if (trocas && trocas.length > 0) {
@@ -326,7 +362,7 @@
         }
 
       } catch (err) {
-        console.warn("Erro ao verificar exceções:", err);
+        console.warn("Erro ao verificar exceções de escala:", err);
       }
 
       return { condutor: condutorEsperado, tecnico: tecnicoEsperado };
@@ -379,7 +415,7 @@
 
         if (usuarioValido || senha === 'samu192' || senha === '123456') {
           
-          // VERIFICAÇÕES DE SOBREPOSIÇÃO E ENCERRAMENTO POR VIATURA
+          // ALERTA DE SOBREPOSIÇÃO PARA A MESMA VIATURA (< 12 HORAS)
           const { data: plantoesAtivosViatura } = await dbNuvem
             .from('plantoes_j3')
             .select('*')
@@ -393,10 +429,10 @@
 
             if (horasDecorridas < 12) {
               const confirmaSubstituicao = confirm(
-                `⚠️ ALERTA DE SOBREPOSIÇÃO DE PLANTÃO (${viatura}):\n\n` +
-                `Existe um plantão ativo para esta viatura iniciado há apenas ${horasDecorridas.toFixed(1)} horas.\n` +
+                `⚠️ ALERTA DE SOBREPOSIÇÃO DE PLANTÃO:\n\n` +
+                `Existe um plantão ativo para "${viatura}" iniciado há apenas ${horasDecorridas.toFixed(1)} horas.\n` +
                 `Equipe Atual: ${pAnterior.condutor} / ${pAnterior.enfermagem}\n\n` +
-                `Confirmar este novo J3 encerrará o plantão da equipe anterior. Deseja continuar?`
+                `Confirmar este novo J3 encerrará a equipe anterior. Deseja prosseguir?`
               );
 
               if (!confirmaSubstituicao) return;
@@ -430,7 +466,7 @@
           } else {
             if (condutorFinal && tecnicoFinal) statusFinal = 'ATIVO';
 
-            // Se for ATIVO, encerra os plantões anteriores da MESMA viatura
+            // Se consolidou ATIVO, encerra apenas os plantões anteriores DA MESMA VIATURA
             if (statusFinal === 'ATIVO') {
               await dbNuvem.from('plantoes_j3').update({ status: 'ANTERIOR' }).eq('viatura', viatura).eq('status', 'ATIVO');
             }
@@ -446,7 +482,7 @@
             }]);
           }
 
-          // Grava Sessão Local
+          // Grava a Sessão Local
           const plantaoSessao = {
             viatura: viatura,
             condutor: condutorFinal,
@@ -456,7 +492,7 @@
           };
           localStorage.setItem('samu_plantao_ativo', JSON.stringify(plantaoSessao));
 
-          // Mensagem WhatsApp
+          // Mensagem Pronta para o WhatsApp da Regulação
           const agora = new Date().toLocaleString('pt-BR');
           const textoZapFormatado = `🚨 *PASSAGEM DE PLANTÃO J3 - ${viatura}*\n📅 Data/Hora: ${agora}\n🚑 Condutor: ${condutorFinal || 'Aguardando'}\n🩺 Enfermagem: ${tecnicoFinal || 'Aguardando'}\nStatus: ${statusFinal === 'ATIVO' ? 'Viatura Operacional e Equipe Confirmada' : 'Equipe em Rendição'}.`;
           
