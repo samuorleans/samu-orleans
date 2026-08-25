@@ -1447,16 +1447,24 @@
     async function carregarInsumosELotesUnificados() {
       mapaLotesUnificados = [];
 
+      // Tenta ler do cache imediatamente para o celular
+      const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
+      if (cacheLocal) {
+        try {
+          mapaLotesUnificados = JSON.parse(cacheLocal);
+        } catch(e) {}
+      }
+
       let mestreRes = [];
       let lotesRes = [];
 
       try {
         const [resMestre, resLotes] = await Promise.all([
           fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=codigo_insumo,descricao_insumo,categoria,is_psicotropico&exibir_no_aph=eq.true&order=descricao_insumo.asc`, {
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Cache-Control': 'no-cache' }
           }),
           fetch(`${SUPABASE_URL}/rest/v1/estoque_lotes?select=id,descricao_insumo,numero_lote,data_validade,quantidade_saldo&order=data_validade.asc`, {
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Cache-Control': 'no-cache' }
           })
         ]);
 
@@ -1483,6 +1491,7 @@
       }
 
       if (mestreRes.length > 0) {
+        mapaLotesUnificados = [];
         mestreRes.forEach(m => {
           const descMestreNorm = normalizarString(m.descricao_insumo);
 
@@ -1523,9 +1532,6 @@
         });
 
         localStorage.setItem('aph_insumos_unificados_cache', JSON.stringify(mapaLotesUnificados));
-      } else {
-        const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
-        if (cacheLocal) mapaLotesUnificados = JSON.parse(cacheLocal);
       }
     }
 
@@ -1674,15 +1680,25 @@
       tbody.appendChild(tr);
     }
 
-    function abrirModalBuscaMed(inputEl) {
+    async function abrirModalBuscaMed(inputEl) {
       inputMedAtualFocus = inputEl;
       const overlay = document.getElementById('modalMedOverlay');
       const modalInput = document.getElementById('modalMedInput');
       
       overlay.style.display = 'flex';
       modalInput.value = '';
-      filtrarListaModal('');
       
+      if (mapaLotesUnificados.length === 0) {
+        const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
+        if (cacheLocal) {
+          try { mapaLotesUnificados = JSON.parse(cacheLocal); } catch(e){}
+        }
+        if (mapaLotesUnificados.length === 0) {
+          await carregarInsumosELotesUnificados();
+        }
+      }
+
+      filtrarListaModal('');
       setTimeout(() => modalInput.focus(), 100);
     }
 
@@ -1694,6 +1710,13 @@
     function filtrarListaModal(termo) {
       const listContainer = document.getElementById('modalMedList');
       const termNorm = normalizarString(termo);
+
+      if (mapaLotesUnificados.length === 0) {
+        const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
+        if (cacheLocal) {
+          try { mapaLotesUnificados = JSON.parse(cacheLocal); } catch(e){}
+        }
+      }
 
       const filtrados = mapaLotesUnificados.filter(item => {
         if (!termNorm) return true;
