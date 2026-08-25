@@ -194,20 +194,19 @@
       }
     }
 
-    /* CARREGA OS SERVIDORES DA TABELA colaboradores */
     async function carregarServidores() {
       const selectEntrada = document.getElementById('select_resp_entrada');
       const selectBaixa = document.getElementById('select_resp_baixa');
 
       try {
-        const { data, error } = await dbNuvem.from('colaboradores').select('*').order('nome', { ascending: true });
-        
+        const { data, error } = await dbNuvem.from('colaboradores').select('*');
         if (error) throw error;
 
         selectEntrada.innerHTML = '<option value="">-- SELECIONE O RESPONSÁVEL --</option>';
         selectBaixa.innerHTML = '<option value="">-- SELECIONE O RESPONSÁVEL --</option>';
 
         if (data && data.length > 0) {
+          data.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
           const ativos = data.filter(s => s.status !== 'DESLIGADO' && s.status_admin !== 'DESLIGADO');
           ativos.forEach(s => {
             const opt1 = document.createElement('option');
@@ -222,13 +221,12 @@
           });
         }
       } catch (err) {
-        console.error("Erro em colaboradores:", err);
+        console.error("Erro colaboradores:", err);
         selectEntrada.innerHTML = '<option value="">Erro ao carregar colaboradores</option>';
         selectBaixa.innerHTML = '<option value="">Erro ao carregar colaboradores</option>';
       }
     }
 
-    /* CARREGA INSUMOS DA TABELA estoque_mestre */
     async function carregarInsumosMestre() {
       const datalist = document.getElementById('listaInsumosAuto');
       datalist.innerHTML = '';
@@ -254,17 +252,15 @@
           });
         }
       } catch (err) {
-        console.error("Erro em estoque_mestre:", err);
+        console.error("Erro estoque_mestre:", err);
       }
     }
 
-    /* CARREGA A TABELA DE SALDO DE LOTES (COMPATÍVEL COM O SEU BANCO) */
     async function carregarTabelaLotes() {
       const tbody = document.getElementById('tbodyLotesSaldo');
 
       try {
-        const { data, error } = await dbNuvem.from('estoque_lotes').select('*').order('data_validade', { ascending: true });
-        
+        const { data, error } = await dbNuvem.from('estoque_lotes').select('*');
         if (error) throw error;
 
         if (data && data.length > 0) {
@@ -284,15 +280,14 @@
             `;
           });
         } else {
-          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 15px; color:#64748b;">Nenhum lote encontrado na tabela. Registre uma entrada acima.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 15px; color:#64748b;">Nenhum lote registrado.</td></tr>';
         }
       } catch (err) {
-        console.error("Erro em estoque_lotes:", err);
+        console.error("Erro estoque_lotes:", err);
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#d32f2f;">Erro ao carregar dados da tabela estoque_lotes.</td></tr>';
       }
     }
 
-    /* REGISTRAR ENTRADA DE LOTE */
     async function registrarEntradaLote(e) {
       e.preventDefault();
 
@@ -303,7 +298,7 @@
       const responsavel = document.getElementById('select_resp_entrada').value;
 
       if (!insumoNome || !numLote || !validade || qtd <= 0 || !responsavel) {
-        alert("Por favor, preencha todos os campos obrigatórios.");
+        alert("Preencha todos os campos obrigatórios.");
         return;
       }
 
@@ -324,17 +319,16 @@
         carregarTabelaLotes();
       } catch (err) {
         console.error("Erro ao registrar entrada:", err);
-        alert("Erro ao salvar entrada na tabela estoque_lotes.");
+        alert("Erro ao salvar entrada. Execute o SQL de permissão no Supabase.");
       }
     }
 
-    /* CARREGAR LOTES DISPONÍVEIS PARA BAIXA */
     async function carregarLotesParaBaixa() {
       const select = document.getElementById('select_lote_baixa');
       select.innerHTML = '<option value="">-- SELECIONE O LOTE --</option>';
 
       try {
-        const { data, error } = await dbNuvem.from('estoque_lotes').select('*').order('data_validade', { ascending: true });
+        const { data, error } = await dbNuvem.from('estoque_lotes').select('*');
         if (error) throw error;
 
         if (data && data.length > 0) {
@@ -357,7 +351,6 @@
       }
     }
 
-    /* REGISTRAR BAIXA DE LOTE */
     async function registrarBaixaLote(e) {
       e.preventDefault();
 
