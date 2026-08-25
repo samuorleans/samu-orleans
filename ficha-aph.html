@@ -233,8 +233,9 @@
     .btn-add-med, .btn-add-sv { background: #166534; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; cursor: pointer; margin-top: 3px; }
     .btn-del-med { background: #991b1b; color: white; border: none; padding: 2px 5px; border-radius: 3px; font-weight: bold; cursor: pointer; }
 
-    .checkbox-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
-    .checkbox-grid label { display: flex; align-items: center; gap: 3px; font-weight: 600; background: #f8fafc; padding: 4px; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 0.68rem; }
+    .radio-grid-ocorrencia { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+    .radio-grid-ocorrencia label { display: flex; align-items: center; gap: 6px; font-weight: 700; background: #f8fafc; padding: 6px 8px; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 0.75rem; color: #0f172a; cursor: pointer; }
+    .radio-grid-ocorrencia input[type="radio"] { width: 16px; height: 16px; margin: 0; }
 
     .btn-mic { background: #0284c7; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; float: right; }
     .btn-mic.recording { background: #dc2626; animation: pulse 1s infinite; }
@@ -259,7 +260,7 @@
     }
     .btn-vitima-tab.active { background: var(--primary); color: #fff; }
 
-    /* ESTILO DE IMPRESSÃO A4 DE ALTO CONTRASTE E ENQUADRAMENTO EM FOLHA ÚNICA */
+    /* ESTILO DE IMPRESSÃO A4 DE ALTO CONTRASTE, J's CENTRALIZADOS E ASSINATURAS REFINADAS */
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
       html, body {
@@ -303,13 +304,13 @@
         display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.6pt solid #000000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; color: #000000 !important;
       }
 
-      /* OCULTAÇÃO DINÂMICA DE BLOCOS VAZIOS NA IMPRESSÃO PARA ECONOMIZAR PAPEL */
       #printReclassificacaoBox:empty, .print-ocultar-vazio { display: none !important; }
 
+      /* CENTRALIZAÇÃO DOS J'S E HORÁRIOS NA IMPRESSÃO */
       .j-block-container { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 2px !important; }
-      .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; border: 0.4pt solid #000000 !important; background: transparent !important; padding: 1px !important; }
+      .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; text-align: center !important; border: 0.4pt solid #000000 !important; background: transparent !important; padding: 1px !important; }
       .btn-j-badge { display: none !important; }
-      .j-print-label { display: block !important; font-size: 4.2pt !important; font-weight: 900 !important; text-transform: uppercase; text-align: center; color: #000000 !important; }
+      .j-print-label { display: block !important; font-size: 4.2pt !important; font-weight: 900 !important; text-transform: uppercase; text-align: center !important; color: #000000 !important; width: 100% !important; }
       .j-time-input { height: 11px !important; font-size: 5.5pt !important; font-weight: 900 !important; border: none !important; text-align: center !important; width: 100% !important; color: #000000 !important; }
 
       .sv-table th, .sv-table td, .table-expo th, .table-expo td, .med-table th, .med-table td {
@@ -321,17 +322,17 @@
       .med-table input.med-search-input { text-align: left !important; }
       .med-table input.med-qtd { text-align: center !important; }
       
-      /* Oculta insumos não-medicamentosos no papel impresso para focar no prontuário limpo */
       .med-row-insumo-comum { display: none !important; }
 
       canvas { height: 26px !important; border: 0.4pt solid #000000 !important; }
 
       .print-signatures-block {
-        display: grid !important; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-top: 3px; padding-top: 1px; page-break-inside: avoid;
+        display: grid !important; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 3px; padding-top: 1px; page-break-inside: avoid;
       }
-      .print-signatures-block.duas-colunas { grid-template-columns: 1fr 1fr !important; }
+      .print-signatures-block.tres-colunas { grid-template-columns: 1fr 1fr 1fr !important; }
       .sig-box { border: 0.4pt solid #000000; padding: 2px; text-align: center; min-height: 40px; display: flex; flex-direction: column; justify-content: space-between; }
       .sig-line { border-top: 0.4pt solid #000000; margin-top: 18px; font-size: 4.5pt; font-weight: 900; text-transform: uppercase; color: #000000; }
+      .sig-title { font-size: 4.5pt; font-weight: bold; color: #000000; text-align: center; }
 
       .glasgow-total-box { font-size: 7pt !important; padding: 1px !important; border: 0.4pt solid #000000 !important; background: transparent !important; box-shadow: none !important; color: #000000 !important; }
     }
@@ -535,19 +536,18 @@
       </div>
     </div>
 
-    <!-- SEÇÃO 3: TIPO DE ATENDIMENTO -->
+    <!-- SEÇÃO 3: TIPO DE OCORRÊNCIA (4 OPÇÕES OFICIAIS) -->
     <div class="card" id="sec3">
       <div class="card-header" onclick="toggleCard('sec3')">
-        <span>3. Tipo de Atendimento</span>
+        <span>3. Tipo Ocorrência *</span>
         <span class="icon-toggle">▼</span>
       </div>
       <div class="card-body">
-        <div class="checkbox-grid">
-          <label><input type="checkbox" value="Clínico Adulto" class="chk-tipo-atend"> Clínico Adulto</label>
-          <label><input type="checkbox" value="Clínico Pediátrico" class="chk-tipo-atend"> Clin. Pediátrico</label>
-          <label><input type="checkbox" value="Obstétrico" class="chk-tipo-atend"> Obstétrico</label>
-          <label><input type="checkbox" id="chk_trauma" value="Causas Externas / Trauma" class="chk-tipo-atend" onchange="alternarExibicaoExposicaoTrauma()"> Causas Ext. / Trauma</label>
-          <label><input type="checkbox" value="Psiquiátrico" class="chk-tipo-atend"> Psiquiátrico</label>
+        <div class="radio-grid-ocorrencia">
+          <label><input type="radio" name="tipo_ocorrencia" value="Sinistro de Trânsito" onchange="tratarSelecaoTipoOcorrencia(this)"> Sinistro de Trânsito</label>
+          <label><input type="radio" name="tipo_ocorrencia" value="Clínico" onchange="tratarSelecaoTipoOcorrencia(this)"> Clínico</label>
+          <label><input type="radio" name="tipo_ocorrencia" value="Clínico - Psiquiátrico" onchange="tratarSelecaoTipoOcorrencia(this)"> Clínico - Psiquiátrico</label>
+          <label><input type="radio" name="tipo_ocorrencia" value="APH - Trauma" onchange="tratarSelecaoTipoOcorrencia(this)"> APH - Trauma</label>
         </div>
       </div>
     </div>
@@ -626,7 +626,7 @@
         </div>
 
         <div id="box_exposicao_lesoes" style="display: none; margin-top: 4px;">
-          <label style="color: var(--primary-dark); font-weight: 800;">E - Exposição / Lesões por Região (Trauma)</label>
+          <label style="color: var(--primary-dark); font-weight: 800;">E - Exposição / Lesões por Região (Trauma / Sinistro)</label>
           <table class="table-expo">
             <thead>
               <tr>
@@ -890,18 +890,18 @@
       </div>
     </div>
 
-    <!-- CAMPO EXCLUSIVO DA IMPRESSÃO P&B -->
+    <!-- BLOCO DINÂMICO DE ASSINATURAS PARA IMPRESSÃO -->
     <div class="print-signatures-block" id="printSigBlock">
-      <div class="sig-box">
-        <div style="font-size: 4.5pt; font-weight: bold;">TÉCNICO DE ENFERMAGEM</div>
+      <div class="sig-box" id="sigBoxTecnico">
+        <div class="sig-title">TÉCNICO DE ENFERMAGEM</div>
         <div class="sig-line">ASSINATURA E CARIMBO / COREN</div>
       </div>
-      <div class="sig-box" id="sigBoxDeclarante">
-        <div style="font-size: 4.5pt; font-weight: bold;">DECLARANTE / VÍTIMA / RESPONSÁVEL</div>
+      <div class="sig-box" id="sigBoxDeclarante" style="display: none;">
+        <div class="sig-title">DECLARANTE / VÍTIMA / RESPONSÁVEL</div>
         <div class="sig-line">ASSINATURA FÍSICA DO DECLARANTE</div>
       </div>
       <div class="sig-box" id="sigBoxMedico">
-        <div style="font-size: 4.5pt; font-weight: bold;">MÉDICO RECEPTOR / REGULADOR</div>
+        <div class="sig-title">MÉDICO RECEPTOR / REGULADOR</div>
         <div class="sig-line">ASSINATURA E CARIMBO / CRM</div>
       </div>
     </div>
@@ -947,13 +947,23 @@
       return e.returnValue;
     });
 
+    function tratarSelecaoTipoOcorrencia(radioEl) {
+      const val = radioEl.value;
+      const boxExpo = document.getElementById('box_exposicao_lesoes');
+      if (val === 'Sinistro de Trânsito' || val === 'APH - Trauma') {
+        boxExpo.style.display = 'block';
+      } else {
+        boxExpo.style.display = 'none';
+      }
+      salvarLocal();
+    }
+
     function alternarVitima(numVitima) {
       vitimaAtual = numVitima;
       document.getElementById('tabVitima1').classList.toggle('active', numVitima === 1);
       document.getElementById('tabVitima2').classList.toggle('active', numVitima === 2);
 
       if (numVitima === 2) {
-        // Limpa apenas os dados do paciente secundário mantendo dados fixos
         document.getElementById('cpf_paciente').value = '';
         document.getElementById('cns_paciente').value = '';
         document.getElementById('paciente').value = '';
@@ -981,17 +991,6 @@
     function alternarBioOutros(selectEl) {
       const inputOutros = document.getElementById('bio_agente_outros');
       inputOutros.style.display = (selectEl.value === 'OUTROS') ? 'block' : 'none';
-      salvarLocal();
-    }
-
-    function alternarExibicaoExposicaoTrauma() {
-      const chk = document.getElementById('chk_trauma');
-      const boxExpo = document.getElementById('box_exposicao_lesoes');
-      if (chk && chk.checked) {
-        boxExpo.style.display = 'block';
-      } else {
-        boxExpo.style.display = 'none';
-      }
       salvarLocal();
     }
 
@@ -1118,19 +1117,27 @@
       alternarExibicaoRecusa();
     }
 
+    /* REGRA DINÂMICA DE EXIBIÇÃO DE ASSINATURAS NO PAPEL DE ACORDO COM O DESFECHO */
     function ajustarExibicaoAssinaturasImpressao() {
       const desfecho = document.getElementById('desfecho_vitima').value;
       const houveRecusa = document.getElementById('houve_recusa').value;
 
       const sigBlock = document.getElementById('printSigBlock');
       const sigDeclarante = document.getElementById('sigBoxDeclarante');
+      const sigMedico = document.getElementById('sigBoxMedico');
 
-      if (houveRecusa === 'SIM' || desfecho === 'RECUSA' || desfecho === 'PERMANECEU_LOCAL') {
-        sigDeclarante.style.display = 'flex';
-        sigBlock.classList.remove('duas-colunas');
-      } else {
+      if (desfecho === 'TRANSPORTADO') {
         sigDeclarante.style.display = 'none';
-        sigBlock.classList.add('duas-colunas');
+        sigMedico.style.display = 'flex';
+        sigBlock.classList.remove('tres-colunas');
+      } else if (desfecho === 'PERMANECEU_LOCAL' || desfecho === 'RECUSA' || houveRecusa === 'SIM') {
+        sigDeclarante.style.display = 'flex';
+        sigMedico.style.display = 'none';
+        sigBlock.classList.remove('tres-colunas');
+      } else if (desfecho === 'OBITO') {
+        sigDeclarante.style.display = 'flex';
+        sigMedico.style.display = 'flex';
+        sigBlock.classList.add('tres-colunas');
       }
     }
 
@@ -1196,8 +1203,11 @@
       const formData = {};
       document.querySelectorAll('#aphForm input, #aphForm select, #aphForm textarea').forEach(el => {
         if (el.id) {
-          if (el.type === 'checkbox') formData[el.id] = el.checked;
-          else formData[el.id] = el.value;
+          if (el.type === 'checkbox' || el.type === 'radio') {
+            if (el.checked) formData[el.name || el.id] = el.value;
+          } else {
+            formData[el.id] = el.value;
+          }
         }
       });
       localStorage.setItem('aph_draft_data', JSON.stringify(formData));
@@ -1253,7 +1263,6 @@
       return textoFormatado.toUpperCase() + ". ";
     }
 
-    /* FILTRO DITADO POR VOZ ANTI-DUPLICAÇÃO (OFFLINE CLEAN) */
     function toggleDitadoVoz() {
       const btn = document.getElementById('btnMic');
       const textarea = document.getElementById('evolucao_texto');
@@ -1337,7 +1346,6 @@
 
       document.getElementById('meds_body').innerHTML = '';
       addMedRow();
-      alternarExibicaoExposicaoTrauma();
     }
 
     function checarEAtivarBotaoImpressao() {
@@ -1605,7 +1613,6 @@
 
       addMedRow();
       ajustarExibicaoAssinaturasImpressao();
-      alternarExibicaoExposicaoTrauma();
     }
 
     function addSvRow(isFirst = false) {
@@ -1639,7 +1646,6 @@
       salvarLocal();
     }
 
-    /* MÓDULO DE BUSCA E RESGATE DA OCORRÊNCIA NO SUPABASE */
     async function buscarPacienteCPF() {
       const cpfRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
       const codigoOcorr = document.getElementById('codigo').value.trim();
@@ -1664,7 +1670,6 @@
           return;
         }
 
-        // Resgate e preenchimento automático dos blocos
         document.getElementById('codigo').value = data.codigo_ocorrencia || '';
         document.getElementById('cor_ocorrencia').value = data.cor_ocorrencia || 'VM';
         document.getElementById('data').value = data.data || '';
@@ -1683,6 +1688,14 @@
         document.getElementById('municipio').value = (data.municipio || 'ORLEANS').toUpperCase();
         document.getElementById('estado').value = (data.estado || 'SC').toUpperCase();
 
+        if (data.tipo_ocorrencia) {
+          const radioToSelect = document.querySelector(`input[name="tipo_ocorrencia"][value="${data.tipo_ocorrencia}"]`);
+          if (radioToSelect) {
+            radioToSelect.checked = true;
+            tratarSelecaoTipoOcorrencia(radioToSelect);
+          }
+        }
+
         document.getElementById('horaJ9').value = data.hora_j9 || '';
         document.getElementById('horaJ10').value = data.hora_j10 || '';
         document.getElementById('horaQTA').value = data.hora_qta || '';
@@ -1691,7 +1704,6 @@
         document.getElementById('horaJ11').value = data.hora_j11 || '';
         document.getElementById('horaJ12').value = data.hora_j12 || '';
 
-        // Traz insumos e medicações salvas
         if (data.insumos_utilizados && Array.isArray(data.insumos_utilizados)) {
           document.getElementById('meds_body').innerHTML = '';
           data.insumos_utilizados.forEach(item => {
@@ -1722,7 +1734,6 @@
       salvarLocal();
     }
 
-    /* MÓDULO POPUP MODAL EXCLUSIVO PARA SMARTPHONES E TABLETS */
     function addMedRow() {
       const tbody = document.getElementById('meds_body');
       const tr = document.createElement('tr');
@@ -1824,7 +1835,6 @@
           if (inputMedAtualFocus) {
             inputMedAtualFocus.value = item.label;
             
-            // Marca classe CSS se for insumo comum para suprimir na impressão
             const tr = inputMedAtualFocus.closest('tr');
             if (item.categoria && item.categoria.toLowerCase().includes('insumo')) {
               tr.classList.add('med-row-insumo-comum');
@@ -2035,6 +2045,9 @@
         const codBase = document.getElementById('codigo').value;
         const codFinalOcorrencia = (vitimaAtual === 2) ? `${codBase}-V2` : codBase;
 
+        const radioTipoSel = document.querySelector('input[name="tipo_ocorrencia"]:checked');
+        const tipoOcorrenciaVal = radioTipoSel ? radioTipoSel.value : '';
+
         const payload = {
           codigo_ocorrencia: codFinalOcorrencia,
           cor_ocorrencia: document.getElementById('cor_ocorrencia').value,
@@ -2055,6 +2068,7 @@
           bairro: document.getElementById('bairro').value,
           municipio: document.getElementById('municipio').value,
           estado: document.getElementById('estado').value,
+          tipo_ocorrencia: tipoOcorrenciaVal,
           glasgow_total: (parseInt(document.getElementById('g_oc').value) || 0) + (parseInt(document.getElementById('g_verb').value) || 0) + (parseInt(document.getElementById('g_mot').value) || 0),
           bio_suspeita: bioSuspeita,
           bio_tipo_agente: bioTipoAgente,
