@@ -94,7 +94,7 @@
           <div class="form-group">
             <label>RESPONSÁVEL PELO RECEBIMENTO:*</label>
             <select id="select_resp_entrada" required>
-              <option value="">Carregando servidores...</option>
+              <option value="">Consultando servidores...</option>
             </select>
           </div>
         </div>
@@ -110,8 +110,8 @@
         <div class="grid-form">
           <div class="form-group" style="grid-column: span 2;">
             <label>SELECIONE O LOTE PARA DAR BAIXA:*</label>
-            <select id="select_lote_baixa" required onchange="carregarDetalhesLote(this.value)">
-              <option value="">Carregando lotes com saldo...</option>
+            <select id="select_lote_baixa" required>
+              <option value="">Carregando lotes disponíveis...</option>
             </select>
           </div>
 
@@ -133,7 +133,7 @@
           <div class="form-group" style="grid-column: span 2;">
             <label>RESPONSÁVEL PELA BAIXA:*</label>
             <select id="select_resp_baixa" required>
-              <option value="">Carregando servidores...</option>
+              <option value="">Consultando servidores...</option>
             </select>
           </div>
         </div>
@@ -169,12 +169,11 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
-    let listaInsumosMestre = [];
     let listaLotesComSaldo = [];
 
     window.onload = function() {
-      carregarInsumosMestre();
       carregarServidores();
+      carregarInsumosMestre();
       carregarTabelaLotes();
     };
 
@@ -195,51 +194,21 @@
       }
     }
 
-    /* CARREGA INSUMOS DA TABELA estoque_mestre PARA O DATALIST */
-    async function carregarInsumosMestre() {
-      const datalist = document.getElementById('listaInsumosAuto');
-      datalist.innerHTML = '';
-
-      try {
-        const { data, error } = await dbNuvem.from('estoque_mestre').select('*');
-        if (error) throw error;
-
-        listaInsumosMestre = data || [];
-        listaInsumosMestre.sort((a, b) => {
-          const descA = (a.descricao_insumo || a.descricao || a.nome || '').toUpperCase();
-          const descB = (b.descricao_insumo || b.descricao || b.nome || '').toUpperCase();
-          return descA.localeCompare(descB);
-        });
-
-        listaInsumosMestre.forEach(item => {
-          const nome = item.descricao_insumo || item.descricao || item.nome || '';
-          const cod = item.codigo_insumo || '';
-          if (nome) {
-            const option = document.createElement('option');
-            option.value = nome;
-            option.label = cod ? `${cod} - ${nome}` : nome;
-            datalist.appendChild(option);
-          }
-        });
-      } catch (err) {
-        console.error("Erro ao carregar insumos:", err);
-      }
-    }
-
-    /* CARREGA OS SERVIDORES PARA OS SELECTS DE RESPONSÁVEL */
+    /* CARREGA OS SERVIDORES DA TABELA colaboradores */
     async function carregarServidores() {
       const selectEntrada = document.getElementById('select_resp_entrada');
       const selectBaixa = document.getElementById('select_resp_baixa');
 
-      selectEntrada.innerHTML = '<option value="">-- SELECIONE O RESPONSÁVEL --</option>';
-      selectBaixa.innerHTML = '<option value="">-- SELECIONE O RESPONSÁVEL --</option>';
-
       try {
-        const { data, error } = await dbNuvem.from('colaboradores').select('id, nome, funcao, status').order('nome', { ascending: true });
+        const { data, error } = await dbNuvem.from('colaboradores').select('*').order('nome', { ascending: true });
+        
         if (error) throw error;
 
+        selectEntrada.innerHTML = '<option value="">-- SELECIONE O RESPONSÁVEL --</option>';
+        selectBaixa.innerHTML = '<option value="">-- SELECIONE O RESPONSÁVEL --</option>';
+
         if (data && data.length > 0) {
-          const ativos = data.filter(s => s.status !== 'DESLIGADO');
+          const ativos = data.filter(s => s.status !== 'DESLIGADO' && s.status_admin !== 'DESLIGADO');
           ativos.forEach(s => {
             const opt1 = document.createElement('option');
             opt1.value = s.nome;
@@ -253,39 +222,73 @@
           });
         }
       } catch (err) {
-        console.error("Erro ao carregar servidores:", err);
-        selectEntrada.innerHTML = '<option value="">Erro ao carregar servidores</option>';
-        selectBaixa.innerHTML = '<option value="">Erro ao carregar servidores</option>';
+        console.error("Erro em colaboradores:", err);
+        selectEntrada.innerHTML = '<option value="">Erro ao carregar colaboradores</option>';
+        selectBaixa.innerHTML = '<option value="">Erro ao carregar colaboradores</option>';
       }
     }
 
-    /* CARREGA A TABELA DE SALDO DE LOTES */
+    /* CARREGA INSUMOS DA TABELA estoque_mestre */
+    async function carregarInsumosMestre() {
+      const datalist = document.getElementById('listaInsumosAuto');
+      datalist.innerHTML = '';
+
+      try {
+        const { data, error } = await dbNuvem.from('estoque_mestre').select('*');
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          data.sort((a, b) => {
+            const descA = (a.descricao_insumo || a.descricao || a.nome || '').toUpperCase();
+            const descB = (b.descricao_insumo || b.descricao || b.nome || '').toUpperCase();
+            return descA.localeCompare(descB);
+          });
+
+          data.forEach(item => {
+            const nome = item.descricao_insumo || item.descricao || item.nome || '';
+            if (nome) {
+              const option = document.createElement('option');
+              option.value = nome;
+              datalist.appendChild(option);
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Erro em estoque_mestre:", err);
+      }
+    }
+
+    /* CARREGA A TABELA DE SALDO DE LOTES (COMPATÍVEL COM O SEU BANCO) */
     async function carregarTabelaLotes() {
       const tbody = document.getElementById('tbodyLotesSaldo');
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando lotes no banco de dados...</td></tr>';
 
       try {
         const { data, error } = await dbNuvem.from('estoque_lotes').select('*').order('data_validade', { ascending: true });
+        
         if (error) throw error;
 
         if (data && data.length > 0) {
           tbody.innerHTML = '';
           data.forEach(l => {
             const val = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : '—';
+            const nomeInsumo = l.descricao_insumo || l.insumo_nome || '—';
+            const qtd = l.quantidade_entrada !== undefined ? l.quantidade_entrada : (l.quantidade_saldo || 0);
+
             tbody.innerHTML += `
               <tr>
-                <td><b>${l.insumo_nome || '—'}</b></td>
+                <td><b>${nomeInsumo}</b></td>
                 <td>${l.numero_lote || '—'}</td>
                 <td>${val}</td>
-                <td style="text-align: center; font-weight: 800; color: ${l.quantidade_saldo > 0 ? '#15803d' : '#b91c1c'};">${l.quantidade_saldo || 0}</td>
+                <td style="text-align: center; font-weight: 800; color: ${qtd > 0 ? '#15803d' : '#b91c1c'};">${qtd}</td>
               </tr>
             `;
           });
         } else {
-          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 15px; color:#64748b;">Nenhum lote com saldo disponível. Registre uma entrada de material acima.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 15px; color:#64748b;">Nenhum lote encontrado na tabela. Registre uma entrada acima.</td></tr>';
         }
       } catch (err) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#d32f2f;">Erro ao consultar saldo dos lotes.</td></tr>';
+        console.error("Erro em estoque_lotes:", err);
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#d32f2f;">Erro ao carregar dados da tabela estoque_lotes.</td></tr>';
       }
     }
 
@@ -306,10 +309,10 @@
 
       try {
         const payload = {
-          insumo_nome: insumoNome,
+          descricao_insumo: insumoNome,
           numero_lote: numLote,
           data_validade: validade,
-          quantidade_saldo: qtd,
+          quantidade_entrada: qtd,
           responsavel_entrada: responsavel
         };
 
@@ -321,7 +324,7 @@
         carregarTabelaLotes();
       } catch (err) {
         console.error("Erro ao registrar entrada:", err);
-        alert("Erro ao salvar entrada no banco de dados.");
+        alert("Erro ao salvar entrada na tabela estoque_lotes.");
       }
     }
 
@@ -331,20 +334,23 @@
       select.innerHTML = '<option value="">-- SELECIONE O LOTE --</option>';
 
       try {
-        const { data, error } = await dbNuvem.from('estoque_lotes').select('*').gt('quantidade_saldo', 0).order('data_validade', { ascending: true });
+        const { data, error } = await dbNuvem.from('estoque_lotes').select('*').order('data_validade', { ascending: true });
         if (error) throw error;
 
         if (data && data.length > 0) {
           listaLotesComSaldo = data;
           data.forEach(l => {
             const val = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : '—';
+            const nomeInsumo = l.descricao_insumo || l.insumo_nome || '—';
+            const qtd = l.quantidade_entrada !== undefined ? l.quantidade_entrada : (l.quantidade_saldo || 0);
+
             const opt = document.createElement('option');
             opt.value = l.id;
-            opt.textContent = `${l.insumo_nome} | Lote: ${l.numero_lote} | Val: ${val} | Saldo: ${l.quantidade_saldo}`;
+            opt.textContent = `${nomeInsumo} | Lote: ${l.numero_lote} | Val: ${val} | Saldo: ${qtd}`;
             select.appendChild(opt);
           });
         } else {
-          select.innerHTML = '<option value="">Nenhum lote com saldo positivo disponível</option>';
+          select.innerHTML = '<option value="">Nenhum lote disponível</option>';
         }
       } catch (err) {
         select.innerHTML = '<option value="">Erro ao carregar lotes</option>';
@@ -357,7 +363,6 @@
 
       const loteId = document.getElementById('select_lote_baixa').value;
       const qtdBaixa = parseInt(document.getElementById('input_baixa_qtd').value) || 0;
-      const motivo = document.getElementById('select_baixa_motivo').value;
       const responsavel = document.getElementById('select_resp_baixa').value;
 
       if (!loteId || qtdBaixa <= 0 || !responsavel) {
@@ -368,14 +373,16 @@
       const loteAtual = listaLotesComSaldo.find(l => String(l.id) === String(loteId));
       if (!loteAtual) return;
 
-      if (qtdBaixa > loteAtual.quantidade_saldo) {
-        alert(`A quantidade da baixa (${qtdBaixa}) não pode ser maior que o saldo atual (${loteAtual.quantidade_saldo}).`);
+      const qtdAtual = loteAtual.quantidade_entrada !== undefined ? loteAtual.quantidade_entrada : (loteAtual.quantidade_saldo || 0);
+
+      if (qtdBaixa > qtdAtual) {
+        alert(`A quantidade da baixa (${qtdBaixa}) não pode ser maior que o saldo atual (${qtdAtual}).`);
         return;
       }
 
       try {
-        const novoSaldo = loteAtual.quantidade_saldo - qtdBaixa;
-        const { error } = await dbNuvem.from('estoque_lotes').update({ quantidade_saldo: novoSaldo }).eq('id', loteId);
+        const novoSaldo = qtdAtual - qtdBaixa;
+        const { error } = await dbNuvem.from('estoque_lotes').update({ quantidade_entrada: novoSaldo }).eq('id', loteId);
         if (error) throw error;
 
         alert("✅ Baixa de estoque realizada com sucesso!");
