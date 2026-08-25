@@ -140,10 +140,95 @@
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
     }
 
+    /* ALINHAMENTO ITEM 6 */
     .sv-table, .med-table, .table-expo { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.72rem; }
     .sv-table th, .med-table th, .table-expo th { background: #f1f5f9; padding: 3px; border: 1px solid #cbd5e1; font-size: 0.62rem; text-transform: uppercase; text-align: center; }
-    .sv-table td, .med-table td, .table-expo td { padding: 2px; border: 1px solid #cbd5e1; text-align: center; }
-    .sv-table input, .med-table input { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: center; }
+    .med-table th:first-child { text-align: left; padding-left: 5px; }
+    
+    .sv-table td, .table-expo td { padding: 2px; border: 1px solid #cbd5e1; text-align: center; }
+    .med-table td { padding: 2px; border: 1px solid #cbd5e1; text-align: left; }
+    .med-table td.td-center { text-align: center; }
+
+    .sv-table input { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: center; }
+    .med-table input.med-search-input { margin-bottom: 0; font-size: 0.78rem; padding: 5px; text-align: left; cursor: pointer; }
+    .med-table input.med-qtd { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: center; }
+
+    /* MODAL DE BUSCA MÓVEL E TABLET */
+    .modal-med-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.75);
+      z-index: 99999;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 12px;
+      backdrop-filter: blur(2px);
+    }
+    .modal-med-container {
+      background: #ffffff;
+      width: 100%;
+      max-width: 600px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      max-height: 85vh;
+      overflow: hidden;
+      margin-top: 10px;
+      border: 2px solid var(--primary);
+    }
+    .modal-med-header {
+      background: var(--secondary);
+      color: #fff;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 800;
+      font-size: 0.85rem;
+    }
+    .modal-med-close {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .modal-med-search-box {
+      padding: 8px;
+      background: #f1f5f9;
+      border-bottom: 1px solid #cbd5e1;
+    }
+    .modal-med-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .modal-med-item {
+      padding: 12px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #0f172a;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .modal-med-item:active {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .psico-box {
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      padding: 5px;
+      border-radius: 4px;
+      margin-top: 3px;
+    }
     
     .btn-time-sv { background: var(--secondary); color: #fff; border: none; border-radius: 3px; padding: 2px 4px; font-size: 0.6rem; cursor: pointer; }
     .btn-add-med, .btn-add-sv { background: #166534; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; cursor: pointer; margin-top: 3px; }
@@ -169,7 +254,7 @@
     @media print {
       @page { size: A4 portrait; margin: 4mm; }
       html, body { width: 100%; height: 100%; background: #fff !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 5.5pt !important; line-height: 1.15; }
-      .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, button, script { display: none !important; }
+      .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .modal-med-overlay, button, script { display: none !important; }
       
       select, input[type="time"], input[type="date"] {
         -webkit-appearance: none !important;
@@ -214,8 +299,12 @@
       .j-print-label { display: block !important; font-size: 4.2pt !important; font-weight: 900 !important; text-transform: uppercase; text-align: center; }
       .j-time-input { height: 11px !important; font-size: 5.5pt !important; font-weight: 900 !important; border: none !important; text-align: center !important; width: 100% !important; }
 
-      .sv-table th, .sv-table td, .med-table th, .med-table td, .table-expo th, .table-expo td { font-size: 5pt !important; padding: 1px !important; border: 0.4pt solid #000 !important; text-align: center !important; }
-      .med-table input { text-align: center !important; }
+      .sv-table th, .sv-table td, .table-expo th, .table-expo td { font-size: 5pt !important; padding: 1px !important; border: 0.4pt solid #000 !important; text-align: center !important; }
+      .med-table th, .med-table td { font-size: 5pt !important; padding: 1px !important; border: 0.4pt solid #000 !important; }
+      .med-table td { text-align: left !important; }
+      .med-table td.td-center { text-align: center !important; }
+      .med-table input.med-search-input { text-align: left !important; }
+      .med-table input.med-qtd { text-align: center !important; }
       
       canvas { height: 28px !important; border: 0.4pt solid #000 !important; }
 
@@ -465,7 +554,7 @@
       </div>
     </div>
 
-    <!-- SEÇÃO 4: AVALIAÇÃO TÁTICA ABCDE -->
+    <!-- SEÇÃO 4: AVALIAÇÃO TÁTICA ABCDE E BIOSSEGURANÇA -->
     <div class="card" id="sec4">
       <div class="card-header" onclick="toggleCard('sec4')">
         <span>4. Avaliação Tática & Exame Físico (ABCDE)</span>
@@ -555,6 +644,42 @@
             </tbody>
           </table>
         </div>
+
+        <!-- ÁRVORE DE DECISÃO DE BIOSSEGURANÇA -->
+        <div style="margin-top: 6px; padding: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;">
+          <label style="color: var(--secondary); font-weight: 800; font-size: 0.68rem;">
+            ☣️ BIOSSEGURANÇA: PACIENTE COM SUSPEITA OU CONFIRMAÇÃO DE DOENÇA INFECTOCONTAGIOSA / MATERIAL BIOLÓGICO?
+          </label>
+          <select id="bio_suspeita" onchange="alternarBiosseguranca(this)">
+            <option value="NAO">NÃO</option>
+            <option value="SIM">SIM</option>
+          </select>
+
+          <div id="box_bio_detalhes" style="display: none; margin-top: 4px;">
+            <div class="grid-2">
+              <div>
+                <label style="color: var(--primary-dark);">TIPO DE SUSPEITA / AGENTE BIOLÓGICO OU EXPOSIÇÃO</label>
+                <select id="bio_tipo_agente" onchange="alternarBioOutros(this)">
+                  <option value="Síndrome Respiratória/Gripal">Síndrome Respiratória / Gripal</option>
+                  <option value="Contato com Fluidos/Sangue/Secreções">Contato com Fluidos / Sangue / Secreções</option>
+                  <option value="Arboviroses/Doenças Transmissíveis">Arboviroses / Doenças Transmissíveis</option>
+                  <option value="Escabiose/Parasitoses">Escabiose / Parasitoses</option>
+                  <option value="OUTROS">OUTROS (ESPECIFICAR)</option>
+                </select>
+                <input type="text" id="bio_agente_outros" class="uppercase-input" placeholder="DESCREVA A SUSPEITA OU AGENTE..." style="display: none; margin-top: 2px;">
+              </div>
+              <div>
+                <label style="color: var(--primary-dark);">DESINFECÇÃO DA VIATURA APÓS ATENDIMENTO</label>
+                <select id="bio_desinfeccao">
+                  <option value="Sim - Desinfecção Concorrente">SIM — DESINFECÇÃO CONCORRENTE</option>
+                  <option value="Sim - Desinfecção Terminal">SIM — DESINFECÇÃO TERMINAL</option>
+                  <option value="Não se aplica">NÃO SE APLICA</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -593,7 +718,6 @@
         <span class="icon-toggle">▼</span>
       </div>
       <div class="card-body">
-        <datalist id="listaInsumosLotesAPH"></datalist>
 
         <div style="margin-bottom: 6px; background: #f8fafc; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
           <label style="display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 800; color: #1e293b; cursor: pointer;">
@@ -607,8 +731,8 @@
             <thead>
               <tr>
                 <th>Insumo Selecionado (Com Lote e Validade)</th>
-                <th style="width: 80px;">Qtd</th>
-                <th style="width: 35px;">#</th>
+                <th style="width: 80px; text-align: center;">Qtd</th>
+                <th style="width: 35px; text-align: center;">#</th>
               </tr>
             </thead>
             <tbody id="meds_body">
@@ -752,6 +876,22 @@
       </div>
     </div>
 
+    <!-- ESTRUTURA DO POPUP MODAL DE BUSCA DE MEDICAÇÃO -->
+    <div class="modal-med-overlay" id="modalMedOverlay">
+      <div class="modal-med-container">
+        <div class="modal-med-header">
+          <span>🔍 SELEÇÃO DE INSUMO / MEDICAÇÃO</span>
+          <button type="button" class="modal-med-close" onclick="fecharModalBuscaMed()">✕ FECHAR</button>
+        </div>
+        <div class="modal-med-search-box">
+          <input type="text" id="modalMedInput" class="uppercase-input" placeholder="DIGITE NOME, LOTE OU VALIDADE..." oninput="filtrarListaModal(this.value)" onkeyup="filtrarListaModal(this.value)">
+        </div>
+        <div class="modal-med-list" id="modalMedList">
+          <!-- Itens renderizados via JS -->
+        </div>
+      </div>
+    </div>
+
     <!-- CAMPO EXCLUSIVO DA IMPRESSÃO P&B -->
     <div class="print-signatures-block" id="printSigBlock">
       <div class="sig-box">
@@ -780,6 +920,7 @@
     let wakeLock = null;
     let recognition = null;
     let isRecording = false;
+    let inputMedAtualFocus = null;
 
     if (window.supabase) {
       _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -806,6 +947,18 @@
       e.returnValue = 'Atenção: Os dados do APH não salvos podem ser perdidos. Deseja realmente sair?';
       return e.returnValue;
     });
+
+    function alternarBiosseguranca(selectEl) {
+      const box = document.getElementById('box_bio_detalhes');
+      box.style.display = (selectEl.value === 'SIM') ? 'block' : 'none';
+      salvarLocal();
+    }
+
+    function alternarBioOutros(selectEl) {
+      const inputOutros = document.getElementById('bio_agente_outros');
+      inputOutros.style.display = (selectEl.value === 'OUTROS') ? 'block' : 'none';
+      salvarLocal();
+    }
 
     function alternarExibicaoExposicaoTrauma() {
       const chk = document.getElementById('chk_trauma');
@@ -1294,22 +1447,23 @@
     }
 
     async function carregarInsumosELotesUnificados() {
-      const datalist = document.getElementById('listaInsumosLotesAPH');
-      if (!datalist) return;
-
-      datalist.innerHTML = '';
-      mapaLotesUnificados = [];
+      const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
+      if (cacheLocal) {
+        try {
+          mapaLotesUnificados = JSON.parse(cacheLocal);
+        } catch(e) {}
+      }
 
       let mestreRes = [];
       let lotesRes = [];
 
       try {
         const [resMestre, resLotes] = await Promise.all([
-          fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=codigo_insumo,descricao_insumo,categoria&exibir_no_aph=eq.true&order=descricao_insumo.asc`, {
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+          fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=codigo_insumo,descricao_insumo,categoria,is_psicotropico&exibir_no_aph=eq.true&order=descricao_insumo.asc`, {
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Cache-Control': 'no-cache' }
           }),
-          fetch(`${SUPABASE_URL}/rest/v1/estoque_lotes?select=descricao_insumo,numero_lote,data_validade&order=data_validade.asc`, {
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+          fetch(`${SUPABASE_URL}/rest/v1/estoque_lotes?select=id,descricao_insumo,numero_lote,data_validade,quantidade_saldo&order=data_validade.asc`, {
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Cache-Control': 'no-cache' }
           })
         ]);
 
@@ -1321,13 +1475,13 @@
         try {
           const { data: dMestre } = await _supabase
             .from('estoque_mestre')
-            .select('codigo_insumo, descricao_insumo, categoria')
+            .select('codigo_insumo, descricao_insumo, categoria, is_psicotropico')
             .eq('exibir_no_aph', true)
             .order('descricao_insumo', { ascending: true });
 
           const { data: dLotes } = await _supabase
             .from('estoque_lotes')
-            .select('descricao_insumo, numero_lote, data_validade')
+            .select('id, descricao_insumo, numero_lote, data_validade, quantidade_saldo')
             .order('data_validade', { ascending: true });
 
           if (dMestre) mestreRes = dMestre;
@@ -1336,6 +1490,7 @@
       }
 
       if (mestreRes.length > 0) {
+        const listaTemporaria = [];
         mestreRes.forEach(m => {
           const descMestreNorm = normalizarString(m.descricao_insumo);
 
@@ -1349,43 +1504,41 @@
               const dataValFmt = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : 'N/A';
               const labelExibicao = `${m.descricao_insumo} — Lote: ${l.numero_lote || 'S/L'} | Val: ${dataValFmt}`;
 
-              mapaLotesUnificados.push({
+              listaTemporaria.push({
                 label: labelExibicao,
+                lote_id: l.id,
                 codigo: m.codigo_insumo || '',
                 descricao: m.descricao_insumo,
                 numero_lote: l.numero_lote || '',
-                data_validade: l.data_validade || ''
+                data_validade: l.data_validade || '',
+                saldo: l.quantidade_saldo || 0,
+                is_psicotropico: !!m.is_psicotropico
               });
             });
           } else {
             const labelExibicao = `${m.descricao_insumo} — Lote: SEM LOTE | Val: N/A`;
-            mapaLotesUnificados.push({
+            listaTemporaria.push({
               label: labelExibicao,
+              lote_id: null,
               codigo: m.codigo_insumo || '',
               descricao: m.descricao_insumo,
               numero_lote: 'SEM LOTE',
-              data_validade: ''
+              data_validade: '',
+              saldo: 0,
+              is_psicotropico: !!m.is_psicotropico
             });
           }
         });
 
+        mapaLotesUnificados = listaTemporaria;
         localStorage.setItem('aph_insumos_unificados_cache', JSON.stringify(mapaLotesUnificados));
-      } else {
-        const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
-        if (cacheLocal) mapaLotesUnificados = JSON.parse(cacheLocal);
       }
-
-      mapaLotesUnificados.forEach(item => {
-        const opt = document.createElement('option');
-        opt.value = item.label;
-        datalist.appendChild(opt);
-      });
     }
 
     async function inicializarDados() {
       addSvRow(true);
-      await carregarColaboradoresRobusto();
       await carregarInsumosELotesUnificados();
+      await carregarColaboradoresRobusto();
 
       try {
         const { data: hospitais } = await _supabase.from('hospitais').select('*').order('nome');
@@ -1486,22 +1639,175 @@
       salvarLocal();
     }
 
+    /* MÓDULO POPUP MODAL EXCLUSIVO PARA SMARTPHONES E TABLETS */
     function addMedRow() {
       const tbody = document.getElementById('meds_body');
       const tr = document.createElement('tr');
 
       tr.innerHTML = `
         <td>
-          <input type="text" list="listaInsumosLotesAPH" class="med-search-input uppercase-input" placeholder="DIGITE P/ BUSCAR INSUMO, LOTE OU VALIDADE..." onchange="salvarLocal()">
+          <input type="text" class="med-search-input uppercase-input" placeholder="CLIQUE AQUI PARA BUSCAR INSUMO..." readonly onclick="abrirModalBuscaMed(this)">
+          
+          <div class="psico-box" style="display: none;">
+            <label style="color: #c2410c; font-weight: 800;">🔒 CONTROLE DE PSICOTRÓPICO</label>
+            <div class="grid-3 box-lacres-wrapper" style="margin-top: 2px;">
+              <div>
+                <label>VIA ADMINISTRADA</label>
+                <select class="psico-via">
+                  <option value="EV">EV (Endovenosa)</option>
+                  <option value="IM">IM (Intramuscular)</option>
+                  <option value="SC">SC (Subcutânea)</option>
+                </select>
+              </div>
+              <div class="col-lacre-rompido">
+                <label>Nº LACRE ROMPIDO</label>
+                <input type="text" class="psico-lacre-rompido uppercase-input" placeholder="Nº ROMPIDO" onchange="salvarLocal()">
+              </div>
+              <div class="col-lacre-novo">
+                <label>Nº NOVO LACRE</label>
+                <input type="text" class="psico-lacre-novo uppercase-input" placeholder="Nº NOVO" onchange="salvarLocal()">
+              </div>
+            </div>
+          </div>
         </td>
-        <td>
+        <td class="td-center">
           <input type="number" inputmode="numeric" class="med-qtd" value="1" min="1" onchange="salvarLocal()">
         </td>
-        <td>
-          <button type="button" class="btn-del-med" onclick="this.closest('tr').remove(); salvarLocal();">🗑️</button>
+        <td class="td-center">
+          <button type="button" class="btn-del-med" onclick="this.closest('tr').remove(); reavaliarTodosPsicotropicos(); salvarLocal();">🗑️</button>
         </td>
       `;
       tbody.appendChild(tr);
+    }
+
+    async function abrirModalBuscaMed(inputEl) {
+      inputMedAtualFocus = inputEl;
+      const overlay = document.getElementById('modalMedOverlay');
+      const modalInput = document.getElementById('modalMedInput');
+      
+      overlay.style.display = 'flex';
+      modalInput.value = '';
+      
+      if (!mapaLotesUnificados || mapaLotesUnificados.length === 0) {
+        const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
+        if (cacheLocal) {
+          try { mapaLotesUnificados = JSON.parse(cacheLocal); } catch(e){}
+        }
+      }
+
+      filtrarListaModal('');
+      setTimeout(() => modalInput.focus(), 150);
+    }
+
+    function fecharModalBuscaMed() {
+      document.getElementById('modalMedOverlay').style.display = 'none';
+      inputMedAtualFocus = null;
+    }
+
+    function filtrarListaModal(termo) {
+      const listContainer = document.getElementById('modalMedList');
+      const termNorm = normalizarString(termo);
+
+      if (!mapaLotesUnificados || mapaLotesUnificados.length === 0) {
+        const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
+        if (cacheLocal) {
+          try { mapaLotesUnificados = JSON.parse(cacheLocal); } catch(e){}
+        }
+      }
+
+      const listaParaFiltrar = mapaLotesUnificados || [];
+
+      const filtrados = listaParaFiltrar.filter(item => {
+        if (!termNorm) return true;
+        const labelNorm = normalizarString(item.label);
+        const descNorm = normalizarString(item.descricao);
+        return labelNorm.includes(termNorm) || descNorm.includes(termNorm);
+      });
+
+      listContainer.innerHTML = '';
+
+      if (filtrados.length === 0) {
+        listContainer.innerHTML = '<div style="padding:15px; text-align:center; color:#64748b; font-weight:bold;">NENHUM INSUMO ENCONTRADO</div>';
+        return;
+      }
+
+      filtrados.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'modal-med-item';
+        itemDiv.innerText = item.label;
+        
+        const selecionar = function(e) {
+          if (e) e.preventDefault();
+          if (inputMedAtualFocus) {
+            inputMedAtualFocus.value = item.label;
+            verificarPsicotropico(inputMedAtualFocus);
+            salvarLocal();
+          }
+          fecharModalBuscaMed();
+        };
+
+        itemDiv.onclick = selecionar;
+        listContainer.appendChild(itemDiv);
+      });
+    }
+
+    function reavaliarTodosPsicotropicos() {
+      const inputs = document.querySelectorAll('#meds_body .med-search-input');
+      inputs.forEach(input => verificarPsicotropico(input));
+    }
+
+    function verificarPsicotropico(inputEl) {
+      const valRaw = inputEl.value.trim();
+      const valNorm = normalizarString(valRaw);
+      const tr = inputEl.closest('tr');
+      const psicoBox = tr.querySelector('.psico-box');
+      
+      if (!psicoBox) return;
+
+      const itemEncontrado = (mapaLotesUnificados || []).find(i => {
+        const labelNorm = normalizarString(i.label);
+        const descNorm = normalizarString(i.descricao);
+        return labelNorm === valNorm || descNorm === valNorm || valNorm.includes(descNorm) || (descNorm && descNorm.includes(valNorm));
+      });
+
+      const ehPsicotropicoGarantido = valNorm.includes("diazepam") || 
+                                      valNorm.includes("tramadol") || 
+                                      valNorm.includes("morfina") || 
+                                      valNorm.includes("fentanil") || 
+                                      valNorm.includes("midazolam") ||
+                                      valNorm.includes("meperidina");
+
+      const ehPsico = (itemEncontrado && itemEncontrado.is_psicotropico) || ehPsicotropicoGarantido;
+
+      if (ehPsico) {
+        psicoBox.style.display = 'block';
+
+        // Lógica: se já existir outra linha de psicotrópico antes desta, oculta os campos de lacre
+        const todasLinhasPsico = Array.from(document.querySelectorAll('#meds_body tr')).filter(r => {
+          const b = r.querySelector('.psico-box');
+          return b && b.style.display !== 'none';
+        });
+
+        const ePrimeiroPsico = (todasLinhasPsico.length === 0 || todasLinhasPsico[0] === tr);
+
+        const colRompido = tr.querySelector('.col-lacre-rompido');
+        const colNovo = tr.querySelector('.col-lacre-novo');
+        const gridWrapper = tr.querySelector('.box-lacres-wrapper');
+
+        if (ePrimeiroPsico) {
+          if (colRompido) colRompido.style.display = 'block';
+          if (colNovo) colNovo.style.display = 'block';
+          if (gridWrapper) gridWrapper.style.gridTemplateColumns = '1.2fr 1.2fr 1.2fr';
+        } else {
+          if (colRompido) colRompido.style.display = 'none';
+          if (colNovo) colNovo.style.display = 'none';
+          if (gridWrapper) gridWrapper.style.gridTemplateColumns = '1fr';
+        }
+
+      } else {
+        psicoBox.style.display = 'none';
+      }
+      salvarLocal();
     }
 
     function obterInsumosUtilizadosPayload() {
@@ -1513,7 +1819,8 @@
           descricao: 'NENHUM INSUMO OU MEDICAÇÃO UTILIZADO',
           numero_lote: 'N/A',
           data_validade: null,
-          quantidade: 0
+          quantidade: 0,
+          is_psicotropico: false
         }];
       }
 
@@ -1523,26 +1830,56 @@
       linhas.forEach(tr => {
         const inputLabel = tr.querySelector('.med-search-input');
         const inputQtd = tr.querySelector('.med-qtd');
+        const psicoBox = tr.querySelector('.psico-box');
 
         if (inputLabel && inputLabel.value.trim() !== '') {
           const valDigitado = inputLabel.value.trim();
-          const itemEncontrado = mapaLotesUnificados.find(i => i.label === valDigitado);
+          const valNorm = normalizarString(valDigitado);
+          
+          const itemEncontrado = (mapaLotesUnificados || []).find(i => {
+            const labelNorm = normalizarString(i.label);
+            const descNorm = normalizarString(i.descricao);
+            return labelNorm === valNorm || descNorm === valNorm || valNorm.includes(descNorm) || (descNorm && descNorm.includes(valNorm));
+          });
+
+          const isPsico = (psicoBox && psicoBox.style.display !== 'none');
+          let via = null;
+          let lacreRompido = null;
+          let lacreNovo = null;
+
+          if (isPsico) {
+            via = tr.querySelector('.psico-via').value;
+            const inputRompido = tr.querySelector('.psico-lacre-rompido');
+            const inputNovo = tr.querySelector('.psico-lacre-novo');
+            if (inputRompido && inputRompido.offsetParent !== null) lacreRompido = inputRompido.value.toUpperCase();
+            if (inputNovo && inputNovo.offsetParent !== null) lacreNovo = inputNovo.value.toUpperCase();
+          }
 
           if (itemEncontrado) {
             insumosArray.push({
+              lote_id: itemEncontrado.lote_id,
               codigo: itemEncontrado.codigo,
               descricao: itemEncontrado.descricao,
               numero_lote: itemEncontrado.numero_lote,
               data_validade: itemEncontrado.data_validade,
-              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1
+              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
+              is_psicotropico: isPsico,
+              via_administrada: via,
+              lacre_rompido: lacreRompido,
+              lacre_novo: lacreNovo
             });
           } else {
             insumosArray.push({
+              lote_id: null,
               codigo: null,
               descricao: valDigitado.toUpperCase(),
               numero_lote: 'N/A',
               data_validade: null,
-              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1
+              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
+              is_psicotropico: isPsico,
+              via_administrada: via,
+              lacre_rompido: lacreRompido,
+              lacre_novo: lacreNovo
             });
           }
         }
@@ -1551,9 +1888,59 @@
       return insumosArray;
     }
 
+    /* BAIXA AUTOMÁTICA DE ESTOQUE NOS LOTES */
+    async function processarBaixaEstoqueELacres(insumosPayload, codigoOcorrencia) {
+      if (!insumosPayload || !insumosPayload.length) return;
+
+      for (const item of insumosPayload) {
+        if (item.lote_id && item.quantidade > 0) {
+          try {
+            const itemAtual = (mapaLotesUnificados || []).find(l => l.lote_id === item.lote_id);
+            if (itemAtual) {
+              const novoSaldo = Math.max(0, (itemAtual.saldo || 0) - item.quantidade);
+              
+              if (_supabase) {
+                await _supabase
+                  .from('estoque_lotes')
+                  .update({ quantidade_saldo: novoSaldo })
+                  .eq('id', item.lote_id);
+              }
+            }
+          } catch (e) {}
+        }
+
+        if (item.is_psicotropico && item.lacre_rompido && item.lacre_novo) {
+          try {
+            const lacrePayload = {
+              codigo_ocorrencia: codigoOcorrencia,
+              medicamento: item.descricao,
+              lote: item.numero_lote,
+              via_administrada: item.via_administrada,
+              lacre_rompido: item.lacre_rompido,
+              lacre_novo: item.lacre_novo,
+              responsavel: document.getElementById('tec_resp').value || 'N/A',
+              created_at: new Date().toISOString()
+            };
+
+            if (_supabase) {
+              await _supabase
+                .from('operacional_saude_lacres')
+                .insert([lacrePayload]);
+            }
+          } catch (e) {}
+        }
+      }
+    }
+
     async function salvarFichaOcorrenciaAPH() {
       try {
         const insumosPayload = obterInsumosUtilizadosPayload();
+
+        const bioSuspeita = document.getElementById('bio_suspeita').value;
+        const bioTipoAgente = (bioSuspeita === 'SIM') ? 
+          (document.getElementById('bio_tipo_agente').value === 'OUTROS' ? document.getElementById('bio_agente_outros').value : document.getElementById('bio_tipo_agente').value) 
+          : 'NÃO';
+        const bioDesinfeccao = (bioSuspeita === 'SIM') ? document.getElementById('bio_desinfeccao').value : 'NÃO SE APLICA';
 
         const payload = {
           codigo_ocorrencia: document.getElementById('codigo').value,
@@ -1576,6 +1963,9 @@
           municipio: document.getElementById('municipio').value,
           estado: document.getElementById('estado').value,
           glasgow_total: (parseInt(document.getElementById('g_oc').value) || 0) + (parseInt(document.getElementById('g_verb').value) || 0) + (parseInt(document.getElementById('g_mot').value) || 0),
+          bio_suspeita: bioSuspeita,
+          bio_tipo_agente: bioTipoAgente,
+          bio_desinfeccao: bioDesinfeccao,
           evolucao_texto: document.getElementById('evolucao_texto').value,
           desfecho_vitima: document.getElementById('desfecho_vitima').value,
           houve_recusa: document.getElementById('houve_recusa').value,
@@ -1597,6 +1987,8 @@
 
           if (error) {
             alert("Erro ao gravar APH no Supabase: " + error.message);
+          } else {
+            await processarBaixaEstoqueELacres(insumosPayload, payload.codigo_ocorrencia);
           }
         }
       } catch (err) {
@@ -1695,12 +2087,11 @@
 
     document.getElementById('btnClearSig').addEventListener('click', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); });
     
-    // CONFIRMAÇÃO TÁTICA ANTES DE SALVAR E IMPRIMIR
     document.getElementById('btnImprimir').addEventListener('click', () => { 
       const confirmacao = confirm(
         "⚠️ ATENÇÃO: CONFIRMA A IMPRESSÃO DA FICHA?\n\n" +
         "• Certifique-se de que todos os dados estão corretos.\n" +
-        "• Após a impressão, os dados serão salvos definitivamente na base de dados.\n" +
+        "• Após a impressão, os dados serão salvos e o estoque será abatido no Supabase.\n" +
         "• Os campos desta ficha serão LIMPOS e não será possível editar esta ocorrência localmente.\n\n" +
         "Deseja realmente prosseguir com a impressão?"
       );
