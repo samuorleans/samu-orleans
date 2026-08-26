@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAMU Connect — Livro Digital de Manutenção</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <style>
+    :root {
+      --samu-navy: #002b49;
+      --samu-red: #cc0000;
+      --bg-gray: #f4f6f9;
+      --border: #cbd5e1;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: var(--bg-gray); padding: 20px 12px; color: #2b2b2b; }
+    .card-container { max-width: 800px; margin: 0 auto; background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-top: 6px solid var(--samu-navy); }
+    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 15px; }
+    .header h2 { color: var(--samu-navy); font-size: 1.4rem; font-weight: 800; }
+    .info-bar { background: #e0f2fe; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; color: #0369a1; display: flex; justify-content: space-between; font-weight: 600; }
+    
+    .type-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+    .btn-type { flex: 1; padding: 12px; border: 2px solid var(--border); background: white; border-radius: 8px; font-weight: 700; cursor: pointer; text-align: center; color: var(--samu-navy); }
+    .btn-type.active { background: var(--samu-navy); color: white; border-color: var(--samu-navy); }
+
+    .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label { font-size: 0.78rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 4px; text-transform: uppercase; }
+    .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.9rem; outline: none; }
+    .form-group input:focus { border-color: var(--samu-navy); }
+
+    .btn-salvar { margin-top: 20px; width: 100%; padding: 14px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: 800; font-size: 1rem; cursor: pointer; }
+    .btn-salvar:hover { background: #15803d; }
+    .btn-voltar { display: inline-block; margin-top: 15px; color: var(--samu-navy); text-decoration: none; font-weight: 700; font-size: 0.85rem; }
+
+    .historico-box { margin-top: 30px; border-top: 2px dashed var(--border); padding-top: 20px; }
+    .historico-box h3 { color: var(--samu-navy); font-size: 1.1rem; margin-bottom: 12px; }
+    .tabela-hist { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .tabela-hist th, .tabela-hist td { border: 1px solid var(--border); padding: 8px; text-align: left; }
+    .tabela-hist th { background: var(--samu-navy); color: white; }
+    .badge-exec { background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    .badge-agend { background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <div class="card-container">
+    <div class="header">
+      <h2>🔧 Livro Digital de Manutenção da Viatura</h2>
+      <p style="font-size: 0.85rem; color: #666;">Registro de serviços executados e agendamento preventivo da frota USB 11</p>
+    </div>
+
+    <div class="info-bar">
+      <span>🚐 Viatura: <b id="lblViatura">—</b></span>
+      <span>👤 Condutor/Responsável: <b id="lblCondutor">—</b></span>
+    </div>
+
+    <!-- SELETOR: EXECUTADO AGORA VS AGENDAMENTO FUTURO -->
+    <div class="type-selector">
+      <div class="btn-type active" id="btnAbaExecutado" onclick="setModo('EXECUTADO')">✅ Registro de Serviço Executado</div>
+      <div class="btn-type" id="btnAbaAgendado" onclick="setModo('AGENDADO')">📅 Agendar Manutenção / Lembrete</div>
+    </div>
+
+    <form id="formManutencao" onsubmit="salvarRegistroManutencao(event)">
+      <input type="hidden" id="modo_registro" value="EXECUTADO">
+
+      <div class="grid-form">
+        <div class="form-group" id="grpDataExec">
+          <label>Data da Manutenção:*</label>
+          <input type="date" id="data_manutencao" required>
+        </div>
+
+        <div class="form-group" id="grpDataAgend" style="display: none;">
+          <label>Data Prevista do Serviço:*</label>
+          <input type="date" id="data_agendada">
+        </div>
+
+        <div class="form-group">
+          <label>KM Atual da Viatura:*</label>
+          <input type="number" id="km_no_servico" placeholder="Ex: 145200" required>
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de Manutenção:*</label>
+          <select id="tipo_manutencao" required>
+            <option value="PREVENTIVA">Preventiva (Óleo, Filtros, Revisão)</option>
+            <option value="CORRETIVA">Corretiva (Quebra/Defeito urgente)</option>
+            <option value="PNEUS">Troca/Rodízio/Geometria de Pneus</option>
+            <option value="ELETRICA">Elétrica / Sinalizador / Sirene</option>
+            <option value="FREIOS">Sistema de Freios / Pastilhas</option>
+            <option value="LAVAGEM">Higienização Completa / Lavagem</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Oficina / Prestador de Serviço:*</label>
+          <input type="text" id="oficina_prestador" placeholder="Ex: Auto Mecânica Central" required>
+        </div>
+
+        <div class="form-group" id="grpNF">
+          <label>Nº Nota Fiscal / Ordem de Serviço:</label>
+          <input type="text" id="numero_nota_fiscal" placeholder="Ex: NF-1042">
+        </div>
+
+        <div class="form-group" id="grpValor">
+          <label>Valor Total (R$):</label>
+          <input type="number" step="0.01" id="valor_total" placeholder="0,00">
+        </div>
+
+        <div class="form-group" id="grpEmail" style="display: none; grid-column: span 2;">
+          <label>E-mail para Envio do Lembrete:*</label>
+          <input type="email" id="email_notificacao" placeholder="Ex: coordenação.samu@orleans.sc.gov.br">
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Descrição Detalhada dos Serviços Executados / Previstos:*</label>
+          <textarea id="servicos_executados" rows="3" placeholder="Descreva as peças trocadas ou serviços agendados..." required></textarea>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-salvar" id="btnSubmit">💾 Salvar no Livro Digital</button>
+    </form>
+
+    <!-- HISTÓRICO DAS ÚLTIMAS MANUTENÇÕES -->
+    <div class="historico-box">
+      <h3>📜 Histórico do Livro Digital da Viatura</h3>
+      <table class="tabela-hist">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Tipo</th>
+            <th>KM</th>
+            <th>Oficina</th>
+            <th>Serviços</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyHistorico">
+          <tr><td colspan="6" style="text-align:center;">Carregando histórico da viatura...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <a href="operacional.html" class="btn-voltar">⬅️ Voltar ao Painel Operacional</a>
+  </div>
+
+  <script>
+    const dbNuvem = supabase.createClient(
+      "https://rcpgukslnlfptreiusff.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
+    );
+
+    // Inicializa EmailJS (Opcional - insira seu User ID se for usar)
+    (function(){ emailjs.init("SUA_PUBLIC_KEY_EMAILJS"); })();
+
+    const params = new URLSearchParams(window.location.search);
+    const viaturaParam = params.get('viatura') || 'USB-11';
+    const driverParam = params.get('driver') || 'Condutor Plantonista';
+
+    window.onload = function() {
+      document.getElementById('lblViatura').innerText = viaturaParam;
+      document.getElementById('lblCondutor').innerText = driverParam;
+      document.getElementById('data_manutencao').valueAsDate = new Date();
+      carregarHistoricoViatura();
+    };
+
+    function setModo(modo) {
+      document.getElementById('modo_registro').value = modo;
+      document.getElementById('btnAbaExecutado').classList.toggle('active', modo === 'EXECUTADO');
+      document.getElementById('btnAbaAgendado').classList.toggle('active', modo === 'AGENDADO');
+
+      if (modo === 'AGENDADO') {
+        document.getElementById('grpDataExec').style.display = 'none';
+        document.getElementById('grpDataAgend').style.display = 'flex';
+        document.getElementById('grpEmail').style.display = 'flex';
+        document.getElementById('grpNF').style.display = 'none';
+        document.getElementById('grpValor').style.display = 'none';
+        document.getElementById('btnSubmit').innerText = '📅 Confirmar Agendamento & Notificar por E-mail';
+      } else {
+        document.getElementById('grpDataExec').style.display = 'flex';
+        document.getElementById('grpDataAgend').style.display = 'none';
+        document.getElementById('grpEmail').style.display = 'none';
+        document.getElementById('grpNF').style.display = 'flex';
+        document.getElementById('grpValor').style.display = 'flex';
+        document.getElementById('btnSubmit').innerText = '💾 Salvar no Livro Digital';
+      }
+    }
+
+    async function salvarRegistroManutencao(e) {
+      e.preventDefault();
+      const modo = document.getElementById('modo_registro').value;
+
+      const payload = {
+        viatura: viaturaParam,
+        responsavel_registro: driverParam,
+        status: modo,
+        data_manutencao: modo === 'EXECUTADO' ? document.getElementById('data_manutencao').value : null,
+        data_agendada: modo === 'AGENDADO' ? document.getElementById('data_agendada').value : null,
+        km_no_servico: parseInt(document.getElementById('km_no_servico').value),
+        tipo_manutencao: document.getElementById('tipo_manutencao').value,
+        oficina_prestador: document.getElementById('oficina_prestador').value.trim(),
+        numero_nota_fiscal: document.getElementById('numero_nota_fiscal').value.trim(),
+        valor_total: parseFloat(document.getElementById('valor_total').value) || 0,
+        email_notificacao: document.getElementById('email_notificacao').value.trim(),
+        servicos_executados: document.getElementById('servicos_executados').value.trim()
+      };
+
+      try {
+        const { error } = await dbNuvem.from('operacional_manutencoes_livro').insert([payload]);
+        if (error) throw error;
+
+        // Dispara Notificação por E-mail caso haja e-mail preenchido
+        if (payload.email_notificacao) {
+          enviarEmailAlerta(payload);
+        }
+
+        alert(modo === 'AGENDADO' ? "📅 Manutenção agendada e registrada!" : "✅ Manutenção gravada no Livro Digital!");
+        document.getElementById('formManutencao').reset();
+        setModo('EXECUTADO');
+        carregarHistoricoViatura();
+      } catch (err) {
+        console.error("Erro ao salvar manutenção:", err);
+        alert("Falha ao gravar registro no banco de dados.");
+      }
+    }
+
+    async function carregarHistoricoViatura() {
+      const tbody = document.getElementById('tbodyHistorico');
+      try {
+        const { data, error } = await dbNuvem
+          .from('operacional_manutencoes_livro')
+          .select('*')
+          .eq('viatura', viaturaParam)
+          .order('id', { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          tbody.innerHTML = '';
+          data.forEach(m => {
+            const dt = m.data_manutencao || m.data_agendada || '—';
+            const statusBadge = m.status === 'AGENDADO' 
+              ? '<span class="badge-agend">📅 AGENDADO</span>' 
+              : '<span class="badge-exec">✅ EXECUTADO</span>';
+
+            tbody.innerHTML += `
+              <tr>
+                <td>${dt}</td>
+                <td><b>${m.tipo_manutencao}</b></td>
+                <td>${m.km_no_servico} KM</td>
+                <td>${m.oficina_prestador}</td>
+                <td>${m.servicos_executados}</td>
+                <td>${statusBadge}</td>
+              </tr>
+            `;
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum histórico para esta viatura.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Erro ao carregar histórico.</td></tr>';
+      }
+    }
+
+    function enviarEmailAlerta(dados) {
+      // Exemplo de integração simples com EmailJS para envio automático sem backend
+      console.log("Enviando lembrete de e-mail para:", dados.email_notificacao);
+    }
+  </script>
+</body>
+</html>
