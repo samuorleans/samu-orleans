@@ -238,6 +238,33 @@
     .btn-vitima-tab { flex: 1; padding: 6px; border: none; background: #cbd5e1; font-weight: 800; font-size: 0.72rem; border-radius: 4px; cursor: pointer; color: #334155; }
     .btn-vitima-tab.active { background: var(--primary); color: #fff; }
 
+    .btn-alergia-confirm {
+      width: 100%;
+      background: #dc2626;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 900;
+      cursor: pointer;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .btn-alergia-negate {
+      width: 100%;
+      background: #475569;
+      color: white;
+      border: none;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
     /* ESTILO DE IMPRESSÃO A4 REFINADO */
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
@@ -881,8 +908,13 @@
           <div id="alergia_alerta_texto" style="background: #fef2f2; border: 2px dashed #dc2626; padding: 10px; border-radius: 6px; font-size: 0.95rem; font-weight: 900; color: #991b1b; margin-bottom: 14px;">
             NENHUMA INFORMADA
           </div>
-          <button type="button" onclick="confirmarLeituraAlergia()" style="width: 100%; background: #dc2626; color: white; border: none; padding: 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 900; cursor: pointer; text-transform: uppercase;">
-            ✅ CONFIRMEI A ALERGIA COM O PACIENTE / FAMILIAR
+
+          <button type="button" class="btn-alergia-confirm" onclick="confirmarAlergiaTatica(true)">
+            ✅ CONFIRMAR ALERGIA (NÃO ADMINISTRAR MEDICAMENTO)
+          </button>
+
+          <button type="button" class="btn-alergia-negate" onclick="confirmarAlergiaTatica(false)">
+            ❌ NEGA ALERGIA / INFORMAÇÃO DIVERGENTE
           </button>
         </div>
       </div>
@@ -958,11 +990,22 @@
       document.getElementById('modalAlergiaOverlay').style.display = 'flex';
     }
 
-    function confirmarLeituraAlergia() {
+    function confirmarAlergiaTatica(pacienteConfirmouAlergia) {
       document.getElementById('modalAlergiaOverlay').style.display = 'none';
+
+      if (pacienteConfirmouAlergia) {
+        document.getElementById('alergia_select').value = 'SIM';
+        toggleAlergiaInput();
+        salvarLocal();
+      } else {
+        document.getElementById('alergia_select').value = 'NAO';
+        toggleAlergiaInput();
+        salvarLocal();
+        alert("ℹ️ Alergia desmarcada após confirmação tática com o paciente/familiar.");
+      }
     }
 
-    /* 1. BUSCA RÁPIDA DE DADOS CADASTRAIS DO PACIENTE (SEÇÃO 2 - SEM SENHA) */
+    /* 1. BUSCA RÁPIDA DE DADOS CADASTRAIS DO PACIENTE (SEÇÃO 2 - SEM SENHA & C/ CHECAGEM DE ALERGIA) */
     async function puxarCadastroPacienteSemSenha() {
       const cpfRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
       if (cpfRaw.length < 11) {
@@ -975,10 +1018,25 @@
       const cpfFormatado = cpfRaw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 
       try {
-        const { data: dataPac, error } = await _supabase
+        let dataPac = null;
+
+        // A) Buscar no cadastro geral de pacientes
+        const { data: resPac } = await _supabase
           .from('pacientes')
           .select('*')
           .or(`cpf.ilike.%${cpfRaw}%,cpf.ilike.%${cpfFormatado}%`)
+          .limit(1)
+          .maybeSingle();
+
+        if (resPac) dataPac = resPac;
+
+        // B) Buscar último histórico de ocorrência do paciente para checar alergia prévia
+        const { data: resOcorr } = await _supabase
+          .from('ocorrencias_aph')
+          .select('alergia_select, alergia_desc')
+          .or(`cpf_paciente.ilike.%${cpfRaw}%,cpf_paciente.ilike.%${cpfFormatado}%`)
+          .eq('alergia_select', 'SIM')
+          .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
 
@@ -996,6 +1054,21 @@
           document.getElementById('estado').value = (dataPac.estado || dataPac.uf || 'SC').toUpperCase();
           
           await atualizarHospitaisPorMunicipio();
+
+          // Tratar Alergias encontradas no histórico do cadastro ou de ocorrências
+          const temAlergia = (dataPac.alergia_select === 'SIM') || (resOcorr && resOcorr.alergia_select === 'SIM');
+          const descAlergia = (dataPac.alergia_desc || (resOcorr ? resOcorr.alergia_desc : ''));
+
+          if (temAlergia) {
+            document.getElementById('alergia_select').value = 'SIM';
+            toggleAlergiaInput();
+            document.getElementById('alergia_desc').value = descAlergia;
+            dispararAlertaAlergia(descAlergia);
+          } else {
+            document.getElementById('alergia_select').value = 'NAO';
+            toggleAlergiaInput();
+          }
+
           salvarLocal();
           alert("✅ Cadastro do paciente localizado com sucesso!");
         } else {
@@ -1029,13 +1102,11 @@
         const tecSelecionado = (document.getElementById('tec_enfermeiro').value || '').trim().toUpperCase();
         const tecAutorFicha = (dataOcorr.tec_enfermeiro || '').trim().toUpperCase();
 
-        // 1ª Camada: O técnico selecionado na tela é o próprio autor da ocorrência?
         if (tecSelecionado !== '' && tecSelecionado === tecAutorFicha) {
           restaurarFichaCompletaDoBanco(dataOcorr);
           registrarLogAuditoria(codOcorr, 'REABERTURA_PROPRIA', tecSelecionado, 'servidor');
           alert("✅ Ficha reaberta com sucesso pelo próprio técnico responsável!");
         } else {
-          // 2ª Camada: Exige autenticação de Administrador
           document.getElementById('auth_pass_input').value = '';
           document.getElementById('modalAuthOverlay').style.display = 'flex';
           setTimeout(() => document.getElementById('auth_pass_input').focus(), 150);
@@ -1063,7 +1134,6 @@
         let nomeAdmin = '';
 
         if (_supabase) {
-          // Consulta especificamente usuários com perfil = 'admin'
           const { data: userAdmins } = await _supabase
             .from('colaboradores')
             .select('nome, senha, perfil')
@@ -2468,7 +2538,7 @@
 
         const cpfPacienteRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
 
-        // 1. Atualizar Paciente na Tabela 'pacientes'
+        // 1. Atualizar Paciente na Tabela 'pacientes' (incluindo o status de alergia)
         if (cpfPacienteRaw.length === 11) {
           const payloadPaciente = {
             cpf: cpfPacienteRaw,
@@ -2483,6 +2553,8 @@
             bairro: document.getElementById('bairro').value.toUpperCase(),
             municipio: document.getElementById('municipio').value.toUpperCase(),
             estado: document.getElementById('estado').value.toUpperCase(),
+            alergia_select: document.getElementById('alergia_select').value,
+            alergia_desc: document.getElementById('alergia_desc').value,
             updated_at: new Date().toISOString()
           };
 
