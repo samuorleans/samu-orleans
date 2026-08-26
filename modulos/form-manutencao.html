@@ -1,273 +1,101 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    :root {
-      --samu-navy: #002b49;
-      --samu-red: #cc0000;
-      --border: #cbd5e1;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-    
-    .manut-container { max-width: 100%; margin: 0 auto; background: white; border-radius: 12px; padding: 15px; border-top: 4px solid var(--samu-navy); }
-    .header-manut { text-align: center; margin-bottom: 15px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
-    .header-manut h2 { color: var(--samu-navy); font-size: 1.2rem; font-weight: 800; }
-    
-    .type-selector-box { display: flex; gap: 10px; margin-bottom: 15px; }
-    .btn-modo { flex: 1; padding: 12px; border: 2px solid var(--border); background: #f8fafc; border-radius: 8px; font-weight: 700; cursor: pointer; text-align: center; color: var(--samu-navy); transition: all 0.2s; font-size: 0.85rem; }
-    .btn-modo.ativo { background: var(--samu-navy) !important; color: white !important; border-color: var(--samu-navy) !important; }
-
-    .grid-form-manut { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-    .form-group-m { display: flex; flex-direction: column; text-align: left; }
-    .form-group-m label { font-size: 0.75rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 4px; text-transform: uppercase; }
-    .form-group-m input, .form-group-m select, .form-group-m textarea { padding: 9px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.85rem; outline: none; background: #ffffff; width: 100%; }
-    .form-group-m input:focus, .form-group-m select:focus { border-color: var(--samu-navy); }
-
-    .btn-salvar-manut { margin-top: 15px; width: 100%; padding: 12px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer; }
-    .btn-salvar-manut:hover { background: #15803d; }
-
-    .historico-box-m { margin-top: 25px; border-top: 2px dashed var(--border); padding-top: 15px; }
-    .historico-box-m h3 { color: var(--samu-navy); font-size: 0.95rem; margin-bottom: 10px; text-align: left; }
-    .tabela-hist-m { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
-    .tabela-hist-m th, .tabela-hist-m td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; }
-    .tabela-hist-m th { background: var(--samu-navy); color: white; }
-    .badge-exec { background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-    .badge-agend { background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-  </style>
-</head>
-<body>
-
-  <div class="manut-container">
-    <div class="header-manut">
-      <h2>🔧 Livro Digital de Manutenção da Viatura</h2>
-      <p style="font-size: 0.8rem; color: #666;">Registro de serviços executados e agendamento preventivo</p>
-    </div>
-
-    <!-- SELETOR DE MODO -->
-    <div class="type-selector-box">
-      <button type="button" class="btn-modo ativo" id="btnModoExecutado">✅ Registro de Serviço Executado</button>
-      <button type="button" class="btn-modo" id="btnModoAgendado">📅 Agendar Manutenção / Lembrete</button>
-    </div>
-
-    <form id="formManutencaoAcao">
-      <input type="hidden" id="modo_registro_val" value="EXECUTADO">
-
-      <div class="grid-form-manut">
-        <!-- DATA EXECUÇÃO -->
-        <div class="form-group-m" id="boxDataExec">
-          <label>Data da Manutenção:*</label>
-          <input type="date" id="m_data_executada">
-        </div>
-
-        <!-- DATA AGENDADA -->
-        <div class="form-group-m" id="boxDataAgend" style="display: none;">
-          <label>Data Prevista do Serviço:*</label>
-          <input type="date" id="m_data_agendada">
-        </div>
-
-        <div class="form-group-m">
-          <label>KM Atual da Viatura:*</label>
-          <input type="number" id="m_km" placeholder="Ex: 145200" required>
-        </div>
-
-        <div class="form-group-m">
-          <label>Tipo de Manutenção:*</label>
-          <select id="m_tipo" required>
-            <option value="PREVENTIVA">Preventiva (Óleo, Filtros, Revisão)</option>
-            <option value="CORRETIVA">Corretiva (Quebra/Defeito urgente)</option>
-            <option value="PNEUS">Troca/Rodízio/Geometria de Pneus</option>
-            <option value="ELETRICA">Elétrica / Sinalizador / Sirene</option>
-            <option value="FREIOS">Sistema de Freios / Pastilhas</option>
-            <option value="LAVAGEM">Higienização Completa / Lavagem</option>
-          </select>
-        </div>
-
-        <div class="form-group-m">
-          <label>Oficina / Prestador de Serviço:*</label>
-          <input type="text" id="m_oficina" placeholder="Ex: Auto Mecânica Central" required>
-        </div>
-
-        <div class="form-group-m" id="boxNF">
-          <label>Nº Nota Fiscal / Ordem de Serviço:</label>
-          <input type="text" id="m_nf" placeholder="Ex: NF-1042">
-        </div>
-
-        <div class="form-group-m" id="boxValor">
-          <label>Valor Total (R$):</label>
-          <input type="number" step="0.01" id="m_valor" placeholder="0,00">
-        </div>
-
-        <div class="form-group-m" id="boxEmail" style="display: none; grid-column: span 2;">
-          <label>E-mail para Envio do Lembrete:*</label>
-          <input type="email" id="m_email" placeholder="Ex: coordenacao.samu@orleans.sc.gov.br">
-        </div>
-
-        <div class="form-group-m" style="grid-column: span 2;">
-          <label>Descrição Detalhada dos Serviços Executados / Previstos:*</label>
-          <textarea id="m_servicos" rows="3" placeholder="Descreva as peças trocadas ou serviços agendados..." required></textarea>
-        </div>
-      </div>
-
-      <button type="submit" class="btn-salvar-manut" id="btnSalvarManut">💾 Salvar no Livro Digital</button>
-    </form>
-
-    <!-- HISTÓRICO -->
-    <div class="historico-box-m">
-      <h3>📜 Histórico do Livro Digital da Viatura</h3>
-      <table class="tabela-hist-m">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Tipo</th>
-            <th>KM</th>
-            <th>Oficina</th>
-            <th>Serviços</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyHistManut">
-          <tr><td colspan="6" style="text-align:center;">Carregando histórico...</td></tr>
-        </tbody>
-      </table>
-    </div>
+<div class="manut-container" style="background: white; border-radius: 12px; padding: 15px; border-top: 4px solid #002b49;">
+  <div style="text-align: center; margin-bottom: 15px; border-bottom: 2px solid #cbd5e1; padding-bottom: 10px;">
+    <h2 style="color: #002b49; font-size: 1.2rem; font-weight: 800;">🔧 Livro Digital de Manutenção da Viatura</h2>
+    <p style="font-size: 0.8rem; color: #666;">Registro de serviços executados e agendamento preventivo</p>
   </div>
 
-  <script>
-    (function() {
-      // 1. Vincula eventos aos botões
-      const btnExec = document.getElementById('btnModoExecutado');
-      const btnAgend = document.getElementById('btnModoAgendado');
-      const modoVal = document.getElementById('modo_registro_val');
+  <!-- SELETOR DE MODO (ABAS) -->
+  <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+    <button type="button" id="btnAbaExec" onclick="alternarAbaManut('EXECUTADO')" style="flex: 1; padding: 12px; border: 2px solid #002b49; background: #002b49; color: white; border-radius: 8px; font-weight: 700; cursor: pointer;">
+      ✅ Registro de Serviço Executado
+    </button>
+    <button type="button" id="btnAbaAgend" onclick="alternarAbaManut('AGENDADO')" style="flex: 1; padding: 12px; border: 2px solid #cbd5e1; background: #f8fafc; color: #002b49; border-radius: 8px; font-weight: 700; cursor: pointer;">
+      📅 Agendar Manutenção / Lembrete
+    </button>
+  </div>
 
-      const boxExec = document.getElementById('boxDataExec');
-      const boxAgend = document.getElementById('boxDataAgend');
-      const boxEmail = document.getElementById('boxEmail');
-      const boxNF = document.getElementById('boxNF');
-      const boxValor = document.getElementById('boxValor');
-      const btnSalvar = document.getElementById('btnSalvarManut');
+  <form id="formManutAcao" onsubmit="salvarManutencaoLivro(event)">
+    <input type="hidden" id="m_modo_registro" value="EXECUTADO">
 
-      // Preenche data atual no campo executado
-      document.getElementById('m_data_executada').valueAsDate = new Date();
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; text-align: left;">
+      
+      <!-- DATA EXECUÇÃO -->
+      <div id="boxDataExec" style="display: flex; flex-direction: column;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">DATA DA MANUTENÇÃO:*</label>
+        <input type="date" id="m_data_exec" style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+      </div>
 
-      btnExec.addEventListener('click', function() {
-        modoVal.value = 'EXECUTADO';
-        btnExec.classList.add('ativo');
-        btnAgend.classList.remove('ativo');
+      <!-- DATA AGENDADA -->
+      <div id="boxDataAgend" style="display: none; flex-direction: column;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">DATA PREVISTA DO SERVIÇO:*</label>
+        <input type="date" id="m_data_agend">
+      </div>
 
-        boxExec.style.display = 'flex';
-        boxAgend.style.display = 'none';
-        boxEmail.style.display = 'none';
-        boxNF.style.display = 'flex';
-        boxValor.style.display = 'flex';
-        btnSalvar.innerText = '💾 Salvar no Livro Digital';
-      });
+      <div style="display: flex; flex-direction: column;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">KM ATUAL DA VIATURA:*</label>
+        <input type="number" id="m_km" placeholder="Ex: 145200" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+      </div>
 
-      btnAgend.addEventListener('click', function() {
-        modoVal.value = 'AGENDADO';
-        btnAgend.classList.add('ativo');
-        btnExec.classList.remove('ativo');
+      <div style="display: flex; flex-direction: column;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">TIPO DE MANUTENÇÃO:*</label>
+        <select id="m_tipo" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+          <option value="PREVENTIVA">Preventiva (Óleo, Filtros, Revisão)</option>
+          <option value="CORRETIVA">Corretiva (Quebra/Defeito urgente)</option>
+          <option value="PNEUS">Troca/Rodízio/Geometria de Pneus</option>
+          <option value="ELETRICA">Elétrica / Sinalizador / Sirene</option>
+          <option value="FREIOS">Sistema de Freios / Pastilhas</option>
+          <option value="LAVAGEM">Higienização Completa / Lavagem</option>
+        </select>
+      </div>
 
-        boxExec.style.display = 'none';
-        boxAgend.style.display = 'flex';
-        boxEmail.style.display = 'flex';
-        boxNF.style.display = 'none';
-        boxValor.style.display = 'none';
-        btnSalvar.innerText = '📅 Confirmar Agendamento';
-      });
+      <div style="display: flex; flex-direction: column;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">OFICINA / PRESTADOR:*</label>
+        <input type="text" id="m_oficina" placeholder="Ex: Auto Mecânica Central" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+      </div>
 
-      // 2. Evento de submissão do formulário
-      document.getElementById('formManutencaoAcao').addEventListener('submit', async function(e) {
-        e.preventDefault();
+      <div id="boxNF" style="display: flex; flex-direction: column;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">Nº NOTA FISCAL / OS:</label>
+        <input type="text" id="m_nf" placeholder="Ex: NF-1042" style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+      </div>
 
-        const viatura = document.getElementById('resumo_viatura') ? document.getElementById('resumo_viatura').innerText : 'VTR';
-        const profissional = document.getElementById('resumo_profissional') ? document.getElementById('resumo_profissional').innerText : 'Plantonista';
-        const modo = modoVal.value;
+      <div id="boxValor" style="display: flex; flex-direction: column;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">VALOR TOTAL (R$):</label>
+        <input type="number" step="0.01" id="m_valor" placeholder="0,00" style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+      </div>
 
-        const dataExec = document.getElementById('m_data_executada').value;
-        const dataAgend = document.getElementById('m_data_agendada').value;
+      <div id="boxEmail" style="display: none; flex-direction: column; grid-column: span 2;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">E-MAIL PARA LEMBRETE:*</label>
+        <input type="email" id="m_email" placeholder="Ex: coordenacao.samu@orleans.sc.gov.br" style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+      </div>
 
-        if (modo === 'EXECUTADO' && !dataExec) {
-          alert("⚠️ Informe a Data da Manutenção.");
-          return;
-        }
-        if (modo === 'AGENDADO' && !dataAgend) {
-          alert("⚠️ Informe a Data Prevista do Serviço.");
-          return;
-        }
+      <div style="display: flex; flex-direction: column; grid-column: span 2;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">DESCRIÇÃO DETALHADA DOS SERVIÇOS:*</label>
+        <textarea id="m_servicos" rows="3" placeholder="Descreva as peças trocadas ou serviços agendados..." required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px;"></textarea>
+      </div>
+    </div>
 
-        const payload = {
-          viatura: viatura,
-          responsavel_registro: profissional,
-          status: modo,
-          data_manutencao: modo === 'EXECUTADO' ? dataExec : null,
-          data_agendada: modo === 'AGENDADO' ? dataAgend : null,
-          km_no_servico: parseInt(document.getElementById('m_km').value) || 0,
-          tipo_manutencao: document.getElementById('m_tipo').value,
-          oficina_prestador: document.getElementById('m_oficina').value.trim(),
-          numero_nota_fiscal: document.getElementById('m_nf').value.trim(),
-          valor_total: parseFloat(document.getElementById('m_valor').value) || 0,
-          email_notificacao: document.getElementById('m_email').value.trim(),
-          servicos_executados: document.getElementById('m_servicos').value.trim()
-        };
+    <button type="submit" id="btnSalvarManut" style="margin-top: 15px; width: 100%; padding: 12px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer;">
+      💾 Salvar no Livro Digital
+    </button>
+  </form>
 
-        try {
-          const { error } = await dbNuvem.from('operacional_manutencoes_livro').insert([payload]);
-          if (error) throw error;
-
-          alert(modo === 'AGENDADO' ? "📅 Manutenção agendada com sucesso!" : "✅ Registro gravado no Livro Digital!");
-          
-          document.getElementById('formManutencaoAcao').reset();
-          btnExec.click();
-          carregarHistoricoLocal(viatura);
-        } catch (err) {
-          console.error(err);
-          alert("❌ Erro ao salvar registro no Supabase.");
-        }
-      });
-
-      // 3. Função para carregar histórico
-      async function carregarHistoricoLocal(viatura) {
-        const tbody = document.getElementById('tbodyHistManut');
-        try {
-          const { data } = await dbNuvem
-            .from('operacional_manutencoes_livro')
-            .select('*')
-            .eq('viatura', viatura)
-            .order('id', { ascending: false })
-            .limit(10);
-
-          if (data && data.length > 0) {
-            tbody.innerHTML = '';
-            data.forEach(m => {
-              const dt = m.data_manutencao || m.data_agendada || '—';
-              const statusBadge = m.status === 'AGENDADO' 
-                ? '<span class="badge-agend">📅 AGENDADO</span>' 
-                : '<span class="badge-exec">✅ EXECUTADO</span>';
-
-              tbody.innerHTML += `
-                <tr>
-                  <td>${dt}</td>
-                  <td><b>${m.tipo_manutencao}</b></td>
-                  <td>${m.km_no_servico} KM</td>
-                  <td>${m.oficina_prestador}</td>
-                  <td>${m.servicos_executados}</td>
-                  <td>${statusBadge}</td>
-                </tr>
-              `;
-            });
-          } else {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum histórico para esta viatura.</td></tr>';
-          }
-        } catch (err) {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Erro ao carregar histórico.</td></tr>';
-        }
-      }
-
-      const viatInic = document.getElementById('resumo_viatura') ? document.getElementById('resumo_viatura').innerText : 'USB-11';
-      carregarHistoricoLocal(viatInic);
-    })();
-  </script>
-</body>
-</html>
+  <!-- HISTÓRICO -->
+  <div style="margin-top: 25px; border-top: 2px dashed #cbd5e1; padding-top: 15px;">
+    <h3 style="color: #002b49; font-size: 0.95rem; margin-bottom: 10px; text-align: left;">📜 Histórico do Livro Digital da Viatura</h3>
+    <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
+      <thead>
+        <tr style="background: #002b49; color: white;">
+          <th style="padding: 6px;">Data</th>
+          <th style="padding: 6px;">Tipo</th>
+          <th style="padding: 6px;">KM</th>
+          <th style="padding: 6px;">Oficina</th>
+          <th style="padding: 6px;">Serviços</th>
+          <th style="padding: 6px;">Status</th>
+        </tr>
+      </thead>
+      <tbody id="tbodyHistManut">
+        <tr><td colspan="6" style="text-align:center; padding: 8px;">Carregando histórico...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
