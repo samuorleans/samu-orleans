@@ -947,7 +947,7 @@
       { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "" }
     ];
 
-    /* NORMALIZAÇÃO TÁTICA DE STRINGS (SEM ACENTOS/CARACTERES ESPECIAIS) */
+    /* NORMALIZAÇÃO DE STRINGS (SEM ACENTOS/CARACTERES ESPECIAIS) */
     function normalizarString(str) {
       if (!str) return '';
       return str.toString()
@@ -1162,7 +1162,6 @@
       salvarLocal();
     }
 
-    /* BUSCA ROBUSTA DE HOSPITAIS COM NORMALIZAÇÃO DE ACENTOS E MUNICÍPIO */
     async function atualizarHospitaisPorMunicipio() {
       const selectHosp = document.getElementById('hospital_destino');
       const municipioRaw = (document.getElementById('municipio').value || '').trim();
@@ -1196,7 +1195,6 @@
         return;
       }
 
-      // Normalização completa dos registros de hospitais para evitar discrepâncias de acentos
       const listaTratada = hospitais.map(h => {
         const nomeFinal = (h.nome_fantasia || h.nome_hospital || h.nome_unidade || h.nome || h.razao_social || h.nome_posto || 'UNIDADE DE SAÚDE').toUpperCase();
         const munRaw = h.municipio || h.cidade || h.cidade_uf || '';
@@ -1208,7 +1206,6 @@
       const hospitaisLocais = listaTratada.filter(h => h.municipioNorm === municipioNorm);
       const hospitaisRegiao = listaTratada.filter(h => h.municipioNorm !== municipioNorm);
 
-      // 1. Grupo: Hospitais da cidade do atendimento
       if (hospitaisLocais.length > 0) {
         const optGroupLocal = document.createElement('optgroup');
         optGroupLocal.label = `📍 HOSPITAIS DE ${municipioRaw.toUpperCase()}`;
@@ -1223,7 +1220,6 @@
         selectHosp.appendChild(optGroupLocal);
       }
 
-      // 2. Grupo: Hospitais das demais regiões
       if (hospitaisRegiao.length > 0) {
         const optGroupRegiao = document.createElement('optgroup');
         optGroupRegiao.label = "🏥 OUTRAS REGIÕES / REFERÊNCIAS";
@@ -1239,13 +1235,11 @@
         selectHosp.appendChild(optGroupRegiao);
       }
 
-      // 3. Opção de Outro Hospital
       const optOutros = document.createElement('option');
       optOutros.value = "OUTROS";
       optOutros.innerText = "OUTRO / Unidade Não Listada";
       selectHosp.appendChild(optOutros);
 
-      // 4. Manutenção de Seleção
       if (valorAnterior && Array.from(selectHosp.options).some(o => o.value === valorAnterior)) {
         selectHosp.value = valorAnterior;
       } else if (hospitaisLocais.length === 1) {
@@ -1666,87 +1660,82 @@
       });
     }
 
+    /* CARREGAMENTO UNIFICADO ROBUSTO (INCLUI TRAMAL, TRAMADOL E TODOS OS INSUMOS) */
     async function carregarInsumosELotesUnificados() {
-      const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
-      if (cacheLocal) {
-        try {
-          mapaLotesUnificados = JSON.parse(cacheLocal);
-        } catch(e) {}
-      }
-
       let mestreRes = [];
       let lotesRes = [];
 
       try {
-        const [resMestre, resLotes] = await Promise.all([
-          fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=codigo_insumo,descricao_insumo,categoria,is_psicotropico&exibir_no_aph=eq.true&order=descricao_insumo.asc`, {
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Cache-Control': 'no-cache' }
-          }),
-          fetch(`${SUPABASE_URL}/rest/v1/estoque_lotes?select=id,descricao_insumo,numero_lote,data_validade,quantidade_saldo&order=data_validade.asc`, {
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Cache-Control': 'no-cache' }
-          })
-        ]);
+        if (_supabase) {
+          const [dMestre, dLotes] = await Promise.all([
+            _supabase.from('estoque_mestre').select('*').order('descricao_insumo', { ascending: true }),
+            _supabase.from('estoque_lotes').select('*').order('data_validade', { ascending: true })
+          ]);
 
-        if (resMestre.ok) mestreRes = await resMestre.json();
-        if (resLotes.ok) lotesRes = await resLotes.json();
-      } catch (errRest) {}
+          if (dMestre.data) mestreRes = dMestre.data;
+          if (dLotes.data) lotesRes = dLotes.data;
+        }
+      } catch (err) {}
 
-      if ((!mestreRes.length || !lotesRes.length) && _supabase) {
+      if (!mestreRes.length) {
         try {
-          const { data: dMestre } = await _supabase
-            .from('estoque_mestre')
-            .select('codigo_insumo, descricao_insumo, categoria, is_psicotropico')
-            .eq('exibir_no_aph', true)
-            .order('descricao_insumo', { ascending: true });
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=*&order=descricao_insumo.asc`, {
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+          });
+          if (res.ok) mestreRes = await res.json();
+        } catch(e) {}
+      }
 
-          const { data: dLotes } = await _supabase
-            .from('estoque_lotes')
-            .select('id, descricao_insumo, numero_lote, data_validade, quantidade_saldo')
-            .order('data_validade', { ascending: true });
-
-          if (dMestre) mestreRes = dMestre;
-          if (dLotes) lotesRes = dLotes;
-        } catch (errSdk) {}
+      if (!lotesRes.length) {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/estoque_lotes?select=*&order=data_validade.asc`, {
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+          });
+          if (res.ok) lotesRes = await res.json();
+        } catch(e) {}
       }
 
       if (mestreRes.length > 0) {
         const listaTemporaria = [];
+        
         mestreRes.forEach(m => {
-          const descMestreNorm = normalizarString(m.descricao_insumo);
+          const descMestre = m.descricao_insumo || m.nome_insumo || m.descricao || '';
+          const descMestreNorm = normalizarString(descMestre);
 
           const lotesDoItem = lotesRes.filter(l => {
-            const descLoteNorm = normalizarString(l.descricao_insumo);
+            const descLote = l.descricao_insumo || l.nome_insumo || l.descricao || '';
+            const descLoteNorm = normalizarString(descLote);
             return descLoteNorm === descMestreNorm || descLoteNorm.includes(descMestreNorm) || descMestreNorm.includes(descLoteNorm);
           });
 
           if (lotesDoItem.length > 0) {
             lotesDoItem.forEach(l => {
               const dataValFmt = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : 'N/A';
-              const labelExibicao = `${m.descricao_insumo} — Lote: ${l.numero_lote || 'S/L'} | Val: ${dataValFmt}`;
+              const labelExibicao = `${descMestre} — Lote: ${l.numero_lote || l.lote || 'S/L'} | Val: ${dataValFmt}`;
 
               listaTemporaria.push({
                 label: labelExibicao,
                 lote_id: l.id,
-                codigo: m.codigo_insumo || '',
-                descricao: m.descricao_insumo,
-                numero_lote: l.numero_lote || '',
+                codigo: m.codigo_insumo || m.codigo || '',
+                descricao: descMestre,
+                numero_lote: l.numero_lote || l.lote || 'SEM LOTE',
                 data_validade: l.data_validade || '',
-                saldo: l.quantidade_saldo || 0,
-                is_psicotropico: !!m.is_psicotropico,
+                saldo: l.quantidade_saldo || l.saldo || 0,
+                is_psicotropico: !!(m.is_psicotropico || m.psicotropico),
                 categoria: m.categoria || ''
               });
             });
           } else {
-            const labelExibicao = `${m.descricao_insumo} — Lote: SEM LOTE | Val: N/A`;
+            const labelExibicao = `${descMestre} — Lote: SEM LOTE | Val: N/A`;
             listaTemporaria.push({
               label: labelExibicao,
               lote_id: null,
-              codigo: m.codigo_insumo || '',
-              descricao: m.descricao_insumo,
+              codigo: m.codigo_insumo || m.codigo || '',
+              descricao: descMestre,
               numero_lote: 'SEM LOTE',
               data_validade: '',
               saldo: 0,
-              is_psicotropico: !!m.is_psicotropico,
+              is_psicotropico: !!(m.is_psicotropico || m.psicotropico),
               categoria: m.categoria || ''
             });
           }
@@ -1754,6 +1743,11 @@
 
         mapaLotesUnificados = listaTemporaria;
         localStorage.setItem('aph_insumos_unificados_cache', JSON.stringify(mapaLotesUnificados));
+      } else {
+        const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
+        if (cacheLocal) {
+          try { mapaLotesUnificados = JSON.parse(cacheLocal); } catch(e) {}
+        }
       }
     }
 
@@ -1941,10 +1935,7 @@
       modalInput.value = '';
       
       if (!mapaLotesUnificados || mapaLotesUnificados.length === 0) {
-        const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
-        if (cacheLocal) {
-          try { mapaLotesUnificados = JSON.parse(cacheLocal); } catch(e){}
-        }
+        await carregarInsumosELotesUnificados();
       }
 
       filtrarListaModal('');
@@ -1959,13 +1950,6 @@
     function filtrarListaModal(termo) {
       const listContainer = document.getElementById('modalMedList');
       const termNorm = normalizarString(termo);
-
-      if (!mapaLotesUnificados || mapaLotesUnificados.length === 0) {
-        const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
-        if (cacheLocal) {
-          try { mapaLotesUnificados = JSON.parse(cacheLocal); } catch(e){}
-        }
-      }
 
       const listaParaFiltrar = mapaLotesUnificados || [];
 
@@ -2016,6 +2000,7 @@
       inputs.forEach(input => verificarPsicotropico(input));
     }
 
+    /* RECONHECIMENTO DE PSICOTRÓPICOS EXTENDIDO (TRAMAL, MORFINA, DIAZEPAM, ETC) */
     function verificarPsicotropico(inputEl) {
       const valRaw = inputEl.value.trim();
       const valNorm = normalizarString(valRaw);
@@ -2030,12 +2015,18 @@
         return labelNorm === valNorm || descNorm === valNorm || valNorm.includes(descNorm) || (descNorm && descNorm.includes(valNorm));
       });
 
-      const ehPsicotropicoGarantido = valNorm.includes("diazepam") || 
-                                      valNorm.includes("tramadol") || 
+      const ehPsicotropicoGarantido = valNorm.includes("tramal") ||
+                                      valNorm.includes("tramadol") ||
                                       valNorm.includes("morfina") || 
+                                      valNorm.includes("dimorf") ||
+                                      valNorm.includes("diazepam") || 
+                                      valNorm.includes("valium") ||
                                       valNorm.includes("fentanil") || 
                                       valNorm.includes("midazolam") ||
-                                      valNorm.includes("meperidina");
+                                      valNorm.includes("dormonid") ||
+                                      valNorm.includes("hipnovel") ||
+                                      valNorm.includes("meperidina") ||
+                                      valNorm.includes("dolantina");
 
       const ehPsico = (itemEncontrado && itemEncontrado.is_psicotropico) || ehPsicotropicoGarantido;
 
