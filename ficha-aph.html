@@ -922,8 +922,9 @@
   </form>
 
   <script>
+    /* CHAVES ATUALIZADAS E VINCULADAS AO PROJETO SUPABASE */
     const SUPABASE_URL = 'https://rcpgukslnlfptreiusff.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A';
 
     let _supabase = null;
     let mapaLotesUnificados = [];
@@ -945,6 +946,22 @@
     const COLABORADORES_FALLBACK = [
       { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "" }
     ];
+
+    /* NORMALIZAÇÃO TÁTICA DE STRINGS (SEM ACENTOS/CARACTERES ESPECIAIS) */
+    function normalizarString(str) {
+      if (!str) return '';
+      return str.toString()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]/g, '');
+    }
+
+    function normalizarNomeCidade(cidadeStr) {
+      if (!cidadeStr) return '';
+      const parteCidade = cidadeStr.split('/')[0].trim();
+      return normalizarString(parteCidade).toUpperCase();
+    }
 
     async function ativarWakeLockPermanente() {
       try {
@@ -1145,10 +1162,11 @@
       salvarLocal();
     }
 
-    // BUSCA INTELIGENTE DE HOSPITAIS POR MUNICÍPIO (com suporte a todas as colunas)
+    /* BUSCA ROBUSTA DE HOSPITAIS COM NORMALIZAÇÃO DE ACENTOS E MUNICÍPIO */
     async function atualizarHospitaisPorMunicipio() {
       const selectHosp = document.getElementById('hospital_destino');
-      const municipioAtual = (document.getElementById('municipio').value || '').trim().toUpperCase();
+      const municipioRaw = (document.getElementById('municipio').value || '').trim();
+      const municipioNorm = normalizarNomeCidade(municipioRaw);
 
       if (!selectHosp) return;
 
@@ -1178,21 +1196,22 @@
         return;
       }
 
-      // Normaliza os nomes de hospital e município tratando variações de colunas
+      // Normalização completa dos registros de hospitais para evitar discrepâncias de acentos
       const listaTratada = hospitais.map(h => {
-        const nomeFinal = (h.nome_fantasia || h.nome_hospital || h.nome_unidade || h.nome || h.razao_social || 'HOSPITAL').toUpperCase();
-        const munFinal = (h.municipio || h.cidade || h.cidade_uf || '').split('/')[0].trim().toUpperCase();
+        const nomeFinal = (h.nome_fantasia || h.nome_hospital || h.nome_unidade || h.nome || h.razao_social || h.nome_posto || 'UNIDADE DE SAÚDE').toUpperCase();
+        const munRaw = h.municipio || h.cidade || h.cidade_uf || '';
+        const munNorm = normalizarNomeCidade(munRaw);
         const statusFinal = (h.status || 'ATIVO').toUpperCase();
-        return { nome: nomeFinal, municipio: munFinal, status: statusFinal };
+        return { nome: nomeFinal, municipioNorm: munNorm, municipioOriginal: munRaw.split('/')[0].trim().toUpperCase(), status: statusFinal };
       }).filter(h => h.status === 'ATIVO');
 
-      const hospitaisLocais = listaTratada.filter(h => h.municipio === municipioAtual);
-      const hospitaisRegiao = listaTratada.filter(h => h.municipio !== municipioAtual);
+      const hospitaisLocais = listaTratada.filter(h => h.municipioNorm === municipioNorm);
+      const hospitaisRegiao = listaTratada.filter(h => h.municipioNorm !== municipioNorm);
 
-      // 1. Grupo: Hospitais do Município do Atendimento
+      // 1. Grupo: Hospitais da cidade do atendimento
       if (hospitaisLocais.length > 0) {
         const optGroupLocal = document.createElement('optgroup');
-        optGroupLocal.label = `📍 HOSPITAIS DE ${municipioAtual}`;
+        optGroupLocal.label = `📍 HOSPITAIS DE ${municipioRaw.toUpperCase()}`;
 
         hospitaisLocais.forEach(h => {
           const opt = document.createElement('option');
@@ -1204,7 +1223,7 @@
         selectHosp.appendChild(optGroupLocal);
       }
 
-      // 2. Grupo: Outras Regiões e Referências
+      // 2. Grupo: Hospitais das demais regiões
       if (hospitaisRegiao.length > 0) {
         const optGroupRegiao = document.createElement('optgroup');
         optGroupRegiao.label = "🏥 OUTRAS REGIÕES / REFERÊNCIAS";
@@ -1212,7 +1231,7 @@
         hospitaisRegiao.forEach(h => {
           const opt = document.createElement('option');
           opt.value = h.nome;
-          const munStr = h.municipio ? ` (${h.municipio})` : '';
+          const munStr = h.municipioOriginal ? ` (${h.municipioOriginal})` : '';
           opt.innerText = `${h.nome}${munStr}`;
           optGroupRegiao.appendChild(opt);
         });
@@ -1220,13 +1239,13 @@
         selectHosp.appendChild(optGroupRegiao);
       }
 
-      // 3. Opção de Exceção
+      // 3. Opção de Outro Hospital
       const optOutros = document.createElement('option');
       optOutros.value = "OUTROS";
       optOutros.innerText = "OUTRO / Unidade Não Listada";
       selectHosp.appendChild(optOutros);
 
-      // 4. Seleção automática se já selecionado ou se houver apenas 1 na cidade
+      // 4. Manutenção de Seleção
       if (valorAnterior && Array.from(selectHosp.options).some(o => o.value === valorAnterior)) {
         selectHosp.value = valorAnterior;
       } else if (hospitaisLocais.length === 1) {
@@ -1645,15 +1664,6 @@
         selectTec.innerHTML += `<option value="${c.nome}">${c.nome}${corenVal}</option>`;
         selectSoc.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
       });
-    }
-
-    function normalizarString(str) {
-      if (!str) return '';
-      return str.toString()
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]/g, '');
     }
 
     async function carregarInsumosELotesUnificados() {
