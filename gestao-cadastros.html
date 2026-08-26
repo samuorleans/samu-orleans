@@ -33,7 +33,6 @@
     .btn-novo { background: #16a34a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
     .btn-novo:hover { background: #15803d; }
 
-    /* FILTROS E PESQUISA DE INSUMOS */
     .filter-box { display: flex; gap: 8px; flex-grow: 1; max-width: 600px; }
     .input-busca, .select-filtro { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.85rem; outline: none; background: white; width: 100%; }
     .input-busca:focus, .select-filtro:focus { border-color: var(--samu-blue); }
@@ -50,15 +49,11 @@
     .btn-editar { background: #1976d2; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer; margin-right: 4px; }
     .btn-excluir { background: #d32f2f; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
 
-    /* BADGES DE STATUS */
     .badge-status { padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 0.7rem; display: inline-block; }
     .status-ativo { background: #dcfce7; color: #15803d; }
     .status-desligado { background: #fee2e2; color: #b91c1c; }
     .status-ferias { background: #fef3c7; color: #b45309; }
     .status-atestado { background: #e0e7ff; color: #4338ca; }
-    
-    .status-aph-sim { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
-    .status-aph-nao { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
     .modal-box { background: white; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; border-radius: 16px; padding: 24px; box-shadow: var(--shadow); position: relative; }
@@ -90,7 +85,7 @@
       <button class="tab-btn active" id="tabColab" onclick="alternarAba('colaboradores')">👥 Servidores & Uniformes</button>
       <button class="tab-btn" id="tabViaturas" onclick="alternarAba('viaturas')">🚐 Frota & Viaturas</button>
       <button class="tab-btn" id="tabInsumos" onclick="alternarAba('insumos')">📦 Insumos & Medicamentos</button>
-      <button class="tab-btn" id="tabPostos" onclick="alternarAba('postos')">⛽ Postos de Gasolina</button>
+      <button class="tab-btn" id="tabHospitais" onclick="alternarAba('hospitais')">🏥 Hospitais & Destinos</button>
     </div>
 
     <!-- ABA 1: SERVIDORES -->
@@ -144,7 +139,7 @@
       </div>
     </div>
 
-    <!-- ABA 3: INSUMOS (COM BUSCA LOCAL, FILTRO E TOGGLE DIRETO NA TABELA) -->
+    <!-- ABA 3: INSUMOS -->
     <div id="secaoInsumos" style="display: none;">
       <div class="action-bar">
         <div class="filter-box">
@@ -183,25 +178,27 @@
       </div>
     </div>
 
-    <!-- ABA 4: POSTOS -->
-    <div id="secaoPostos" style="display: none;">
+    <!-- ABA 4: HOSPITAIS & DESTINOS -->
+    <div id="secaoHospitais" style="display: none;">
       <div class="action-bar">
-        <span style="font-size: 0.85rem; color:#64748b; font-weight:600;">Postos cadastrados na tabela operacional_postos.</span>
-        <button class="btn-novo" onclick="abrirModalPosto()">➕ Novo Posto</button>
+        <span style="font-size: 0.85rem; color:#64748b; font-weight:600;">Hospitais de destino e unidades de saúde para a Ficha APH.</span>
+        <button class="btn-novo" onclick="abrirModalHospital()">➕ Novo Hospital</button>
       </div>
 
       <div class="table-container">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Nome do Posto</th>
-              <th>Cidade</th>
+              <th>CNPJ</th>
+              <th>Nome do Hospital / Unidade</th>
+              <th>Cidade / UF</th>
+              <th>Endereço</th>
               <th>Status</th>
               <th>Ações</th>
             </tr>
           </thead>
-          <tbody id="tbodyPostos">
-            <tr><td colspan="4" style="text-align:center;">Consultando postos no banco...</td></tr>
+          <tbody id="tbodyHospitais">
+            <tr><td colspan="6" style="text-align:center;">Consultando unidades de saúde no banco...</td></tr>
           </tbody>
         </table>
       </div>
@@ -210,28 +207,21 @@
     <a href="index.html" class="btn-voltar">⬅️ Voltar ao Painel Principal</a>
   </div>
 
-  <!-- MODAL DE EDICAO DO SERVIDOR E UNIFORMES -->
+  <!-- MODAL DE SERVIDOR -->
   <div class="modal-overlay" id="modalColaborador">
     <div class="modal-box">
       <div class="modal-header">
         <h3 id="modalTitulo">👤 Ficha Cadastral do Servidor</h3>
         <button class="close-modal" onclick="fecharModalColaborador()">&times;</button>
       </div>
-
       <form id="formModalColab" onsubmit="salvarColaboradorModal(event)">
         <input type="hidden" id="modal_id">
         <input type="hidden" id="modal_uniforme_id">
 
         <div class="form-section-title">📋 Dados Pessoais & Situação Administrativa (`colaboradores`)</div>
         <div class="grid-form">
-          <div class="form-group">
-            <label>Nome Completo:*</label>
-            <input type="text" id="modal_nome" required>
-          </div>
-          <div class="form-group">
-            <label>CPF:*</label>
-            <input type="text" id="modal_cpf" required>
-          </div>
+          <div class="form-group"><label>Nome Completo:*</label><input type="text" id="modal_nome" required></div>
+          <div class="form-group"><label>CPF:*</label><input type="text" id="modal_cpf" required></div>
           <div class="form-group">
             <label>Função:*</label>
             <select id="modal_funcao" required>
@@ -241,66 +231,31 @@
               <option value="Coordenador Geral / Admin">Coordenador Geral / Admin</option>
             </select>
           </div>
-
           <div class="form-group">
-            <label>Situação no Sistema / Vínculo:*</label>
+            <label>Situação:*</label>
             <select id="modal_status_admin" required>
-              <option value="ATIVO">🟢 ATIVO (Liberado para plantão/escala)</option>
-              <option value="DESLIGADO">🔴 DESLIGADO / INATIVO (Ocultar nos seletores)</option>
+              <option value="ATIVO">🟢 ATIVO</option>
+              <option value="DESLIGADO">🔴 DESLIGADO</option>
             </select>
           </div>
-
-          <div class="form-group">
-            <label>COREN:</label>
-            <input type="text" id="modal_coren">
-          </div>
-          <div class="form-group">
-            <label>CNH:</label>
-            <input type="text" id="modal_cnh">
-          </div>
-          <div class="form-group">
-            <label>Telefone / WhatsApp:</label>
-            <input type="text" id="modal_fone">
-          </div>
-          <div class="form-group">
-            <label>Senha Única:*</label>
-            <input type="password" id="modal_senha" required>
-          </div>
+          <div class="form-group"><label>COREN:</label><input type="text" id="modal_coren"></div>
+          <div class="form-group"><label>CNH:</label><input type="text" id="modal_cnh"></div>
+          <div class="form-group"><label>Telefone:</label><input type="text" id="modal_fone"></div>
+          <div class="form-group"><label>Senha Única:*</label><input type="password" id="modal_senha" required></div>
         </div>
 
-        <div class="form-section-title">👕 Tamanhos de Uniformes e Equipamentos (`uniformes`)</div>
+        <div class="form-section-title">👕 Tamanhos de Uniformes (`uniformes`)</div>
         <div class="grid-form">
-          <div class="form-group">
-            <label>Tipo Sanguíneo:</label>
-            <input type="text" id="modal_sangue" placeholder="Ex: A+">
-          </div>
-          <div class="form-group">
-            <label>Nome de Guerra:</label>
-            <input type="text" id="modal_nome_guerra">
-          </div>
-          <div class="form-group">
-            <label>Macacão:</label>
-            <input type="text" id="modal_macacao">
-          </div>
-          <div class="form-group">
-            <label>Camiseta:</label>
-            <input type="text" id="modal_camiseta">
-          </div>
-          <div class="form-group">
-            <label>Jaqueta:</label>
-            <input type="text" id="modal_jaqueta">
-          </div>
-          <div class="form-group">
-            <label>Coturno (Número):</label>
-            <input type="text" id="modal_coturno">
-          </div>
-          <div class="form-group">
-            <label>Capa de Chuva:</label>
-            <input type="text" id="modal_capa_chuva">
-          </div>
+          <div class="form-group"><label>Tipo Sanguíneo:</label><input type="text" id="modal_sangue" placeholder="Ex: A+"></div>
+          <div class="form-group"><label>Nome de Guerra:</label><input type="text" id="modal_nome_guerra"></div>
+          <div class="form-group"><label>Macacão:</label><input type="text" id="modal_macacao"></div>
+          <div class="form-group"><label>Camiseta:</label><input type="text" id="modal_camiseta"></div>
+          <div class="form-group"><label>Jaqueta:</label><input type="text" id="modal_jaqueta"></div>
+          <div class="form-group"><label>Coturno:</label><input type="text" id="modal_coturno"></div>
+          <div class="form-group"><label>Capa de Chuva:</label><input type="text" id="modal_capa_chuva"></div>
         </div>
 
-        <button type="submit" class="btn-salvar-modal">💾 Salvar Dados nas Tabelas Supabase</button>
+        <button type="submit" class="btn-salvar-modal">💾 Salvar Servidor</button>
       </form>
     </div>
   </div>
@@ -328,7 +283,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE INSUMO COM GERAÇÃO DE CÓDIGO E CONTROLE DE ESTOQUE -->
+  <!-- MODAL DE INSUMO -->
   <div class="modal-overlay" id="modalInsumo">
     <div class="modal-box">
       <div class="modal-header">
@@ -352,25 +307,13 @@
               <option value="COMBUSTIVEL">Combustível / Frota</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Código Insumo:*</label>
-            <input type="text" id="modal_insumo_cod" placeholder="Ex: MED-001 (Gerado Auto)" required>
-          </div>
-          <div class="form-group" style="grid-column: span 3;">
-            <label>Descrição do Insumo:*</label>
-            <input type="text" id="modal_insumo_desc" placeholder="Ex: Paracetamol 200 mg/mL, Gaze..." required>
-          </div>
+          <div class="form-group"><label>Código Insumo:*</label><input type="text" id="modal_insumo_cod" required></div>
+          <div class="form-group" style="grid-column: span 3;"><label>Descrição:*</label><input type="text" id="modal_insumo_desc" required></div>
         </div>
 
         <div class="grid-form" style="margin-top: 12px; padding: 10px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px;">
-          <div class="form-group">
-            <label>Estoque Mínimo (Alerta):*</label>
-            <input type="number" id="modal_insumo_min" value="10" min="0" required>
-          </div>
-          <div class="form-group">
-            <label>Estoque Máximo:*</label>
-            <input type="number" id="modal_insumo_max" value="100" min="1" required>
-          </div>
+          <div class="form-group"><label>Estoque Mínimo:*</label><input type="number" id="modal_insumo_min" value="10" min="0" required></div>
+          <div class="form-group"><label>Estoque Máximo:*</label><input type="number" id="modal_insumo_max" value="100" min="1" required></div>
         </div>
 
         <div class="form-group" style="margin-top: 15px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1.5px solid var(--border);">
@@ -380,29 +323,31 @@
           </label>
         </div>
 
-        <button type="submit" class="btn-salvar-modal">💾 Salvar Insumo no Estoque Mestre</button>
+        <button type="submit" class="btn-salvar-modal">💾 Salvar Insumo</button>
       </form>
     </div>
   </div>
 
-  <!-- MODAL DE POSTO -->
-  <div class="modal-overlay" id="modalPosto">
+  <!-- MODAL DE HOSPITAL / DESTINO -->
+  <div class="modal-overlay" id="modalHospital">
     <div class="modal-box">
       <div class="modal-header">
-        <h3 id="modalPostoTitulo">⛽ Cadastrar / Editar Posto</h3>
-        <button class="close-modal" onclick="fecharModalPosto()">&times;</button>
+        <h3 id="modalHospitalTitulo">🏥 Cadastrar / Editar Hospital</h3>
+        <button class="close-modal" onclick="fecharModalHospital()">&times;</button>
       </div>
-      <form id="formModalPosto" onsubmit="salvarPostoModal(event)">
-        <input type="hidden" id="modal_posto_id">
+      <form id="formModalHospital" onsubmit="salvarHospitalModal(event)">
+        <input type="hidden" id="modal_hosp_id">
         <div class="grid-form">
-          <div class="form-group"><label>Nome do Posto:*</label><input type="text" id="modal_posto_nome" required></div>
-          <div class="form-group"><label>Cidade:*</label><input type="text" id="modal_posto_cidade" required></div>
+          <div class="form-group"><label>CNPJ:</label><input type="text" id="modal_hosp_cnpj" placeholder="00.000.000/0000-00"></div>
+          <div class="form-group" style="grid-column: span 2;"><label>Nome do Hospital / Unidade:*</label><input type="text" id="modal_hosp_nome" required placeholder="EX: HOSPITAL SANTA TERESINHA"></div>
+          <div class="form-group"><label>Cidade / UF:*</label><input type="text" id="modal_hosp_cidade" required placeholder="EX: ORLEANS / SC"></div>
+          <div class="form-group" style="grid-column: span 2;"><label>Endereço Completo:</label><input type="text" id="modal_hosp_endereco" placeholder="RUA, Nº - BAIRRO"></div>
           <div class="form-group">
             <label>Status:*</label>
-            <select id="modal_posto_status"><option value="ATIVO">ATIVO</option><option value="INATIVO">INATIVO</option></select>
+            <select id="modal_hosp_status"><option value="ATIVO">ATIVO</option><option value="INATIVO">INATIVO</option></select>
           </div>
         </div>
-        <button type="submit" class="btn-salvar-modal">💾 Salvar Posto</button>
+        <button type="submit" class="btn-salvar-modal">💾 Salvar Hospital</button>
       </form>
     </div>
   </div>
@@ -410,7 +355,7 @@
   <script>
     const dbNuvem = supabase.createClient(
       "https://rcpgukslnlfptreiusff.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
     let listaGlobalInsumos = [];
@@ -423,16 +368,16 @@
       document.getElementById('secaoColaboradores').style.display = aba === 'colaboradores' ? 'block' : 'none';
       document.getElementById('secaoViaturas').style.display = aba === 'viaturas' ? 'block' : 'none';
       document.getElementById('secaoInsumos').style.display = aba === 'insumos' ? 'block' : 'none';
-      document.getElementById('secaoPostos').style.display = aba === 'postos' ? 'block' : 'none';
+      document.getElementById('secaoHospitais').style.display = aba === 'hospitais' ? 'block' : 'none';
 
       document.getElementById('tabColab').classList.toggle('active', aba === 'colaboradores');
       document.getElementById('tabViaturas').classList.toggle('active', aba === 'viaturas');
       document.getElementById('tabInsumos').classList.toggle('active', aba === 'insumos');
-      document.getElementById('tabPostos').classList.toggle('active', aba === 'postos');
+      document.getElementById('tabHospitais').classList.toggle('active', aba === 'hospitais');
 
       if (aba === 'viaturas') carregarViaturas();
-      if (aba === 'postos') carregarPostos();
       if (aba === 'insumos') carregarInsumos();
+      if (aba === 'hospitais') carregarHospitais();
     }
 
     /* CARREGAMENTO DE SERVIDORES */
@@ -446,7 +391,6 @@
 
         if (servidores && servidores.length > 0) {
           tbody.innerHTML = '';
-          
           servidores.forEach(s => {
             let badgeHtml = '<span class="badge-status status-ativo">🟢 ATIVO</span>';
 
@@ -482,7 +426,7 @@
       } catch (err) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Erro ao carregar lista.</td></tr>'; }
     }
 
-    /* CARREGAMENTO DE VIATURAS E POSTOS */
+    /* CARREGAMENTO DE VIATURAS */
     async function carregarViaturas() {
       const tbody = document.getElementById('tbodyViaturas');
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Consultando frota...</td></tr>';
@@ -504,41 +448,16 @@
       } else { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma viatura.</td></tr>'; }
     }
 
-    async function carregarPostos() {
-      const tbody = document.getElementById('tbodyPostos');
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando postos...</td></tr>';
-      const { data } = await dbNuvem.from('operacional_postos').select('*');
-      if (data && data.length > 0) {
-        tbody.innerHTML = '';
-        data.forEach(p => {
-          tbody.innerHTML += `<tr>
-            <td><b>${p.nome_posto || '—'}</b></td>
-            <td>${p.cidade || 'Orleans'}</td>
-            <td>🟢 ${p.status || 'ATIVO'}</td>
-            <td>
-              <button class="btn-editar" onclick="abrirModalPosto('${p.id}')">✏️ Editar</button>
-              <button class="btn-excluir" onclick="deletarItem('operacional_postos', ${p.id}, carregarPostos)">🗑️ Excluir</button>
-            </td>
-          </tr>`;
-        });
-      } else { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum posto.</td></tr>'; }
-    }
-
-    /* CARREGAMENTO DE INSUMOS EM ORDEM ALFABÉTICA + BUSCA LOCAL */
+    /* CARREGAMENTO DE INSUMOS */
     async function carregarInsumos() {
       const tbody = document.getElementById('tbodyInsumos');
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando estoque mestre...</td></tr>';
       
-      const { data, error } = await dbNuvem
-        .from('estoque_mestre')
-        .select('*')
-        .order('descricao_insumo', { ascending: true });
-
+      const { data, error } = await dbNuvem.from('estoque_mestre').select('*').order('descricao_insumo', { ascending: true });
       if (error) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#d32f2f;">Erro ao carregar insumos.</td></tr>';
         return;
       }
-
       listaGlobalInsumos = data || [];
       filtrarInsumosLocal();
     }
@@ -578,16 +497,10 @@
         const max = i.estoque_maximo !== undefined && i.estoque_maximo !== null ? i.estoque_maximo : 100;
         const estaAtivo = i.exibir_no_aph !== false;
 
-        // SELETOR CLICÁVEL DIRETO NA TABELA (TOGGLE EM TEMPO REAL)
         const toggleAPH = `
           <label style="display: inline-flex; align-items: center; cursor: pointer; gap: 6px;">
-            <input type="checkbox" 
-                   style="width: 18px; height: 18px; cursor: pointer;" 
-                   ${estaAtivo ? 'checked' : ''} 
-                   onchange="alternarExibicaoAPH(${i.id}, this.checked, '${desc.replace(/'/g, "\\'")}')">
-            <span style="font-weight: 700; font-size: 0.75rem; color: ${estaAtivo ? '#15803d' : '#64748b'};">
-              ${estaAtivo ? 'Sim' : 'Não'}
-            </span>
+            <input type="checkbox" style="width: 18px; height: 18px; cursor: pointer;" ${estaAtivo ? 'checked' : ''} onchange="alternarExibicaoAPH(${i.id}, this.checked, '${desc.replace(/'/g, "\\'")}')">
+            <span style="font-weight: 700; font-size: 0.75rem; color: ${estaAtivo ? '#15803d' : '#64748b'};">${estaAtivo ? 'Sim' : 'Não'}</span>
           </label>
         `;
 
@@ -605,28 +518,81 @@
       });
     }
 
-    // ATUALIZA O CAMPO exibir_no_aph DIRETO NO SUPABASE
     async function alternarExibicaoAPH(id, novoStatus, nomeInsumo) {
       try {
-        const { error } = await dbNuvem
-          .from('estoque_mestre')
-          .update({ exibir_no_aph: novoStatus })
-          .eq('id', id);
-
+        const { error } = await dbNuvem.from('estoque_mestre').update({ exibir_no_aph: novoStatus }).eq('id', id);
         if (error) throw error;
-
         const item = listaGlobalInsumos.find(x => x.id === id);
         if (item) item.exibir_no_aph = novoStatus;
-
         filtrarInsumosLocal();
       } catch (err) {
-        console.error("Erro ao alterar visibilidade no APH:", err);
         alert(`Não foi possível alterar a visibilidade do insumo "${nomeInsumo}".`);
         carregarInsumos();
       }
     }
 
-    /* MODAL DE COLABORADOR E UNIFORMES */
+    /* CARREGAMENTO DE HOSPITAIS (CORREÇÃO COMPLETA DO UNDEFINED) */
+    async function carregarHospitais() {
+      const tbody = document.getElementById('tbodyHospitais');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando unidades de saúde...</td></tr>';
+
+      try {
+        const { data, error } = await dbNuvem
+          .from('operacional_hospitais')
+          .select('*')
+          .order('id', { ascending: true });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          tbody.innerHTML = '';
+          data.forEach(h => {
+            // Trava de segurança total: lê qualquer uma das colunas cadastradas
+            const nomeFinal = (
+              h.nome_unidade || 
+              h.nome_hospital || 
+              h.nome || 
+              h.razao_social || 
+              'UNIDADE SEM NOME'
+            ).toUpperCase();
+
+            const cidadeFinal = (
+              h.cidade_uf || 
+              h.cidade || 
+              h.municipio || 
+              '—'
+            ).toUpperCase();
+
+            const enderecoFinal = (h.endereco || '—').toUpperCase();
+            const cnpjFinal = h.cnpj || '—';
+            const statusFinal = h.status || 'ATIVO';
+
+            tbody.innerHTML += `
+              <tr>
+                <td>${cnpjFinal}</td>
+                <td><b>${nomeFinal}</b></td>
+                <td>${cidadeFinal}</td>
+                <td>${enderecoFinal}</td>
+                <td>
+                  <span class="badge-status status-ativo">🟢 ${statusFinal}</span>
+                </td>
+                <td>
+                  <button class="btn-editar" onclick="abrirModalHospital('${h.id}')">✏️ Editar</button>
+                  <button class="btn-excluir" onclick="deletarItem('operacional_hospitais', ${h.id}, carregarHospitais)">🗑️ Excluir</button>
+                </td>
+              </tr>
+            `;
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum hospital cadastrado.</td></tr>';
+        }
+      } catch (err) {
+        console.error("Erro ao carregar hospitais:", err);
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#d32f2f;">Erro ao carregar lista de hospitais.</td></tr>';
+      }
+    }
+
+    /* MODAIS DE COLABORADOR, VIATURA, INSUMO E HOSPITAL */
     async function abrirModalColaborador(id) {
       document.getElementById('formModalColab').reset();
       document.getElementById('modal_id').value = '';
@@ -714,7 +680,6 @@
       } catch (err) { alert("Erro ao salvar no Supabase."); }
     }
 
-    /* MODAL DE VIATURAS */
     async function abrirModalViatura(id) {
       document.getElementById('formModalViatura').reset();
       document.getElementById('modal_viat_id').value = '';
@@ -747,15 +712,12 @@
       carregarViaturas();
     }
 
-    /* GERAÇÃO DE CÓDIGO AUTOMÁTICO DE INSUMOS */
     async function gerarCodigoAutomatico() {
       const categoria = document.getElementById('modal_insumo_cat').value;
       const campoCodigo = document.getElementById('modal_insumo_cod');
       const idExistente = document.getElementById('modal_insumo_id').value;
       
-      // Se já está editando um item com ID, não sobrescreve o código
-      if (idExistente) return;
-      if (!categoria) return;
+      if (idExistente || !categoria) return;
 
       let prefixo = 'INS';
       if (categoria.includes('Medicamentos')) prefixo = 'MED';
@@ -783,14 +745,10 @@
             proximoNumero = parseInt(partes[1], 10) + 1;
           }
         }
-
         campoCodigo.value = `${prefixo}-${String(proximoNumero).padStart(3, '0')}`;
-      } catch (err) {
-        console.error("Erro ao gerar código automático", err);
-      }
+      } catch (err) {}
     }
 
-    /* MODAL DE INSUMOS COM CAMPOS MÍN/MÁX E CÓDIGO AUTO */
     async function abrirModalInsumo(id) {
       document.getElementById('formModalInsumo').reset();
       document.getElementById('modal_insumo_id').value = '';
@@ -818,7 +776,6 @@
     async function salvarInsumoModal(e) {
       e.preventDefault();
       const id = document.getElementById('modal_insumo_id').value;
-      
       const payload = {
         codigo_insumo: document.getElementById('modal_insumo_cod').value.trim(),
         descricao_insumo: document.getElementById('modal_insumo_desc').value.trim(),
@@ -835,35 +792,58 @@
       carregarInsumos();
     }
 
-    /* MODAL DE POSTO */
-    async function abrirModalPosto(id) {
-      document.getElementById('formModalPosto').reset();
-      document.getElementById('modal_posto_id').value = '';
+    /* MODAL DE HOSPITAIS */
+    async function abrirModalHospital(id) {
+      document.getElementById('formModalHospital').reset();
+      document.getElementById('modal_hosp_id').value = '';
+      document.getElementById('modalHospitalTitulo').innerText = '🏥 Cadastrar Novo Hospital';
+
       if (id) {
-        const { data } = await dbNuvem.from('operacional_postos').select('*').eq('id', id).single();
+        document.getElementById('modalHospitalTitulo').innerText = '✏️ Editar Hospital';
+        const { data } = await dbNuvem.from('operacional_hospitais').select('*').eq('id', id).single();
         if (data) {
-          document.getElementById('modal_posto_id').value = data.id;
-          document.getElementById('modal_posto_nome').value = data.nome_posto || '';
-          document.getElementById('modal_posto_cidade').value = data.cidade || 'Orleans';
-          document.getElementById('modal_posto_status').value = data.status || 'ATIVO';
+          document.getElementById('modal_hosp_id').value = data.id;
+          document.getElementById('modal_hosp_cnpj').value = data.cnpj || '';
+          document.getElementById('modal_hosp_nome').value = data.nome_unidade || data.nome_hospital || data.nome || '';
+          document.getElementById('modal_hosp_cidade').value = data.cidade_uf || data.cidade || data.municipio || '';
+          document.getElementById('modal_hosp_endereco').value = data.endereco || '';
+          document.getElementById('modal_hosp_status').value = data.status || 'ATIVO';
         }
       }
-      document.getElementById('modalPosto').style.display = 'flex';
+      document.getElementById('modalHospital').style.display = 'flex';
     }
-    function fecharModalPosto() { document.getElementById('modalPosto').style.display = 'none'; }
 
-    async function salvarPostoModal(e) {
+    function fecharModalHospital() { document.getElementById('modalHospital').style.display = 'none'; }
+
+    async function salvarHospitalModal(e) {
       e.preventDefault();
-      const id = document.getElementById('modal_posto_id').value;
+      const id = document.getElementById('modal_hosp_id').value;
+      const nomeVal = document.getElementById('modal_hosp_nome').value.trim().toUpperCase();
+      const cidadeVal = document.getElementById('modal_hosp_cidade').value.trim().toUpperCase();
+
+      // Grava preenchendo todas as variações de colunas de compatibilidade no Supabase
       const payload = {
-        nome_posto: document.getElementById('modal_posto_nome').value.trim(),
-        cidade: document.getElementById('modal_posto_cidade').value.trim(),
-        status: document.getElementById('modal_posto_status').value
+        cnpj: document.getElementById('modal_hosp_cnpj').value.trim(),
+        nome: nomeVal,
+        nome_hospital: nomeVal,
+        nome_unidade: nomeVal,
+        razao_social: nomeVal,
+        cidade: cidadeVal,
+        cidade_uf: cidadeVal,
+        municipio: cidadeVal.split('/')[0].trim(),
+        endereco: document.getElementById('modal_hosp_endereco').value.trim().toUpperCase(),
+        status: document.getElementById('modal_hosp_status').value
       };
-      if (id) await dbNuvem.from('operacional_postos').update(payload).eq('id', id);
-      else await dbNuvem.from('operacional_postos').insert([payload]);
-      fecharModalPosto();
-      carregarPostos();
+
+      try {
+        if (id) await dbNuvem.from('operacional_hospitais').update(payload).eq('id', id);
+        else await dbNuvem.from('operacional_hospitais').insert([payload]);
+
+        fecharModalHospital();
+        carregarHospitais();
+      } catch (err) {
+        alert("Erro ao salvar hospital no Supabase.");
+      }
     }
 
     /* DELETAR REGISTRO */
