@@ -556,12 +556,12 @@
     async function salvarManutencaoLivro(e) {
       e.preventDefault();
 
-      const viatura = document.getElementById('resumo_viatura').innerText;
-      const profissional = document.getElementById('resumo_profissional').innerText;
+      const viatura = document.getElementById('resumo_viatura') ? document.getElementById('resumo_viatura').innerText : 'USB-11';
+      const profissional = document.getElementById('resumo_profissional') ? document.getElementById('resumo_profissional').innerText : 'Plantonista';
       const modo = document.getElementById('m_modo_registro').value;
 
-      const dataExec = document.getElementById('m_data_exec').value;
-      const dataAgend = document.getElementById('m_data_agend').value;
+      const dataExec = document.getElementById('m_data_exec') ? document.getElementById('m_data_exec').value : null;
+      const dataAgend = document.getElementById('m_data_agend') ? document.getElementById('m_data_agend').value : null;
 
       if (modo === 'EXECUTADO' && !dataExec) {
         alert("⚠️ Por favor, informe a Data da Manutenção.");
@@ -581,21 +581,25 @@
         km_no_servico: parseInt(document.getElementById('m_km').value) || 0,
         tipo_manutencao: document.getElementById('m_tipo').value,
         oficina_prestador: document.getElementById('m_oficina').value.trim(),
-        numero_nota_fiscal: document.getElementById('m_nf').value.trim(),
-        valor_total: parseFloat(document.getElementById('m_valor').value) || 0,
-        email_notificacao: document.getElementById('m_email').value.trim(),
+        numero_nota_fiscal: document.getElementById('m_nf') ? document.getElementById('m_nf').value.trim() : '',
+        valor_total: document.getElementById('m_valor') ? (parseFloat(document.getElementById('m_valor').value) || 0) : 0,
+        email_notificacao: document.getElementById('m_email') ? document.getElementById('m_email').value.trim() : '',
         servicos_executados: document.getElementById('m_servicos').value.trim()
       };
 
       try {
         const { error } = await dbNuvem.from('operacional_manutencoes_livro').insert([payload]);
-        if (error) throw error;
+        if (error) {
+          console.error("Erro Supabase:", error);
+          alert("❌ Erro ao gravar no Supabase:\n" + error.message);
+          return;
+        }
 
         alert(modo === 'AGENDADO' ? "📅 Manutenção agendada com sucesso!" : "✅ Registro gravado no Livro Digital!");
         voltarPasso1();
       } catch (err) {
         console.error("Erro ao salvar no banco:", err);
-        alert("❌ Erro ao gravar registro no Supabase.");
+        alert("❌ Erro de conexão com o banco de dados.");
       }
     }
 
