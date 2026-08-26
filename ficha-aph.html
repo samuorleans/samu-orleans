@@ -1792,7 +1792,8 @@
 
     /* BUSCA DUPLA DE PACIENTE: PRIMEIRO NA TABELA PACIENTES, DEPOIS EM OCORRENCIAS_APH */
     async function buscarPacienteCPF() {
-      const cpfRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
+      const cpfInputVal = document.getElementById('cpf_paciente').value.trim();
+      const cpfRaw = cpfInputVal.replace(/\D/g, "");
       const codigoOcorr = document.getElementById('codigo').value.trim();
 
       if (cpfRaw.length < 11 && !codigoOcorr) {
@@ -1800,15 +1801,20 @@
         return;
       }
 
+      // Prepara a versão formatada (000.000.000-00)
+      const cpfFormatado = cpfRaw.length === 11 
+        ? cpfRaw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
+        : cpfInputVal;
+
       try {
         let pacienteEncontrado = false;
 
-        // 1. Busca prioritária na tabela 'pacientes'
+        // 1. Busca prioritária na tabela 'pacientes' (testa com e sem formatação)
         if (cpfRaw.length === 11) {
           const { data: dataPac, error: errPac } = await _supabase
             .from('pacientes')
             .select('*')
-            .eq('cpf', cpfRaw)
+            .or(`cpf.eq.${cpfRaw},cpf.eq.${cpfFormatado}`)
             .limit(1)
             .maybeSingle();
 
@@ -1831,12 +1837,12 @@
           }
         }
 
-        // 2. Busca secundária na tabela 'ocorrencias_aph' (Fallback de prontuário)
+        // 2. Busca secundária na tabela 'ocorrencias_aph' (Fallback de prontuário - testa com e sem formatação)
         let query = _supabase.from('ocorrencias_aph').select('*');
         if (codigoOcorr) {
           query = query.eq('codigo_ocorrencia', codigoOcorr);
         } else {
-          query = query.eq('cpf_paciente', cpfRaw);
+          query = query.or(`cpf_paciente.eq.${cpfRaw},cpf_paciente.eq.${cpfFormatado}`);
         }
 
         const { data: dataOcorr, error: errOcorr } = await query.order('created_at', { ascending: false }).limit(1).maybeSingle();
