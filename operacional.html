@@ -118,6 +118,12 @@
               <span>🔒 Registro de Ocorrência / Troca de Lacre (Checklist)</span>
             </label>
 
+            <!-- OPÇÃO DO LIVRO DIGITAL DE MANUTENÇÃO -->
+            <label class="radio-option" id="opt_manutencao">
+              <input type="radio" name="procedimento" value="manutencao">
+              <span>🔧 Livro Digital de Manutenção / Agendamentos</span>
+            </label>
+
           </div>
         </div>
 
@@ -155,7 +161,6 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
-    // ENDEREÇO DO WEB APP DO GOOGLE APPS SCRIPT ATUALIZADO
     const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyQdLDoigigMzoQbUqaTIi13IdjLNDCS8njuN3uNBc6tqf5m03CFVYCRT9dP_G0BgjX/exec";
 
     let adminAutenticado = false;
@@ -198,7 +203,6 @@
       return `${ano}-${mes}-${dia}T${horas}:${minutos}:${segundos}`;
     }
 
-    // DISPARO SEGURO COMPATÍVEL COM GOOGLE APPS SCRIPT VIA FORMULÁRIO OCULTO
     function dispararEnvioGoogleDrive(tipoProc, respostasMap) {
       return new Promise((resolve) => {
         let iframe = document.getElementById("hidden_iframe_gscript");
@@ -305,6 +309,7 @@
         document.getElementById('opt_tecnico').style.display = 'none';
         document.getElementById('opt_abastecimento').style.display = 'none';
         document.getElementById('opt_lacre').style.display = 'none';
+        document.getElementById('opt_manutencao').style.display = 'none';
       } else {
         boxSenha.style.display = 'none';
         aplicarFiltroFuncaoDirect(funcao);
@@ -327,6 +332,7 @@
         document.getElementById('opt_tecnico').style.display = 'flex';
         document.getElementById('opt_abastecimento').style.display = 'flex';
         document.getElementById('opt_lacre').style.display = 'flex';
+        document.getElementById('opt_manutencao').style.display = 'flex';
       } else {
         alert("❌ Senha incorreta.");
       }
@@ -337,12 +343,14 @@
       const optTec = document.getElementById('opt_tecnico');
       const optAbs = document.getElementById('opt_abastecimento');
       const optLacre = document.getElementById('opt_lacre');
+      const optManut = document.getElementById('opt_manutencao');
 
       document.querySelectorAll('input[name="procedimento"]').forEach(r => r.checked = false);
 
       if (funcao.includes('CONDUTOR') || funcao.includes('MOTORISTA')) {
         optCond.style.display = 'flex';
         optAbs.style.display = 'flex';
+        optManut.style.display = 'flex';
         optTec.style.display = 'none';
         optLacre.style.display = 'none';
       } else if (funcao.includes('TÉCNICO') || funcao.includes('TECNICO') || funcao.includes('ENFERM')) {
@@ -350,11 +358,13 @@
         optLacre.style.display = 'flex';
         optCond.style.display = 'none';
         optAbs.style.display = 'none';
+        optManut.style.display = 'none';
       } else {
         optCond.style.display = 'flex';
         optTec.style.display = 'flex';
         optAbs.style.display = 'flex';
         optLacre.style.display = 'flex';
+        optManut.style.display = 'flex';
       }
     }
 
@@ -459,6 +469,7 @@
       if (procSel === 'tecnico') arquivoModulo = 'form-tecnico.html';
       if (procSel === 'abastecimento') arquivoModulo = 'form-abastecimento.html';
       if (procSel === 'lacre') arquivoModulo = 'form-lacre.html';
+      if (procSel === 'manutencao') arquivoModulo = 'form-manutencao.html';
 
       document.getElementById('passo1').style.display = 'none';
       document.getElementById('passo2').style.display = 'block';
@@ -488,7 +499,7 @@
       document.getElementById('passo1').style.display = 'block';
     }
 
-    // GRAVAÇÃO ABASTECIMENTO (DUPLO SALVAMENTO + APPS SCRIPT DRIVE)
+    // GRAVAÇÃO ABASTECIMENTO
     async function salvarAbastecimento(e) {
       e.preventDefault();
 
@@ -726,7 +737,7 @@
       }
     }
 
-    // GRAVAÇÃO SUBSTITUIÇÃO DE LACRE NAS TABELAS CORRESPONDENTES
+    // GRAVAÇÃO SUBSTITUIÇÃO DE LACRE
     async function salvarSubstituicaoLacre(e) {
       e.preventDefault();
 
