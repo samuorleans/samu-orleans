@@ -152,41 +152,47 @@
     .med-table input.med-search-input { margin-bottom: 0; font-size: 0.78rem; padding: 5px; text-align: left; cursor: pointer; }
     .med-table input.med-qtd { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: center; }
 
-    .modal-med-overlay {
+    .modal-med-overlay, .modal-auth-overlay, .modal-alergia-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.75);
+      background: rgba(15, 23, 42, 0.85);
       z-index: 99999;
       display: none;
-      align-items: flex-start;
+      align-items: center;
       justify-content: center;
       padding: 12px;
-      backdrop-filter: blur(2px);
+      backdrop-filter: blur(3px);
     }
-    .modal-med-container {
+
+    .modal-med-container, .modal-auth-container, .modal-alergia-container {
       background: #ffffff;
       width: 100%;
-      max-width: 600px;
+      max-width: 500px;
       border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
       display: flex;
       flex-direction: column;
-      max-height: 85vh;
       overflow: hidden;
-      margin-top: 10px;
       border: 2px solid var(--primary);
     }
-    .modal-med-header {
+
+    .modal-alergia-container { border: 3px solid #dc2626; animation: alertPulse 1s infinite alternate; }
+    @keyframes alertPulse { from { box-shadow: 0 0 10px #dc2626; } to { box-shadow: 0 0 25px #dc2626; } }
+
+    .modal-med-header, .modal-auth-header, .modal-alergia-header {
       background: var(--secondary);
       color: #fff;
-      padding: 10px;
+      padding: 10px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-weight: 800;
       font-size: 0.85rem;
     }
-    .modal-med-close {
+
+    .modal-alergia-header { background: #991b1b; }
+
+    .modal-med-close, .modal-auth-close {
       background: var(--primary);
       color: #fff;
       border: none;
@@ -195,39 +201,12 @@
       font-weight: bold;
       cursor: pointer;
     }
-    .modal-med-search-box {
-      padding: 8px;
-      background: #f1f5f9;
-      border-bottom: 1px solid #cbd5e1;
-    }
-    .modal-med-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 4px;
-      -webkit-overflow-scrolling: touch;
-    }
-    .modal-med-item {
-      padding: 12px 10px;
-      border-bottom: 1px solid #e2e8f0;
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: #0f172a;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-    .modal-med-item:active {
-      background: #fee2e2;
-      color: #991b1b;
-    }
 
-    .psico-box {
-      background: #fff7ed;
-      border: 1px solid #fdba74;
-      padding: 5px;
-      border-radius: 4px;
-      margin-top: 3px;
-    }
-    
+    .modal-med-search-box { padding: 8px; background: #f1f5f9; border-bottom: 1px solid #cbd5e1; }
+    .modal-med-list { flex: 1; overflow-y: auto; padding: 4px; max-height: 60vh; }
+    .modal-med-item { padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 0.82rem; font-weight: 700; color: #0f172a; cursor: pointer; }
+
+    .psico-box { background: #fff7ed; border: 1px solid #fdba74; padding: 5px; border-radius: 4px; margin-top: 3px; }
     .btn-time-sv { background: var(--secondary); color: #fff; border: none; border-radius: 3px; padding: 2px 4px; font-size: 0.6rem; cursor: pointer; }
     .btn-add-med, .btn-add-sv { background: #166534; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; cursor: pointer; margin-top: 3px; }
     .btn-del-med { background: #991b1b; color: white; border: none; padding: 2px 5px; border-radius: 3px; font-weight: bold; cursor: pointer; }
@@ -251,100 +230,55 @@
 
     .j-print-label { display: none; }
 
-    .vitima-selector-bar {
-      display: flex; gap: 6px; margin-bottom: 6px; background: #e2e8f0; padding: 4px; border-radius: 6px;
-    }
-    .btn-vitima-tab {
-      flex: 1; padding: 6px; border: none; background: #cbd5e1; font-weight: 800; font-size: 0.72rem; border-radius: 4px; cursor: pointer; color: #334155;
-    }
+    .vitima-selector-bar { display: flex; gap: 6px; margin-bottom: 6px; background: #e2e8f0; padding: 4px; border-radius: 6px; }
+    .btn-vitima-tab { flex: 1; padding: 6px; border: none; background: #cbd5e1; font-weight: 800; font-size: 0.72rem; border-radius: 4px; cursor: pointer; color: #334155; }
     .btn-vitima-tab.active { background: var(--primary); color: #fff; }
 
     /* ESTILO DE IMPRESSÃO A4 REFINADO */
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
-      html, body {
-        width: 100%; height: 100%; background: #fff !important; padding: 0 !important; margin: 0 !important;
-        color: #000000 !important; font-size: 6pt !important; line-height: 1.1;
-        -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
-        text-rendering: optimizeLegibility !important;
-      }
-      
-      .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .modal-med-overlay, .vitima-selector-bar, button, script { display: none !important; }
-      
-      select, input[type="time"], input[type="date"] {
-        -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important;
-        background: transparent !important; background-image: none !important;
-      }
-
-      input[type="time"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-inner-spin-button, input[type="date"]::-webkit-calendar-picker-indicator {
-        display: none !important; -webkit-appearance: none !important;
-      }
-
-      header {
-        background: #fff !important; color: #000000 !important; border-bottom: 1.5pt solid #000000; padding: 1px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-content: space-between !important; align-items: center !important;
-      }
+      html, body { width: 100%; height: 100%; background: #fff !important; padding: 0 !important; margin: 0 !important; color: #000000 !important; font-size: 6pt !important; line-height: 1.1; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; text-rendering: optimizeLegibility !important; }
+      .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .modal-med-overlay, .modal-auth-overlay, .modal-alergia-overlay, .vitima-selector-bar, button, script { display: none !important; }
+      select, input[type="time"], input[type="date"] { -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background: transparent !important; background-image: none !important; }
+      input[type="time"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-inner-spin-button, input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; -webkit-appearance: none !important; }
+      header { background: #fff !important; color: #000000 !important; border-bottom: 1.5pt solid #000000; padding: 1px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-content: space-between !important; align-items: center !important; }
       header img { height: 28px !important; }
       header .header-info { text-align: right !important; }
       header h1 { font-size: 8.5pt !important; margin: 0; color: #000000 !important; font-weight: 900 !important; letter-spacing: 0.5px; }
       header p { font-size: 5pt !important; margin: 0; font-weight: 900; color: #000000 !important; }
-
       .card { box-shadow: none !important; border: 0.6pt solid #000000 !important; margin-bottom: 2px !important; padding: 0 !important; border-radius: 0 !important; page-break-inside: avoid !important; }
       .card-header { background: #f1f5f9 !important; color: #000000 !important; border-bottom: 0.6pt solid #000000 !important; padding: 1px 3px !important; font-size: 5.5pt !important; font-weight: 900 !important; text-transform: uppercase; }
       .card-body { display: block !important; padding: 2px 3px !important; }
-      
       label { font-size: 4.5pt !important; color: #000000 !important; margin-bottom: 0px !important; font-weight: 900 !important; }
-      input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea {
-        border: none !important; border-bottom: 0.4pt solid #000000 !important; background: transparent !important; padding: 0px !important; font-weight: 900 !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; color: #000000 !important;
-      }
+      input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.4pt solid #000000 !important; background: transparent !important; padding: 0px !important; font-weight: 900 !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; color: #000000 !important; }
       textarea { height: auto !important; resize: none; }
-      
       .codigo-group { display: none !important; }
-      .print-triagem-text {
-        display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.6pt solid #000000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; color: #000000 !important;
-      }
-
+      .print-triagem-text { display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.6pt solid #000000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; color: #000000 !important; }
       #box_reclassificacao_wrapper.sem-reclassificacao { display: none !important; }
-
       .radio-grid-ocorrencia { display: none !important; }
-      .print-tipo-ocorrencia-text {
-        display: block !important; font-size: 6.5pt !important; font-weight: 900 !important; color: #000000 !important; padding: 2px 0 !important; text-transform: uppercase;
-      }
-
+      .print-tipo-ocorrencia-text { display: block !important; font-size: 6.5pt !important; font-weight: 900 !important; color: #000000 !important; padding: 2px 0 !important; text-transform: uppercase; }
       #printReclassificacaoBox:empty, .print-ocultar-vazio { display: none !important; }
-
       .j-block-container { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 2px !important; }
       .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; text-align: center !important; border: 0.4pt solid #000000 !important; background: transparent !important; padding: 1px !important; }
       .btn-j-badge { display: none !important; }
       .j-print-label { display: block !important; font-size: 4.2pt !important; font-weight: 900 !important; text-transform: uppercase; text-align: center !important; color: #000000 !important; width: 100% !important; }
       .j-time-input { height: 11px !important; font-size: 5.5pt !important; font-weight: 900 !important; border: none !important; text-align: center !important; width: 100% !important; color: #000000 !important; }
-
-      .sv-table th, .sv-table td, .table-expo th, .table-expo td, .med-table th, .med-table td {
-        font-size: 5.2pt !important; padding: 1px !important; border: 0.4pt solid #000000 !important; color: #000000 !important; font-weight: 900 !important;
-      }
+      .sv-table th, .sv-table td, .table-expo th, .table-expo td, .med-table th, .med-table td { font-size: 5.2pt !important; padding: 1px !important; border: 0.4pt solid #000000 !important; color: #000000 !important; font-weight: 900 !important; }
       .sv-table td, .table-expo td { text-align: center !important; }
       .med-table td { text-align: left !important; }
       .med-table td.td-center { text-align: center !important; }
       .med-table input.med-search-input { text-align: left !important; }
       .med-table input.med-qtd { text-align: center !important; }
-      
       .sv-time-val { text-align: center !important; }
-
       .col-excluir-print { display: none !important; }
-      
       #box_nenhum_insumo_wrapper.ocultar-aviso-print { display: none !important; }
-
       .med-row-insumo-comum { display: none !important; }
-
       canvas { height: 26px !important; border: 0.4pt solid #000000 !important; }
-
-      .print-signatures-block {
-        display: grid !important; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 3px; padding-top: 1px; page-break-inside: avoid;
-      }
+      .print-signatures-block { display: grid !important; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 3px; padding-top: 1px; page-break-inside: avoid; }
       .print-signatures-block.tres-colunas { grid-template-columns: 1fr 1fr 1fr !important; }
       .sig-box { border: 0.4pt solid #000000; padding: 2px; text-align: center; min-height: 40px; display: flex; flex-direction: column; justify-content: space-between; }
       .sig-line { border-top: 0.4pt solid #000000; margin-top: 18px; font-size: 4.5pt; font-weight: 900; text-transform: uppercase; color: #000000; }
       .sig-title { font-size: 4.5pt; font-weight: bold; color: #000000; text-align: center; }
-
       .glasgow-total-box { font-size: 7pt !important; padding: 1px !important; border: 0.4pt solid #000000 !important; background: transparent !important; box-shadow: none !important; color: #000000 !important; }
     }
   </style>
@@ -502,7 +436,7 @@
             <label>CPF Paciente / Busca Prontuário</label>
             <div class="search-group">
               <input type="tel" inputmode="numeric" id="cpf_paciente" placeholder="000.000.000-00" maxlength="14" oninput="aoModificarCPF(this)">
-              <button type="button" class="btn-search" onclick="buscarPacienteCPF()">🔍 Buscar</button>
+              <button type="button" class="btn-search" onclick="solicitarAutenticacaoAntesDeBuscar()">🔍 Buscar</button>
             </div>
           </div>
           <div><label>CNS (Cartão SUS)</label><input type="tel" inputmode="numeric" id="cns_paciente" placeholder="000 0000 0000 0000" maxlength="15"></div>
@@ -902,6 +836,48 @@
       </div>
     </div>
 
+    <!-- MODAL POPUP DE AUTENTICAÇÃO VIA BANCO DE DADOS (COLABORADORES.SENHA) -->
+    <div class="modal-auth-overlay" id="modalAuthOverlay">
+      <div class="modal-auth-container">
+        <div class="modal-auth-header">
+          <span>🔒 AUTENTICAÇÃO - REIMPRESSÃO / BUSCA DE PRONTUÁRIO</span>
+          <button type="button" class="modal-auth-close" onclick="fecharModalAuth()">✕ FECHAR</button>
+        </div>
+        <div style="padding: 15px;">
+          <p style="font-size: 0.75rem; color: #475569; font-weight: 600; margin-bottom: 10px;">
+            Informe a senha cadastrada no sistema do profissional técnico responsável ou de um usuário administrador para autorizar a busca/reimpressão:
+          </p>
+          <label>SENHA DE ACESSO (COLABORADORES)</label>
+          <input type="password" id="auth_pass_input" placeholder="DIGITE SUA SENHA CADASTRADA..." style="padding: 8px; font-size: 0.9rem; margin-bottom: 10px;">
+          <button type="button" onclick="confirmarAutenticacaoEBuscar()" style="width: 100%; background: var(--secondary); color: white; border: none; padding: 10px; border-radius: 4px; font-weight: 800; cursor: pointer;">
+            🔓 CONFIRMAR ACESSO
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL TELA CHEIA: ALERTA CRÍTICO DE ALERGIA -->
+    <div class="modal-alergia-overlay" id="modalAlergiaOverlay">
+      <div class="modal-alergia-container">
+        <div class="modal-alergia-header">
+          <span>⚠️ ALERTA CRÍTICO DE SEGURANÇA: PACIENTE ALÉRGICO</span>
+        </div>
+        <div style="padding: 16px; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 6px;">🚫🚨</div>
+          <h2 style="color: #991b1b; font-size: 1.1rem; font-weight: 900; margin-bottom: 8px;">ATENÇÃO TÁTICA DA EQUIPE!</h2>
+          <p style="font-size: 0.8rem; color: #0f172a; font-weight: 700; margin-bottom: 10px;">
+            Este paciente possui histórico de <span style="color: #dc2626; text-decoration: underline;">ALERGIA MEDICAMENTOSA</span> registrado em prontuário:
+          </p>
+          <div id="alergia_alerta_texto" style="background: #fef2f2; border: 2px dashed #dc2626; padding: 10px; border-radius: 6px; font-size: 0.95rem; font-weight: 900; color: #991b1b; margin-bottom: 14px;">
+            NENHUMA INFORMADA
+          </div>
+          <button type="button" onclick="confirmarLeituraAlergia()" style="width: 100%; background: #dc2626; color: white; border: none; padding: 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 900; cursor: pointer; text-transform: uppercase;">
+            ✅ CONFIRMEI A ALERGIA COM O PACIENTE / FAMILIAR
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- BLOCO DINÂMICO DE ASSINATURAS PARA IMPRESSÃO -->
     <div class="print-signatures-block" id="printSigBlock">
       <div class="sig-box" id="sigBoxTecnico">
@@ -944,8 +920,114 @@
     }
 
     const COLABORADORES_FALLBACK = [
-      { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "" }
+      { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "", senha: "" }
     ];
+
+    /* AVISO SONORO E POPUP EM TELA CHEIA PARA ALERTA DE ALERGIA */
+    function tocarAlertaSonoroAlergia() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.4);
+
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+      } catch (e) {}
+    }
+
+    function dispararAlertaAlergia(textoAlergia) {
+      tocarAlertaSonoroAlergia();
+      document.getElementById('alergia_alerta_texto').innerText = (textoAlergia || "NÃO ESPECIFICADA").toUpperCase();
+      document.getElementById('modalAlergiaOverlay').style.display = 'flex';
+    }
+
+    function confirmarLeituraAlergia() {
+      document.getElementById('modalAlergiaOverlay').style.display = 'none';
+    }
+
+    /* AUTENTICAÇÃO DE SENHA CONSULTANDO A TABELA 'COLABORADORES' DO SUPABASE */
+    function solicitarAutenticacaoAntesDeBuscar() {
+      document.getElementById('auth_pass_input').value = '';
+      document.getElementById('modalAuthOverlay').style.display = 'flex';
+      setTimeout(() => document.getElementById('auth_pass_input').focus(), 150);
+    }
+
+    function fecharModalAuth() {
+      document.getElementById('modalAuthOverlay').style.display = 'none';
+    }
+
+    async function confirmarAutenticacaoEBuscar() {
+      const senhaInput = document.getElementById('auth_pass_input').value.trim();
+      const tecSelecionado = document.getElementById('tec_enfermeiro').value;
+
+      if (!senhaInput) {
+        alert("Por favor, digite a senha.");
+        return;
+      }
+
+      try {
+        let autorizado = false;
+
+        if (_supabase) {
+          // 1. Tentar validar se a senha bate com o Técnico selecionado na ficha
+          if (tecSelecionado) {
+            const { data: userTec } = await _supabase
+              .from('colaboradores')
+              .select('senha')
+              .eq('nome', tecSelecionado)
+              .maybeSingle();
+
+            if (userTec && userTec.senha && String(userTec.senha).trim() === senhaInput) {
+              autorizado = true;
+            }
+          }
+
+          // 2. Se não foi o técnico ou não selecionou, busca se é a senha de qualquer Administrador
+          if (!autorizado) {
+            const { data: userAdmins } = await _supabase
+              .from('colaboradores')
+              .select('senha, perfil, funcao')
+              .or('perfil.ilike.%admin%,funcao.ilike.%admin%,funcao.ilike.%coordenador%,funcao.ilike.%supervisor%');
+
+            if (userAdmins && userAdmins.length > 0) {
+              autorizado = userAdmins.some(adm => adm.senha && String(adm.senha).trim() === senhaInput);
+            }
+          }
+
+          // 3. Fallback: Checar qualquer colaborador na base com essa senha exata
+          if (!autorizado) {
+            const { data: anyUser } = await _supabase
+              .from('colaboradores')
+              .select('id')
+              .eq('senha', senhaInput)
+              .limit(1)
+              .maybeSingle();
+
+            if (anyUser) autorizado = true;
+          }
+        }
+
+        if (autorizado) {
+          fecharModalAuth();
+          buscarPacienteCPF();
+        } else {
+          alert("❌ Senha incorreta! Acesso não autorizado.");
+        }
+
+      } catch (err) {
+        alert("Erro na verificação de senha junto ao banco de dados.");
+      }
+    }
 
     /* NORMALIZAÇÃO DE STRINGS (SEM ACENTOS/CARACTERES ESPECIAIS) */
     function normalizarString(str) {
@@ -2005,10 +2087,14 @@
             dataOcorr.sinais_vitais.forEach((sv, idx) => addSvRow(idx === 0, sv));
           }
 
-          // Restaurar Seção 7 (Anamnese & Evolução)
+          // Restaurar e Checar Alergia do Paciente
           document.getElementById('alergia_select').value = dataOcorr.alergia_select || 'NAO';
           toggleAlergiaInput();
           document.getElementById('alergia_desc').value = dataOcorr.alergia_desc || '';
+
+          if (dataOcorr.alergia_select === 'SIM') {
+            dispararAlertaAlergia(dataOcorr.alergia_desc);
+          }
 
           document.getElementById('med_continua_select').value = dataOcorr.med_continua_select || 'NAO';
           toggleMedContinuaInput();
