@@ -490,6 +490,12 @@
             if (procSel === 'tecnico') {
               renderizarTabelaMochilasTecnico();
             }
+            if (procSel === 'manutencao') {
+              if (document.getElementById('m_data_exec')) {
+                document.getElementById('m_data_exec').valueAsDate = new Date();
+              }
+              carregarHistoricoManutencao(viatura);
+            }
           }, 150);
         });
     }
@@ -497,6 +503,140 @@
     function voltarPasso1() {
       document.getElementById('passo2').style.display = 'none';
       document.getElementById('passo1').style.display = 'block';
+    }
+
+    // ALTERNÂNCIA DE ABAS DO MÓDULO DE MANUTENÇÃO
+    function alternarAbaManut(modo) {
+      document.getElementById('m_modo_registro').value = modo;
+
+      const btnExec = document.getElementById('btnAbaExec');
+      const btnAgend = document.getElementById('btnAbaAgend');
+
+      const boxExec = document.getElementById('boxDataExec');
+      const boxAgend = document.getElementById('boxDataAgend');
+      const boxEmail = document.getElementById('boxEmail');
+      const boxNF = document.getElementById('boxNF');
+      const boxValor = document.getElementById('boxValor');
+      const btnSalvar = document.getElementById('btnSalvarManut');
+
+      if (modo === 'AGENDADO') {
+        btnAgend.style.background = '#002b49';
+        btnAgend.style.color = 'white';
+        btnAgend.style.borderColor = '#002b49';
+
+        btnExec.style.background = '#f8fafc';
+        btnExec.style.color = '#002b49';
+        btnExec.style.borderColor = '#cbd5e1';
+
+        boxExec.style.display = 'none';
+        boxAgend.style.display = 'flex';
+        boxEmail.style.display = 'flex';
+        boxNF.style.display = 'none';
+        boxValor.style.display = 'none';
+        btnSalvar.innerText = '📅 Confirmar Agendamento';
+      } else {
+        btnExec.style.background = '#002b49';
+        btnExec.style.color = 'white';
+        btnExec.style.borderColor = '#002b49';
+
+        btnAgend.style.background = '#f8fafc';
+        btnAgend.style.color = '#002b49';
+        btnAgend.style.borderColor = '#cbd5e1';
+
+        boxExec.style.display = 'flex';
+        boxAgend.style.display = 'none';
+        boxEmail.style.display = 'none';
+        boxNF.style.display = 'flex';
+        boxValor.style.display = 'flex';
+        btnSalvar.innerText = '💾 Salvar no Livro Digital';
+      }
+    }
+
+    // GRAVAÇÃO DA MANUTENÇÃO / AGENDAMENTO NO SUPABASE
+    async function salvarManutencaoLivro(e) {
+      e.preventDefault();
+
+      const viatura = document.getElementById('resumo_viatura').innerText;
+      const profissional = document.getElementById('resumo_profissional').innerText;
+      const modo = document.getElementById('m_modo_registro').value;
+
+      const dataExec = document.getElementById('m_data_exec').value;
+      const dataAgend = document.getElementById('m_data_agend').value;
+
+      if (modo === 'EXECUTADO' && !dataExec) {
+        alert("⚠️ Por favor, informe a Data da Manutenção.");
+        return;
+      }
+      if (modo === 'AGENDADO' && !dataAgend) {
+        alert("⚠️ Por favor, informe a Data Prevista do Serviço.");
+        return;
+      }
+
+      const payload = {
+        viatura: viatura,
+        responsavel_registro: profissional,
+        status: modo,
+        data_manutencao: modo === 'EXECUTADO' ? dataExec : null,
+        data_agendada: modo === 'AGENDADO' ? dataAgend : null,
+        km_no_servico: parseInt(document.getElementById('m_km').value) || 0,
+        tipo_manutencao: document.getElementById('m_tipo').value,
+        oficina_prestador: document.getElementById('m_oficina').value.trim(),
+        numero_nota_fiscal: document.getElementById('m_nf').value.trim(),
+        valor_total: parseFloat(document.getElementById('m_valor').value) || 0,
+        email_notificacao: document.getElementById('m_email').value.trim(),
+        servicos_executados: document.getElementById('m_servicos').value.trim()
+      };
+
+      try {
+        const { error } = await dbNuvem.from('operacional_manutencoes_livro').insert([payload]);
+        if (error) throw error;
+
+        alert(modo === 'AGENDADO' ? "📅 Manutenção agendada com sucesso!" : "✅ Registro gravado no Livro Digital!");
+        voltarPasso1();
+      } catch (err) {
+        console.error("Erro ao salvar no banco:", err);
+        alert("❌ Erro ao gravar registro no Supabase.");
+      }
+    }
+
+    // CARREGAMENTO DO HISTÓRICO DE MANUTENÇÃO
+    async function carregarHistoricoManutencao(viatura) {
+      const tbody = document.getElementById('tbodyHistManut');
+      if (!tbody) return;
+
+      try {
+        const { data } = await dbNuvem
+          .from('operacional_manutencoes_livro')
+          .select('*')
+          .eq('viatura', viatura)
+          .order('id', { ascending: false })
+          .limit(10);
+
+        if (data && data.length > 0) {
+          tbody.innerHTML = '';
+          data.forEach(m => {
+            const dt = m.data_manutencao || m.data_agendada || '—';
+            const statusBadge = m.status === 'AGENDADO' 
+              ? '<span style="background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 4px; font-weight: bold;">📅 AGENDADO</span>' 
+              : '<span style="background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px; font-weight: bold;">✅ EXECUTADO</span>';
+
+            tbody.innerHTML += `
+              <tr>
+                <td style="padding: 6px; border: 1px solid #cbd5e1;">${dt}</td>
+                <td style="padding: 6px; border: 1px solid #cbd5e1;"><b>${m.tipo_manutencao}</b></td>
+                <td style="padding: 6px; border: 1px solid #cbd5e1;">${m.km_no_servico} KM</td>
+                <td style="padding: 6px; border: 1px solid #cbd5e1;">${m.oficina_prestador}</td>
+                <td style="padding: 6px; border: 1px solid #cbd5e1;">${m.servicos_executados}</td>
+                <td style="padding: 6px; border: 1px solid #cbd5e1;">${statusBadge}</td>
+              </tr>
+            `;
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 8px;">Nenhum histórico para esta viatura.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 8px;">Erro ao carregar histórico.</td></tr>';
+      }
     }
 
     // GRAVAÇÃO ABASTECIMENTO
