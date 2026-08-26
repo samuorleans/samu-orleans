@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SAMU Connect — Livro Digital de Manutenção</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   <style>
     :root {
       --samu-navy: #002b49;
@@ -14,30 +12,30 @@
       --border: #cbd5e1;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { background: var(--bg-gray); padding: 20px 12px; color: #2b2b2b; }
-    .card-container { max-width: 800px; margin: 0 auto; background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-top: 6px solid var(--samu-navy); }
-    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 15px; }
-    .header h2 { color: var(--samu-navy); font-size: 1.4rem; font-weight: 800; }
-    .info-bar { background: #e0f2fe; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; color: #0369a1; display: flex; justify-content: space-between; font-weight: 600; }
+    body { background: var(--bg-gray); padding: 10px; color: #2b2b2b; }
+    .card-container { max-width: 800px; margin: 0 auto; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-top: 6px solid var(--samu-navy); }
+    .header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+    .header h2 { color: var(--samu-navy); font-size: 1.3rem; font-weight: 800; }
     
-    .type-selector { display: flex; gap: 10px; margin-bottom: 20px; }
-    .btn-type { flex: 1; padding: 12px; border: 2px solid var(--border); background: white; border-radius: 8px; font-weight: 700; cursor: pointer; text-align: center; color: var(--samu-navy); }
+    .info-bar { background: #e0f2fe; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; color: #0369a1; display: flex; justify-content: space-between; font-weight: 600; }
+    
+    .type-selector { display: flex; gap: 10px; margin-bottom: 15px; }
+    .btn-type { flex: 1; padding: 12px; border: 2px solid var(--border); background: white; border-radius: 8px; font-weight: 700; cursor: pointer; text-align: center; color: var(--samu-navy); transition: all 0.2s; }
     .btn-type.active { background: var(--samu-navy); color: white; border-color: var(--samu-navy); }
 
-    .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-    .form-group { display: flex; flex-direction: column; }
-    .form-group label { font-size: 0.78rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 4px; text-transform: uppercase; }
-    .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.9rem; outline: none; }
-    .form-group input:focus { border-color: var(--samu-navy); }
+    .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .form-group { display: flex; flex-direction: column; text-align: left; }
+    .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 4px; text-transform: uppercase; }
+    .form-group input, .form-group select, .form-group textarea { padding: 9px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.85rem; outline: none; background: #ffffff; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--samu-navy); }
 
-    .btn-salvar { margin-top: 20px; width: 100%; padding: 14px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: 800; font-size: 1rem; cursor: pointer; }
+    .btn-salvar { margin-top: 15px; width: 100%; padding: 12px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer; }
     .btn-salvar:hover { background: #15803d; }
-    .btn-voltar { display: inline-block; margin-top: 15px; color: var(--samu-navy); text-decoration: none; font-weight: 700; font-size: 0.85rem; }
 
-    .historico-box { margin-top: 30px; border-top: 2px dashed var(--border); padding-top: 20px; }
-    .historico-box h3 { color: var(--samu-navy); font-size: 1.1rem; margin-bottom: 12px; }
-    .tabela-hist { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-    .tabela-hist th, .tabela-hist td { border: 1px solid var(--border); padding: 8px; text-align: left; }
+    .historico-box { margin-top: 25px; border-top: 2px dashed var(--border); padding-top: 15px; }
+    .historico-box h3 { color: var(--samu-navy); font-size: 1rem; margin-bottom: 10px; text-align: left; }
+    .tabela-hist { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    .tabela-hist th, .tabela-hist td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; }
     .tabela-hist th { background: var(--samu-navy); color: white; }
     .badge-exec { background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
     .badge-agend { background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
@@ -48,7 +46,7 @@
   <div class="card-container">
     <div class="header">
       <h2>🔧 Livro Digital de Manutenção da Viatura</h2>
-      <p style="font-size: 0.85rem; color: #666;">Registro de serviços executados e agendamento preventivo da frota USB 11</p>
+      <p style="font-size: 0.8rem; color: #666;">Registro de serviços executados e agendamento preventivo da frota USB 11</p>
     </div>
 
     <div class="info-bar">
@@ -56,21 +54,23 @@
       <span>👤 Condutor/Responsável: <b id="lblCondutor">—</b></span>
     </div>
 
-    <!-- SELETOR: EXECUTADO AGORA VS AGENDAMENTO FUTURO -->
+    <!-- SELETOR DE MODO -->
     <div class="type-selector">
-      <div class="btn-type active" id="btnAbaExecutado" onclick="setModo('EXECUTADO')">✅ Registro de Serviço Executado</div>
-      <div class="btn-type" id="btnAbaAgendado" onclick="setModo('AGENDADO')">📅 Agendar Manutenção / Lembrete</div>
+      <button type="button" class="btn-type active" id="btnAbaExecutado" onclick="setModo('EXECUTADO')">✅ Registro de Serviço Executado</button>
+      <button type="button" class="btn-type" id="btnAbaAgendado" onclick="setModo('AGENDADO')">📅 Agendar Manutenção / Lembrete</button>
     </div>
 
     <form id="formManutencao" onsubmit="salvarRegistroManutencao(event)">
       <input type="hidden" id="modo_registro" value="EXECUTADO">
 
       <div class="grid-form">
+        <!-- DATA DE EXECUÇÃO -->
         <div class="form-group" id="grpDataExec">
           <label>Data da Manutenção:*</label>
-          <input type="date" id="data_manutencao" required>
+          <input type="date" id="data_manutencao">
         </div>
 
+        <!-- DATA AGENDADA -->
         <div class="form-group" id="grpDataAgend" style="display: none;">
           <label>Data Prevista do Serviço:*</label>
           <input type="date" id="data_agendada">
@@ -110,7 +110,7 @@
 
         <div class="form-group" id="grpEmail" style="display: none; grid-column: span 2;">
           <label>E-mail para Envio do Lembrete:*</label>
-          <input type="email" id="email_notificacao" placeholder="Ex: coordenação.samu@orleans.sc.gov.br">
+          <input type="email" id="email_notificacao" placeholder="Ex: coordenacao.samu@orleans.sc.gov.br">
         </div>
 
         <div class="form-group" style="grid-column: span 2;">
@@ -122,7 +122,7 @@
       <button type="submit" class="btn-salvar" id="btnSubmit">💾 Salvar no Livro Digital</button>
     </form>
 
-    <!-- HISTÓRICO DAS ÚLTIMAS MANUTENÇÕES -->
+    <!-- HISTÓRICO DE MANUTENÇÃO -->
     <div class="historico-box">
       <h3>📜 Histórico do Livro Digital da Viatura</h3>
       <table class="tabela-hist">
@@ -137,53 +137,64 @@
           </tr>
         </thead>
         <tbody id="tbodyHistorico">
-          <tr><td colspan="6" style="text-align:center;">Carregando histórico da viatura...</td></tr>
+          <tr><td colspan="6" style="text-align:center;">Carregando histórico...</td></tr>
         </tbody>
       </table>
     </div>
-
-    <a href="operacional.html" class="btn-voltar">⬅️ Voltar ao Painel Operacional</a>
   </div>
 
   <script>
-    const dbNuvem = supabase.createClient(
-      "https://rcpgukslnlfptreiusff.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
-    );
+    var viaturaAtual = "USB-11";
+    var condutorAtual = "Plantonista";
 
-    // Inicializa EmailJS (Opcional - insira seu User ID se for usar)
-    (function(){ emailjs.init("SUA_PUBLIC_KEY_EMAILJS"); })();
+    // Captura os dados do resumo do operacional.html
+    function inicializarModuloManutencao() {
+      const elViat = document.getElementById('resumo_viatura');
+      const elCond = document.getElementById('resumo_profissional');
 
-    const params = new URLSearchParams(window.location.search);
-    const viaturaParam = params.get('viatura') || 'USB-11';
-    const driverParam = params.get('driver') || 'Condutor Plantonista';
+      if (elViat && elViat.innerText) viaturaAtual = elViat.innerText;
+      if (elCond && elCond.innerText) condutorAtual = elCond.innerText;
 
-    window.onload = function() {
-      document.getElementById('lblViatura').innerText = viaturaParam;
-      document.getElementById('lblCondutor').innerText = driverParam;
-      document.getElementById('data_manutencao').valueAsDate = new Date();
+      document.getElementById('lblViatura').innerText = viaturaAtual;
+      document.getElementById('lblCondutor').innerText = condutorAtual;
+
+      const campoExec = document.getElementById('data_manutencao');
+      if (campoExec) campoExec.valueAsDate = new Date();
+
+      setModo('EXECUTADO');
       carregarHistoricoViatura();
-    };
+    }
 
     function setModo(modo) {
       document.getElementById('modo_registro').value = modo;
-      document.getElementById('btnAbaExecutado').classList.toggle('active', modo === 'EXECUTADO');
-      document.getElementById('btnAbaAgendado').classList.toggle('active', modo === 'AGENDADO');
+      
+      const btnExec = document.getElementById('btnAbaExecutado');
+      const btnAgend = document.getElementById('btnAbaAgendado');
+
+      btnExec.classList.toggle('active', modo === 'EXECUTADO');
+      btnAgend.classList.toggle('active', modo === 'AGENDADO');
+
+      const grpExec = document.getElementById('grpDataExec');
+      const grpAgend = document.getElementById('grpDataAgend');
+      const grpEmail = document.getElementById('grpEmail');
+      const grpNF = document.getElementById('grpNF');
+      const grpValor = document.getElementById('grpValor');
+      const btnSubmit = document.getElementById('btnSubmit');
 
       if (modo === 'AGENDADO') {
-        document.getElementById('grpDataExec').style.display = 'none';
-        document.getElementById('grpDataAgend').style.display = 'flex';
-        document.getElementById('grpEmail').style.display = 'flex';
-        document.getElementById('grpNF').style.display = 'none';
-        document.getElementById('grpValor').style.display = 'none';
-        document.getElementById('btnSubmit').innerText = '📅 Confirmar Agendamento & Notificar por E-mail';
+        grpExec.style.display = 'none';
+        grpAgend.style.display = 'flex';
+        grpEmail.style.display = 'flex';
+        grpNF.style.display = 'none';
+        grpValor.style.display = 'none';
+        btnSubmit.innerText = '📅 Confirmar Agendamento';
       } else {
-        document.getElementById('grpDataExec').style.display = 'flex';
-        document.getElementById('grpDataAgend').style.display = 'none';
-        document.getElementById('grpEmail').style.display = 'none';
-        document.getElementById('grpNF').style.display = 'flex';
-        document.getElementById('grpValor').style.display = 'flex';
-        document.getElementById('btnSubmit').innerText = '💾 Salvar no Livro Digital';
+        grpExec.style.display = 'flex';
+        grpAgend.style.display = 'none';
+        grpEmail.style.display = 'none';
+        grpNF.style.display = 'flex';
+        grpValor.style.display = 'flex';
+        btnSubmit.innerText = '💾 Salvar no Livro Digital';
       }
     }
 
@@ -191,13 +202,25 @@
       e.preventDefault();
       const modo = document.getElementById('modo_registro').value;
 
+      const dataExec = document.getElementById('data_manutencao').value;
+      const dataAgend = document.getElementById('data_agendada').value;
+
+      if (modo === 'EXECUTADO' && !dataExec) {
+        alert("⚠️ Por favor, informe a Data da Manutenção.");
+        return;
+      }
+      if (modo === 'AGENDADO' && !dataAgend) {
+        alert("⚠️ Por favor, informe a Data Prevista do Serviço.");
+        return;
+      }
+
       const payload = {
-        viatura: viaturaParam,
-        responsavel_registro: driverParam,
+        viatura: viaturaAtual,
+        responsavel_registro: condutorAtual,
         status: modo,
-        data_manutencao: modo === 'EXECUTADO' ? document.getElementById('data_manutencao').value : null,
-        data_agendada: modo === 'AGENDADO' ? document.getElementById('data_agendada').value : null,
-        km_no_servico: parseInt(document.getElementById('km_no_servico').value),
+        data_manutencao: modo === 'EXECUTADO' ? dataExec : null,
+        data_agendada: modo === 'AGENDADO' ? dataAgend : null,
+        km_no_servico: parseInt(document.getElementById('km_no_servico').value) || 0,
         tipo_manutencao: document.getElementById('tipo_manutencao').value,
         oficina_prestador: document.getElementById('oficina_prestador').value.trim(),
         numero_nota_fiscal: document.getElementById('numero_nota_fiscal').value.trim(),
@@ -210,18 +233,13 @@
         const { error } = await dbNuvem.from('operacional_manutencoes_livro').insert([payload]);
         if (error) throw error;
 
-        // Dispara Notificação por E-mail caso haja e-mail preenchido
-        if (payload.email_notificacao) {
-          enviarEmailAlerta(payload);
-        }
-
-        alert(modo === 'AGENDADO' ? "📅 Manutenção agendada e registrada!" : "✅ Manutenção gravada no Livro Digital!");
+        alert(modo === 'AGENDADO' ? "📅 Manutenção agendada com sucesso!" : "✅ Registro gravado no Livro Digital!");
         document.getElementById('formManutencao').reset();
         setModo('EXECUTADO');
         carregarHistoricoViatura();
       } catch (err) {
-        console.error("Erro ao salvar manutenção:", err);
-        alert("Falha ao gravar registro no banco de dados.");
+        console.error("Erro ao salvar no banco:", err);
+        alert("❌ Erro ao salvar registro no Supabase.");
       }
     }
 
@@ -231,7 +249,7 @@
         const { data, error } = await dbNuvem
           .from('operacional_manutencoes_livro')
           .select('*')
-          .eq('viatura', viaturaParam)
+          .eq('viatura', viaturaAtual)
           .order('id', { ascending: false })
           .limit(10);
 
@@ -264,10 +282,8 @@
       }
     }
 
-    function enviarEmailAlerta(dados) {
-      // Exemplo de integração simples com EmailJS para envio automático sem backend
-      console.log("Enviando lembrete de e-mail para:", dados.email_notificacao);
-    }
+    // Executa a inicialização do formulário
+    setTimeout(inicializarModuloManutencao, 100);
   </script>
 </body>
 </html>
