@@ -281,7 +281,7 @@
       }
 
       header {
-        background: #fff !important; color: #000000 !important; border-bottom: 1.5pt solid #000000; padding: 1px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-space-between !important; align-items: center !important;
+        background: #fff !important; color: #000000 !important; border-bottom: 1.5pt solid #000000; padding: 1px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-content: space-between !important; align-items: center !important;
       }
       header img { height: 28px !important; }
       header .header-info { text-align: right !important; }
@@ -640,18 +640,18 @@
 
         <div id="box_exposicao_lesoes" style="display: none; margin-top: 4px;">
           <label style="color: var(--primary-dark); font-weight: 800;">E - Exposição / Lesões por Região (Trauma / Sinistro)</label>
-          <table class="table-expo">
+          <table class="table-expo" id="tabela_lesoes_expo">
             <thead>
               <tr>
                 <th>REGIÃO</th><th>Ferida/Corte</th><th>Fratura/Luxação</th><th>Queimadura</th><th>Escoriação</th><th>Edema/Hematoma</th>
               </tr>
             </thead>
             <tbody>
-              <tr><td>Cabeça/Pescoço</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
-              <tr><td>Tronco</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
-              <tr><td>Pelve</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
-              <tr><td>M. Superior (D/E)</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
-              <tr><td>M. Inferior (D/E)</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr data-regiao="Cabeca/Pescoco"><td>Cabeça/Pescoço</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr data-regiao="Tronco"><td>Tronco</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr data-regiao="Pelve"><td>Pelve</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr data-regiao="MSup"><td>M. Superior (D/E)</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr data-regiao="MInf"><td>M. Inferior (D/E)</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
             </tbody>
           </table>
         </div>
@@ -963,7 +963,6 @@
       return normalizarString(parteCidade).toUpperCase();
     }
 
-    /* FUNÇÃO DEDICADA PARA LIMPAR CAMPOS DO CADASTRO DO PACIENTE */
     function limparCamposPaciente() {
       document.getElementById('paciente').value = '';
       document.getElementById('cns_paciente').value = '';
@@ -979,7 +978,6 @@
       document.getElementById('estado').value = 'SC';
     }
 
-    /* LIMPA OS CAMPOS AUTOMATICAMENTE AO DIGITAR OU ALTERAR O CPF */
     function aoModificarCPF(input) {
       limparCamposPaciente();
       salvarLocal();
@@ -1683,7 +1681,6 @@
       });
     }
 
-    /* CARREGAMENTO UNIFICADO ROBUSTO (INCLUI TRAMAL, TRAMADOL E TODOS OS INSUMOS) */
     async function carregarInsumosELotesUnificados() {
       let mestreRes = [];
       let lotesRes = [];
@@ -1784,24 +1781,32 @@
       ajustarExibicaoAssinaturasImpressao();
     }
 
-    function addSvRow(isFirst = false) {
+    function addSvRow(isFirst = false, dataObj = null) {
       const tbody = document.getElementById('sv_body');
       const tr = document.createElement('tr');
       const reqAttr = isFirst ? 'required' : '';
 
+      const horaVal = dataObj ? (dataObj.hora || '') : '';
+      const paVal = dataObj ? (dataObj.pa || '') : '';
+      const fcVal = dataObj ? (dataObj.fc || '') : '';
+      const frVal = dataObj ? (dataObj.fr || '') : '';
+      const spo2Val = dataObj ? (dataObj.spo2 || '') : '';
+      const tempVal = dataObj ? (dataObj.temp || '') : '';
+      const hgtVal = dataObj ? (dataObj.hgt || '') : '';
+
       tr.innerHTML = `
         <td>
           <div style="display: flex; gap: 2px; align-items: center; justify-content: center;">
-            <input type="time" class="sv-time-val" ${reqAttr}>
+            <input type="time" class="sv-time-val" value="${horaVal}" ${reqAttr}>
             <button type="button" class="btn-time-sv" onclick="setSvTime(this)">⏱️</button>
           </div>
         </td>
-        <td><input type="tel" inputmode="numeric" placeholder="120x80" onkeyup="mascaraPA(this)" ${reqAttr}></td>
-        <td><input type="number" inputmode="numeric" placeholder="80" ${reqAttr}></td>
-        <td><input type="number" inputmode="numeric" placeholder="16" ${reqAttr}></td>
-        <td><input type="number" inputmode="numeric" placeholder="98" onchange="checarSpo2(this)" ${reqAttr}></td>
-        <td><input type="tel" inputmode="decimal" placeholder="36.5" onkeyup="mascaraTemp(this)" ${reqAttr}></td>
-        <td><input type="number" inputmode="numeric" placeholder="90" ${reqAttr}></td>
+        <td><input type="tel" inputmode="numeric" placeholder="120x80" value="${paVal}" onkeyup="mascaraPA(this)" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" placeholder="80" value="${fcVal}" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" placeholder="16" value="${frVal}" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" placeholder="98" value="${spo2Val}" onchange="checarSpo2(this)" ${reqAttr}></td>
+        <td><input type="tel" inputmode="decimal" placeholder="36.5" value="${tempVal}" onkeyup="mascaraTemp(this)" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" placeholder="90" value="${hgtVal}" ${reqAttr}></td>
         <td class="col-excluir-print">${isFirst ? '' : '<button type="button" class="btn-del-med" onclick="this.closest(\'tr\').remove()">×</button>'}</td>
       `;
       tbody.appendChild(tr);
@@ -1815,7 +1820,61 @@
       salvarLocal();
     }
 
-    /* BUSCA UNIFICADA & ULTRA-FLEXÍVEL POR CPF / PRONTUÁRIO */
+    function obterSinaisVitaisPayload() {
+      const listaSinais = [];
+      document.querySelectorAll('#sv_body tr').forEach(tr => {
+        const inputs = tr.querySelectorAll('input');
+        if (inputs.length >= 7) {
+          listaSinais.push({
+            hora: inputs[0].value,
+            pa: inputs[1].value,
+            fc: inputs[2].value,
+            fr: inputs[3].value,
+            spo2: inputs[4].value,
+            temp: inputs[5].value,
+            hgt: inputs[6].value
+          });
+        }
+      });
+      return listaSinais;
+    }
+
+    function obterLesoesExposicaoPayload() {
+      const lesoes = {};
+      document.querySelectorAll('#tabela_lesoes_expo tbody tr').forEach(tr => {
+        const reg = tr.getAttribute('data-regiao');
+        const chks = tr.querySelectorAll('input[type="checkbox"]');
+        if (reg && chks.length === 5) {
+          lesoes[reg] = {
+            ferida: chks[0].checked,
+            fratura: chks[1].checked,
+            queimadura: chks[2].checked,
+            escoriacao: chks[3].checked,
+            edema: chks[4].checked
+          };
+        }
+      });
+      return lesoes;
+    }
+
+    function restaurarLesoesExposicao(lesoesObj) {
+      if (!lesoesObj) return;
+      document.querySelectorAll('#tabela_lesoes_expo tbody tr').forEach(tr => {
+        const reg = tr.getAttribute('data-regiao');
+        if (reg && lesoesObj[reg]) {
+          const chks = tr.querySelectorAll('input[type="checkbox"]');
+          if (chks.length === 5) {
+            chks[0].checked = !!lesoesObj[reg].ferida;
+            chks[1].checked = !!lesoesObj[reg].fratura;
+            chks[2].checked = !!lesoesObj[reg].queimadura;
+            chks[3].checked = !!lesoesObj[reg].escoriacao;
+            chks[4].checked = !!lesoesObj[reg].edema;
+          }
+        }
+      });
+    }
+
+    /* BUSCA UNIFICADA & RESTAURAÇÃO TOTAL DA FICHA APH */
     async function buscarPacienteCPF() {
       const cpfInputVal = document.getElementById('cpf_paciente').value.trim();
       const cpfRaw = cpfInputVal.replace(/\D/g, "");
@@ -1826,7 +1885,6 @@
         return;
       }
 
-      // LIMPA PREVENTIVAMENTE OS CAMPOS DO PACIENTE ANTES DA CONSULTA
       limparCamposPaciente();
 
       const cpfFormatado = cpfRaw.length === 11 
@@ -1836,7 +1894,7 @@
       try {
         let pacienteEncontrado = false;
 
-        // 1. Busca na Tabela 'pacientes' (testa limpo e formatado com ilike)
+        // 1. Tabela 'pacientes'
         if (cpfRaw.length === 11) {
           const { data: dataPac } = await _supabase
             .from('pacientes')
@@ -1864,7 +1922,7 @@
           }
         }
 
-        // 2. Busca na Tabela 'ocorrencias_aph' (Por Nº de Ocorrência ou por CPF)
+        // 2. Tabela 'ocorrencias_aph' (Resgate Total)
         let query = _supabase.from('ocorrencias_aph').select('*');
         
         if (codigoOcorr) {
@@ -1876,15 +1934,31 @@
         const { data: dataOcorr } = await query.order('created_at', { ascending: false }).limit(1).maybeSingle();
 
         if (dataOcorr) {
-          if (codigoOcorr) {
-            document.getElementById('codigo').value = dataOcorr.codigo_ocorrencia || '';
-            document.getElementById('cor_ocorrencia').value = dataOcorr.cor_ocorrencia || 'VM';
-            document.getElementById('data').value = dataOcorr.data || '';
-            document.getElementById('regulador').value = dataOcorr.regulador || '';
-            document.getElementById('motivo_acionamento').value = dataOcorr.motivo_acionamento || '';
-            document.getElementById('tec_enfermeiro').value = dataOcorr.tec_enfermeiro || '';
-            document.getElementById('socorrista').value = dataOcorr.socorrista || '';
+          // Restaurar Seção 1 Operacional
+          document.getElementById('codigo').value = dataOcorr.codigo_ocorrencia || '';
+          if (dataOcorr.cor_ocorrencia) {
+            const btnCorSel = document.querySelector(`.btn-cor.cor-${dataOcorr.cor_ocorrencia.toLowerCase()}`);
+            if (btnCorSel) selecionarCodigo(dataOcorr.cor_ocorrencia, btnCorSel);
           }
+          document.getElementById('data').value = dataOcorr.data || '';
+          document.getElementById('reclassificacao_codigo').value = dataOcorr.reclassificacao_codigo || '';
+          document.getElementById('reclassificacao_hora').value = dataOcorr.reclassificacao_hora || '';
+          document.getElementById('reclassificacao_medico').value = dataOcorr.reclassificacao_medico || '';
+          atualizarTextoReclassificacaoImpressao();
+
+          document.getElementById('regulador').value = dataOcorr.regulador || '';
+          document.getElementById('motivo_acionamento').value = dataOcorr.motivo_acionamento || '';
+          document.getElementById('tec_enfermeiro').value = dataOcorr.tec_enfermeiro || '';
+          document.getElementById('socorrista').value = dataOcorr.socorrista || '';
+          sincronizarTecnicoResp();
+
+          document.getElementById('horaJ9').value = dataOcorr.hora_j9 || '';
+          document.getElementById('horaJ10').value = dataOcorr.hora_j10 || '';
+          document.getElementById('horaQTA').value = dataOcorr.hora_qta || '';
+          document.getElementById('horaJ9_INT').value = dataOcorr.hora_j9_int || '';
+          document.getElementById('horaJ10_INT').value = dataOcorr.hora_j10_int || '';
+          document.getElementById('horaJ11').value = dataOcorr.hora_j11 || '';
+          document.getElementById('horaJ12').value = dataOcorr.hora_j12 || '';
 
           if (!pacienteEncontrado) {
             document.getElementById('cpf_paciente').value = dataOcorr.cpf_paciente || '';
@@ -1897,9 +1971,9 @@
             document.getElementById('municipio').value = (dataOcorr.municipio || 'ORLEANS').toUpperCase();
             document.getElementById('estado').value = (dataOcorr.estado || 'SC').toUpperCase();
             await atualizarHospitaisPorMunicipio();
-            alert("✅ Dados do paciente resgatados do histórico de ocorrências!");
           }
 
+          // Restaurar Seção 3
           if (dataOcorr.tipo_ocorrencia) {
             const radioToSelect = document.querySelector(`input[name="tipo_ocorrencia"][value="${dataOcorr.tipo_ocorrencia}"]`);
             if (radioToSelect) {
@@ -1908,8 +1982,54 @@
             }
           }
 
+          // Restaurar Seção 4 (ABCDE + Biossegurança)
+          document.getElementById('vias_aereas').value = dataOcorr.vias_aereas || 'Pérvea (Livre)';
+          document.getElementById('respiracao').value = dataOcorr.respiracao || 'Eupneico';
+          document.getElementById('circulacao').value = dataOcorr.circulacao || 'Regular';
+          document.getElementById('g_oc').value = dataOcorr.glasgow_ocular || 4;
+          document.getElementById('g_verb').value = dataOcorr.glasgow_verbal || 5;
+          document.getElementById('g_mot').value = dataOcorr.glasgow_motor || 6;
+          document.getElementById('pupilas').value = dataOcorr.pupilas || 'Isocóricas';
+          document.getElementById('glasgow_total_val').innerText = `TOTAL GLASGOW: ${dataOcorr.glasgow_total || 15} / 15`;
+
+          restaurarLesoesExposicao(dataOcorr.lesoes_exposicao);
+
+          document.getElementById('bio_suspeita').value = dataOcorr.bio_suspeita || 'NAO';
+          alternarBiosseguranca(document.getElementById('bio_suspeita'));
+          document.getElementById('bio_tipo_agente').value = dataOcorr.bio_tipo_agente || 'Síndrome Respiratória/Gripal';
+          document.getElementById('bio_desinfeccao').value = dataOcorr.bio_desinfeccao || 'NÃO SE APLICA';
+
+          // Restaurar Seção 5 (Sinais Vitais)
+          if (dataOcorr.sinais_vitais && Array.isArray(dataOcorr.sinais_vitais) && dataOcorr.sinais_vitais.length > 0) {
+            document.getElementById('sv_body').innerHTML = '';
+            dataOcorr.sinais_vitais.forEach((sv, idx) => addSvRow(idx === 0, sv));
+          }
+
+          // Restaurar Seção 7 (Anamnese & Evolução)
+          document.getElementById('alergia_select').value = dataOcorr.alergia_select || 'NAO';
+          toggleAlergiaInput();
+          document.getElementById('alergia_desc').value = dataOcorr.alergia_desc || '';
+
+          document.getElementById('med_continua_select').value = dataOcorr.med_continua_select || 'NAO';
+          toggleMedContinuaInput();
+          document.getElementById('meds_continuas').value = dataOcorr.meds_continuas || '';
+
+          document.getElementById('evolucao_texto').value = dataOcorr.evolucao_texto || '';
+          if (dataOcorr.hospital_destino) document.getElementById('hospital_destino').value = dataOcorr.hospital_destino;
+
+          // Restaurar Seção 8 (Desfecho & Assinante)
+          document.getElementById('desfecho_vitima').value = dataOcorr.desfecho_vitima || 'TRANSPORTADO';
+          document.getElementById('houve_recusa').value = dataOcorr.houve_recusa || 'NAO';
+          alternarExibicaoRecusa();
+
+          document.getElementById('tipo_assinante').value = dataOcorr.tipo_assinante || 'Vítima';
+          document.getElementById('cpf_assinante').value = dataOcorr.cpf_assinante || '';
+          document.getElementById('nome_assinante').value = dataOcorr.nome_assinante || '';
+          document.getElementById('tel_assinante').value = dataOcorr.tel_assinante || '';
+
           checarEAtivarBotaoImpressao();
           salvarLocal();
+          alert("✅ Ficha de APH recuperada com sucesso para reimpressão!");
         } else if (!pacienteEncontrado) {
           alert("Nenhum registro encontrado para estes dados.");
         }
@@ -2225,10 +2345,12 @@
       }
     }
 
-    /* SALVAMENTO DE FICHA COM UPSERT NA TABELA 'PACIENTES' */
+    /* SALVAMENTO COMPLETO DE FICHA (100% DOS CAMPOS) */
     async function salvarFichaOcorrenciaAPH() {
       try {
         const insumosPayload = obterInsumosUtilizadosPayload();
+        const sinaisVitaisPayload = obterSinaisVitaisPayload();
+        const lesoesPayload = obterLesoesExposicaoPayload();
 
         const bioSuspeita = document.getElementById('bio_suspeita').value;
         const bioTipoAgente = (bioSuspeita === 'SIM') ? 
@@ -2247,7 +2369,7 @@
 
         const cpfPacienteRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
 
-        // 1. Atualizar ou Inserir Paciente na Tabela 'pacientes' caso tenha informado CPF
+        // 1. Atualizar Paciente na Tabela 'pacientes'
         if (cpfPacienteRaw.length === 11) {
           const payloadPaciente = {
             cpf: cpfPacienteRaw,
@@ -2270,7 +2392,11 @@
           }
         }
 
-        // 2. Gravar Ocorrência APH em 'ocorrencias_aph'
+        // Capturar Assinatura em Base64
+        const canvasEl = document.getElementById('sig-canvas');
+        const assinaturaBase64 = canvasEl ? canvasEl.toDataURL() : null;
+
+        // 2. Gravar Ocorrência APH em 'ocorrencias_aph' (PAYLOAD 100% INTEGRAL)
         const payloadOcorrencia = {
           codigo_ocorrencia: codFinalOcorrencia,
           cor_ocorrencia: document.getElementById('cor_ocorrencia').value,
@@ -2292,15 +2418,45 @@
           municipio: document.getElementById('municipio').value,
           estado: document.getElementById('estado').value,
           tipo_ocorrencia: tipoOcorrenciaVal,
+          
+          // ABCDE
+          vias_aereas: document.getElementById('vias_aereas').value,
+          respiracao: document.getElementById('respiracao').value,
+          circulacao: document.getElementById('circulacao').value,
+          pupilas: document.getElementById('pupilas').value,
+          glasgow_ocular: parseInt(document.getElementById('g_oc').value) || 0,
+          glasgow_verbal: parseInt(document.getElementById('g_verb').value) || 0,
+          glasgow_motor: parseInt(document.getElementById('g_mot').value) || 0,
           glasgow_total: (parseInt(document.getElementById('g_oc').value) || 0) + (parseInt(document.getElementById('g_verb').value) || 0) + (parseInt(document.getElementById('g_mot').value) || 0),
+          lesoes_exposicao: lesoesPayload,
+
+          // Biossegurança
           bio_suspeita: bioSuspeita,
           bio_tipo_agente: bioTipoAgente,
           bio_desinfeccao: bioDesinfeccao,
+
+          // Sinais Vitais & Insumos
+          sinais_vitais: sinaisVitaisPayload,
+          insumos_utilizados: insumosPayload,
+
+          // Anamnese
+          alergia_select: document.getElementById('alergia_select').value,
+          alergia_desc: document.getElementById('alergia_desc').value,
+          med_continua_select: document.getElementById('med_continua_select').value,
+          meds_continuas: document.getElementById('meds_continuas').value,
           evolucao_texto: document.getElementById('evolucao_texto').value,
           hospital_destino: hospitalFinal,
+
+          // Desfecho & Recusa
           desfecho_vitima: document.getElementById('desfecho_vitima').value,
           houve_recusa: document.getElementById('houve_recusa').value,
-          insumos_utilizados: insumosPayload,
+          tipo_assinante: document.getElementById('tipo_assinante').value,
+          cpf_assinante: document.getElementById('cpf_assinante').value,
+          nome_assinante: document.getElementById('nome_assinante').value,
+          tel_assinante: document.getElementById('tel_assinante').value,
+          assinatura_base64: assinaturaBase64,
+
+          // Horários Táticos J
           hora_j9: document.getElementById('horaJ9').value,
           hora_j10: document.getElementById('horaJ10').value,
           hora_qta: document.getElementById('horaQTA').value,
