@@ -22,23 +22,23 @@
       <!-- DATA EXECUÇÃO -->
       <div id="boxDataExec" style="display: flex; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">DATA DA MANUTENÇÃO:*</label>
-        <input type="date" id="m_data_exec" style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+        <input type="date" id="m_data_exec" style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;">
       </div>
 
-      <!-- DATA AGENDADA -->
+      <!-- DATA AGENDADA (AJUSTADA COM O MESMO ESTILO) -->
       <div id="boxDataAgend" style="display: none; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">DATA PREVISTA DO SERVIÇO:*</label>
-        <input type="date" id="m_data_agend">
+        <input type="date" id="m_data_agend" style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;">
       </div>
 
       <div style="display: flex; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">KM ATUAL DA VIATURA:*</label>
-        <input type="number" id="m_km" placeholder="Ex: 145200" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+        <input type="number" id="m_km" placeholder="Ex: 145200" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;">
       </div>
 
       <div style="display: flex; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">TIPO DE MANUTENÇÃO:*</label>
-        <select id="m_tipo" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+        <select id="m_tipo" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;">
           <option value="PREVENTIVA">Preventiva (Óleo, Filtros, Revisão)</option>
           <option value="CORRETIVA">Corretiva (Quebra/Defeito urgente)</option>
           <option value="PNEUS">Troca/Rodízio/Geometria de Pneus</option>
@@ -50,27 +50,27 @@
 
       <div style="display: flex; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">OFICINA / PRESTADOR:*</label>
-        <input type="text" id="m_oficina" placeholder="Ex: Auto Mecânica Central" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+        <input type="text" id="m_oficina" placeholder="Ex: Auto Mecânica Central" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;">
       </div>
 
       <div id="boxNF" style="display: flex; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">Nº NOTA FISCAL / OS:</label>
-        <input type="text" id="m_nf" placeholder="Ex: NF-1042" style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+        <input type="text" id="m_nf" placeholder="Ex: NF-1042" style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;">
       </div>
 
       <div id="boxValor" style="display: flex; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">VALOR TOTAL (R$):</label>
-        <input type="number" step="0.01" id="m_valor" placeholder="0,00" style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+        <input type="number" step="0.01" id="m_valor" placeholder="0,00" style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;">
       </div>
 
       <div id="boxEmail" style="display: none; flex-direction: column; grid-column: span 2;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">E-MAIL PARA LEMBRETE:*</label>
-        <input type="email" id="m_email" placeholder="Ex: coordenacao.samu@orleans.sc.gov.br" style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+        <input type="email" id="m_email" placeholder="Ex: coordenacao.samu@orleans.sc.gov.br" style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;">
       </div>
 
       <div style="display: flex; flex-direction: column; grid-column: span 2;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">DESCRIÇÃO DETALHADA DOS SERVIÇOS:*</label>
-        <textarea id="m_servicos" rows="3" placeholder="Descreva as peças trocadas ou serviços agendados..." required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px;"></textarea>
+        <textarea id="m_servicos" rows="3" placeholder="Descreva as peças trocadas ou serviços agendados..." required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;"></textarea>
       </div>
     </div>
 
