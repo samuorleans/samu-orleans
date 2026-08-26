@@ -281,7 +281,7 @@
       }
 
       header {
-        background: #fff !important; color: #000000 !important; border-bottom: 1.5pt solid #000000; padding: 1px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-content: space-between !important; align-items: center !important;
+        background: #fff !important; color: #000000 !important; border-bottom: 1.5pt solid #000000; padding: 1px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-space-between !important; align-items: center !important;
       }
       header img { height: 28px !important; }
       header .header-info { text-align: right !important; }
@@ -501,7 +501,7 @@
           <div>
             <label>CPF Paciente / Busca Prontuário</label>
             <div class="search-group">
-              <input type="tel" inputmode="numeric" id="cpf_paciente" placeholder="000.000.000-00" maxlength="14">
+              <input type="tel" inputmode="numeric" id="cpf_paciente" placeholder="000.000.000-00" maxlength="14" oninput="aoModificarCPF(this)">
               <button type="button" class="btn-search" onclick="buscarPacienteCPF()">🔍 Buscar</button>
             </div>
           </div>
@@ -961,6 +961,28 @@
       if (!cidadeStr) return '';
       const parteCidade = cidadeStr.split('/')[0].trim();
       return normalizarString(parteCidade).toUpperCase();
+    }
+
+    /* FUNÇÃO DEDICADA PARA LIMPAR CAMPOS DO CADASTRO DO PACIENTE */
+    function limparCamposPaciente() {
+      document.getElementById('paciente').value = '';
+      document.getElementById('cns_paciente').value = '';
+      document.getElementById('idade').value = '';
+      document.getElementById('sexo').value = 'M';
+      document.getElementById('telefone').value = '';
+      document.getElementById('cep_paciente').value = '';
+      document.getElementById('rua').value = '';
+      document.getElementById('numero').value = '';
+      document.getElementById('bairro').value = '';
+      document.getElementById('ponto_ref').value = '';
+      document.getElementById('municipio').value = 'ORLEANS';
+      document.getElementById('estado').value = 'SC';
+    }
+
+    /* LIMPA OS CAMPOS AUTOMATICAMENTE AO DIGITAR OU ALTERAR O CPF */
+    function aoModificarCPF(input) {
+      limparCamposPaciente();
+      salvarLocal();
     }
 
     async function ativarWakeLockPermanente() {
@@ -1803,6 +1825,9 @@
         alert("Digite um CPF com 11 dígitos ou informe o Nº da Ocorrência no Item 1 para buscar.");
         return;
       }
+
+      // LIMPA PREVENTIVAMENTE OS CAMPOS DO PACIENTE ANTES DA CONSULTA
+      limparCamposPaciente();
 
       const cpfFormatado = cpfRaw.length === 11 
         ? cpfRaw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
