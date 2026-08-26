@@ -312,12 +312,11 @@
 
       #printReclassificacaoBox:empty, .print-ocultar-vazio { display: none !important; }
 
-      /* CENTRALIZAÇÃO DOS HORÁRIOS J NA IMPRESSÃO */
       .j-block-container { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 2px !important; }
       .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; text-align: center !important; border: 0.4pt solid #000000 !important; background: transparent !important; padding: 1px !important; }
       .btn-j-badge { display: none !important; }
       .j-print-label { display: block !important; font-size: 4.2pt !important; font-weight: 900 !important; text-transform: uppercase; text-align: center !important; color: #000000 !important; width: 100% !important; }
-      .j-time-input { height: 11px !important; font-size: 5.5pt !important; font-weight: 900 !important; border: none !important; text-align: center !important; width: 100% !important; color: #000000 !important; text-align-last: center !important; }
+      .j-time-input { height: 11px !important; font-size: 5.5pt !important; font-weight: 900 !important; border: none !important; text-align: center !important; width: 100% !important; color: #000000 !important; }
 
       .sv-table th, .sv-table td, .table-expo th, .table-expo td, .med-table th, .med-table td {
         font-size: 5.2pt !important; padding: 1px !important; border: 0.4pt solid #000000 !important; color: #000000 !important; font-weight: 900 !important;
@@ -923,8 +922,9 @@
   </form>
 
   <script>
+    /* CHAVES ATUALIZADAS E VINCULADAS AO PROJETO SUPABASE */
     const SUPABASE_URL = 'https://rcpgukslnlfptreiusff.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWVpdXNmZiIsInJvbGUiOiJhb24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A';
 
     let _supabase = null;
     let mapaLotesUnificados = [];
@@ -947,6 +947,7 @@
       { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "" }
     ];
 
+    /* NORMALIZAÇÃO DE STRINGS (SEM ACENTOS/CARACTERES ESPECIAIS) */
     function normalizarString(str) {
       if (!str) return '';
       return str.toString()
@@ -1340,8 +1341,9 @@
         const { data, error } = await _supabase
           .from('pacientes')
           .select('nome, telefone')
-          .eq('cpf', cpfRaw)
-          .single();
+          .ilike('cpf', `%${cpfRaw}%`)
+          .limit(1)
+          .maybeSingle();
 
         if (error || !data) {
           alert("Pessoa não encontrada no cadastro. Preencha o nome manualmente.");
@@ -1659,6 +1661,7 @@
       });
     }
 
+    /* CARREGAMENTO UNIFICADO ROBUSTO (INCLUI TRAMAL, TRAMADOL E TODOS OS INSUMOS) */
     async function carregarInsumosELotesUnificados() {
       let mestreRes = [];
       let lotesRes = [];
@@ -1790,7 +1793,7 @@
       salvarLocal();
     }
 
-    /* BUSCA DUPLA DE PACIENTE: PRIMEIRO NA TABELA PACIENTES, DEPOIS EM OCORRENCIAS_APH */
+    /* BUSCA UNIFICADA & ULTRA-FLEXÍVEL POR CPF / PRONTUÁRIO */
     async function buscarPacienteCPF() {
       const cpfInputVal = document.getElementById('cpf_paciente').value.trim();
       const cpfRaw = cpfInputVal.replace(/\D/g, "");
@@ -1801,7 +1804,6 @@
         return;
       }
 
-      // Prepara a versão formatada (000.000.000-00)
       const cpfFormatado = cpfRaw.length === 11 
         ? cpfRaw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
         : cpfInputVal;
@@ -1809,12 +1811,12 @@
       try {
         let pacienteEncontrado = false;
 
-        // 1. Busca prioritária na tabela 'pacientes' (testa com e sem formatação)
+        // 1. Busca na Tabela 'pacientes' (testa limpo e formatado com ilike)
         if (cpfRaw.length === 11) {
-          const { data: dataPac, error: errPac } = await _supabase
+          const { data: dataPac } = await _supabase
             .from('pacientes')
             .select('*')
-            .or(`cpf.eq.${cpfRaw},cpf.eq.${cpfFormatado}`)
+            .or(`cpf.ilike.%${cpfRaw}%,cpf.ilike.%${cpfFormatado}%`)
             .limit(1)
             .maybeSingle();
 
@@ -1833,28 +1835,31 @@
             document.getElementById('estado').value = (dataPac.estado || dataPac.uf || 'SC').toUpperCase();
             
             await atualizarHospitaisPorMunicipio();
-            alert("✅ Cadastro do paciente localizado na Base de Pacientes!");
+            alert("✅ Cadastro do paciente localizado com sucesso!");
           }
         }
 
-        // 2. Busca secundária na tabela 'ocorrencias_aph' (Fallback de prontuário - testa com e sem formatação)
+        // 2. Busca na Tabela 'ocorrencias_aph' (Por Nº de Ocorrência ou por CPF)
         let query = _supabase.from('ocorrencias_aph').select('*');
+        
         if (codigoOcorr) {
           query = query.eq('codigo_ocorrencia', codigoOcorr);
         } else {
-          query = query.or(`cpf_paciente.eq.${cpfRaw},cpf_paciente.eq.${cpfFormatado}`);
+          query = query.or(`cpf_paciente.ilike.%${cpfRaw}%,cpf_paciente.ilike.%${cpfFormatado}%`);
         }
 
-        const { data: dataOcorr, error: errOcorr } = await query.order('created_at', { ascending: false }).limit(1).maybeSingle();
+        const { data: dataOcorr } = await query.order('created_at', { ascending: false }).limit(1).maybeSingle();
 
         if (dataOcorr) {
-          document.getElementById('codigo').value = dataOcorr.codigo_ocorrencia || '';
-          document.getElementById('cor_ocorrencia').value = dataOcorr.cor_ocorrencia || 'VM';
-          document.getElementById('data').value = dataOcorr.data || '';
-          document.getElementById('regulador').value = dataOcorr.regulador || '';
-          document.getElementById('motivo_acionamento').value = dataOcorr.motivo_acionamento || '';
-          document.getElementById('tec_enfermeiro').value = dataOcorr.tec_enfermeiro || '';
-          document.getElementById('socorrista').value = dataOcorr.socorrista || '';
+          if (codigoOcorr) {
+            document.getElementById('codigo').value = dataOcorr.codigo_ocorrencia || '';
+            document.getElementById('cor_ocorrencia').value = dataOcorr.cor_ocorrencia || 'VM';
+            document.getElementById('data').value = dataOcorr.data || '';
+            document.getElementById('regulador').value = dataOcorr.regulador || '';
+            document.getElementById('motivo_acionamento').value = dataOcorr.motivo_acionamento || '';
+            document.getElementById('tec_enfermeiro').value = dataOcorr.tec_enfermeiro || '';
+            document.getElementById('socorrista').value = dataOcorr.socorrista || '';
+          }
 
           if (!pacienteEncontrado) {
             document.getElementById('cpf_paciente').value = dataOcorr.cpf_paciente || '';
@@ -1867,6 +1872,7 @@
             document.getElementById('municipio').value = (dataOcorr.municipio || 'ORLEANS').toUpperCase();
             document.getElementById('estado').value = (dataOcorr.estado || 'SC').toUpperCase();
             await atualizarHospitaisPorMunicipio();
+            alert("✅ Dados do paciente resgatados do histórico de ocorrências!");
           }
 
           if (dataOcorr.tipo_ocorrencia) {
@@ -1877,30 +1883,8 @@
             }
           }
 
-          document.getElementById('horaJ9').value = dataOcorr.hora_j9 || '';
-          document.getElementById('horaJ10').value = dataOcorr.hora_j10 || '';
-          document.getElementById('horaQTA').value = dataOcorr.hora_qta || '';
-          document.getElementById('horaJ9_INT').value = dataOcorr.hora_j9_int || '';
-          document.getElementById('horaJ10_INT').value = dataOcorr.hora_j10_int || '';
-          document.getElementById('horaJ11').value = dataOcorr.hora_j11 || '';
-          document.getElementById('horaJ12').value = dataOcorr.hora_j12 || '';
-
-          if (dataOcorr.insumos_utilizados && Array.isArray(dataOcorr.insumos_utilizados)) {
-            document.getElementById('meds_body').innerHTML = '';
-            dataOcorr.insumos_utilizados.forEach(item => {
-              addMedRow();
-              const ultTr = document.querySelector('#meds_body tr:last-child');
-              const inInput = ultTr.querySelector('.med-search-input');
-              const inQtd = ultTr.querySelector('.med-qtd');
-              if (inInput) inInput.value = item.descricao || '';
-              if (inQtd) inQtd.value = item.quantidade || 1;
-              verificarPsicotropico(inInput);
-            });
-          }
-
           checarEAtivarBotaoImpressao();
           salvarLocal();
-          alert("✅ Prontuário de ocorrência anterior resgatado com sucesso!");
         } else if (!pacienteEncontrado) {
           alert("Nenhum registro encontrado para estes dados.");
         }
