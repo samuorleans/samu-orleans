@@ -312,11 +312,12 @@
 
       #printReclassificacaoBox:empty, .print-ocultar-vazio { display: none !important; }
 
+      /* CENTRALIZAÇÃO DOS HORÁRIOS J NA IMPRESSÃO */
       .j-block-container { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 2px !important; }
       .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; text-align: center !important; border: 0.4pt solid #000000 !important; background: transparent !important; padding: 1px !important; }
       .btn-j-badge { display: none !important; }
       .j-print-label { display: block !important; font-size: 4.2pt !important; font-weight: 900 !important; text-transform: uppercase; text-align: center !important; color: #000000 !important; width: 100% !important; }
-      .j-time-input { height: 11px !important; font-size: 5.5pt !important; font-weight: 900 !important; border: none !important; text-align: center !important; width: 100% !important; color: #000000 !important; }
+      .j-time-input { height: 11px !important; font-size: 5.5pt !important; font-weight: 900 !important; border: none !important; text-align: center !important; width: 100% !important; color: #000000 !important; text-align-last: center !important; }
 
       .sv-table th, .sv-table td, .table-expo th, .table-expo td, .med-table th, .med-table td {
         font-size: 5.2pt !important; padding: 1px !important; border: 0.4pt solid #000000 !important; color: #000000 !important; font-weight: 900 !important;
@@ -922,9 +923,8 @@
   </form>
 
   <script>
-    /* CHAVES ATUALIZADAS E VINCULADAS AO PROJETO SUPABASE */
     const SUPABASE_URL = 'https://rcpgukslnlfptreiusff.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWVpdXNmZiIsInJvbGUiOiJhb24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A';
 
     let _supabase = null;
     let mapaLotesUnificados = [];
@@ -947,7 +947,6 @@
       { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "" }
     ];
 
-    /* NORMALIZAÇÃO DE STRINGS (SEM ACENTOS/CARACTERES ESPECIAIS) */
     function normalizarString(str) {
       if (!str) return '';
       return str.toString()
@@ -1660,7 +1659,6 @@
       });
     }
 
-    /* CARREGAMENTO UNIFICADO ROBUSTO (INCLUI TRAMAL, TRAMADOL E TODOS OS INSUMOS) */
     async function carregarInsumosELotesUnificados() {
       let mestreRes = [];
       let lotesRes = [];
@@ -1792,6 +1790,7 @@
       salvarLocal();
     }
 
+    /* BUSCA DUPLA DE PACIENTE: PRIMEIRO NA TABELA PACIENTES, DEPOIS EM OCORRENCIAS_APH */
     async function buscarPacienteCPF() {
       const cpfRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
       const codigoOcorr = document.getElementById('codigo').value.trim();
@@ -1802,6 +1801,37 @@
       }
 
       try {
+        let pacienteEncontrado = false;
+
+        // 1. Busca prioritária na tabela 'pacientes'
+        if (cpfRaw.length === 11) {
+          const { data: dataPac, error: errPac } = await _supabase
+            .from('pacientes')
+            .select('*')
+            .eq('cpf', cpfRaw)
+            .limit(1)
+            .maybeSingle();
+
+          if (dataPac) {
+            pacienteEncontrado = true;
+            document.getElementById('paciente').value = (dataPac.nome || '').toUpperCase();
+            document.getElementById('cns_paciente').value = dataPac.cns || '';
+            document.getElementById('idade').value = dataPac.idade || '';
+            document.getElementById('sexo').value = dataPac.sexo || 'M';
+            document.getElementById('telefone').value = dataPac.telefone || '';
+            document.getElementById('cep_paciente').value = dataPac.cep || '';
+            document.getElementById('rua').value = (dataPac.rua || dataPac.logradouro || '').toUpperCase();
+            document.getElementById('numero').value = dataPac.numero || '';
+            document.getElementById('bairro').value = (dataPac.bairro || '').toUpperCase();
+            document.getElementById('municipio').value = (dataPac.municipio || dataPac.cidade || 'ORLEANS').toUpperCase();
+            document.getElementById('estado').value = (dataPac.estado || dataPac.uf || 'SC').toUpperCase();
+            
+            await atualizarHospitaisPorMunicipio();
+            alert("✅ Cadastro do paciente localizado na Base de Pacientes!");
+          }
+        }
+
+        // 2. Busca secundária na tabela 'ocorrencias_aph' (Fallback de prontuário)
         let query = _supabase.from('ocorrencias_aph').select('*');
         if (codigoOcorr) {
           query = query.eq('codigo_ocorrencia', codigoOcorr);
@@ -1809,67 +1839,67 @@
           query = query.eq('cpf_paciente', cpfRaw);
         }
 
-        const { data, error } = await query.order('created_at', { ascending: false }).limit(1).single();
+        const { data: dataOcorr, error: errOcorr } = await query.order('created_at', { ascending: false }).limit(1).maybeSingle();
 
-        if (error || !data) {
-          alert("Nenhuma ocorrência anterior encontrada com estes dados.");
-          return;
-        }
+        if (dataOcorr) {
+          document.getElementById('codigo').value = dataOcorr.codigo_ocorrencia || '';
+          document.getElementById('cor_ocorrencia').value = dataOcorr.cor_ocorrencia || 'VM';
+          document.getElementById('data').value = dataOcorr.data || '';
+          document.getElementById('regulador').value = dataOcorr.regulador || '';
+          document.getElementById('motivo_acionamento').value = dataOcorr.motivo_acionamento || '';
+          document.getElementById('tec_enfermeiro').value = dataOcorr.tec_enfermeiro || '';
+          document.getElementById('socorrista').value = dataOcorr.socorrista || '';
 
-        document.getElementById('codigo').value = data.codigo_ocorrencia || '';
-        document.getElementById('cor_ocorrencia').value = data.cor_ocorrencia || 'VM';
-        document.getElementById('data').value = data.data || '';
-        document.getElementById('regulador').value = data.regulador || '';
-        document.getElementById('motivo_acionamento').value = data.motivo_acionamento || '';
-        document.getElementById('tec_enfermeiro').value = data.tec_enfermeiro || '';
-        document.getElementById('socorrista').value = data.socorrista || '';
-
-        document.getElementById('cpf_paciente').value = data.cpf_paciente || '';
-        document.getElementById('paciente').value = (data.paciente || '').toUpperCase();
-        document.getElementById('idade').value = data.idade || '';
-        document.getElementById('sexo').value = data.sexo || 'M';
-        document.getElementById('telefone').value = data.telefone || '';
-        document.getElementById('rua').value = (data.rua || '').toUpperCase();
-        document.getElementById('bairro').value = (data.bairro || '').toUpperCase();
-        document.getElementById('municipio').value = (data.municipio || 'ORLEANS').toUpperCase();
-        document.getElementById('estado').value = (data.estado || 'SC').toUpperCase();
-
-        await atualizarHospitaisPorMunicipio();
-
-        if (data.tipo_ocorrencia) {
-          const radioToSelect = document.querySelector(`input[name="tipo_ocorrencia"][value="${data.tipo_ocorrencia}"]`);
-          if (radioToSelect) {
-            radioToSelect.checked = true;
-            tratarSelecaoTipoOcorrencia(radioToSelect);
+          if (!pacienteEncontrado) {
+            document.getElementById('cpf_paciente').value = dataOcorr.cpf_paciente || '';
+            document.getElementById('paciente').value = (dataOcorr.paciente || '').toUpperCase();
+            document.getElementById('idade').value = dataOcorr.idade || '';
+            document.getElementById('sexo').value = dataOcorr.sexo || 'M';
+            document.getElementById('telefone').value = dataOcorr.telefone || '';
+            document.getElementById('rua').value = (dataOcorr.rua || '').toUpperCase();
+            document.getElementById('bairro').value = (dataOcorr.bairro || '').toUpperCase();
+            document.getElementById('municipio').value = (dataOcorr.municipio || 'ORLEANS').toUpperCase();
+            document.getElementById('estado').value = (dataOcorr.estado || 'SC').toUpperCase();
+            await atualizarHospitaisPorMunicipio();
           }
+
+          if (dataOcorr.tipo_ocorrencia) {
+            const radioToSelect = document.querySelector(`input[name="tipo_ocorrencia"][value="${dataOcorr.tipo_ocorrencia}"]`);
+            if (radioToSelect) {
+              radioToSelect.checked = true;
+              tratarSelecaoTipoOcorrencia(radioToSelect);
+            }
+          }
+
+          document.getElementById('horaJ9').value = dataOcorr.hora_j9 || '';
+          document.getElementById('horaJ10').value = dataOcorr.hora_j10 || '';
+          document.getElementById('horaQTA').value = dataOcorr.hora_qta || '';
+          document.getElementById('horaJ9_INT').value = dataOcorr.hora_j9_int || '';
+          document.getElementById('horaJ10_INT').value = dataOcorr.hora_j10_int || '';
+          document.getElementById('horaJ11').value = dataOcorr.hora_j11 || '';
+          document.getElementById('horaJ12').value = dataOcorr.hora_j12 || '';
+
+          if (dataOcorr.insumos_utilizados && Array.isArray(dataOcorr.insumos_utilizados)) {
+            document.getElementById('meds_body').innerHTML = '';
+            dataOcorr.insumos_utilizados.forEach(item => {
+              addMedRow();
+              const ultTr = document.querySelector('#meds_body tr:last-child');
+              const inInput = ultTr.querySelector('.med-search-input');
+              const inQtd = ultTr.querySelector('.med-qtd');
+              if (inInput) inInput.value = item.descricao || '';
+              if (inQtd) inQtd.value = item.quantidade || 1;
+              verificarPsicotropico(inInput);
+            });
+          }
+
+          checarEAtivarBotaoImpressao();
+          salvarLocal();
+          alert("✅ Prontuário de ocorrência anterior resgatado com sucesso!");
+        } else if (!pacienteEncontrado) {
+          alert("Nenhum registro encontrado para estes dados.");
         }
 
-        document.getElementById('horaJ9').value = data.hora_j9 || '';
-        document.getElementById('horaJ10').value = data.hora_j10 || '';
-        document.getElementById('horaQTA').value = data.hora_qta || '';
-        document.getElementById('horaJ9_INT').value = data.hora_j9_int || '';
-        document.getElementById('horaJ10_INT').value = data.hora_j10_int || '';
-        document.getElementById('horaJ11').value = data.hora_j11 || '';
-        document.getElementById('horaJ12').value = data.hora_j12 || '';
-
-        if (data.insumos_utilizados && Array.isArray(data.insumos_utilizados)) {
-          document.getElementById('meds_body').innerHTML = '';
-          data.insumos_utilizados.forEach(item => {
-            addMedRow();
-            const ultTr = document.querySelector('#meds_body tr:last-child');
-            const inInput = ultTr.querySelector('.med-search-input');
-            const inQtd = ultTr.querySelector('.med-qtd');
-            if (inInput) inInput.value = item.descricao || '';
-            if (inQtd) inQtd.value = item.quantidade || 1;
-            verificarPsicotropico(inInput);
-          });
-        }
-
-        checarEAtivarBotaoImpressao();
-        salvarLocal();
-        alert("✅ Prontuário resgatado do Supabase! Sinais vitais e evolução liberados para reavaliação.");
-
-      } catch (err) { alert("Erro ao resgatar histórico da ocorrência."); }
+      } catch (err) { alert("Erro ao consultar base de dados do Supabase."); }
     }
 
     function alternarNenhumInsumo(chk) {
@@ -2000,7 +2030,6 @@
       inputs.forEach(input => verificarPsicotropico(input));
     }
 
-    /* RECONHECIMENTO DE PSICOTRÓPICOS EXTENDIDO (TRAMAL, MORFINA, DIAZEPAM, ETC) */
     function verificarPsicotropico(inputEl) {
       const valRaw = inputEl.value.trim();
       const valNorm = normalizarString(valRaw);
@@ -2181,6 +2210,7 @@
       }
     }
 
+    /* SALVAMENTO DE FICHA COM UPSERT NA TABELA 'PACIENTES' */
     async function salvarFichaOcorrenciaAPH() {
       try {
         const insumosPayload = obterInsumosUtilizadosPayload();
@@ -2200,7 +2230,33 @@
         const selHosp = document.getElementById('hospital_destino');
         const hospitalFinal = (selHosp.value === 'OUTROS') ? document.getElementById('hospital_outros').value : selHosp.value;
 
-        const payload = {
+        const cpfPacienteRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
+
+        // 1. Atualizar ou Inserir Paciente na Tabela 'pacientes' caso tenha informado CPF
+        if (cpfPacienteRaw.length === 11) {
+          const payloadPaciente = {
+            cpf: cpfPacienteRaw,
+            nome: document.getElementById('paciente').value.toUpperCase(),
+            cns: document.getElementById('cns_paciente').value.replace(/\D/g, ""),
+            idade: parseInt(document.getElementById('idade').value) || null,
+            sexo: document.getElementById('sexo').value,
+            telefone: document.getElementById('telefone').value,
+            cep: document.getElementById('cep_paciente').value,
+            rua: document.getElementById('rua').value.toUpperCase(),
+            numero: document.getElementById('numero').value.toUpperCase(),
+            bairro: document.getElementById('bairro').value.toUpperCase(),
+            municipio: document.getElementById('municipio').value.toUpperCase(),
+            estado: document.getElementById('estado').value.toUpperCase(),
+            updated_at: new Date().toISOString()
+          };
+
+          if (_supabase) {
+            await _supabase.from('pacientes').upsert([payloadPaciente], { onConflict: 'cpf' });
+          }
+        }
+
+        // 2. Gravar Ocorrência APH em 'ocorrencias_aph'
+        const payloadOcorrencia = {
           codigo_ocorrencia: codFinalOcorrencia,
           cor_ocorrencia: document.getElementById('cor_ocorrencia').value,
           reclassificacao_codigo: document.getElementById('reclassificacao_codigo').value,
@@ -2241,14 +2297,14 @@
         };
 
         if (_supabase) {
-          const { data, error } = await _supabase
+          const { error } = await _supabase
             .from('ocorrencias_aph')
-            .upsert([payload], { onConflict: 'codigo_ocorrencia' });
+            .upsert([payloadOcorrencia], { onConflict: 'codigo_ocorrencia' });
 
           if (error) {
             alert("Erro ao gravar APH no Supabase: " + error.message);
           } else {
-            await processarBaixaEstoqueELacres(insumosPayload, payload.codigo_ocorrencia);
+            await processarBaixaEstoqueELacres(insumosPayload, payloadOcorrencia.codigo_ocorrencia);
           }
         }
       } catch (err) {
@@ -2350,7 +2406,7 @@
     document.getElementById('btnImprimir').addEventListener('click', () => { 
       const confirmacao = confirm(
         `⚠️ CONFIRMA A IMPRESSÃO DA FICHA DA VÍTIMA ${vitimaAtual}?\n\n` +
-        "• Os dados parciais desta vítima serão salvos no Supabase.\n" +
+        "• Os dados desta vítima e o cadastro do paciente serão salvos no Supabase.\n" +
         "• Os campos do Item 1 serão congelados para edição.\n" +
         "• As outras abas permanecerão salvas em rascunho sem perder dados."
       );
