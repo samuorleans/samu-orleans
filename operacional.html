@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SAMU Connect — Central Operacional</title>
-  <!-- SDK SUPABASE ATUALIZADO (SUPORTA PUBLISHABLE KEYS) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.1/dist/umd/supabase.min.js"></script>
+  <!-- SDK UNIVERSAL DO SUPABASE V2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --samu-navy: #0d233a;
@@ -157,9 +157,9 @@
   </div>
 
   <script>
-    // INICIALIZAÇÃO DO SUPABASE V2.48+ COM A PUBLISHABLE KEY
+    // URL E CHAVE LEGADA ANON (COMPATÍVEIS COM TODAS AS VERSÕES DO POSTGREST DO SUPABASE)
     const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_LaC2YnoF3htaAh0f_X8tNg_V9hOkEQ8";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
 
     window.dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -252,7 +252,8 @@
     async function carregarViaturas() {
       const selV = document.getElementById('p1_viatura');
       try {
-        const { data } = await window.dbNuvem.from('operacional_viaturas').select('*');
+        const { data, error } = await window.dbNuvem.from('operacional_viaturas').select('*');
+        if (error) console.error("Erro Supabase Viaturas:", error);
         if (data && data.length > 0) {
           selV.innerHTML = '<option value="">Escolher...</option>';
           data.forEach(v => {
@@ -260,13 +261,17 @@
             selV.innerHTML += `<option value="${rotulo}">${rotulo}</option>`;
           });
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error("Exceção Viaturas:", e);
+      }
     }
 
     async function carregarProfissionaisComPermissoes() {
       const selP = document.getElementById('p1_profissional');
       try {
-        const { data: colaboradores } = await window.dbNuvem.from('colaboradores').select('*').order('nome', { ascending: true });
+        const { data: colaboradores, error: errColab } = await window.dbNuvem.from('colaboradores').select('*').order('nome', { ascending: true });
+        if (errColab) console.error("Erro Supabase Colaboradores:", errColab);
+
         const { data: permissoes } = await window.dbNuvem.from('operacional_permissoes').select('*');
 
         if (colaboradores && colaboradores.length > 0) {
@@ -289,7 +294,9 @@
             }
           });
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error("Exceção Colaboradores:", e);
+      }
     }
 
     function verificarAcessoProfissional() {
