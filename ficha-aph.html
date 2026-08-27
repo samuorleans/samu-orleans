@@ -426,7 +426,7 @@
     <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
     <h2 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 6px;">SISTEMA BLOQUEADO</h2>
     <p style="font-size: 0.85rem; max-width: 300px; margin-bottom: 15px; opacity: 0.9;">
-      Faça login no plantão J3 para liberar o preenchimento do prontuário APH.
+      Acesso restrito à equipe de Enfermagem ativa no plantão J3.
     </p>
     <button type="button" onclick="abrirLoginJ3()" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 800; font-size: 0.9rem; cursor: pointer; text-transform: uppercase;">
       🔑 EFETUAR LOGIN J3
@@ -1085,7 +1085,7 @@
       </div>
       <div style="padding: 16px;">
         <p style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 12px; text-align: center;">
-          Informe suas credenciais do J3 para desbloquear a ficha, carregar sua escala e assinar o prontuário APH.
+          Acesso exclusivo para a equipe de Enfermagem ativa no plantão J3.
         </p>
 
         <div style="margin-bottom: 10px;">
@@ -1264,15 +1264,29 @@
           return;
         }
 
+        // VERIFICAÇÃO DE PERFIL E FUNÇÃO: APENAS ENFERMAGEM E ADMIN
+        const funcaoNorm = normalizarString(colabEncontrado.funcao || colabEncontrado.cargo || '');
+        const perfilNorm = normalizarString(colabEncontrado.perfil || '');
+
+        const ehEnfermagemOuAdmin = funcaoNorm.includes('enferme') || 
+                                    funcaoNorm.includes('tecnico') || 
+                                    funcaoNorm.includes('coordenad') || 
+                                    perfilNorm.includes('admin') || 
+                                    perfilNorm.includes('enfermagem');
+
+        if (!ehEnfermagemOuAdmin || funcaoNorm.includes('condutor') || funcaoNorm.includes('socorrista')) {
+          alert(`❌ ACESSO NEGADO!\n\nCondutores/Socorristas não possuem permissão para acessar a ficha APH.\nO preenchimento do prontuário é de acesso exclusivo da equipe de Enfermagem (Técnicos, Enfermeiros, Coordenadores e Administradores).`);
+          return;
+        }
+
+        // Validação se a profissional de enfermagem está ativa no plantão J3
         const nomeColabNorm = normalizarString(colabEncontrado.nome);
-        const condutorNorm = normalizarString(plantaoAtivoBd.condutor || '');
         const enfermagemNorm = normalizarString(plantaoAtivoBd.enfermagem || '');
 
-        const estaNoPlantaoAtivo = (condutorNorm !== '' && (nomeColabNorm.includes(condutorNorm) || condutorNorm.includes(nomeColabNorm))) ||
-                                   (enfermagemNorm !== '' && (nomeColabNorm.includes(enfermagemNorm) || enfermagemNorm.includes(nomeColabNorm)));
+        const estaNoPlantaoAtivo = enfermagemNorm !== '' && (nomeColabNorm.includes(enfermagemNorm) || enfermagemNorm.includes(nomeColabNorm));
 
         if (!estaNoPlantaoAtivo) {
-          alert(`❌ ACESSO NEGADO!\n\nO colaborador "${colabEncontrado.nome}" NÃO está na equipe do plantão J3 ATIVO.\n\nEquipe Ativa no Momento:\n• Condutor: ${plantaoAtivoBd.condutor || 'Não informado'}\n• Enfermagem: ${plantaoAtivoBd.enfermagem || 'Não informado'}`);
+          alert(`❌ ACESSO NEGADO!\n\nA profissional "${colabEncontrado.nome}" NÃO está cadastrada na vaga de ENFERMAGEM do plantão J3 ATIVO.\n\nProfissional de Enfermagem Ativa no J3:\n• ${plantaoAtivoBd.enfermagem || 'Nenhuma profissional registrada'}`);
           return;
         }
 
@@ -1300,23 +1314,41 @@
       const selectTec = document.getElementById('tec_enfermeiro');
       const selectSoc = document.getElementById('socorrista');
 
-      const nomeEnf = plantao.enfermagem;
-      const nomeCond = plantao.condutor;
+      const nomeEnf = plantao.enfermagem ? plantao.enfermagem.trim() : '';
+      const nomeCond = plantao.condutor ? plantao.condutor.trim() : '';
 
       if (nomeEnf && selectTec) {
-        const optMatch = Array.from(selectTec.options).find(opt => 
+        let optMatch = Array.from(selectTec.options).find(opt => 
           normalizarString(opt.value).includes(normalizarString(nomeEnf)) || 
           normalizarString(nomeEnf).includes(normalizarString(opt.value))
         );
-        if (optMatch) selectTec.value = optMatch.value;
+
+        if (!optMatch && selectTec.options.length > 0) {
+          const newOpt = document.createElement('option');
+          newOpt.value = nomeEnf;
+          newOpt.innerText = nomeEnf.toUpperCase();
+          selectTec.appendChild(newOpt);
+          selectTec.value = nomeEnf;
+        } else if (optMatch) {
+          selectTec.value = optMatch.value;
+        }
       }
 
       if (nomeCond && selectSoc) {
-        const optMatch = Array.from(selectSoc.options).find(opt => 
+        let optMatch = Array.from(selectSoc.options).find(opt => 
           normalizarString(opt.value).includes(normalizarString(nomeCond)) || 
           normalizarString(nomeCond).includes(normalizarString(opt.value))
         );
-        if (optMatch) selectSoc.value = optMatch.value;
+
+        if (!optMatch && selectSoc.options.length > 0) {
+          const newOpt = document.createElement('option');
+          newOpt.value = nomeCond;
+          newOpt.innerText = nomeCond.toUpperCase();
+          selectSoc.appendChild(newOpt);
+          selectSoc.value = nomeCond;
+        } else if (optMatch) {
+          selectSoc.value = optMatch.value;
+        }
       }
 
       sincronizarTecnicoResp();
