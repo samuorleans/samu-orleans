@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SAMU Connect — Central Operacional</title>
-  <!-- SDK ESTÁVEL DO SUPABASE -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- SDK SUPABASE ATUALIZADO (SUPORTA PUBLISHABLE KEYS) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.1/dist/umd/supabase.min.js"></script>
   <style>
     :root {
       --samu-navy: #0d233a;
@@ -157,11 +157,11 @@
   </div>
 
   <script>
-    // CHAVE LEGADA ANON PUBLIC VÁLIDA PARA AUTENTICAÇÃO NO REST API
+    // INICIALIZAÇÃO DO SUPABASE V2.48+ COM A PUBLISHABLE KEY
     const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
+    const SUPABASE_KEY = "sb_publishable_LaC2YnoF3htaAh0f_X8tNg_V9hOkEQ8";
 
-    const dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    window.dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyQdLDoigigMzoQbUqaTIi13IdjLNDCS8njuN3uNBc6tqf5m03CFVYCRT9dP_G0BgjX/exec";
 
@@ -252,7 +252,7 @@
     async function carregarViaturas() {
       const selV = document.getElementById('p1_viatura');
       try {
-        const { data } = await dbNuvem.from('operacional_viaturas').select('*');
+        const { data } = await window.dbNuvem.from('operacional_viaturas').select('*');
         if (data && data.length > 0) {
           selV.innerHTML = '<option value="">Escolher...</option>';
           data.forEach(v => {
@@ -266,8 +266,8 @@
     async function carregarProfissionaisComPermissoes() {
       const selP = document.getElementById('p1_profissional');
       try {
-        const { data: colaboradores } = await dbNuvem.from('colaboradores').select('*').order('nome', { ascending: true });
-        const { data: permissoes } = await dbNuvem.from('operacional_permissoes').select('*');
+        const { data: colaboradores } = await window.dbNuvem.from('colaboradores').select('*').order('nome', { ascending: true });
+        const { data: permissoes } = await window.dbNuvem.from('operacional_permissoes').select('*');
 
         if (colaboradores && colaboradores.length > 0) {
           selP.innerHTML = '<option value="" data-funcao="" data-senha="">Escolher...</option>';
@@ -375,7 +375,7 @@
       if (!selP) return;
 
       try {
-        const { data, error } = await dbNuvem.from('operacional_postos').select('nome_posto, status');
+        const { data, error } = await window.dbNuvem.from('operacional_postos').select('nome_posto, status');
         if (!error && data && data.length > 0) {
           selP.innerHTML = '<option value="">Selecione o Posto...</option>';
           data.forEach(p => {
@@ -392,7 +392,7 @@
       if (!selC) return;
 
       try {
-        const { data, error } = await dbNuvem.from('estoque_mestre').select('descricao_insumo');
+        const { data, error } = await window.dbNuvem.from('estoque_mestre').select('descricao_insumo');
         if (!error && data && data.length > 0) {
           selC.innerHTML = '<option value="">Selecione o Insumo...</option>';
           data.forEach(i => {
@@ -609,7 +609,7 @@
       };
 
       try {
-        const { error } = await dbNuvem.from('operacional_manutencoes_livro').insert([payload]);
+        const { error } = await window.dbNuvem.from('operacional_manutencoes_livro').insert([payload]);
         if (error) {
           console.error("Erro Supabase:", error);
           alert("❌ Erro ao gravar no Supabase:\n" + error.message);
@@ -634,7 +634,7 @@
       if (!tbody) return;
 
       try {
-        const { data } = await dbNuvem
+        const { data } = await window.dbNuvem
           .from('operacional_manutencoes_livro')
           .select('*')
           .eq('viatura', viatura)
@@ -702,8 +702,8 @@
       };
 
       try {
-        const { error: err1 } = await dbNuvem.from('operacional_abastecimentos').insert([payloadAbs]);
-        const { error: err2 } = await dbNuvem.from('operacional_checklists').insert([payloadChecklist]);
+        const { error: err1 } = await window.dbNuvem.from('operacional_abastecimentos').insert([payloadAbs]);
+        const { error: err2 } = await window.dbNuvem.from('operacional_checklists').insert([payloadChecklist]);
 
         if (err1 || err2) {
           alert("❌ Erro ao salvar abastecimento: " + (err1 ? err1.message : err2.message));
@@ -786,7 +786,7 @@
       };
 
       try {
-        const { error } = await dbNuvem.from('operacional_checklists').insert([payload]);
+        const { error } = await window.dbNuvem.from('operacional_checklists').insert([payload]);
         if (!error) {
           let respDrive = {
             "Turno do Plantão": turno,
@@ -869,8 +869,8 @@
       };
 
       try {
-        const { error: errSaude } = await dbNuvem.from('operacional_saude_lacres').insert([payloadSaude]);
-        const { error: errCheck } = await dbNuvem.from('operacional_checklists').insert([payloadChecklist]);
+        const { error: errSaude } = await window.dbNuvem.from('operacional_saude_lacres').insert([payloadSaude]);
+        const { error: errCheck } = await window.dbNuvem.from('operacional_checklists').insert([payloadChecklist]);
 
         if (!errSaude && !errCheck) {
           let respDrive = {
@@ -929,8 +929,8 @@
       };
 
       try {
-        const { error: errSaude } = await dbNuvem.from('operacional_saude_lacres').insert([payloadSaude]);
-        const { error: errCheck } = await dbNuvem.from('operacional_checklists').insert([payloadChecklist]);
+        const { error: errSaude } = await window.dbNuvem.from('operacional_saude_lacres').insert([payloadSaude]);
+        const { error: errCheck } = await window.dbNuvem.from('operacional_checklists').insert([payloadChecklist]);
 
         if (!errSaude && !errCheck) {
           await dispararEnvioGoogleDrive("Registro de Ocorrência / Troca de Lacre", {
