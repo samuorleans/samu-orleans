@@ -6,10 +6,10 @@
 
   <!-- SELETOR DE MODO (ABAS) -->
   <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-    <button type="button" id="btnAbaExec" onclick="alternarAbaManut('EXECUTADO')" style="flex: 1; min-width: 180px; padding: 12px; border: 2px solid #002b49; background: #002b49; color: white; border-radius: 8px; font-weight: 700; cursor: pointer;">
+    <button type="button" id="btnAbaExec" onclick="alternarAbaLocal('EXECUTADO')" style="flex: 1; min-width: 180px; padding: 12px; border: 2px solid #002b49; background: #002b49; color: white; border-radius: 8px; font-weight: 700; cursor: pointer;">
       ✅ Registro de Serviço Executado
     </button>
-    <button type="button" id="btnAbaAgend" onclick="alternarAbaManut('AGENDADO')" style="flex: 1; min-width: 180px; padding: 12px; border: 2px solid #cbd5e1; background: #f8fafc; color: #002b49; border-radius: 8px; font-weight: 700; cursor: pointer;">
+    <button type="button" id="btnAbaAgend" onclick="alternarAbaLocal('AGENDADO')" style="flex: 1; min-width: 180px; padding: 12px; border: 2px solid #cbd5e1; background: #f8fafc; color: #002b49; border-radius: 8px; font-weight: 700; cursor: pointer;">
       📅 Agendar Manutenção / Lembrete
     </button>
   </div>
@@ -124,6 +124,52 @@
 </div>
 
 <script>
+  function alternarAbaLocal(modo) {
+    document.getElementById('m_modo_registro').value = modo;
+
+    const btnExec = document.getElementById('btnAbaExec');
+    const btnAgend = document.getElementById('btnAbaAgend');
+
+    const boxExec = document.getElementById('boxDataExec');
+    const boxAgend = document.getElementById('boxDataAgend');
+    const boxEmail = document.getElementById('boxEmail');
+    const boxNF = document.getElementById('boxNF');
+    const boxValor = document.getElementById('boxValor');
+    const btnSalvar = document.getElementById('btnSalvarManut');
+
+    if (modo === 'AGENDADO') {
+      btnAgend.style.background = '#002b49';
+      btnAgend.style.color = 'white';
+      btnAgend.style.borderColor = '#002b49';
+
+      btnExec.style.background = '#f8fafc';
+      btnExec.style.color = '#002b49';
+      btnExec.style.borderColor = '#cbd5e1';
+
+      boxExec.style.display = 'none';
+      boxAgend.style.display = 'flex';
+      boxEmail.style.display = 'flex';
+      boxNF.style.display = 'none';
+      boxValor.style.display = 'none';
+      btnSalvar.innerText = '📅 Confirmar Agendamento';
+    } else {
+      btnExec.style.background = '#002b49';
+      btnExec.style.color = 'white';
+      btnExec.style.borderColor = '#002b49';
+
+      btnAgend.style.background = '#f8fafc';
+      btnAgend.style.color = '#002b49';
+      btnAgend.style.borderColor = '#cbd5e1';
+
+      boxExec.style.display = 'flex';
+      boxAgend.style.display = 'none';
+      boxEmail.style.display = 'none';
+      boxNF.style.display = 'flex';
+      boxValor.style.display = 'flex';
+      btnSalvar.innerText = '💾 Salvar no Livro Digital';
+    }
+  }
+
   window.iniciarModuloManutencao = async function() {
     const client = window.dbNuvem || window.supabaseClient;
     if (!client) return;
@@ -131,7 +177,6 @@
     const elData = document.getElementById('m_data_exec');
     if (elData) elData.value = new Date().toISOString().split('T')[0];
 
-    // 1. CARREGAR VIATURAS
     try {
       const { data: viaturas } = await client.from('operacional_viaturas').select('*');
       const selectViat = document.getElementById('m_viatura_id');
@@ -144,11 +189,8 @@
           selectViat.innerHTML += `<option value="${v.id}">${pref} ${mod} ${plc}</option>`;
         });
       }
-    } catch (e) {
-      console.error("Erro viaturas:", e);
-    }
+    } catch (e) {}
 
-    // 2. CARREGAR OFICINAS
     try {
       const { data: oficinas } = await client.from('operacional_oficinas').select('*');
       const selectOfic = document.getElementById('m_oficina_id');
@@ -161,11 +203,8 @@
           }
         });
       }
-    } catch (e) {
-      console.error("Erro oficinas:", e);
-    }
+    } catch (e) {}
 
-    // 3. CARREGAR COLABORADORES
     try {
       const { data: colaboradores } = await client.from('colaboradores').select('*');
       const selectColab = document.getElementById('m_colaborador_id');
@@ -179,56 +218,9 @@
           }
         });
       }
-    } catch (e) {
-      console.error("Erro colaboradores:", e);
-    }
+    } catch (e) {}
   };
 
-  window.carregarHistoricoManutencao = async function() {
-    const client = window.dbNuvem || window.supabaseClient;
-    const viaturaId = document.getElementById('m_viatura_id').value;
-    const tbody = document.getElementById('tbodyHistManut');
-
-    if (!viaturaId) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px;">Selecione uma viatura para visualizar o histórico.</td></tr>';
-      return;
-    }
-
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px;">Buscando histórico...</td></tr>';
-
-    try {
-      const { data } = await client
-        .from('operacional_manutencoes_livro')
-        .select('*')
-        .eq('viatura_id', viaturaId)
-        .order('id', { ascending: false });
-
-      if (data && data.length > 0) {
-        tbody.innerHTML = '';
-        data.forEach(m => {
-          const dt = m.data_manutencao || m.data_agendada || m.data_registro || '—';
-          const statusCor = m.status === 'AGENDADO' ? '#b45309' : '#15803d';
-
-          tbody.innerHTML += `
-            <tr style="border-bottom: 1px solid #e2e8f0;">
-              <td style="padding: 8px; font-weight: 700;">${dt}</td>
-              <td style="padding: 8px;">${m.tipo_manutencao || '—'}</td>
-              <td style="padding: 8px;">${m.km_no_servico || m.km_registro || '—'} KM</td>
-              <td style="padding: 8px;">${m.oficina_prestador || m.oficina_nome || '—'}</td>
-              <td style="padding: 8px;">${m.servicos_executados || '—'}</td>
-              <td style="padding: 8px; font-weight: 800; color: ${statusCor};">${m.status || 'CONCLUIDO'}</td>
-            </tr>
-          `;
-        });
-      } else {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px;">Nenhuma manutenção registrada para esta viatura.</td></tr>';
-      }
-    } catch (err) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px; color: #d32f2f;">Erro ao consultar histórico.</td></tr>';
-    }
-  };
-
-  // Executa imediatamente caso o script seja injetado no DOM
   if (typeof window.iniciarModuloManutencao === 'function') {
     window.iniciarModuloManutencao();
   }
