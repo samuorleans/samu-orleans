@@ -124,14 +124,13 @@
 </div>
 
 <script>
-  // Garante a existência da conexão Supabase localmente ou herdada do pai
-  function obterConexaoSupabase() {
-    if (window.dbNuvem) return window.dbNuvem;
-    if (window.supabaseClient) return window.supabaseClient;
-    if (typeof supabase !== 'undefined') {
+  function obterClienteSupabase() {
+    if (typeof dbNuvem !== 'undefined' && dbNuvem) return dbNuvem;
+    if (typeof supabaseClient !== 'undefined' && supabaseClient) return supabaseClient;
+    if (typeof supabase !== 'undefined' && supabase.createClient) {
       window.dbNuvem = supabase.createClient(
         "https://rcpgukslnlfptreiusff.supabase.co",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
       );
       return window.dbNuvem;
     }
@@ -181,77 +180,91 @@
   }
 
   async function carregarListasFormManutencao() {
-    const client = obterConexaoSupabase();
+    const client = obterClienteSupabase();
     if (!client) {
-      console.error("Cliente Supabase não encontrado.");
+      console.error("Supabase client indisponível no formulário.");
       return;
     }
 
+    // 1. CARREGAR VIATURAS
     try {
-      // 1. Viaturas
       const { data: viaturas, error: errViat } = await client
         .from('operacional_viaturas')
-        .select('*')
-        .order('prefixo', { ascending: true });
+        .select('*');
 
       const selectViat = document.getElementById('m_viatura_id');
+      if (errViat) throw errViat;
+
       if (viaturas && viaturas.length > 0) {
         selectViat.innerHTML = '<option value="">-- Selecione a Viatura --</option>';
         viaturas.forEach(v => {
-          const pref = v.prefixo || 'Viatura';
+          const pref = v.prefixo || v.nome || v.identificacao || 'Viatura';
           const mod = v.modelo || '';
           const plc = v.placa ? ` (${v.placa})` : '';
-          selectViat.innerHTML += `<option value="${v.id}">${pref} - ${mod}${plc}</option>`;
+          selectViat.innerHTML += `<option value="${v.id}">${pref} ${mod} ${plc}</option>`;
         });
       } else {
-        selectViat.innerHTML = '<option value="">Nenhuma viatura encontrada</option>';
+        selectViat.innerHTML = '<option value="">Nenhuma viatura cadastrada</option>';
       }
+    } catch (e) {
+      console.error("Erro ao buscar viaturas:", e);
+      document.getElementById('m_viatura_id').innerHTML = `<option value="">Erro ao carregar: ${e.message || 'Tabela inacessível'}</option>`;
+    }
 
-      // 2. Oficinas (Ativas)
+    // 2. CARREGAR OFICINAS
+    try {
       const { data: oficinas, error: errOfic } = await client
         .from('operacional_oficinas')
-        .select('*')
-        .order('razao_social', { ascending: true });
+        .select('*');
 
       const selectOfic = document.getElementById('m_oficina_id');
+      if (errOfic) throw errOfic;
+
       if (oficinas && oficinas.length > 0) {
-        selectOfic.innerHTML = '<option value="">-- Selecione a Oficina --</option>';
+        selectOfic.innerHTML = '<option value="">-- Selecione a Oficina Credenciada --</option>';
         oficinas.forEach(o => {
           if (o.status !== 'INATIVO') {
-            const nomeExibicao = o.nome_fantasia || o.razao_social || 'Oficina';
+            const nomeExibicao = o.razao_social || o.nome_fantasia || o.nome || 'Oficina';
             selectOfic.innerHTML += `<option value="${o.id}">${nomeExibicao}</option>`;
           }
         });
       } else {
-        selectOfic.innerHTML = '<option value="">Nenhuma oficina ativa encontrada</option>';
+        selectOfic.innerHTML = '<option value="">Nenhuma oficina cadastrada</option>';
       }
+    } catch (e) {
+      console.error("Erro ao buscar oficinas:", e);
+      document.getElementById('m_oficina_id').innerHTML = `<option value="">Erro ao carregar: ${e.message || 'Tabela inacessível'}</option>`;
+    }
 
-      // 3. Colaboradores
+    // 3. CARREGAR COLABORADORES
+    try {
       const { data: colaboradores, error: errColab } = await client
         .from('colaboradores')
-        .select('*')
-        .order('nome', { ascending: true });
+        .select('*');
 
       const selectColab = document.getElementById('m_colaborador_id');
+      if (errColab) throw errColab;
+
       if (colaboradores && colaboradores.length > 0) {
-        selectColab.innerHTML = '<option value="">-- Selecione o Condutor/Responsável --</option>';
+        selectColab.innerHTML = '<option value="">-- Selecione o Responsável --</option>';
         colaboradores.forEach(c => {
           if (c.status !== 'DESLIGADO' && c.status_admin !== 'DESLIGADO') {
+            const nome = c.nome || c.nome_completo || 'Servidor';
             const func = c.funcao ? ` (${c.funcao})` : '';
-            selectColab.innerHTML += `<option value="${c.id}">${c.nome}${func}</option>`;
+            selectColab.innerHTML += `<option value="${c.id}">${nome}${func}</option>`;
           }
         });
       } else {
-        selectColab.innerHTML = '<option value="">Nenhum servidor encontrado</option>';
+        selectColab.innerHTML = '<option value="">Nenhum colaborador cadastrado</option>';
       }
-
-    } catch (err) {
-      console.error("Erro ao carregar seletores no formulário de manutenção:", err);
+    } catch (e) {
+      console.error("Erro ao buscar colaboradores:", e);
+      document.getElementById('m_colaborador_id').innerHTML = `<option value="">Erro ao carregar: ${e.message || 'Tabela inacessível'}</option>`;
     }
   }
 
   async function carregarHistoricoManutencao() {
-    const client = obterConexaoSupabase();
+    const client = obterClienteSupabase();
     const viaturaId = document.getElementById('m_viatura_id').value;
     const tbody = document.getElementById('tbodyHistManut');
 
@@ -260,14 +273,14 @@
       return;
     }
 
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px;">Buscando histórico da viatura...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px;">Buscando histórico...</td></tr>';
 
     try {
       const { data, error } = await client
         .from('operacional_manutencoes')
         .select('*')
         .eq('viatura_id', viaturaId)
-        .order('data_registro', { ascending: false });
+        .order('id', { ascending: false });
 
       if (error) throw error;
 
@@ -298,9 +311,9 @@
 
   async function salvarManutencaoLivro(e) {
     e.preventDefault();
-    const client = obterConexaoSupabase();
+    const client = obterClienteSupabase();
     if (!client) {
-      alert("❌ Falha na conexão com o banco de dados.");
+      alert("❌ Falha na conexão com o Supabase.");
       return;
     }
 
@@ -336,10 +349,10 @@
     }
   }
 
-  // Executa imediatamente ao inserir no DOM
-  (function inicializarModuloManutencao() {
+  // Execução com Retry / Delay para garantir que o contêiner e o script do Supabase estejam prontos
+  setTimeout(function() {
     const elData = document.getElementById('m_data_exec');
     if (elData) elData.value = new Date().toISOString().split('T')[0];
     carregarListasFormManutencao();
-  })();
+  }, 100);
 </script>
