@@ -36,6 +36,38 @@
     header .header-info h1 { font-size: 1rem; font-weight: 800; text-transform: uppercase; color: #fff; }
     header .header-info p { font-size: 0.65rem; color: #94a3b8; font-weight: 600; }
 
+    /* ESTILO DO INDICADOR OFFLINE / ONLINE NO TOPO */
+    .status-sync-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge-sync-status {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.62rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .badge-sync-status.online { background: #16a34a; color: #ffffff; }
+    .badge-sync-status.offline { background: #ea580c; color: #ffffff; animation: alertPulse 1.5s infinite alternate; }
+    .btn-manual-sync {
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.62rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: none;
+    }
+
     .card {
       background: var(--card-bg);
       border-radius: 6px;
@@ -269,7 +301,7 @@
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
       html, body { width: 100%; height: 100%; background: #fff !important; padding: 0 !important; margin: 0 !important; color: #000000 !important; font-size: 6pt !important; line-height: 1.1; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; text-rendering: optimizeLegibility !important; }
-      .btn-submit, .btn-search, .btn-reabrir-historico, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .modal-med-overlay, .modal-auth-overlay, .modal-alergia-overlay, .vitima-selector-bar, button, script { display: none !important; }
+      .btn-submit, .btn-search, .btn-reabrir-historico, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .modal-med-overlay, .modal-auth-overlay, .modal-alergia-overlay, .vitima-selector-bar, .status-sync-bar, button, script { display: none !important; }
       select, input[type="time"], input[type="date"] { -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background: transparent !important; background-image: none !important; }
       input[type="time"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-inner-spin-button, input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; -webkit-appearance: none !important; }
       header { background: #fff !important; color: #000000 !important; border-bottom: 1.5pt solid #000000; padding: 1px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-content: space-between !important; align-items: center !important; }
@@ -317,7 +349,11 @@
 <body>
 
   <header>
-    <img src="logo.png" alt="SAMU Logo" onerror="this.style.display='none'">
+    <div class="status-sync-bar">
+      <img src="logo.png" alt="SAMU Logo" onerror="this.style.display='none'">
+      <div id="badgeSyncStatus" class="badge-sync-status online">🟢 ONLINE</div>
+      <button type="button" id="btnManualSync" class="btn-manual-sync" onclick="sincronizarFichasPendentesOffline()">📲 Sincronizar</button>
+    </div>
     <div class="header-info">
       <h1>SAMU 192 - ORLEANS / SC</h1>
       <p>FICHA DE ATENDIMENTO MÓVEL DE URGÊNCIA (USB 11)</p>
@@ -961,6 +997,88 @@
     const COLABORADORES_FALLBACK = [
       { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "", senha: "" }
     ];
+
+    /* MONITOR E ATUALIZADOR DE STATUS OFFLINE / ONLINE */
+    function atualizarStatusVisualFila() {
+      const badge = document.getElementById('badgeSyncStatus');
+      const btnSync = document.getElementById('btnManualSync');
+      const filaRaw = localStorage.getItem('aph_fila_pendentes_offline') || '[]';
+      
+      let fila = [];
+      try { fila = JSON.parse(filaRaw); } catch(e) { fila = []; }
+
+      const qtdPendentes = fila.length;
+
+      if (qtdPendentes > 0) {
+        badge.className = "badge-sync-status offline";
+        badge.innerText = `🟠 OFFLINE (${qtdPendentes} PENDENTE${qtdPendentes > 1 ? 'S' : ''})`;
+        btnSync.style.display = "inline-block";
+        btnSync.innerText = `📲 Sincronizar (${qtdPendentes})`;
+      } else {
+        badge.className = "badge-sync-status online";
+        badge.innerText = "🟢 ONLINE";
+        btnSync.style.display = "none";
+      }
+    }
+
+    /* RECEPTOR DE CONEXÃO: ENVIAR FICHAS PENDENTES DA MEMÓRIA LOCAL */
+    window.addEventListener('online', () => {
+      console.log("📶 Conexão detectada! Sincronizando fila de fichas offline...");
+      sincronizarFichasPendentesOffline();
+    });
+
+    window.addEventListener('offline', () => {
+      atualizarStatusVisualFila();
+    });
+
+    async function sincronizarFichasPendentesOffline() {
+      const filaRaw = localStorage.getItem('aph_fila_pendentes_offline');
+      if (!filaRaw) {
+        atualizarStatusVisualFila();
+        return;
+      }
+
+      let fila = [];
+      try { fila = JSON.parse(filaRaw); } catch(e) { fila = []; }
+
+      if (!Array.isArray(fila) || fila.length === 0) {
+        atualizarStatusVisualFila();
+        return;
+      }
+
+      let enviadasComSucesso = 0;
+      const novaFila = [];
+
+      for (const itemPayload of fila) {
+        try {
+          if (_supabase && navigator.onLine) {
+            const { error } = await _supabase
+              .from('ocorrencias_aph')
+              .upsert([itemPayload], { onConflict: 'codigo_ocorrencia' });
+
+            if (!error) {
+              enviadasComSucesso++;
+              if (itemPayload.insumos_utilizados) {
+                await processarBaixaEstoqueELacres(itemPayload.insumos_utilizados, itemPayload.codigo_ocorrencia);
+              }
+            } else {
+              novaFila.push(itemPayload);
+            }
+          } else {
+            novaFila.push(itemPayload);
+          }
+        } catch (e) {
+          novaFila.push(itemPayload);
+        }
+      }
+
+      localStorage.setItem('aph_fila_pendentes_offline', JSON.stringify(novaFila));
+      atualizarStatusVisualFila();
+
+      if (enviadasComSucesso > 0) {
+        alert(`📶 SINCRONIZAÇÃO APH: ${enviadasComSucesso} ficha(s) salvas offline foram enviadas com sucesso para a base de dados!`);
+      }
+    }
 
     /* AVISO SONORO E POPUP EM TELA CHEIA PARA ALERTA DE ALERGIA */
     function tocarAlertaSonoroAlergia() {
@@ -2111,6 +2229,12 @@
 
       addMedRow();
       ajustarExibicaoAssinaturasImpressao();
+
+      // Checar status da fila no tablet e tentar sincronizar se tiver internet
+      atualizarStatusVisualFila();
+      if (navigator.onLine) {
+        sincronizarFichasPendentesOffline();
+      }
     }
 
     function addSvRow(isFirst = false, dataObj = null) {
@@ -2514,10 +2638,13 @@
       }
     }
 
-    /* SALVAMENTO COMPLETO DE FICHA (100% DOS CAMPOS) */
+    /* SALVAMENTO COMPLETO DE FICHA COM SUPORTE OFFLINE & FILA DE ESPERA */
     async function salvarFichaOcorrenciaAPH() {
+      let payloadOcorrencia = null;
+      let insumosPayload = [];
+
       try {
-        const insumosPayload = obterInsumosUtilizadosPayload();
+        insumosPayload = obterInsumosUtilizadosPayload();
         const sinaisVitaisPayload = obterSinaisVitaisPayload();
         const lesoesPayload = obterLesoesExposicaoPayload();
 
@@ -2538,37 +2665,36 @@
 
         const cpfPacienteRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
 
-        // 1. Atualizar Paciente na Tabela 'pacientes' (incluindo o status de alergia)
-        if (cpfPacienteRaw.length === 11) {
-          const payloadPaciente = {
-            cpf: cpfPacienteRaw,
-            nome: document.getElementById('paciente').value.toUpperCase(),
-            cns: document.getElementById('cns_paciente').value.replace(/\D/g, ""),
-            idade: parseInt(document.getElementById('idade').value) || null,
-            sexo: document.getElementById('sexo').value,
-            telefone: document.getElementById('telefone').value,
-            cep: document.getElementById('cep_paciente').value,
-            rua: document.getElementById('rua').value.toUpperCase(),
-            numero: document.getElementById('numero').value.toUpperCase(),
-            bairro: document.getElementById('bairro').value.toUpperCase(),
-            municipio: document.getElementById('municipio').value.toUpperCase(),
-            estado: document.getElementById('estado').value.toUpperCase(),
-            alergia_select: document.getElementById('alergia_select').value,
-            alergia_desc: document.getElementById('alergia_desc').value,
-            updated_at: new Date().toISOString()
-          };
-
-          if (_supabase) {
+        // 1. Tentar Atualizar Cadastro de Pacientes no Banco se estivar Online
+        if (cpfPacienteRaw.length === 11 && navigator.onLine && _supabase) {
+          try {
+            const payloadPaciente = {
+              cpf: cpfPacienteRaw,
+              nome: document.getElementById('paciente').value.toUpperCase(),
+              cns: document.getElementById('cns_paciente').value.replace(/\D/g, ""),
+              idade: parseInt(document.getElementById('idade').value) || null,
+              sexo: document.getElementById('sexo').value,
+              telefone: document.getElementById('telefone').value,
+              cep: document.getElementById('cep_paciente').value,
+              rua: document.getElementById('rua').value.toUpperCase(),
+              numero: document.getElementById('numero').value.toUpperCase(),
+              bairro: document.getElementById('bairro').value.toUpperCase(),
+              municipio: document.getElementById('municipio').value.toUpperCase(),
+              estado: document.getElementById('estado').value.toUpperCase(),
+              alergia_select: document.getElementById('alergia_select').value,
+              alergia_desc: document.getElementById('alergia_desc').value,
+              updated_at: new Date().toISOString()
+            };
             await _supabase.from('pacientes').upsert([payloadPaciente], { onConflict: 'cpf' });
-          }
+          } catch(e) {}
         }
 
         // Capturar Assinatura em Base64
         const canvasEl = document.getElementById('sig-canvas');
         const assinaturaBase64 = canvasEl ? canvasEl.toDataURL() : null;
 
-        // 2. Gravar Ocorrência APH em 'ocorrencias_aph'
-        const payloadOcorrencia = {
+        // 2. Montar Estrutura da Ocorrência
+        payloadOcorrencia = {
           codigo_ocorrencia: codFinalOcorrencia,
           cor_ocorrencia: document.getElementById('cor_ocorrencia').value,
           reclassificacao_codigo: document.getElementById('reclassificacao_codigo').value,
@@ -2590,7 +2716,6 @@
           estado: document.getElementById('estado').value,
           tipo_ocorrencia: tipoOcorrenciaVal,
           
-          // ABCDE
           vias_aereas: document.getElementById('vias_aereas').value,
           respiracao: document.getElementById('respiracao').value,
           circulacao: document.getElementById('circulacao').value,
@@ -2601,16 +2726,13 @@
           glasgow_total: (parseInt(document.getElementById('g_oc').value) || 0) + (parseInt(document.getElementById('g_verb').value) || 0) + (parseInt(document.getElementById('g_mot').value) || 0),
           lesoes_exposicao: lesoesPayload,
 
-          // Biossegurança
           bio_suspeita: bioSuspeita,
           bio_tipo_agente: bioTipoAgente,
           bio_desinfeccao: bioDesinfeccao,
 
-          // Sinais Vitais & Insumos
           sinais_vitais: sinaisVitaisPayload,
           insumos_utilizados: insumosPayload,
 
-          // Anamnese
           alergia_select: document.getElementById('alergia_select').value,
           alergia_desc: document.getElementById('alergia_desc').value,
           med_continua_select: document.getElementById('med_continua_select').value,
@@ -2618,7 +2740,6 @@
           evolucao_texto: document.getElementById('evolucao_texto').value,
           hospital_destino: hospitalFinal,
 
-          // Desfecho & Recusa
           desfecho_vitima: document.getElementById('desfecho_vitima').value,
           houve_recusa: document.getElementById('houve_recusa').value,
           tipo_assinante: document.getElementById('tipo_assinante').value,
@@ -2627,7 +2748,6 @@
           tel_assinante: document.getElementById('tel_assinante').value,
           assinatura_base64: assinaturaBase64,
 
-          // Horários Táticos J
           hora_j9: document.getElementById('horaJ9').value,
           hora_j10: document.getElementById('horaJ10').value,
           hora_qta: document.getElementById('horaQTA').value,
@@ -2638,19 +2758,38 @@
           updated_at: new Date().toISOString()
         };
 
-        if (_supabase) {
+        // TENTAR GRAVAR DIRETO NO SUPABASE
+        if (navigator.onLine && _supabase) {
           const { error } = await _supabase
             .from('ocorrencias_aph')
             .upsert([payloadOcorrencia], { onConflict: 'codigo_ocorrencia' });
 
           if (error) {
-            alert("Erro ao gravar APH no Supabase: " + error.message);
+            throw error;
           } else {
             await processarBaixaEstoqueELacres(insumosPayload, payloadOcorrencia.codigo_ocorrencia);
+            atualizarStatusVisualFila();
           }
+        } else {
+          throw new Error("SEM_CONEXAO");
         }
+
       } catch (err) {
-        alert("Falha no salvamento da ocorrência APH.");
+        // ENTRADA NA FILA OFFLINE DO TABLET SE ESTIVER SEM SINAL
+        if (payloadOcorrencia) {
+          console.warn("Sem sinal/erro de rede. Armazenando prontuário na fila offline do dispositivo...");
+          const filaRaw = localStorage.getItem('aph_fila_pendentes_offline') || '[]';
+          let fila = [];
+          try { fila = JSON.parse(filaRaw); } catch(e) { fila = []; }
+
+          const idxExistente = fila.findIndex(f => f.codigo_ocorrencia === payloadOcorrencia.codigo_ocorrencia);
+          if (idxExistente >= 0) fila[idxExistente] = payloadOcorrencia;
+          else fila.push(payloadOcorrencia);
+
+          localStorage.setItem('aph_fila_pendentes_offline', JSON.stringify(fila));
+          atualizarStatusVisualFila();
+          alert("⚠️ FICHA SALVA NA MEMÓRIA LOCAL (OFFLINE)!\n\nO equipamento está sem conexão no momento. A ficha e as baixas de insumos foram gravadas localmente e serão descarregadas no Supabase assim que houver sinal de internet.");
+        }
       }
     }
 
