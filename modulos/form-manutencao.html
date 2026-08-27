@@ -124,48 +124,6 @@
 </div>
 
 <script>
-  window.alternarAbaManut = function(modo) {
-    document.getElementById('m_modo_registro').value = modo;
-
-    const btnExec = document.getElementById('btnAbaExec');
-    const btnAgend = document.getElementById('btnAbaAgend');
-    const boxExec = document.getElementById('boxDataExec');
-    const boxAgend = document.getElementById('boxDataAgend');
-    const boxNF = document.getElementById('boxNF');
-    const boxValor = document.getElementById('boxValor');
-    const boxEmail = document.getElementById('boxEmail');
-
-    if (modo === 'EXECUTADO') {
-      btnExec.style.background = '#002b49';
-      btnExec.style.color = 'white';
-      btnExec.style.borderColor = '#002b49';
-
-      btnAgend.style.background = '#f8fafc';
-      btnAgend.style.color = '#002b49';
-      btnAgend.style.borderColor = '#cbd5e1';
-
-      boxExec.style.display = 'flex';
-      boxAgend.style.display = 'none';
-      boxNF.style.display = 'flex';
-      boxValor.style.display = 'flex';
-      boxEmail.style.display = 'none';
-    } else {
-      btnAgend.style.background = '#002b49';
-      btnAgend.style.color = 'white';
-      btnAgend.style.borderColor = '#002b49';
-
-      btnExec.style.background = '#f8fafc';
-      btnExec.style.color = '#002b49';
-      btnExec.style.borderColor = '#cbd5e1';
-
-      boxExec.style.display = 'none';
-      boxAgend.style.display = 'flex';
-      boxNF.style.display = 'none';
-      boxValor.style.display = 'none';
-      boxEmail.style.display = 'flex';
-    }
-  };
-
   window.iniciarModuloManutencao = async function() {
     const client = window.dbNuvem || window.supabaseClient;
     if (!client) return;
@@ -173,7 +131,7 @@
     const elData = document.getElementById('m_data_exec');
     if (elData) elData.value = new Date().toISOString().split('T')[0];
 
-    // 1. VIATURAS
+    // 1. CARREGAR VIATURAS
     try {
       const { data: viaturas } = await client.from('operacional_viaturas').select('*');
       const selectViat = document.getElementById('m_viatura_id');
@@ -186,9 +144,11 @@
           selectViat.innerHTML += `<option value="${v.id}">${pref} ${mod} ${plc}</option>`;
         });
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error("Erro viaturas:", e);
+    }
 
-    // 2. OFICINAS
+    // 2. CARREGAR OFICINAS
     try {
       const { data: oficinas } = await client.from('operacional_oficinas').select('*');
       const selectOfic = document.getElementById('m_oficina_id');
@@ -196,14 +156,16 @@
         selectOfic.innerHTML = '<option value="">-- Selecione a Oficina Credenciada --</option>';
         oficinas.forEach(o => {
           if (o.status !== 'INATIVO') {
-            const nomeExibicao = o.razao_social || o.nome_fantasia || 'Oficina';
+            const nomeExibicao = o.razao_social || o.nome_fantasia || o.nome || 'Oficina';
             selectOfic.innerHTML += `<option value="${o.id}">${nomeExibicao}</option>`;
           }
         });
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error("Erro oficinas:", e);
+    }
 
-    // 3. COLABORADORES
+    // 3. CARREGAR COLABORADORES
     try {
       const { data: colaboradores } = await client.from('colaboradores').select('*');
       const selectColab = document.getElementById('m_colaborador_id');
@@ -217,7 +179,9 @@
           }
         });
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error("Erro colaboradores:", e);
+    }
   };
 
   window.carregarHistoricoManutencao = async function() {
@@ -234,7 +198,7 @@
 
     try {
       const { data } = await client
-        .from('operacional_manutencoes')
+        .from('operacional_manutencoes_livro')
         .select('*')
         .eq('viatura_id', viaturaId)
         .order('id', { ascending: false });
@@ -242,15 +206,15 @@
       if (data && data.length > 0) {
         tbody.innerHTML = '';
         data.forEach(m => {
-          const dt = m.data_registro ? new Date(m.data_registro).toLocaleDateString('pt-BR') : '—';
-          const statusCor = m.status === 'CONCLUIDO' ? '#15803d' : '#b45309';
+          const dt = m.data_manutencao || m.data_agendada || m.data_registro || '—';
+          const statusCor = m.status === 'AGENDADO' ? '#b45309' : '#15803d';
 
           tbody.innerHTML += `
             <tr style="border-bottom: 1px solid #e2e8f0;">
               <td style="padding: 8px; font-weight: 700;">${dt}</td>
               <td style="padding: 8px;">${m.tipo_manutencao || '—'}</td>
-              <td style="padding: 8px;">${m.km_registro || '—'} KM</td>
-              <td style="padding: 8px;">${m.oficina_nome || '—'}</td>
+              <td style="padding: 8px;">${m.km_no_servico || m.km_registro || '—'} KM</td>
+              <td style="padding: 8px;">${m.oficina_prestador || m.oficina_nome || '—'}</td>
               <td style="padding: 8px;">${m.servicos_executados || '—'}</td>
               <td style="padding: 8px; font-weight: 800; color: ${statusCor};">${m.status || 'CONCLUIDO'}</td>
             </tr>
@@ -264,43 +228,8 @@
     }
   };
 
-  window.salvarManutencaoLivro = async function(e) {
-    e.preventDefault();
-    const client = window.dbNuvem || window.supabaseClient;
-    if (!client) {
-      alert("❌ Falha na conexão com o Supabase.");
-      return;
-    }
-
-    const modo = document.getElementById('m_modo_registro').value;
-    const selectOfic = document.getElementById('m_oficina_id');
-    const oficinaTexto = selectOfic.options[selectOfic.selectedIndex] ? selectOfic.options[selectOfic.selectedIndex].text : '';
-
-    const payload = {
-      viatura_id: document.getElementById('m_viatura_id').value,
-      oficina_id: selectOfic.value,
-      oficina_nome: oficinaTexto,
-      colaborador_id: document.getElementById('m_colaborador_id').value,
-      km_registro: parseInt(document.getElementById('m_km').value) || 0,
-      tipo_manutencao: document.getElementById('m_tipo').value,
-      servicos_executados: document.getElementById('m_servicos').value.trim(),
-      data_registro: modo === 'EXECUTADO' ? document.getElementById('m_data_exec').value : document.getElementById('m_data_agend').value,
-      nota_fiscal: document.getElementById('m_nf').value.trim(),
-      valor_total: parseFloat(document.getElementById('m_valor').value) || 0,
-      email_lembrete: document.getElementById('m_email').value.trim(),
-      status: modo === 'EXECUTADO' ? 'CONCLUIDO' : 'AGENDADO'
-    };
-
-    try {
-      const { error } = await client.from('operacional_manutencoes').insert([payload]);
-      if (error) throw error;
-
-      alert("✅ Manutenção registrada com sucesso no Livro Digital!");
-      document.getElementById('formManutAcao').reset();
-      document.getElementById('m_data_exec').value = new Date().toISOString().split('T')[0];
-      window.carregarHistoricoManutencao();
-    } catch (err) {
-      alert("❌ Erro ao salvar manutenção: " + err.message);
-    }
-  };
+  // Executa imediatamente caso o script seja injetado no DOM
+  if (typeof window.iniciarModuloManutencao === 'function') {
+    window.iniciarModuloManutencao();
+  }
 </script>
