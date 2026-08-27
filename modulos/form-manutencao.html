@@ -186,7 +186,8 @@
           const pref = v.prefixo || v.nome || 'Viatura';
           const mod = v.modelo || '';
           const plc = v.placa ? ` (${v.placa})` : '';
-          selectViat.innerHTML += `<option value="${v.id}">${pref} ${mod} ${plc}</option>`;
+          const textoCompleto = `${pref} ${mod} ${plc}`.trim();
+          selectViat.innerHTML += `<option value="${v.id}">${textoCompleto}</option>`;
         });
       }
     } catch (e) {}
@@ -199,7 +200,7 @@
         oficinas.forEach(o => {
           if (o.status !== 'INATIVO') {
             const nomeExibicao = o.razao_social || o.nome_fantasia || o.nome || 'Oficina';
-            selectOfic.innerHTML += `<option value="${o.id}">${nomeExibicao}</option>`;
+            selectOfic.innerHTML += `<option value="${nomeExibicao}">${nomeExibicao}</option>`;
           }
         });
       }
@@ -214,11 +215,61 @@
           if (c.status !== 'DESLIGADO' && c.status_admin !== 'DESLIGADO') {
             const nome = c.nome || c.nome_completo || 'Servidor';
             const func = c.funcao ? ` (${c.funcao})` : '';
-            selectColab.innerHTML += `<option value="${c.id}">${nome}${func}</option>`;
+            selectColab.innerHTML += `<option value="${nome}">${nome}${func}</option>`;
           }
         });
       }
     } catch (e) {}
+  };
+
+  window.carregarHistoricoManutencao = async function() {
+    const client = window.dbNuvem || window.supabaseClient;
+    const selectViat = document.getElementById('m_viatura_id');
+    const tbody = document.getElementById('tbodyHistManut');
+
+    if (!selectViat || !selectViat.value) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px;">Selecione uma viatura para visualizar o histórico.</td></tr>';
+      return;
+    }
+
+    const textoViatura = selectViat.options[selectViat.selectedIndex].text;
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px;">Buscando histórico...</td></tr>';
+
+    try {
+      const { data, error } = await client
+        .from('operacional_manutencoes_livro')
+        .select('*')
+        .eq('viatura', textoViatura)
+        .order('id', { ascending: false });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        tbody.innerHTML = '';
+        data.forEach(m => {
+          const dt = m.data_manutencao || m.data_agendada || (m.created_at ? m.created_at.split('T')[0] : '—');
+          const statusBadge = m.status === 'AGENDADO' 
+            ? '<span style="background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 4px; font-weight: bold;">📅 AGENDADO</span>' 
+            : '<span style="background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px; font-weight: bold;">✅ EXECUTADO</span>';
+
+          tbody.innerHTML += `
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 8px; font-weight: 700;">${dt}</td>
+              <td style="padding: 8px;">${m.tipo_manutencao || '—'}</td>
+              <td style="padding: 8px;">${m.km_no_servico || '—'} KM</td>
+              <td style="padding: 8px;">${m.oficina_prestador || '—'}</td>
+              <td style="padding: 8px;">${m.servicos_executados || '—'}</td>
+              <td style="padding: 8px;">${statusBadge}</td>
+            </tr>
+          `;
+        });
+      } else {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px;">Nenhuma manutenção registrada para esta viatura.</td></tr>';
+      }
+    } catch (err) {
+      console.error("Erro ao buscar histórico:", err);
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px; color: #d32f2f;">Erro ao consultar histórico.</td></tr>';
+    }
   };
 
   if (typeof window.iniciarModuloManutencao === 'function') {
