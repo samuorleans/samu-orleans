@@ -5,11 +5,11 @@
   </div>
 
   <!-- SELETOR DE MODO (ABAS) -->
-  <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-    <button type="button" id="btnAbaExec" onclick="alternarAbaManut('EXECUTADO')" style="flex: 1; padding: 12px; border: 2px solid #002b49; background: #002b49; color: white; border-radius: 8px; font-weight: 700; cursor: pointer;">
+  <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+    <button type="button" id="btnAbaExec" onclick="alternarAbaManut('EXECUTADO')" style="flex: 1; min-width: 180px; padding: 12px; border: 2px solid #002b49; background: #002b49; color: white; border-radius: 8px; font-weight: 700; cursor: pointer;">
       ✅ Registro de Serviço Executado
     </button>
-    <button type="button" id="btnAbaAgend" onclick="alternarAbaManut('AGENDADO')" style="flex: 1; padding: 12px; border: 2px solid #cbd5e1; background: #f8fafc; color: #002b49; border-radius: 8px; font-weight: 700; cursor: pointer;">
+    <button type="button" id="btnAbaAgend" onclick="alternarAbaManut('AGENDADO')" style="flex: 1; min-width: 180px; padding: 12px; border: 2px solid #cbd5e1; background: #f8fafc; color: #002b49; border-radius: 8px; font-weight: 700; cursor: pointer;">
       📅 Agendar Manutenção / Lembrete
     </button>
   </div>
@@ -19,23 +19,33 @@
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; text-align: left;">
       
+      <!-- SELEÇÃO DE VIATURA (Tabela: operacional_viaturas) -->
+      <div style="display: flex; flex-direction: column;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">VIATURA / AMBULÂNCIA:*</label>
+        <select id="m_viatura_id" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%; font-weight: 600;" onchange="carregarHistoricoManutencao()">
+          <option value="">Consultando viaturas...</option>
+        </select>
+      </div>
+
       <!-- DATA EXECUÇÃO -->
       <div id="boxDataExec" style="display: flex; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">DATA DA MANUTENÇÃO:*</label>
         <input type="date" id="m_data_exec" style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;">
       </div>
 
-      <!-- DATA AGENDADA (AJUSTADA COM O MESMO ESTILO) -->
+      <!-- DATA AGENDADA -->
       <div id="boxDataAgend" style="display: none; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">DATA PREVISTA DO SERVIÇO:*</label>
         <input type="date" id="m_data_agend" style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;">
       </div>
 
+      <!-- KM ATUAL -->
       <div style="display: flex; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">KM ATUAL DA VIATURA:*</label>
         <input type="number" id="m_km" placeholder="Ex: 145200" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;">
       </div>
 
+      <!-- TIPO DE MANUTENÇÃO -->
       <div style="display: flex; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">TIPO DE MANUTENÇÃO:*</label>
         <select id="m_tipo" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;">
@@ -48,9 +58,20 @@
         </select>
       </div>
 
+      <!-- SELEÇÃO DE OFICINA VINCULADA (Tabela: operacional_oficinas) -->
       <div style="display: flex; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">OFICINA / PRESTADOR:*</label>
-        <input type="text" id="m_oficina" placeholder="Ex: Auto Mecânica Central" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;">
+        <select id="m_oficina_id" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%; font-weight: 600;">
+          <option value="">Consultando oficinas ativas...</option>
+        </select>
+      </div>
+
+      <!-- RESPONSÁVEL PELO REGISTRO (Tabela: colaboradores) -->
+      <div style="display: flex; flex-direction: column;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">CONDUTOR / RESPONSÁVEL:*</label>
+        <select id="m_colaborador_id" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;">
+          <option value="">Consultando servidores...</option>
+        </select>
       </div>
 
       <div id="boxNF" style="display: flex; flex-direction: column;">
@@ -82,20 +103,216 @@
   <!-- HISTÓRICO -->
   <div style="margin-top: 25px; border-top: 2px dashed #cbd5e1; padding-top: 15px;">
     <h3 style="color: #002b49; font-size: 0.95rem; margin-bottom: 10px; text-align: left;">📜 Histórico do Livro Digital da Viatura</h3>
-    <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
-      <thead>
-        <tr style="background: #002b49; color: white;">
-          <th style="padding: 6px;">Data</th>
-          <th style="padding: 6px;">Tipo</th>
-          <th style="padding: 6px;">KM</th>
-          <th style="padding: 6px;">Oficina</th>
-          <th style="padding: 6px;">Serviços</th>
-          <th style="padding: 6px;">Status</th>
-        </tr>
-      </thead>
-      <tbody id="tbodyHistManut">
-        <tr><td colspan="6" style="text-align:center; padding: 8px;">Carregando histórico...</td></tr>
-      </tbody>
-    </table>
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
+        <thead>
+          <tr style="background: #002b49; color: white;">
+            <th style="padding: 8px;">Data</th>
+            <th style="padding: 8px;">Tipo</th>
+            <th style="padding: 8px;">KM</th>
+            <th style="padding: 8px;">Oficina</th>
+            <th style="padding: 8px;">Serviços</th>
+            <th style="padding: 8px;">Status</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyHistManut">
+          <tr><td colspan="6" style="text-align:center; padding: 12px;">Selecione uma viatura para visualizar o histórico.</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
+
+<script>
+  // Inicialização no carregamento da página/módulo
+  document.addEventListener("DOMContentLoaded", function() {
+    // Seta data atual por padrão
+    document.getElementById('m_data_exec').value = new Date().toISOString().split('T')[0];
+    
+    // Carrega dados vinculados das tabelas no Supabase
+    carregarListasFormManutencao();
+  });
+
+  // Alterna entre abas Excutado x Agendado
+  function alternarAbaManut(modo) {
+    document.getElementById('m_modo_registro').value = modo;
+
+    const btnExec = document.getElementById('btnAbaExec');
+    const btnAgend = document.getElementById('btnAbaAgend');
+    const boxExec = document.getElementById('boxDataExec');
+    const boxAgend = document.getElementById('boxDataAgend');
+    const boxNF = document.getElementById('boxNF');
+    const boxValor = document.getElementById('boxValor');
+    const boxEmail = document.getElementById('boxEmail');
+
+    if (modo === 'EXECUTADO') {
+      btnExec.style.background = '#002b49';
+      btnExec.style.color = 'white';
+      btnExec.style.borderColor = '#002b49';
+
+      btnAgend.style.background = '#f8fafc';
+      btnAgend.style.color = '#002b49';
+      btnAgend.style.borderColor = '#cbd5e1';
+
+      boxExec.style.display = 'flex';
+      boxAgend.style.display = 'none';
+      boxNF.style.display = 'flex';
+      boxValor.style.display = 'flex';
+      boxEmail.style.display = 'none';
+    } else {
+      btnAgend.style.background = '#002b49';
+      btnAgend.style.color = 'white';
+      btnAgend.style.borderColor = '#002b49';
+
+      btnExec.style.background = '#f8fafc';
+      btnExec.style.color = '#002b49';
+      btnExec.style.borderColor = '#cbd5e1';
+
+      boxExec.style.display = 'none';
+      boxAgend.style.display = 'flex';
+      boxNF.style.display = 'none';
+      boxValor.style.display = 'none';
+      boxEmail.style.display = 'flex';
+    }
+  }
+
+  // Carrega Viaturas, Oficinas (ATIVAS) e Colaboradores do Supabase
+  async function carregarListasFormManutencao() {
+    try {
+      // 1. Carrega Viaturas
+      const { data: viaturas } = await dbNuvem
+        .from('operacional_viaturas')
+        .select('id, prefixo, placa, modelo')
+        .order('prefixo', { ascending: true });
+
+      const selectViat = document.getElementById('m_viatura_id');
+      selectViat.innerHTML = '<option value="">-- Selecione a Viatura --</option>';
+      if (viaturas && viaturas.length > 0) {
+        viaturas.forEach(v => {
+          selectViat.innerHTML += `<option value="${v.id}">${v.prefixo} - ${v.modelo} (${v.placa})</option>`;
+        });
+      }
+
+      // 2. Carrega Oficinas (Somente Ativas)
+      const { data: oficinas } = await dbNuvem
+        .from('operacional_oficinas')
+        .select('id, razao_social, nome_fantasia')
+        .eq('status', 'ATIVO')
+        .order('razao_social', { ascending: true });
+
+      const selectOfic = document.getElementById('m_oficina_id');
+      selectOfic.innerHTML = '<option value="">-- Selecione a Oficina Credenciada --</option>';
+      if (oficinas && oficinas.length > 0) {
+        oficinas.forEach(o => {
+          const nomeExibicao = o.nome_fantasia || o.razao_social;
+          selectOfic.innerHTML += `<option value="${o.id}">${nomeExibicao}</option>`;
+        });
+      }
+
+      // 3. Carrega Colaboradores
+      const { data: colaboradores } = await dbNuvem
+        .from('colaboradores')
+        .select('id, nome, funcao')
+        .neq('status', 'DESLIGADO')
+        .order('nome', { ascending: true });
+
+      const selectColab = document.getElementById('m_colaborador_id');
+      selectColab.innerHTML = '<option value="">-- Selecione o Condutor/Responsável --</option>';
+      if (colaboradores && colaboradores.length > 0) {
+        colaboradores.forEach(c => {
+          selectColab.innerHTML += `<option value="${c.id}">${c.nome} (${c.funcao})</option>`;
+        });
+      }
+
+    } catch (err) {
+      console.error("Erro ao carregar seletores do formulário:", err);
+    }
+  }
+
+  // Busca e exibe o histórico de manutenção da viatura selecionada
+  async function carregarHistoricoManutencao() {
+    const viaturaId = document.getElementById('m_viatura_id').value;
+    const tbody = document.getElementById('tbodyHistManut');
+
+    if (!viaturaId) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px;">Selecione uma viatura para visualizar o histórico.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px;">Buscando histórico da viatura...</td></tr>';
+
+    try {
+      const { data, error } = await dbNuvem
+        .from('operacional_manutencoes')
+        .select(`
+          id,
+          data_registro,
+          tipo_manutencao,
+          km_registro,
+          servicos_executados,
+          status,
+          operacional_oficinas ( razao_social, nome_fantasia )
+        `)
+        .eq('viatura_id', viaturaId)
+        .order('data_registro', { ascending: false });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        tbody.innerHTML = '';
+        data.forEach(m => {
+          const dt = new Date(m.data_registro).toLocaleDateString('pt-BR');
+          const oficinaNome = m.operacional_oficinas ? (m.operacional_oficinas.nome_fantasia || m.operacional_oficinas.razao_social) : '—';
+          const statusCor = m.status === 'CONCLUIDO' ? '#15803d' : '#b45309';
+
+          tbody.innerHTML += `
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 8px; font-weight: 700;">${dt}</td>
+              <td style="padding: 8px;">${m.tipo_manutencao}</td>
+              <td style="padding: 8px;">${m.km_registro || '—'} KM</td>
+              <td style="padding: 8px;">${oficinaNome}</td>
+              <td style="padding: 8px;">${m.servicos_executados || '—'}</td>
+              <td style="padding: 8px; font-weight: 800; color: ${statusCor};">${m.status}</td>
+            </tr>
+          `;
+        });
+      } else {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px;">Nenhuma manutenção registrada para esta viatura.</td></tr>';
+      }
+    } catch (err) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px; color: #d32f2f;">Erro ao consultar histórico.</td></tr>';
+    }
+  }
+
+  // Salva o registro no banco de dados
+  async function salvarManutencaoLivro(e) {
+    e.preventDefault();
+
+    const modo = document.getElementById('m_modo_registro').value;
+    const payload = {
+      viatura_id: document.getElementById('m_viatura_id').value,
+      oficina_id: document.getElementById('m_oficina_id').value,
+      colaborador_id: document.getElementById('m_colaborador_id').value,
+      km_registro: parseInt(document.getElementById('m_km').value) || 0,
+      tipo_manutencao: document.getElementById('m_tipo').value,
+      servicos_executados: document.getElementById('m_servicos').value.trim(),
+      data_registro: modo === 'EXECUTADO' ? document.getElementById('m_data_exec').value : document.getElementById('m_data_agend').value,
+      nota_fiscal: document.getElementById('m_nf').value.trim(),
+      valor_total: parseFloat(document.getElementById('m_valor').value) || 0,
+      email_lembrete: document.getElementById('m_email').value.trim(),
+      status: modo === 'EXECUTADO' ? 'CONCLUIDO' : 'AGENDADO'
+    };
+
+    try {
+      const { error } = await dbNuvem.from('operacional_manutencoes').insert([payload]);
+      if (error) throw error;
+
+      alert("✅ Manutenção registrada com sucesso no Livro Digital!");
+      document.getElementById('formManutAcao').reset();
+      document.getElementById('m_data_exec').value = new Date().toISOString().split('T')[0];
+      carregarHistoricoManutencao();
+    } catch (err) {
+      alert("❌ Erro ao salvar manutenção no banco de dados: " + err.message);
+    }
+  }
+</script>
