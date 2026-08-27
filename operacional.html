@@ -575,6 +575,7 @@
       const payload = {
         viatura: viatura,
         responsavel_registro: profissional,
+        responsavel_lancamento: profissional, // MAPEADO PARA A COLUNA DO BANCO
         status: modo,
         data_manutencao: modo === 'EXECUTADO' ? dataExec : null,
         data_agendada: modo === 'AGENDADO' ? dataAgend : null,
