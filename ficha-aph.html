@@ -244,6 +244,7 @@
       justify-content: center;
       padding: 12px;
       backdrop-filter: blur(3px);
+      pointer-events: auto !important;
     }
 
     .modal-med-container, .modal-auth-container, .modal-alergia-container {
@@ -256,6 +257,7 @@
       flex-direction: column;
       overflow: hidden;
       border: 2px solid var(--primary);
+      pointer-events: auto !important;
     }
 
     .modal-alergia-container { border: 3px solid #dc2626; animation: alertPulse 1s infinite alternate; }
@@ -288,7 +290,7 @@
     .modal-med-list { flex: 1; overflow-y: auto; padding: 4px; max-height: 60vh; }
     .modal-med-item { padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 0.82rem; font-weight: 700; color: #0f172a; cursor: pointer; }
 
-    /* ESTILO REFORÇADO PARA O BOTÃO DE ENTAR NO PLANTÃO J3 */
+    /* BOTÃO DE LOGIN J3 TOTALMENTE DESVINCULADO DO ESTADO LOCKED DO FORM */
     .btn-login-j3-submit {
       width: 100% !important;
       background: #dc2626 !important;
@@ -301,6 +303,7 @@
       cursor: pointer !important;
       text-transform: uppercase !important;
       opacity: 1 !important;
+      filter: none !important;
       pointer-events: auto !important;
       box-shadow: 0 4px 10px rgba(220, 38, 38, 0.4) !important;
       transition: background-color 0.2s ease, transform 0.1s ease !important;
@@ -996,96 +999,6 @@
       </div>
     </div>
 
-    <!-- ESTRUTURA DO POPUP MODAL DE BUSCA DE MEDICAÇÃO -->
-    <div class="modal-med-overlay" id="modalMedOverlay">
-      <div class="modal-med-container">
-        <div class="modal-med-header">
-          <span>🔍 SELEÇÃO DE INSUMO / MEDICAÇÃO</span>
-          <button type="button" class="modal-med-close" onclick="fecharModalBuscaMed()">✕ FECHAR</button>
-        </div>
-        <div class="modal-med-search-box">
-          <input type="text" id="modalMedInput" class="uppercase-input" placeholder="DIGITE NOME, LOTE OU VALIDADE..." oninput="filtrarListaModal(this.value)" onkeyup="filtrarListaModal(this.value)">
-        </div>
-        <div class="modal-med-list" id="modalMedList"></div>
-      </div>
-    </div>
-
-    <!-- MODAL POPUP DE AUTENTICAÇÃO VIA BANCO DE DADOS (COLABORADORES) -->
-    <div class="modal-auth-overlay" id="modalAuthOverlay">
-      <div class="modal-auth-container">
-        <div class="modal-auth-header">
-          <span>🔒 AUTENTICAÇÃO ADMINISTRATIVA / TERCEIROS</span>
-          <button type="button" class="modal-auth-close" onclick="fecharModalAuth()">✕ FECHAR</button>
-        </div>
-        <div style="padding: 15px;">
-          <p style="font-size: 0.75rem; color: #475569; font-weight: 600; margin-bottom: 10px;">
-            Esta ocorrência foi registrada por outro profissional. Para reabrir este prontuário, informe a senha de um usuário com perfil <strong>ADMIN</strong>:
-          </p>
-          <label>SENHA DE ADMINISTRADOR</label>
-          <input type="password" id="auth_pass_input" placeholder="DIGITE SUA SENHA CADASTRADA..." style="padding: 8px; font-size: 0.9rem; margin-bottom: 10px;">
-          <button type="button" onclick="confirmarAutenticacaoEBuscar()" style="width: 100%; background: var(--secondary); color: white; border: none; padding: 10px; border-radius: 4px; font-weight: 800; cursor: pointer;">
-            🔓 CONFIRMAR ACESSO ADMIN
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL TELA CHEIA: ALERTA CRÍTICO DE ALERGIA -->
-    <div class="modal-alergia-overlay" id="modalAlergiaOverlay">
-      <div class="modal-alergia-container">
-        <div class="modal-alergia-header">
-          <span>⚠️ ALERTA CRÍTICO DE SEGURANÇA: PACIENTE ALÉRGICO</span>
-        </div>
-        <div style="padding: 16px; text-align: center;">
-          <div style="font-size: 2rem; margin-bottom: 6px;">🚫🚨</div>
-          <h2 style="color: #991b1b; font-size: 1.1rem; font-weight: 900; margin-bottom: 8px;">ATENÇÃO TÁTICA DA EQUIPE!</h2>
-          <p style="font-size: 0.8rem; color: #0f172a; font-weight: 700; margin-bottom: 10px;">
-            Este paciente possui histórico de <span style="color: #dc2626; text-decoration: underline;">ALERGIA MEDICAMENTOSA</span> registrado em prontuário:
-          </p>
-          <div id="alergia_alerta_texto" style="background: #fef2f2; border: 2px dashed #dc2626; padding: 10px; border-radius: 6px; font-size: 0.95rem; font-weight: 900; color: #991b1b; margin-bottom: 14px;">
-            NENHUMA INFORMADA
-          </div>
-
-          <button type="button" class="btn-alergia-confirm" onclick="confirmarAlergiaTatica(true)">
-            ✅ CONFIRMAR ALERGIA (NÃO ADMINISTRAR MEDICAMENTO)
-          </button>
-
-          <button type="button" class="btn-alergia-negate" onclick="confirmarAlergiaTatica(false)">
-            ❌ NEGA ALERGIA / INFORMAÇÃO DIVERGENTE
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL DE LOGIN J3 / ACESSO OPERACIONAL AUTOMÁTICO -->
-    <div class="modal-auth-overlay" id="modalLoginJ3" style="display: flex;">
-      <div class="modal-auth-container" style="max-width: 380px;">
-        <div class="modal-auth-header" style="background: #1e293b;">
-          <span>🚑 LOGIN DE PLANTÃO J3</span>
-          <button type="button" class="modal-auth-close" id="btnFecharLoginJ3" onclick="fecharLoginJ3()" style="display: none;">✕</button>
-        </div>
-        <div style="padding: 16px;">
-          <p style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 12px; text-align: center;">
-            Informe suas credenciais do J3 para desbloquear a ficha, carregar sua escala e assinar o prontuário APH.
-          </p>
-
-          <div style="margin-bottom: 10px;">
-            <label>USUÁRIO / MATRÍCULA / CPF</label>
-            <input type="text" id="j3_user_input" class="uppercase-input" placeholder="DIGITE SEU USUÁRIO OU CPF" maxlength="18" style="padding: 8px; font-size: 0.85rem;" oninput="mascaraEFormatarLoginUsuario(this)">
-          </div>
-
-          <div style="margin-bottom: 14px;">
-            <label>SENHA J3</label>
-            <input type="password" id="j3_pass_input" placeholder="DIGITE SUA SENHA" style="padding: 8px; font-size: 0.85rem;">
-          </div>
-
-          <button type="button" onclick="autenticarUsuarioJ3()" class="btn-login-j3-submit">
-            🔑 ENTRAR NO PLANTÃO E LIBERAR
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- BLOCO DINÂMICO DE ASSINATURAS PARA IMPRESSÃO -->
     <div class="print-signatures-block" id="printSigBlock">
       <div class="sig-box" id="sigBoxTecnico">
@@ -1104,6 +1017,98 @@
 
     <button type="button" class="btn-submit" id="btnImprimir" disabled>Imprimir Ficha (Vítima 1)</button>
   </form>
+
+  <!-- MODAIS ISOLADOS FORA DO FORMULARIO PARA NUNCA HERDAREM O BLOQUEIO DA FICHA -->
+
+  <!-- ESTRUTURA DO POPUP MODAL DE BUSCA DE MEDICAÇÃO -->
+  <div class="modal-med-overlay" id="modalMedOverlay">
+    <div class="modal-med-container">
+      <div class="modal-med-header">
+        <span>🔍 SELEÇÃO DE INSUMO / MEDICAÇÃO</span>
+        <button type="button" class="modal-med-close" onclick="fecharModalBuscaMed()">✕ FECHAR</button>
+      </div>
+      <div class="modal-med-search-box">
+        <input type="text" id="modalMedInput" class="uppercase-input" placeholder="DIGITE NOME, LOTE OU VALIDADE..." oninput="filtrarListaModal(this.value)" onkeyup="filtrarListaModal(this.value)">
+      </div>
+      <div class="modal-med-list" id="modalMedList"></div>
+    </div>
+  </div>
+
+  <!-- MODAL POPUP DE AUTENTICAÇÃO VIA BANCO DE DADOS (COLABORADORES) -->
+  <div class="modal-auth-overlay" id="modalAuthOverlay">
+    <div class="modal-auth-container">
+      <div class="modal-auth-header">
+        <span>🔒 AUTENTICAÇÃO ADMINISTRATIVA / TERCEIROS</span>
+        <button type="button" class="modal-auth-close" onclick="fecharModalAuth()">✕ FECHAR</button>
+      </div>
+      <div style="padding: 15px;">
+        <p style="font-size: 0.75rem; color: #475569; font-weight: 600; margin-bottom: 10px;">
+          Esta ocorrência foi registrada por outro profissional. Para reabrir este prontuário, informe a senha de um usuário com perfil <strong>ADMIN</strong>:
+        </p>
+        <label>SENHA DE ADMINISTRADOR</label>
+        <input type="password" id="auth_pass_input" placeholder="DIGITE SUA SENHA CADASTRADA..." style="padding: 8px; font-size: 0.9rem; margin-bottom: 10px;">
+        <button type="button" onclick="confirmarAutenticacaoEBuscar()" style="width: 100%; background: var(--secondary); color: white; border: none; padding: 10px; border-radius: 4px; font-weight: 800; cursor: pointer;">
+          🔓 CONFIRMAR ACESSO ADMIN
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL TELA CHEIA: ALERTA CRÍTICO DE ALERGIA -->
+  <div class="modal-alergia-overlay" id="modalAlergiaOverlay">
+    <div class="modal-alergia-container">
+      <div class="modal-alergia-header">
+        <span>⚠️ ALERTA CRÍTICO DE SEGURANÇA: PACIENTE ALÉRGICO</span>
+      </div>
+      <div style="padding: 16px; text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 6px;">🚫🚨</div>
+        <h2 style="color: #991b1b; font-size: 1.1rem; font-weight: 900; margin-bottom: 8px;">ATENÇÃO TÁTICA DA EQUIPE!</h2>
+        <p style="font-size: 0.8rem; color: #0f172a; font-weight: 700; margin-bottom: 10px;">
+          Este paciente possui histórico de <span style="color: #dc2626; text-decoration: underline;">ALERGIA MEDICAMENTOSA</span> registrado em prontuário:
+        </p>
+        <div id="alergia_alerta_texto" style="background: #fef2f2; border: 2px dashed #dc2626; padding: 10px; border-radius: 6px; font-size: 0.95rem; font-weight: 900; color: #991b1b; margin-bottom: 14px;">
+          NENHUMA INFORMADA
+        </div>
+
+        <button type="button" class="btn-alergia-confirm" onclick="confirmarAlergiaTatica(true)">
+          ✅ CONFIRMAR ALERGIA (NÃO ADMINISTRAR MEDICAMENTO)
+        </button>
+
+        <button type="button" class="btn-alergia-negate" onclick="confirmarAlergiaTatica(false)">
+          ❌ NEGA ALERGIA / INFORMAÇÃO DIVERGENTE
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE LOGIN J3 / ACESSO OPERACIONAL AUTOMÁTICO -->
+  <div class="modal-auth-overlay" id="modalLoginJ3" style="display: flex;">
+    <div class="modal-auth-container" style="max-width: 380px;">
+      <div class="modal-auth-header" style="background: #1e293b;">
+        <span>🚑 LOGIN DE PLANTÃO J3</span>
+        <button type="button" class="modal-auth-close" id="btnFecharLoginJ3" onclick="fecharLoginJ3()" style="display: none;">✕</button>
+      </div>
+      <div style="padding: 16px;">
+        <p style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 12px; text-align: center;">
+          Informe suas credenciais do J3 para desbloquear a ficha, carregar sua escala e assinar o prontuário APH.
+        </p>
+
+        <div style="margin-bottom: 10px;">
+          <label>USUÁRIO / MATRÍCULA / CPF</label>
+          <input type="text" id="j3_user_input" class="uppercase-input" placeholder="DIGITE SEU USUÁRIO OU CPF" maxlength="18" style="padding: 8px; font-size: 0.85rem;" oninput="mascaraEFormatarLoginUsuario(this)">
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label>SENHA J3</label>
+          <input type="password" id="j3_pass_input" placeholder="DIGITE SUA SENHA" style="padding: 8px; font-size: 0.85rem;">
+        </div>
+
+        <button type="button" onclick="autenticarUsuarioJ3()" class="btn-login-j3-submit">
+          🔑 ENTRAR NO PLANTÃO E LIBERAR
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script>
     if ('serviceWorker' in navigator) {
@@ -1142,7 +1147,6 @@
       let val = input.value;
       let soNumeros = val.replace(/\D/g, "");
 
-      // Se contém apenas números e atingiu até 11 dígitos, formata como CPF
       if (soNumeros.length > 0 && val.replace(/[.\-]/g, "").match(/^\d+$/)) {
         if (soNumeros.length > 11) soNumeros = soNumeros.slice(0, 11);
         
@@ -1174,7 +1178,6 @@
       document.getElementById('j3_user_input').value = '';
       document.getElementById('j3_pass_input').value = '';
       
-      // Oculta a tela de bloqueio do fundo para focar na digitação do modal
       document.getElementById('formLockedOverlay').style.display = 'none';
       
       document.getElementById('modalLoginJ3').style.display = 'flex';
@@ -1209,7 +1212,6 @@
         let colabEncontrado = null;
 
         if (_supabase && navigator.onLine) {
-          // Busca ampla por nome, CPF formatado ou CPF apenas números
           let query = _supabase.from('colaboradores').select('*');
           if (apenasNumeros.length >= 11) {
             query = query.or(`cpf.ilike.%${apenasNumeros}%,cpf.ilike.%${cpfComMascara}%,nome.ilike.%${usuarioInput}%`);
