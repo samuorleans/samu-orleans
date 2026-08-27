@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SAMU Connect — Central Operacional</title>
+  <!-- SDK DO SUPABASE ATUALIZADO PARA SUPORTAR PUBLISHABLE KEYS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.1/dist/umd/supabase.min.js"></script>
   <style>
     :root {
@@ -156,10 +157,11 @@
   </div>
 
   <script>
-    const dbNuvem = supabase.createClient(
-      "https://rcpgukslnlfptreiusff.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
-    );
+    // INICIALIZAÇÃO COM A NOVA PUBLISHABLE KEY
+    const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_LaC2YnoF3htaAh0f_X8tNg_V9hOkEQ8";
+
+    const dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyQdLDoigigMzoQbUqaTIi13IdjLNDCS8njuN3uNBc6tqf5m03CFVYCRT9dP_G0BgjX/exec";
 
@@ -481,7 +483,6 @@
         .then(html => {
           containerModulo.innerHTML = html;
 
-          // REFORÇA A EXECUÇÃO DOS SCRIPTS EMBUTIDOS DO MÓDULO IMPORTADO
           Array.from(containerModulo.querySelectorAll('script')).forEach(oldScript => {
             const newScript = document.createElement('script');
             Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
@@ -516,7 +517,6 @@
       document.getElementById('passo1').style.display = 'block';
     }
 
-    // ALTERNÂNCIA DE ABAS DO MÓDULO DE MANUTENÇÃO
     function alternarAbaManut(modo) {
       if (typeof window.alternarAbaManut === 'function') {
         window.alternarAbaManut(modo);
@@ -568,7 +568,6 @@
       }
     }
 
-    // GRAVAÇÃO DA MANUTENÇÃO / AGENDAMENTO NO SUPABASE
     async function salvarManutencaoLivro(e) {
       if (typeof window.salvarManutencaoLivro === 'function') {
         window.salvarManutencaoLivro(e);
@@ -625,7 +624,6 @@
       }
     }
 
-    // CARREGAMENTO DO HISTÓRICO DE MANUTENÇÃO
     async function carregarHistoricoManutencao(viatura) {
       if (typeof window.carregarHistoricoManutencao === 'function') {
         window.carregarHistoricoManutencao(viatura);
@@ -670,7 +668,6 @@
       }
     }
 
-    // GRAVAÇÃO ABASTECIMENTO
     async function salvarAbastecimento(e) {
       e.preventDefault();
 
@@ -728,7 +725,6 @@
       }
     }
 
-    // GRAVAÇÃO CHECKLIST CONDUTOR
     async function salvarChecklistCondutor(e) {
       e.preventDefault();
 
@@ -818,7 +814,6 @@
       }
     }
 
-    // GRAVAÇÃO CHECKLIST TÉCNICO
     async function salvarChecklistTecnico(e) {
       e.preventDefault();
 
@@ -908,7 +903,6 @@
       }
     }
 
-    // GRAVAÇÃO SUBSTITUIÇÃO DE LACRE
     async function salvarSubstituicaoLacre(e) {
       e.preventDefault();
 
