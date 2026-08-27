@@ -23,7 +23,7 @@
       <div style="display: flex; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">VIATURA / AMBULÂNCIA:*</label>
         <select id="m_viatura_id" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%; font-weight: 600;" onchange="carregarHistoricoManutencao()">
-          <option value="">Consultando viaturas...</option>
+          <option value="">-- Selecione a Viatura --</option>
         </select>
       </div>
 
@@ -62,7 +62,7 @@
       <div style="display: flex; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">OFICINA / PRESTADOR:*</label>
         <select id="m_oficina_id" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%; font-weight: 600;">
-          <option value="">Consultando oficinas ativas...</option>
+          <option value="">-- Selecione a Oficina Credenciada --</option>
         </select>
       </div>
 
@@ -70,7 +70,7 @@
       <div style="display: flex; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">CONDUTOR / RESPONSÁVEL:*</label>
         <select id="m_colaborador_id" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;">
-          <option value="">Consultando servidores...</option>
+          <option value="">-- Selecione o Responsável --</option>
         </select>
       </div>
 
@@ -124,20 +124,6 @@
 </div>
 
 <script>
-  // Função Global de Conexão Supabase
-  window.obterClienteSupabaseManut = function() {
-    if (typeof dbNuvem !== 'undefined' && dbNuvem) return dbNuvem;
-    if (typeof supabaseClient !== 'undefined' && supabaseClient) return supabaseClient;
-    if (typeof supabase !== 'undefined' && supabase.createClient) {
-      window.dbNuvem = supabase.createClient(
-        "https://rcpgukslnlfptreiusff.supabase.co",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
-      );
-      return window.dbNuvem;
-    }
-    return null;
-  };
-
   window.alternarAbaManut = function(modo) {
     document.getElementById('m_modo_registro').value = modo;
 
@@ -180,86 +166,62 @@
     }
   };
 
-  window.carregarListasFormManutencao = async function() {
-    const client = window.obterClienteSupabaseManut();
-    if (!client) {
-      console.error("Cliente Supabase inacessível no formulário.");
-      return;
-    }
+  window.iniciarModuloManutencao = async function() {
+    const client = window.dbNuvem || window.supabaseClient;
+    if (!client) return;
+
+    const elData = document.getElementById('m_data_exec');
+    if (elData) elData.value = new Date().toISOString().split('T')[0];
 
     // 1. VIATURAS
     try {
       const { data: viaturas } = await client.from('operacional_viaturas').select('*');
       const selectViat = document.getElementById('m_viatura_id');
-      if (selectViat) {
-        if (viaturas && viaturas.length > 0) {
-          selectViat.innerHTML = '<option value="">-- Selecione a Viatura --</option>';
-          viaturas.forEach(v => {
-            const pref = v.prefixo || v.nome || v.identificacao || 'Viatura';
-            const mod = v.modelo || '';
-            const plc = v.placa ? ` (${v.placa})` : '';
-            selectViat.innerHTML += `<option value="${v.id}">${pref} ${mod} ${plc}</option>`;
-          });
-        } else {
-          selectViat.innerHTML = '<option value="">Nenhuma viatura cadastrada</option>';
-        }
+      if (selectViat && viaturas && viaturas.length > 0) {
+        selectViat.innerHTML = '<option value="">-- Selecione a Viatura --</option>';
+        viaturas.forEach(v => {
+          const pref = v.prefixo || v.nome || 'Viatura';
+          const mod = v.modelo || '';
+          const plc = v.placa ? ` (${v.placa})` : '';
+          selectViat.innerHTML += `<option value="${v.id}">${pref} ${mod} ${plc}</option>`;
+        });
       }
-    } catch (e) {
-      if (document.getElementById('m_viatura_id')) {
-        document.getElementById('m_viatura_id').innerHTML = '<option value="">Erro ao carregar viaturas</option>';
-      }
-    }
+    } catch (e) {}
 
     // 2. OFICINAS
     try {
       const { data: oficinas } = await client.from('operacional_oficinas').select('*');
       const selectOfic = document.getElementById('m_oficina_id');
-      if (selectOfic) {
-        if (oficinas && oficinas.length > 0) {
-          selectOfic.innerHTML = '<option value="">-- Selecione a Oficina Credenciada --</option>';
-          oficinas.forEach(o => {
-            if (o.status !== 'INATIVO') {
-              const nomeExibicao = o.razao_social || o.nome_fantasia || o.nome || 'Oficina';
-              selectOfic.innerHTML += `<option value="${o.id}">${nomeExibicao}</option>`;
-            }
-          });
-        } else {
-          selectOfic.innerHTML = '<option value="">Nenhuma oficina cadastrada</option>';
-        }
+      if (selectOfic && oficinas && oficinas.length > 0) {
+        selectOfic.innerHTML = '<option value="">-- Selecione a Oficina Credenciada --</option>';
+        oficinas.forEach(o => {
+          if (o.status !== 'INATIVO') {
+            const nomeExibicao = o.razao_social || o.nome_fantasia || 'Oficina';
+            selectOfic.innerHTML += `<option value="${o.id}">${nomeExibicao}</option>`;
+          }
+        });
       }
-    } catch (e) {
-      if (document.getElementById('m_oficina_id')) {
-        document.getElementById('m_oficina_id').innerHTML = '<option value="">Erro ao carregar oficinas</option>';
-      }
-    }
+    } catch (e) {}
 
     // 3. COLABORADORES
     try {
       const { data: colaboradores } = await client.from('colaboradores').select('*');
       const selectColab = document.getElementById('m_colaborador_id');
-      if (selectColab) {
-        if (colaboradores && colaboradores.length > 0) {
-          selectColab.innerHTML = '<option value="">-- Selecione o Responsável --</option>';
-          colaboradores.forEach(c => {
-            if (c.status !== 'DESLIGADO' && c.status_admin !== 'DESLIGADO') {
-              const nome = c.nome || c.nome_completo || 'Servidor';
-              const func = c.funcao ? ` (${c.funcao})` : '';
-              selectColab.innerHTML += `<option value="${c.id}">${nome}${func}</option>`;
-            }
-          });
-        } else {
-          selectColab.innerHTML = '<option value="">Nenhum colaborador encontrado</option>';
-        }
+      if (selectColab && colaboradores && colaboradores.length > 0) {
+        selectColab.innerHTML = '<option value="">-- Selecione o Responsável --</option>';
+        colaboradores.forEach(c => {
+          if (c.status !== 'DESLIGADO' && c.status_admin !== 'DESLIGADO') {
+            const nome = c.nome || c.nome_completo || 'Servidor';
+            const func = c.funcao ? ` (${c.funcao})` : '';
+            selectColab.innerHTML += `<option value="${c.id}">${nome}${func}</option>`;
+          }
+        });
       }
-    } catch (e) {
-      if (document.getElementById('m_colaborador_id')) {
-        document.getElementById('m_colaborador_id').innerHTML = '<option value="">Erro ao carregar colaboradores</option>';
-      }
-    }
+    } catch (e) {}
   };
 
   window.carregarHistoricoManutencao = async function() {
-    const client = window.obterClienteSupabaseManut();
+    const client = window.dbNuvem || window.supabaseClient;
     const viaturaId = document.getElementById('m_viatura_id').value;
     const tbody = document.getElementById('tbodyHistManut');
 
@@ -271,13 +233,11 @@
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px;">Buscando histórico...</td></tr>';
 
     try {
-      const { data, error } = await client
+      const { data } = await client
         .from('operacional_manutencoes')
         .select('*')
         .eq('viatura_id', viaturaId)
         .order('id', { ascending: false });
-
-      if (error) throw error;
 
       if (data && data.length > 0) {
         tbody.innerHTML = '';
@@ -306,7 +266,7 @@
 
   window.salvarManutencaoLivro = async function(e) {
     e.preventDefault();
-    const client = window.obterClienteSupabaseManut();
+    const client = window.dbNuvem || window.supabaseClient;
     if (!client) {
       alert("❌ Falha na conexão com o Supabase.");
       return;
@@ -343,31 +303,4 @@
       alert("❌ Erro ao salvar manutenção: " + err.message);
     }
   };
-
-  // OBSERVADOR DE DOM (MÉTODO DEFINITIVO PARA SPAs)
-  (function iniciarObservadorInjecao() {
-    const dispararBusca = () => {
-      const elData = document.getElementById('m_data_exec');
-      if (elData) elData.value = new Date().toISOString().split('T')[0];
-      if (typeof window.carregarListasFormManutencao === 'function') {
-        window.carregarListasFormManutencao();
-      }
-    };
-
-    // Tenta rodar imediatamente
-    dispararBusca();
-
-    // Se a injeção demorar alguns milissegundos, executa em intervalos curtos
-    let tentativas = 0;
-    const interval = setInterval(() => {
-      tentativas++;
-      const selectViat = document.getElementById('m_viatura_id');
-      if (selectViat && selectViat.options.length > 1) {
-        clearInterval(interval);
-      } else {
-        dispararBusca();
-      }
-      if (tentativas > 10) clearInterval(interval);
-    }, 300);
-  })();
 </script>
