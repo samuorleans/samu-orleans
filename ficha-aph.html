@@ -1242,6 +1242,7 @@
       atualizarStatusVisualFila();
     });
 
+    /* FUNÇÃO DE SINCRONIZAÇÃO TOTALMENTE ATUALIZADA (SEM CALLS DE RESET E COM LOGS EXPÓSITOS NO TABLET) */
     async function sincronizarFichasPendentesOffline() {
       const filaRaw = localStorage.getItem('aph_fila_pendentes_offline');
       if (!filaRaw) {
@@ -1257,28 +1258,38 @@
         return;
       }
 
+      if (!window._supabase && window.supabase) {
+        _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+
       let enviadasComSucesso = 0;
       const novaFila = [];
 
       for (const itemPayload of fila) {
         try {
-          if (_supabase && navigator.onLine) {
-            const { error } = await _supabase
-              .from('ocorrencias_aph')
-              .upsert([itemPayload], { onConflict: 'codigo_ocorrencia' });
+          const payloadFormatado = {
+            ...itemPayload,
+            sinais_vitais: Array.isArray(itemPayload.sinais_vitais) ? itemPayload.sinais_vitais : [],
+            insumos_utilizados: Array.isArray(itemPayload.insumos_utilizados) ? itemPayload.insumos_utilizados : [],
+            lesoes_exposicao: itemPayload.lesoes_exposicao || {},
+            updated_at: new Date().toISOString()
+          };
 
-            if (!error) {
-              enviadasComSucesso++;
-              if (itemPayload.insumos_utilizados) {
-                await processarBaixaEstoqueELacres(itemPayload.insumos_utilizados, itemPayload.codigo_ocorrencia);
-              }
-            } else {
-              novaFila.push(itemPayload);
-            }
-          } else {
+          const { data, error } = await _supabase
+            .from('ocorrencias_aph')
+            .upsert([payloadFormatado], { onConflict: 'codigo_ocorrencia' });
+
+          if (error) {
+            alert(`❌ Erro no envio (${itemPayload.codigo_ocorrencia}):\n${error.message}`);
             novaFila.push(itemPayload);
+          } else {
+            enviadasComSucesso++;
+            if (payloadFormatado.insumos_utilizados && payloadFormatado.insumos_utilizados.length > 0) {
+              await processarBaixaEstoqueELacres(payloadFormatado.insumos_utilizados, payloadFormatado.codigo_ocorrencia);
+            }
           }
         } catch (e) {
+          alert(`❌ Falha de Conexão/Exceção:\n${e.message || e}`);
           novaFila.push(itemPayload);
         }
       }
@@ -1287,7 +1298,7 @@
       atualizarStatusVisualFila();
 
       if (enviadasComSucesso > 0) {
-        alert(`📶 SINCRONIZAÇÃO APH: ${enviadasComSucesso} ficha(s) salvas offline foram enviadas com sucesso para a base de dados!`);
+        alert(`📶 SUCESSO: ${enviadasComSucesso} ficha(s) pendente(s) foram salvas no Supabase!`);
       }
     }
 
@@ -1942,7 +1953,6 @@
       try {
         const hojeISO = new Date().toISOString().split('T')[0];
 
-        // Busca o plantão/escala ativa cadastrada para hoje no J3
         const { data: plantaoAtivo, error } = await _supabase
           .from('plantao')
           .select('*')
@@ -1955,7 +1965,6 @@
           const selectTec = document.getElementById('tec_enfermeiro');
           const selectSoc = document.getElementById('socorrista');
 
-          // Tenta pré-selecionar o técnico do J3
           if (plantaoAtivo.tecnico_enfermagem || plantaoAtivo.tecnico) {
             const tecNome = plantaoAtivo.tecnico_enfermagem || plantaoAtivo.tecnico;
             if (selectTec) {
@@ -1964,7 +1973,6 @@
             }
           }
 
-          // Tenta pré-selecionar o condutor/socorrista do J3
           if (plantaoAtivo.socorrista || plantaoAtivo.condutor) {
             const socNome = plantaoAtivo.socorrista || plantaoAtivo.condutor;
             if (selectSoc) {
@@ -1993,13 +2001,15 @@
       let hospitais = [];
 
       try {
-        const { data, error } = await _supabase
-          .from('operacional_hospitais')
-          .select('*')
-          .order('id', { ascending: true });
+        if (_supabase) {
+          const { data, error } = await _supabase
+            .from('operacional_hospitais')
+            .select('*')
+            .order('id', { ascending: true });
 
-        if (!error && data) {
-          hospitais = data;
+          if (!error && data) {
+            hospitais = data;
+          }
         }
       } catch (err) {
         console.warn("Falha ao buscar hospitais do Supabase.");
@@ -2438,20 +2448,7 @@
 
       let colabs = null;
 
-      try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/colaboradores?select=*&order=nome.asc`, {
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-          }
-        });
-
-        if (response.ok) {
-          colabs = await response.json();
-        }
-      } catch (errRest) {}
-
-      if (!colabs && _supabase) {
+      if (_supabase) {
         try {
           const { data, error } = await _supabase.from('colaboradores').select('*').order('nome');
           if (!error && data) colabs = data;
@@ -2480,7 +2477,6 @@
         selectSoc.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
       });
 
-      // Puxa e seleciona a equipe configurada no J3
       await carregarEquipePlantaoJ3();
     }
 
@@ -2499,24 +2495,6 @@
           if (dLotes.data) lotesRes = dLotes.data;
         }
       } catch (err) {}
-
-      if (!mestreRes.length) {
-        try {
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=*&order=descricao_insumo.asc`, {
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-          });
-          if (res.ok) mestreRes = await res.json();
-        } catch(e) {}
-      }
-
-      if (!lotesRes.length) {
-        try {
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/estoque_lotes?select=*&order=data_validade.asc`, {
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-          });
-          if (res.ok) lotesRes = await res.json();
-        } catch(e) {}
-      }
 
       if (mestreRes.length > 0) {
         const listaTemporaria = [];
@@ -2584,7 +2562,6 @@
       addMedRow();
       ajustarExibicaoAssinaturasImpressao();
 
-      // Checar status da fila no tablet e tentar sincronizar se tiver internet
       atualizarStatusVisualFila();
       if (navigator.onLine) {
         sincronizarFichasPendentesOffline();
@@ -3020,7 +2997,6 @@
 
         const cpfPacienteRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
 
-        // 1. Tentar Atualizar Cadastro de Pacientes no Banco se estiver Online
         if (cpfPacienteRaw.length === 11 && navigator.onLine && _supabase) {
           try {
             const payloadPaciente = {
@@ -3045,11 +3021,9 @@
           } catch(e) {}
         }
 
-        // Capturar Assinatura em Base64
         const canvasEl = document.getElementById('sig-canvas');
         const assinaturaBase64 = canvasEl ? canvasEl.toDataURL() : null;
 
-        // 2. Montar Estrutura da Ocorrência
         payloadOcorrencia = {
           codigo_ocorrencia: codFinalOcorrencia,
           cor_ocorrencia: document.getElementById('cor_ocorrencia').value,
@@ -3115,7 +3089,6 @@
           updated_at: new Date().toISOString()
         };
 
-        // TENTAR GRAVAR DIRETO NO SUPABASE
         if (navigator.onLine && _supabase) {
           const { error } = await _supabase
             .from('ocorrencias_aph')
@@ -3132,7 +3105,6 @@
         }
 
       } catch (err) {
-        // ENTRADA NA FILA OFFLINE DO TABLET SE ESTIVER SEM SINAL
         if (payloadOcorrencia) {
           console.warn("Sem sinal/erro de rede. Armazenando prontuário na fila offline do dispositivo...");
           const filaRaw = localStorage.getItem('aph_fila_pendentes_offline') || '[]';
