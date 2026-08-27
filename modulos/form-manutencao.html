@@ -186,8 +186,7 @@
           const pref = v.prefixo || v.nome || 'Viatura';
           const mod = v.modelo || '';
           const plc = v.placa ? ` (${v.placa})` : '';
-          const textoCompleto = `${pref} ${mod} ${plc}`.trim();
-          selectViat.innerHTML += `<option value="${v.id}">${textoCompleto}</option>`;
+          selectViat.innerHTML += `<option value="${v.id}">${pref} ${mod} ${plc}</option>`;
         });
       }
     } catch (e) {}
@@ -200,7 +199,7 @@
         oficinas.forEach(o => {
           if (o.status !== 'INATIVO') {
             const nomeExibicao = o.razao_social || o.nome_fantasia || o.nome || 'Oficina';
-            selectOfic.innerHTML += `<option value="${nomeExibicao}">${nomeExibicao}</option>`;
+            selectOfic.innerHTML += `<option value="${o.id}">${nomeExibicao}</option>`;
           }
         });
       }
@@ -215,7 +214,7 @@
           if (c.status !== 'DESLIGADO' && c.status_admin !== 'DESLIGADO') {
             const nome = c.nome || c.nome_completo || 'Servidor';
             const func = c.funcao ? ` (${c.funcao})` : '';
-            selectColab.innerHTML += `<option value="${nome}">${nome}${func}</option>`;
+            selectColab.innerHTML += `<option value="${c.id}">${nome}${func}</option>`;
           }
         });
       }
@@ -232,14 +231,18 @@
       return;
     }
 
-    const textoViatura = selectViat.options[selectViat.selectedIndex].text;
+    // Pega apenas o prefixo principal (ex: "SXT-9H65" ou "USB 11") para a busca parcial
+    const textoSelecionado = selectViat.options[selectViat.selectedIndex].text;
+    const prefixoChave = textoSelecionado.split(' - ')[0].trim();
+
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px;">Buscando histórico...</td></tr>';
 
     try {
+      // Busca flexível por aproximação no nome gravado na tabela
       const { data, error } = await client
         .from('operacional_manutencoes_livro')
         .select('*')
-        .eq('viatura', textoViatura)
+        .ilike('viatura', `%${prefixoChave}%`)
         .order('id', { ascending: false });
 
       if (error) throw error;
