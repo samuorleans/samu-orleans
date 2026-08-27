@@ -19,7 +19,7 @@
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; text-align: left;">
       
-      <!-- SELEÇÃO DE VIATURA (Tabela: operacional_viaturas) -->
+      <!-- SELEÇÃO DE VIATURA -->
       <div style="display: flex; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">VIATURA / AMBULÂNCIA:*</label>
         <select id="m_viatura_id" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%; font-weight: 600;" onchange="carregarHistoricoManutencao()">
@@ -58,7 +58,7 @@
         </select>
       </div>
 
-      <!-- SELEÇÃO DE OFICINA VINCULADA (Tabela: operacional_oficinas) -->
+      <!-- SELEÇÃO DE OFICINA VINCULADA -->
       <div style="display: flex; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">OFICINA / PRESTADOR:*</label>
         <select id="m_oficina_id" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%; font-weight: 600;">
@@ -66,7 +66,7 @@
         </select>
       </div>
 
-      <!-- RESPONSÁVEL PELO REGISTRO (Tabela: colaboradores) -->
+      <!-- RESPONSÁVEL PELO REGISTRO -->
       <div style="display: flex; flex-direction: column;">
         <label style="font-size: 0.75rem; font-weight: 700; color: #002b49; margin-bottom: 4px;">CONDUTOR / RESPONSÁVEL:*</label>
         <select id="m_colaborador_id" required style="padding: 9px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%;">
@@ -124,16 +124,20 @@
 </div>
 
 <script>
-  // Inicialização no carregamento da página/módulo
-  document.addEventListener("DOMContentLoaded", function() {
-    // Seta data atual por padrão
-    document.getElementById('m_data_exec').value = new Date().toISOString().split('T')[0];
-    
-    // Carrega dados vinculados das tabelas no Supabase
-    carregarListasFormManutencao();
-  });
+  // Garante a existência da conexão Supabase localmente ou herdada do pai
+  function obterConexaoSupabase() {
+    if (window.dbNuvem) return window.dbNuvem;
+    if (window.supabaseClient) return window.supabaseClient;
+    if (typeof supabase !== 'undefined') {
+      window.dbNuvem = supabase.createClient(
+        "https://rcpgukslnlfptreiusff.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
+      );
+      return window.dbNuvem;
+    }
+    return null;
+  }
 
-  // Alterna entre abas Excutado x Agendado
   function alternarAbaManut(modo) {
     document.getElementById('m_modo_registro').value = modo;
 
@@ -176,61 +180,78 @@
     }
   }
 
-  // Carrega Viaturas, Oficinas (ATIVAS) e Colaboradores do Supabase
   async function carregarListasFormManutencao() {
+    const client = obterConexaoSupabase();
+    if (!client) {
+      console.error("Cliente Supabase não encontrado.");
+      return;
+    }
+
     try {
-      // 1. Carrega Viaturas
-      const { data: viaturas } = await dbNuvem
+      // 1. Viaturas
+      const { data: viaturas, error: errViat } = await client
         .from('operacional_viaturas')
-        .select('id, prefixo, placa, modelo')
+        .select('*')
         .order('prefixo', { ascending: true });
 
       const selectViat = document.getElementById('m_viatura_id');
-      selectViat.innerHTML = '<option value="">-- Selecione a Viatura --</option>';
       if (viaturas && viaturas.length > 0) {
+        selectViat.innerHTML = '<option value="">-- Selecione a Viatura --</option>';
         viaturas.forEach(v => {
-          selectViat.innerHTML += `<option value="${v.id}">${v.prefixo} - ${v.modelo} (${v.placa})</option>`;
+          const pref = v.prefixo || 'Viatura';
+          const mod = v.modelo || '';
+          const plc = v.placa ? ` (${v.placa})` : '';
+          selectViat.innerHTML += `<option value="${v.id}">${pref} - ${mod}${plc}</option>`;
         });
+      } else {
+        selectViat.innerHTML = '<option value="">Nenhuma viatura encontrada</option>';
       }
 
-      // 2. Carrega Oficinas (Somente Ativas)
-      const { data: oficinas } = await dbNuvem
+      // 2. Oficinas (Ativas)
+      const { data: oficinas, error: errOfic } = await client
         .from('operacional_oficinas')
-        .select('id, razao_social, nome_fantasia')
-        .eq('status', 'ATIVO')
+        .select('*')
         .order('razao_social', { ascending: true });
 
       const selectOfic = document.getElementById('m_oficina_id');
-      selectOfic.innerHTML = '<option value="">-- Selecione a Oficina Credenciada --</option>';
       if (oficinas && oficinas.length > 0) {
+        selectOfic.innerHTML = '<option value="">-- Selecione a Oficina --</option>';
         oficinas.forEach(o => {
-          const nomeExibicao = o.nome_fantasia || o.razao_social;
-          selectOfic.innerHTML += `<option value="${o.id}">${nomeExibicao}</option>`;
+          if (o.status !== 'INATIVO') {
+            const nomeExibicao = o.nome_fantasia || o.razao_social || 'Oficina';
+            selectOfic.innerHTML += `<option value="${o.id}">${nomeExibicao}</option>`;
+          }
         });
+      } else {
+        selectOfic.innerHTML = '<option value="">Nenhuma oficina ativa encontrada</option>';
       }
 
-      // 3. Carrega Colaboradores
-      const { data: colaboradores } = await dbNuvem
+      // 3. Colaboradores
+      const { data: colaboradores, error: errColab } = await client
         .from('colaboradores')
-        .select('id, nome, funcao')
-        .neq('status', 'DESLIGADO')
+        .select('*')
         .order('nome', { ascending: true });
 
       const selectColab = document.getElementById('m_colaborador_id');
-      selectColab.innerHTML = '<option value="">-- Selecione o Condutor/Responsável --</option>';
       if (colaboradores && colaboradores.length > 0) {
+        selectColab.innerHTML = '<option value="">-- Selecione o Condutor/Responsável --</option>';
         colaboradores.forEach(c => {
-          selectColab.innerHTML += `<option value="${c.id}">${c.nome} (${c.funcao})</option>`;
+          if (c.status !== 'DESLIGADO' && c.status_admin !== 'DESLIGADO') {
+            const func = c.funcao ? ` (${c.funcao})` : '';
+            selectColab.innerHTML += `<option value="${c.id}">${c.nome}${func}</option>`;
+          }
         });
+      } else {
+        selectColab.innerHTML = '<option value="">Nenhum servidor encontrado</option>';
       }
 
     } catch (err) {
-      console.error("Erro ao carregar seletores do formulário:", err);
+      console.error("Erro ao carregar seletores no formulário de manutenção:", err);
     }
   }
 
-  // Busca e exibe o histórico de manutenção da viatura selecionada
   async function carregarHistoricoManutencao() {
+    const client = obterConexaoSupabase();
     const viaturaId = document.getElementById('m_viatura_id').value;
     const tbody = document.getElementById('tbodyHistManut');
 
@@ -242,17 +263,9 @@
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px;">Buscando histórico da viatura...</td></tr>';
 
     try {
-      const { data, error } = await dbNuvem
+      const { data, error } = await client
         .from('operacional_manutencoes')
-        .select(`
-          id,
-          data_registro,
-          tipo_manutencao,
-          km_registro,
-          servicos_executados,
-          status,
-          operacional_oficinas ( razao_social, nome_fantasia )
-        `)
+        .select('*')
         .eq('viatura_id', viaturaId)
         .order('data_registro', { ascending: false });
 
@@ -261,18 +274,17 @@
       if (data && data.length > 0) {
         tbody.innerHTML = '';
         data.forEach(m => {
-          const dt = new Date(m.data_registro).toLocaleDateString('pt-BR');
-          const oficinaNome = m.operacional_oficinas ? (m.operacional_oficinas.nome_fantasia || m.operacional_oficinas.razao_social) : '—';
+          const dt = m.data_registro ? new Date(m.data_registro).toLocaleDateString('pt-BR') : '—';
           const statusCor = m.status === 'CONCLUIDO' ? '#15803d' : '#b45309';
 
           tbody.innerHTML += `
             <tr style="border-bottom: 1px solid #e2e8f0;">
               <td style="padding: 8px; font-weight: 700;">${dt}</td>
-              <td style="padding: 8px;">${m.tipo_manutencao}</td>
+              <td style="padding: 8px;">${m.tipo_manutencao || '—'}</td>
               <td style="padding: 8px;">${m.km_registro || '—'} KM</td>
-              <td style="padding: 8px;">${oficinaNome}</td>
+              <td style="padding: 8px;">${m.oficina_nome || '—'}</td>
               <td style="padding: 8px;">${m.servicos_executados || '—'}</td>
-              <td style="padding: 8px; font-weight: 800; color: ${statusCor};">${m.status}</td>
+              <td style="padding: 8px; font-weight: 800; color: ${statusCor};">${m.status || 'CONCLUIDO'}</td>
             </tr>
           `;
         });
@@ -284,14 +296,22 @@
     }
   }
 
-  // Salva o registro no banco de dados
   async function salvarManutencaoLivro(e) {
     e.preventDefault();
+    const client = obterConexaoSupabase();
+    if (!client) {
+      alert("❌ Falha na conexão com o banco de dados.");
+      return;
+    }
 
     const modo = document.getElementById('m_modo_registro').value;
+    const selectOfic = document.getElementById('m_oficina_id');
+    const oficinaTexto = selectOfic.options[selectOfic.selectedIndex] ? selectOfic.options[selectOfic.selectedIndex].text : '';
+
     const payload = {
       viatura_id: document.getElementById('m_viatura_id').value,
-      oficina_id: document.getElementById('m_oficina_id').value,
+      oficina_id: selectOfic.value,
+      oficina_nome: oficinaTexto,
       colaborador_id: document.getElementById('m_colaborador_id').value,
       km_registro: parseInt(document.getElementById('m_km').value) || 0,
       tipo_manutencao: document.getElementById('m_tipo').value,
@@ -304,7 +324,7 @@
     };
 
     try {
-      const { error } = await dbNuvem.from('operacional_manutencoes').insert([payload]);
+      const { error } = await client.from('operacional_manutencoes').insert([payload]);
       if (error) throw error;
 
       alert("✅ Manutenção registrada com sucesso no Livro Digital!");
@@ -312,7 +332,14 @@
       document.getElementById('m_data_exec').value = new Date().toISOString().split('T')[0];
       carregarHistoricoManutencao();
     } catch (err) {
-      alert("❌ Erro ao salvar manutenção no banco de dados: " + err.message);
+      alert("❌ Erro ao salvar manutenção: " + err.message);
     }
   }
+
+  // Executa imediatamente ao inserir no DOM
+  (function inicializarModuloManutencao() {
+    const elData = document.getElementById('m_data_exec');
+    if (elData) elData.value = new Date().toISOString().split('T')[0];
+    carregarListasFormManutencao();
+  })();
 </script>
