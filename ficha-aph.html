@@ -1023,6 +1023,7 @@
 
     let _supabase = null;
     let mapaLotesUnificados = [];
+    let listaColaboradoresCache = [];
     let wakeLock = null;
     let recognition = null;
     let isRecording = false;
@@ -1739,8 +1740,55 @@
 
     function sincronizarTecnicoResp() {
       const selectTec = document.getElementById('tec_enfermeiro');
-      document.getElementById('tec_resp').value = selectTec.value;
+      const nomeSelecionado = selectTec ? selectTec.value : '';
+
+      if (!nomeSelecionado) {
+        document.getElementById('tec_resp').value = '';
+        atualizarCarimboImpressaoTecnico('', '');
+        salvarLocal();
+        return;
+      }
+
+      let corenStr = '';
+      let corenApenas = '';
+
+      if (typeof listaColaboradoresCache !== 'undefined' && Array.isArray(listaColaboradoresCache)) {
+        const colab = listaColaboradoresCache.find(c => c.nome === nomeSelecionado);
+        if (colab && colab.coren) {
+          corenApenas = colab.coren;
+          corenStr = ` - COREN ${colab.coren}`;
+        }
+      }
+
+      if (!corenStr && selectTec.selectedIndex >= 0) {
+        const textoOption = selectTec.options[selectTec.selectedIndex].text;
+        if (textoOption.includes('COREN')) {
+          const match = textoOption.match(/\(COREN\s+([^)]+)\)/i);
+          if (match) {
+            corenApenas = match[1];
+            corenStr = ` - COREN ${match[1]}`;
+          }
+        }
+      }
+
+      const textoFinal = `${nomeSelecionado}${corenStr}`.toUpperCase();
+      document.getElementById('tec_resp').value = textoFinal;
+
+      atualizarCarimboImpressaoTecnico(nomeSelecionado, corenApenas);
       salvarLocal();
+    }
+
+    function atualizarCarimboImpressaoTecnico(nome, coren) {
+      const boxTecnico = document.getElementById('sigBoxTecnico');
+      if (boxTecnico) {
+        const corenTexto = coren ? `COREN ${coren}` : 'COREN: ____________';
+        const nomeTexto = nome ? nome.toUpperCase() : 'TÉCNICO DE ENFERMAGEM';
+        
+        boxTecnico.innerHTML = `
+          <div class="sig-title">${nomeTexto}</div>
+          <div class="sig-line">ASSINATURA E CARIMBO / ${corenTexto}</div>
+        `;
+      }
     }
 
     async function atualizarHospitaisPorMunicipio() {
@@ -2224,7 +2272,7 @@
       if (!colabs || colabs.length === 0) {
         const cacheLocal = localStorage.getItem('aph_colaboradores_cache');
         if (cacheLocal) {
-          colabs = JSON.parse(cacheLocal);
+          try { colabs = JSON.parse(cacheLocal); } catch(e) {}
         } else {
           colabs = COLABORADORES_FALLBACK;
         }
@@ -2232,10 +2280,12 @@
         localStorage.setItem('aph_colaboradores_cache', JSON.stringify(colabs));
       }
 
+      listaColaboradoresCache = colabs || [];
+
       selectTec.innerHTML = '<option value="">-- Selecione o Téc. --</option>';
       selectSoc.innerHTML = '<option value="">-- Selecione o Condutor --</option>';
 
-      colabs.forEach(c => {
+      listaColaboradoresCache.forEach(c => {
         const corenVal = c.coren ? ` (COREN ${c.coren})` : '';
         selectTec.innerHTML += `<option value="${c.nome}">${c.nome}${corenVal}</option>`;
         selectSoc.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
