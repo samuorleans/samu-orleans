@@ -1017,9 +1017,8 @@
     <button type="button" class="btn-submit" id="btnImprimir" disabled>Imprimir Ficha (Vítima 1)</button>
   </form>
 
-  <!-- MODAIS ISOLADOS FORA DO FORMULARIO PARA NUNCA HERDAREM O BLOQUEIO DA FICHA -->
+  <!-- MODAIS ISOLADOS FORA DO FORMULARIO -->
 
-  <!-- ESTRUTURA DO POPUP MODAL DE BUSCA DE MEDICAÇÃO -->
   <div class="modal-med-overlay" id="modalMedOverlay">
     <div class="modal-med-container">
       <div class="modal-med-header">
@@ -1033,7 +1032,6 @@
     </div>
   </div>
 
-  <!-- MODAL POPUP DE AUTENTICAÇÃO VIA BANCO DE DADOS (COLABORADORES) -->
   <div class="modal-auth-overlay" id="modalAuthOverlay">
     <div class="modal-auth-container">
       <div class="modal-auth-header">
@@ -1053,7 +1051,6 @@
     </div>
   </div>
 
-  <!-- MODAL TELA CHEIA: ALERTA CRÍTICO DE ALERGIA -->
   <div class="modal-alergia-overlay" id="modalAlergiaOverlay">
     <div class="modal-alergia-container">
       <div class="modal-alergia-header">
@@ -1080,11 +1077,10 @@
     </div>
   </div>
 
-  <!-- MODAL DE LOGIN J3 / ACESSO OPERACIONAL AUTOMÁTICO -->
   <div class="modal-auth-overlay" id="modalLoginJ3" style="display: flex;">
     <div class="modal-auth-container" style="max-width: 380px;">
       <div class="modal-auth-header" style="background: #1e293b;">
-        <span>🚑 LOGIN DE PLANTÃO J3</span>
+        <span>ambulancia LOGIN DE PLANTÃO J3</span>
         <button type="button" class="modal-auth-close" id="btnFecharLoginJ3" onclick="fecharLoginJ3()" style="display: none;">✕</button>
       </div>
       <div style="padding: 16px;">
@@ -1142,7 +1138,6 @@
       { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "", senha: "" }
     ];
 
-    /* APLICAÇÃO DE MÁSCARA INTELIGENTE PARA CPF OU USUÁRIO/MATRÍCULA */
     function mascaraEFormatarLoginUsuario(input) {
       let val = input.value;
       let soNumeros = val.replace(/\D/g, "");
@@ -1161,10 +1156,10 @@
       }
     }
 
-    /* CONTROLE DE DESBLOQUEIO DE TELA E INTERFACE */
     function desbloquearFormularioPorLogin() {
       document.body.classList.remove('locked');
       document.getElementById('formLockedOverlay').style.display = 'none';
+      document.getElementById('modalLoginJ3').style.display = 'none';
       document.getElementById('btnFecharLoginJ3').style.display = 'block';
     }
 
@@ -1177,9 +1172,7 @@
     function abrirLoginJ3() {
       document.getElementById('j3_user_input').value = '';
       document.getElementById('j3_pass_input').value = '';
-      
       document.getElementById('formLockedOverlay').style.display = 'none';
-      
       document.getElementById('modalLoginJ3').style.display = 'flex';
       setTimeout(() => document.getElementById('j3_user_input').focus(), 150);
     }
@@ -1194,7 +1187,37 @@
       document.getElementById('modalLoginJ3').style.display = 'none';
     }
 
-    /* VINCULAÇÃO RÍGIDA AO PLANTÃO J3 ATIVO DA BASE DE DADOS */
+    /* BUSCA E VALIDAÇÃO EXCLUSIVA DE PLANTÃO COM STATUS 'ATIVO' NO J3 */
+    async function buscarPlantaoAtivoJ3() {
+      if (!_supabase || !navigator.onLine) return null;
+
+      try {
+        let { data, error } = await _supabase
+          .from('plantao')
+          .select('*')
+          .eq('status', 'ATIVO')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (!data) {
+          let { data: resAssuncao } = await _supabase
+            .from('assuncao_j3')
+            .select('*')
+            .eq('status', 'ATIVO')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          data = resAssuncao;
+        }
+
+        return data || null;
+      } catch (err) {
+        console.error("Erro ao buscar plantão ativo J3:", err);
+        return null;
+      }
+    }
+
     async function autenticarUsuarioJ3() {
       const usuarioInputRaw = document.getElementById('j3_user_input').value.trim();
       const senhaInput = document.getElementById('j3_pass_input').value.trim();
@@ -1212,7 +1235,6 @@
       try {
         let colabEncontrado = null;
 
-        // 1. Busca dados do colaborador
         if (_supabase && navigator.onLine) {
           let query = _supabase.from('colaboradores').select('*');
           if (apenasNumeros.length >= 11) {
@@ -1223,7 +1245,7 @@
 
           const { data, error } = await query.limit(1).maybeSingle();
 
-          if (data && data.senha === senhaInput) {
+          if (data && String(data.senha).trim() === senhaInput) {
             colabEncontrado = data;
           }
         }
@@ -1237,7 +1259,7 @@
                               (apenasNumeros.length > 0 && cpfBD === apenasNumeros) ||
                               (c.cpf && c.cpf.includes(usuarioInputRaw));
 
-            return matchUser && c.senha === senhaInput;
+            return matchUser && String(c.senha).trim() === senhaInput;
           });
         }
 
@@ -1246,64 +1268,38 @@
           return;
         }
 
-        // 2. Consulta de assunção J3: Verifica se o plantão atual está 'ATIVO' no banco de dados
-        let plantaoAtivoBd = null;
-        if (_supabase && navigator.onLine) {
-          // Busca em tabela de plantão/assunção com status ATIVO
-          let { data: resPlantao } = await _supabase
-            .from('plantao')
-            .select('*')
-            .ilike('status', 'ATIVO')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
+        // Validação obrigatória de Plantão ATIVO no J3
+        const plantaoAtivoBd = await buscarPlantaoAtivoJ3();
 
-          if (!resPlantao) {
-            // Tenta tabela alternativa caso 'assuncao_j3'
-            let { data: resAssuncao } = await _supabase
-              .from('assuncao_j3')
-              .select('*')
-              .ilike('status', 'ATIVO')
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .maybeSingle();
-            resPlantao = resAssuncao;
-          }
-
-          plantaoAtivoBd = resPlantao;
+        if (!plantaoAtivoBd) {
+          alert("❌ ACESSO BLOQUEADO: Não há nenhum plantão com status ATIVO registrado no Módulo J3 no momento. Realize a Assunção de Plantão primeiro.");
+          return;
         }
 
-        // 3. Validação do integrante dentro do Plantão ATIVO
-        if (plantaoAtivoBd) {
-          const nomeColabNorm = normalizarString(colabEncontrado.nome);
-          
-          const condutorNorm = normalizarString(plantaoAtivoBd.condutor || plantaoAtivoBd.socorrista || '');
-          const enfermagemNorm = normalizarString(plantaoAtivoBd.enfermagem || plantaoAtivoBd.tecnico_enfermagem || plantaoAtivoBd.tecnico || '');
+        const nomeColabNorm = normalizarString(colabEncontrado.nome);
+        const condutorNorm = normalizarString(plantaoAtivoBd.condutor || plantaoAtivoBd.socorrista || '');
+        const enfermagemNorm = normalizarString(plantaoAtivoBd.enfermagem || plantaoAtivoBd.tecnico_enfermagem || plantaoAtivoBd.tecnico || '');
 
-          const estaNoPlantaoAtivo = nomeColabNorm.includes(condutorNorm) || condutorNorm.includes(nomeColabNorm) ||
-                                     nomeColabNorm.includes(enfermagemNorm) || enfermagemNorm.includes(nomeColabNorm);
+        const estaNoPlantaoAtivo = (condutorNorm !== '' && (nomeColabNorm.includes(condutorNorm) || condutorNorm.includes(nomeColabNorm))) ||
+                                   (enfermagemNorm !== '' && (nomeColabNorm.includes(enfermagemNorm) || enfermagemNorm.includes(nomeColabNorm)));
 
-          if (!estaNoPlantaoAtivo) {
-            alert(`❌ ACESSO NEGADO: O colaborador ${colabEncontrado.nome} não pertence ao plantão J3 ATIVO no momento.\n\nEquipe Ativa Atual:\n• Condutor: ${plantaoAtivoBd.condutor || 'Não informado'}\n• Enfermagem: ${plantaoAtivoBd.enfermagem || 'Não informado'}`);
-            return;
-          }
-
-          plantaoJ3Ativo = plantaoAtivoBd;
-          preencherEquipeCompletaJ3(plantaoAtivoBd);
-        } else {
-          // Se estiver sem conexão ou não houver registro 'ATIVO', vincula individualmente
-          preencherEquipeJ3Logado(colabEncontrado);
+        if (!estaNoPlantaoAtivo) {
+          alert(`❌ ACESSO NEGADO!\n\nO colaborador "${colabEncontrado.nome}" NÃO está na equipe do plantão J3 ATIVO.\n\nEquipe Ativa no Momento:\n• Condutor: ${plantaoAtivoBd.condutor || plantaoAtivoBd.socorrista || 'Não informado'}\n• Enfermagem: ${plantaoAtivoBd.enfermagem || plantaoAtivoBd.tecnico_enfermagem || plantaoAtivoBd.tecnico || 'Não informado'}`);
+          return;
         }
 
-        // 4. Sucesso no Login
+        plantaoJ3Ativo = plantaoAtivoBd;
         usuarioJ3Logado = colabEncontrado;
+
+        // Salva a sessão ativa localmente
         localStorage.setItem('j3_usuario_ativo', JSON.stringify(colabEncontrado));
+        localStorage.setItem('j3_plantao_ativo_cache', JSON.stringify(plantaoAtivoBd));
         
+        preencherEquipeCompletaJ3(plantaoAtivoBd);
         atualizarInterfaceUsuarioJ3();
         desbloquearFormularioPorLogin();
-        document.getElementById('modalLoginJ3').style.display = 'none';
         
-        alert(`✅ Login validado com sucesso no J3!\nBem-vindo(a), ${colabEncontrado.nome}. Formulário APH liberado.`);
+        alert(`✅ Login verificado com sucesso no Plantão J3 ATIVO!\nBem-vindo(a), ${colabEncontrado.nome}.`);
 
       } catch (err) {
         console.error("Erro na autenticação J3:", err);
@@ -1312,6 +1308,7 @@
     }
 
     function preencherEquipeCompletaJ3(plantao) {
+      if (!plantao) return;
       const selectTec = document.getElementById('tec_enfermeiro');
       const selectSoc = document.getElementById('socorrista');
 
@@ -1342,7 +1339,7 @@
       const btnHeader = document.getElementById('btnLoginJ3Header');
       
       const sessaoSalva = localStorage.getItem('j3_usuario_ativo');
-      if (sessaoSalva) {
+      if (sessaoSalva && !usuarioJ3Logado) {
         try { usuarioJ3Logado = JSON.parse(sessaoSalva); } catch(e) {}
       }
 
@@ -1367,22 +1364,9 @@
         usuarioJ3Logado = null;
         plantaoJ3Ativo = null;
         localStorage.removeItem('j3_usuario_ativo');
+        localStorage.removeItem('j3_plantao_ativo_cache');
         atualizarInterfaceUsuarioJ3();
         abrirLoginJ3();
-      }
-    }
-
-    function preencherEquipeJ3Logado(colaborador) {
-      const selectTec = document.getElementById('tec_enfermeiro');
-      const selectSoc = document.getElementById('socorrista');
-
-      if (colaborador.funcao && colaborador.funcao.toLowerCase().includes('condutor')) {
-        if (selectSoc) selectSoc.value = colaborador.nome;
-      } else {
-        if (selectTec) {
-          selectTec.value = colaborador.nome;
-          sincronizarTecnicoResp();
-        }
       }
     }
 
@@ -2140,24 +2124,10 @@
     }
 
     async function carregarEquipePlantaoJ3() {
-      if (!_supabase || !navigator.onLine) return;
-
-      try {
-        const hojeISO = new Date().toISOString().split('T')[0];
-
-        const { data: plantaoAtivo, error } = await _supabase
-          .from('plantao')
-          .select('*')
-          .gte('data', hojeISO)
-          .order('data', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (plantaoAtivo && !error) {
-          preencherEquipeCompletaJ3(plantaoAtivo);
-        }
-      } catch (err) {
-        console.warn("Sem escala J3 para carregar automaticamente.");
+      const plantaoAtivo = await buscarPlantaoAtivoJ3();
+      if (plantaoAtivo) {
+        plantaoJ3Ativo = plantaoAtivo;
+        preencherEquipeCompletaJ3(plantaoAtivo);
       }
     }
 
@@ -2473,7 +2443,6 @@
       recognition.start();
     }
 
-    /* FORMATADOR AUTOMÁTICO EM CAIXA ALTA (UPPERCASE) APENAS COM SESSÃO ATIVA */
     document.addEventListener('input', (e) => {
       if (!usuarioJ3Logado && e.target.id !== 'j3_user_input') return;
       if (e.target.classList && e.target.classList.contains('uppercase-input') && e.target.id !== 'j3_user_input') {
@@ -2729,6 +2698,12 @@
     }
 
     async function inicializarDados() {
+      // 1. Recupera sessão salva antes de montar a interface
+      const sessaoSalva = localStorage.getItem('j3_usuario_ativo');
+      if (sessaoSalva) {
+        try { usuarioJ3Logado = JSON.parse(sessaoSalva); } catch(e) {}
+      }
+
       atualizarInterfaceUsuarioJ3();
       addSvRow(true);
       await carregarInsumosELotesUnificados();
@@ -2737,6 +2712,18 @@
 
       addMedRow();
       ajustarExibicaoAssinaturasImpressao();
+
+      // Caso esteja logado via F5, garante equipe selecionada
+      if (usuarioJ3Logado) {
+        desbloquearFormularioPorLogin();
+        const plantaoCache = localStorage.getItem('j3_plantao_ativo_cache');
+        if (plantaoCache) {
+          try { preencherEquipeCompletaJ3(JSON.parse(plantaoCache)); } catch(e) {}
+        }
+      } else {
+        bloquearFormularioSemLogin();
+        abrirLoginJ3();
+      }
 
       atualizarStatusVisualFila();
       if (navigator.onLine) {
@@ -3421,12 +3408,8 @@
     document.getElementById('data').valueAsDate = new Date();
     document.getElementById('data_hora_recusa').value = new Date().toLocaleString('pt-BR');
     
-    // INICIALIZADOR COM CHECAGEM DE LOGIN
+    // INICIALIZAÇÃO DA APLICAÇÃO COM PERSISTÊNCIA DE SESSÃO
     inicializarDados();
-    atualizarInterfaceUsuarioJ3();
-    if (!usuarioJ3Logado) {
-      abrirLoginJ3();
-    }
   </script>
 </body>
 </html>
