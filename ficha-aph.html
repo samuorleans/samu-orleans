@@ -238,7 +238,7 @@
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(15, 23, 42, 0.85);
-      z-index: 99999;
+      z-index: 100000;
       display: none;
       align-items: center;
       justify-content: center;
@@ -1127,12 +1127,18 @@
     function abrirLoginJ3() {
       document.getElementById('j3_user_input').value = '';
       document.getElementById('j3_pass_input').value = '';
+      
+      // Oculta a tela de bloqueio do fundo para focar na digitação do modal
+      document.getElementById('formLockedOverlay').style.display = 'none';
+      
       document.getElementById('modalLoginJ3').style.display = 'flex';
       setTimeout(() => document.getElementById('j3_user_input').focus(), 150);
     }
 
     function fecharLoginJ3() {
       if (!usuarioJ3Logado) {
+        document.getElementById('formLockedOverlay').style.display = 'flex';
+        document.getElementById('modalLoginJ3').style.display = 'none';
         alert("⚠️ Você precisa realizar o login para liberar o formulário.");
         return;
       }
@@ -1178,7 +1184,7 @@
           document.getElementById('modalLoginJ3').style.display = 'none';
           
           preencherEquipeJ3Logado(colabEncontrado);
-          alert(`✅ Login realizado com sucesso! Bem-vindo(a), ${colabEncontrado.nome}. Formulario liberado.`);
+          alert(`✅ Login realizado com sucesso! Bem-vindo(a), ${colabEncontrado.nome}. Formulário liberado.`);
         } else {
           alert("❌ Usuário ou senha incorretos. Verifique suas credenciais do J3.");
         }
