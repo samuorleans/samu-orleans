@@ -1,7 +1,4 @@
-<div class="manut-container" style="background: white; border-radius: 12px; padding: 15px; border-top: 4px solid #002b49;">
-  <!-- GATILHO DE EXECUÇÃO AUTOMÁTICA VIA DOM -->
-  <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="display:none;" onload="if(typeof inicializarManutencaoAuto === 'function') inicializarManutencaoAuto();">
-
+<div class="manut-container" id="containerLivroManutencao" style="background: white; border-radius: 12px; padding: 15px; border-top: 4px solid #002b49;">
   <div style="text-align: center; margin-bottom: 15px; border-bottom: 2px solid #cbd5e1; padding-bottom: 10px;">
     <h2 style="color: #002b49; font-size: 1.2rem; font-weight: 800;">🔧 Livro Digital de Manutenção da Viatura</h2>
     <p style="font-size: 0.8rem; color: #666;">Registro de serviços executados e agendamento preventivo</p>
@@ -127,7 +124,8 @@
 </div>
 
 <script>
-  window.obterClienteSupabase = function() {
+  // Função Global de Conexão Supabase
+  window.obterClienteSupabaseManut = function() {
     if (typeof dbNuvem !== 'undefined' && dbNuvem) return dbNuvem;
     if (typeof supabaseClient !== 'undefined' && supabaseClient) return supabaseClient;
     if (typeof supabase !== 'undefined' && supabase.createClient) {
@@ -183,9 +181,9 @@
   };
 
   window.carregarListasFormManutencao = async function() {
-    const client = window.obterClienteSupabase();
+    const client = window.obterClienteSupabaseManut();
     if (!client) {
-      console.error("Cliente Supabase inacessível.");
+      console.error("Cliente Supabase inacessível no formulário.");
       return;
     }
 
@@ -193,63 +191,75 @@
     try {
       const { data: viaturas } = await client.from('operacional_viaturas').select('*');
       const selectViat = document.getElementById('m_viatura_id');
-      if (viaturas && viaturas.length > 0) {
-        selectViat.innerHTML = '<option value="">-- Selecione a Viatura --</option>';
-        viaturas.forEach(v => {
-          const pref = v.prefixo || v.nome || v.identificacao || 'Viatura';
-          const mod = v.modelo || '';
-          const plc = v.placa ? ` (${v.placa})` : '';
-          selectViat.innerHTML += `<option value="${v.id}">${pref} ${mod} ${plc}</option>`;
-        });
-      } else {
-        selectViat.innerHTML = '<option value="">Nenhuma viatura encontrada</option>';
+      if (selectViat) {
+        if (viaturas && viaturas.length > 0) {
+          selectViat.innerHTML = '<option value="">-- Selecione a Viatura --</option>';
+          viaturas.forEach(v => {
+            const pref = v.prefixo || v.nome || v.identificacao || 'Viatura';
+            const mod = v.modelo || '';
+            const plc = v.placa ? ` (${v.placa})` : '';
+            selectViat.innerHTML += `<option value="${v.id}">${pref} ${mod} ${plc}</option>`;
+          });
+        } else {
+          selectViat.innerHTML = '<option value="">Nenhuma viatura cadastrada</option>';
+        }
       }
     } catch (e) {
-      document.getElementById('m_viatura_id').innerHTML = '<option value="">Erro ao buscar viaturas</option>';
+      if (document.getElementById('m_viatura_id')) {
+        document.getElementById('m_viatura_id').innerHTML = '<option value="">Erro ao carregar viaturas</option>';
+      }
     }
 
     // 2. OFICINAS
     try {
       const { data: oficinas } = await client.from('operacional_oficinas').select('*');
       const selectOfic = document.getElementById('m_oficina_id');
-      if (oficinas && oficinas.length > 0) {
-        selectOfic.innerHTML = '<option value="">-- Selecione a Oficina Credenciada --</option>';
-        oficinas.forEach(o => {
-          if (o.status !== 'INATIVO') {
-            const nomeExibicao = o.razao_social || o.nome_fantasia || o.nome || 'Oficina';
-            selectOfic.innerHTML += `<option value="${o.id}">${nomeExibicao}</option>`;
-          }
-        });
-      } else {
-        selectOfic.innerHTML = '<option value="">Nenhuma oficina cadastrada</option>';
+      if (selectOfic) {
+        if (oficinas && oficinas.length > 0) {
+          selectOfic.innerHTML = '<option value="">-- Selecione a Oficina Credenciada --</option>';
+          oficinas.forEach(o => {
+            if (o.status !== 'INATIVO') {
+              const nomeExibicao = o.razao_social || o.nome_fantasia || o.nome || 'Oficina';
+              selectOfic.innerHTML += `<option value="${o.id}">${nomeExibicao}</option>`;
+            }
+          });
+        } else {
+          selectOfic.innerHTML = '<option value="">Nenhuma oficina cadastrada</option>';
+        }
       }
     } catch (e) {
-      document.getElementById('m_oficina_id').innerHTML = '<option value="">Erro ao buscar oficinas</option>';
+      if (document.getElementById('m_oficina_id')) {
+        document.getElementById('m_oficina_id').innerHTML = '<option value="">Erro ao carregar oficinas</option>';
+      }
     }
 
     // 3. COLABORADORES
     try {
       const { data: colaboradores } = await client.from('colaboradores').select('*');
       const selectColab = document.getElementById('m_colaborador_id');
-      if (colaboradores && colaboradores.length > 0) {
-        selectColab.innerHTML = '<option value="">-- Selecione o Responsável --</option>';
-        colaboradores.forEach(c => {
-          if (c.status !== 'DESLIGADO' && c.status_admin !== 'DESLIGADO') {
-            const nome = c.nome || c.nome_completo || 'Servidor';
-            const func = c.funcao ? ` (${c.funcao})` : '';
-            selectColab.innerHTML += `<option value="${c.id}">${nome}${func}</option>`;
-          }
-        });
-      } else {
-        selectColab.innerHTML = '<option value="">Nenhum colaborador encontrado</option>';
+      if (selectColab) {
+        if (colaboradores && colaboradores.length > 0) {
+          selectColab.innerHTML = '<option value="">-- Selecione o Responsável --</option>';
+          colaboradores.forEach(c => {
+            if (c.status !== 'DESLIGADO' && c.status_admin !== 'DESLIGADO') {
+              const nome = c.nome || c.nome_completo || 'Servidor';
+              const func = c.funcao ? ` (${c.funcao})` : '';
+              selectColab.innerHTML += `<option value="${c.id}">${nome}${func}</option>`;
+            }
+          });
+        } else {
+          selectColab.innerHTML = '<option value="">Nenhum colaborador encontrado</option>';
+        }
       }
     } catch (e) {
-      document.getElementById('m_colaborador_id').innerHTML = '<option value="">Erro ao buscar colaboradores</option>';
+      if (document.getElementById('m_colaborador_id')) {
+        document.getElementById('m_colaborador_id').innerHTML = '<option value="">Erro ao carregar colaboradores</option>';
+      }
     }
   };
 
   window.carregarHistoricoManutencao = async function() {
-    const client = window.obterClienteSupabase();
+    const client = window.obterClienteSupabaseManut();
     const viaturaId = document.getElementById('m_viatura_id').value;
     const tbody = document.getElementById('tbodyHistManut');
 
@@ -296,7 +306,7 @@
 
   window.salvarManutencaoLivro = async function(e) {
     e.preventDefault();
-    const client = window.obterClienteSupabase();
+    const client = window.obterClienteSupabaseManut();
     if (!client) {
       alert("❌ Falha na conexão com o Supabase.");
       return;
@@ -334,12 +344,30 @@
     }
   };
 
-  window.inicializarManutencaoAuto = function() {
-    const elData = document.getElementById('m_data_exec');
-    if (elData) elData.value = new Date().toISOString().split('T')[0];
-    window.carregarListasFormManutencao();
-  };
+  // OBSERVADOR DE DOM (MÉTODO DEFINITIVO PARA SPAs)
+  (function iniciarObservadorInjecao() {
+    const dispararBusca = () => {
+      const elData = document.getElementById('m_data_exec');
+      if (elData) elData.value = new Date().toISOString().split('T')[0];
+      if (typeof window.carregarListasFormManutencao === 'function') {
+        window.carregarListasFormManutencao();
+      }
+    };
 
-  // Disparo manual
-  window.inicializarManutencaoAuto();
+    // Tenta rodar imediatamente
+    dispararBusca();
+
+    // Se a injeção demorar alguns milissegundos, executa em intervalos curtos
+    let tentativas = 0;
+    const interval = setInterval(() => {
+      tentativas++;
+      const selectViat = document.getElementById('m_viatura_id');
+      if (selectViat && selectViat.options.length > 1) {
+        clearInterval(interval);
+      } else {
+        dispararBusca();
+      }
+      if (tentativas > 10) clearInterval(interval);
+    }, 300);
+  })();
 </script>
