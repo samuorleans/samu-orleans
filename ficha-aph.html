@@ -1080,7 +1080,7 @@
   <div class="modal-auth-overlay" id="modalLoginJ3" style="display: flex;">
     <div class="modal-auth-container" style="max-width: 380px;">
       <div class="modal-auth-header" style="background: #1e293b;">
-        <span>ambulancia LOGIN DE PLANTÃO J3</span>
+        <span>🚑 LOGIN DE PLANTÃO J3</span>
         <button type="button" class="modal-auth-close" id="btnFecharLoginJ3" onclick="fecharLoginJ3()" style="display: none;">✕</button>
       </div>
       <div style="padding: 16px;">
@@ -1187,29 +1187,17 @@
       document.getElementById('modalLoginJ3').style.display = 'none';
     }
 
-    /* BUSCA E VALIDAÇÃO EXCLUSIVA DE PLANTÃO COM STATUS 'ATIVO' NO J3 */
+    /* BUSCA E VALIDAÇÃO EXCLUSIVA NA TABELA `plantoes_j3` COM STATUS 'ATIVO' */
     async function buscarPlantaoAtivoJ3() {
       if (!_supabase || !navigator.onLine) return null;
 
       try {
         let { data, error } = await _supabase
-          .from('plantao')
+          .from('plantoes_j3')
           .select('*')
           .eq('status', 'ATIVO')
-          .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
-
-        if (!data) {
-          let { data: resAssuncao } = await _supabase
-            .from('assuncao_j3')
-            .select('*')
-            .eq('status', 'ATIVO')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          data = resAssuncao;
-        }
 
         return data || null;
       } catch (err) {
@@ -1268,7 +1256,7 @@
           return;
         }
 
-        // Validação obrigatória de Plantão ATIVO no J3
+        // Validação obrigatória de Plantão ATIVO na tabela `plantoes_j3`
         const plantaoAtivoBd = await buscarPlantaoAtivoJ3();
 
         if (!plantaoAtivoBd) {
@@ -1277,14 +1265,14 @@
         }
 
         const nomeColabNorm = normalizarString(colabEncontrado.nome);
-        const condutorNorm = normalizarString(plantaoAtivoBd.condutor || plantaoAtivoBd.socorrista || '');
-        const enfermagemNorm = normalizarString(plantaoAtivoBd.enfermagem || plantaoAtivoBd.tecnico_enfermagem || plantaoAtivoBd.tecnico || '');
+        const condutorNorm = normalizarString(plantaoAtivoBd.condutor || '');
+        const enfermagemNorm = normalizarString(plantaoAtivoBd.enfermagem || '');
 
         const estaNoPlantaoAtivo = (condutorNorm !== '' && (nomeColabNorm.includes(condutorNorm) || condutorNorm.includes(nomeColabNorm))) ||
                                    (enfermagemNorm !== '' && (nomeColabNorm.includes(enfermagemNorm) || enfermagemNorm.includes(nomeColabNorm)));
 
         if (!estaNoPlantaoAtivo) {
-          alert(`❌ ACESSO NEGADO!\n\nO colaborador "${colabEncontrado.nome}" NÃO está na equipe do plantão J3 ATIVO.\n\nEquipe Ativa no Momento:\n• Condutor: ${plantaoAtivoBd.condutor || plantaoAtivoBd.socorrista || 'Não informado'}\n• Enfermagem: ${plantaoAtivoBd.enfermagem || plantaoAtivoBd.tecnico_enfermagem || plantaoAtivoBd.tecnico || 'Não informado'}`);
+          alert(`❌ ACESSO NEGADO!\n\nO colaborador "${colabEncontrado.nome}" NÃO está na equipe do plantão J3 ATIVO.\n\nEquipe Ativa no Momento:\n• Condutor: ${plantaoAtivoBd.condutor || 'Não informado'}\n• Enfermagem: ${plantaoAtivoBd.enfermagem || 'Não informado'}`);
           return;
         }
 
@@ -1312,8 +1300,8 @@
       const selectTec = document.getElementById('tec_enfermeiro');
       const selectSoc = document.getElementById('socorrista');
 
-      const nomeEnf = plantao.enfermagem || plantao.tecnico_enfermagem || plantao.tecnico;
-      const nomeCond = plantao.condutor || plantao.socorrista;
+      const nomeEnf = plantao.enfermagem;
+      const nomeCond = plantao.condutor;
 
       if (nomeEnf && selectTec) {
         const optMatch = Array.from(selectTec.options).find(opt => 
@@ -3408,7 +3396,7 @@
     document.getElementById('data').valueAsDate = new Date();
     document.getElementById('data_hora_recusa').value = new Date().toLocaleString('pt-BR');
     
-    // INICIALIZAÇÃO DA APLICAÇÃO COM PERSISTÊNCIA DE SESSÃO
+    // INICIALIZAÇÃO DA APLICAÇÃO COM PERSISTÊNCIA DE SESSÃO E BUSCA CORRETA DA TABELA `plantoes_j3`
     inicializarDados();
   </script>
 </body>
