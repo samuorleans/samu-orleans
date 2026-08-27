@@ -1631,8 +1631,8 @@
       const afTec = afastamentos.find(a => a.funcao && (a.funcao.includes("Técnic") || a.funcao.includes("Enfermeir")) && !a.funcao.includes("Coordenadora") && a.regime && a.regime.includes("Categoria") && dtIso >= a.inicio && dtIso <= a.fim);
 
       if (afCond) {
-        const condutoresOficiais = ["Vanderlei José Tasca", "Márcio Becker", "Lucas Vieira Mendes", "Renato Cândido", "Daniel Alexandre Fernandes"];
-        const condutoresAtivos = condutoresOficiais.filter(nome => nome !== afCond.servidor);
+        // Sequência exata da rotação em 24x72 iniciando por quem cobriu no dia 20/06 (Renato Cândido)
+        const condutoresAtivos = ["Renato Cândido", "Daniel Alexandre Fernandes", "Vanderlei José Tasca", "Márcio Becker"];
         const dtIniAf = new Date(afCond.inicio + "T00:00:00");
         const diffAf = Math.floor((dtAtual.getTime() - dtIniAf.getTime()) / (1000 * 3600 * 24));
         if (diffAf >= 0 && condutoresAtivos.length > 0) {
@@ -1642,8 +1642,7 @@
       }
 
       if (afTec) {
-        const tecsOficiais = ["Suandre Adão Machado", "Rinaldo Calegario", "Clênio Borges", "Luis Eduardo Formanski Vitório", "Gicerléia Trindade da Rosa"];
-        const tecsAtivos = tecsOficiais.filter(nome => nome !== afTec.servidor);
+        const tecsAtivos = ["Luis Eduardo Formanski Vitório", "Gicerléia Trindade da Rosa", "Suandre Adão Machado", "Rinaldo Calegario"];
         const dtIniAf = new Date(afTec.inicio + "T00:00:00");
         const diffAf = Math.floor((dtAtual.getTime() - dtIniAf.getTime()) / (1000 * 3600 * 24));
         if (diffAf >= 0 && tecsAtivos.length > 0) {
