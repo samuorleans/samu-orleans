@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Ficha APH - SAMU 192 Orleans</title>
+
+  <!-- PWA Manifest & Theme Color -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e293b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="logo.png">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -41,6 +49,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      flex-wrap: wrap;
     }
     .badge-sync-status {
       padding: 3px 8px;
@@ -56,6 +65,7 @@
     }
     .badge-sync-status.online { background: #16a34a; color: #ffffff; }
     .badge-sync-status.offline { background: #ea580c; color: #ffffff; animation: alertPulse 1.5s infinite alternate; }
+    
     .btn-manual-sync {
       background: #0284c7;
       color: #ffffff;
@@ -66,6 +76,20 @@
       font-weight: 800;
       cursor: pointer;
       display: none;
+    }
+
+    .btn-cache-pacientes {
+      background: #334155;
+      color: #ffffff;
+      border: none;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.62rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
     }
 
     .card {
@@ -353,6 +377,7 @@
       <img src="logo.png" alt="SAMU Logo" onerror="this.style.display='none'">
       <div id="badgeSyncStatus" class="badge-sync-status online">🟢 ONLINE</div>
       <button type="button" id="btnManualSync" class="btn-manual-sync" onclick="sincronizarFichasPendentesOffline()">📲 Sincronizar</button>
+      <button type="button" id="btnCachePacientes" class="btn-cache-pacientes" onclick="baixarEAtualizarCachePacientes(true)" title="Baixar Pacientes do Banco para Acesso Offline">🔄 Carga Pacientes</button>
     </div>
     <div class="header-info">
       <h1>SAMU 192 - ORLEANS / SC</h1>
@@ -524,8 +549,15 @@
           <input type="text" id="paciente" class="uppercase-input" style="font-weight: 700;" placeholder="NOME DO PACIENTE">
         </div>
 
-        <div class="grid-3">
-          <div><label>Idade</label><input type="number" inputmode="numeric" id="idade"></div>
+        <div class="grid-4" style="margin-top: 2px;">
+          <div>
+            <label>Data Nasc.</label>
+            <input type="date" id="data_nascimento" onchange="calcularIdadeAutomatico(this)">
+          </div>
+          <div>
+            <label>Idade (Anos)</label>
+            <input type="number" inputmode="numeric" id="idade" placeholder="EX: 45">
+          </div>
           <div>
             <label>Sexo</label>
             <select id="sexo">
@@ -976,6 +1008,15 @@
   </form>
 
   <script>
+    /* REGISTRO DO SERVICE WORKER (PWA OFFLINE) */
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('✅ Service Worker PWA registrado com sucesso:', reg.scope))
+          .catch(err => console.warn('⚠️ Falha ao registrar Service Worker PWA:', err));
+      });
+    }
+
     /* CHAVES ATUALIZADAS E VINCULADAS AO PROJETO SUPABASE */
     const SUPABASE_URL = 'https://rcpgukslnlfptreiusff.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A';
@@ -997,6 +1038,29 @@
     const COLABORADORES_FALLBACK = [
       { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "", senha: "" }
     ];
+
+    /* CÁLCULO AUTOMÁTICO DE IDADE A PARTIR DA DATA DE NASCIMENTO */
+    function calcularIdadeAutomatico(inputDataNasc) {
+      const dataNascVal = inputDataNasc.value;
+      if (!dataNascVal) return;
+
+      const hoje = new Date();
+      const nascimento = new Date(dataNascVal);
+
+      if (isNaN(nascimento.getTime())) return;
+
+      let idadeAnos = hoje.getFullYear() - nascimento.getFullYear();
+      const m = hoje.getMonth() - nascimento.getMonth();
+
+      if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+        idadeAnos--;
+      }
+
+      if (idadeAnos >= 0) {
+        document.getElementById('idade').value = idadeAnos;
+      }
+      salvarLocal();
+    }
 
     /* MONITOR E ATUALIZADOR DE STATUS OFFLINE / ONLINE */
     function atualizarStatusVisualFila() {
@@ -1025,6 +1089,7 @@
     window.addEventListener('online', () => {
       console.log("📶 Conexão detectada! Sincronizando fila de fichas offline...");
       sincronizarFichasPendentesOffline();
+      baixarEAtualizarCachePacientes(false);
     });
 
     window.addEventListener('offline', () => {
@@ -1080,6 +1145,29 @@
       }
     }
 
+    /* CARGA TÁTICA / CACHE LOCAL DA BASE DE PACIENTES PARA CONSULTA OFFLINE */
+    async function baixarEAtualizarCachePacientes(alertaManual = false) {
+      if (!navigator.onLine || !_supabase) {
+        if (alertaManual) alert("⚠️ Sem conexão de internet para atualizar o banco local de pacientes.");
+        return;
+      }
+
+      try {
+        const { data: listPac, error } = await _supabase
+          .from('pacientes')
+          .select('*')
+          .order('updated_at', { ascending: false })
+          .limit(500);
+
+        if (!error && listPac) {
+          localStorage.setItem('aph_pacientes_cache', JSON.stringify(listPac));
+          if (alertaManual) alert(`✅ CARGA CONCLUÍDA: ${listPac.length} cadastros de pacientes salvos no tablet para acesso offline!`);
+        }
+      } catch (e) {
+        if (alertaManual) alert("Erro ao sincronizar base de pacientes.");
+      }
+    }
+
     /* AVISO SONORO E POPUP EM TELA CHEIA PARA ALERTA DE ALERGIA */
     function tocarAlertaSonoroAlergia() {
       try {
@@ -1123,7 +1211,7 @@
       }
     }
 
-    /* 1. BUSCA RÁPIDA DE DADOS CADASTRAIS DO PACIENTE (SEÇÃO 2 - SEM SENHA & C/ CHECAGEM DE ALERGIA) */
+    /* 1. BUSCA HÍBRIDA (ONLINE + LOCAL) DE DADOS CADASTRAIS DO PACIENTE */
     async function puxarCadastroPacienteSemSenha() {
       const cpfRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
       if (cpfRaw.length < 11) {
@@ -1132,68 +1220,89 @@
       }
 
       limparCamposPaciente();
-
       const cpfFormatado = cpfRaw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 
-      try {
-        let dataPac = null;
+      let dataPac = null;
+      let temAlergia = false;
+      let descAlergia = '';
 
-        // A) Buscar no cadastro geral de pacientes
-        const { data: resPac } = await _supabase
-          .from('pacientes')
-          .select('*')
-          .or(`cpf.ilike.%${cpfRaw}%,cpf.ilike.%${cpfFormatado}%`)
-          .limit(1)
-          .maybeSingle();
+      // A) BUSCA ONLINE NO SUPABASE (Se houver internet)
+      if (navigator.onLine && _supabase) {
+        try {
+          const { data: resPac } = await _supabase
+            .from('pacientes')
+            .select('*')
+            .or(`cpf.ilike.%${cpfRaw}%,cpf.ilike.%${cpfFormatado}%`)
+            .limit(1)
+            .maybeSingle();
 
-        if (resPac) dataPac = resPac;
+          if (resPac) dataPac = resPac;
 
-        // B) Buscar último histórico de ocorrência do paciente para checar alergia prévia
-        const { data: resOcorr } = await _supabase
-          .from('ocorrencias_aph')
-          .select('alergia_select, alergia_desc')
-          .or(`cpf_paciente.ilike.%${cpfRaw}%,cpf_paciente.ilike.%${cpfFormatado}%`)
-          .eq('alergia_select', 'SIM')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+          const { data: resOcorr } = await _supabase
+            .from('ocorrencias_aph')
+            .select('alergia_select, alergia_desc')
+            .or(`cpf_paciente.ilike.%${cpfRaw}%,cpf_paciente.ilike.%${cpfFormatado}%`)
+            .eq('alergia_select', 'SIM')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
-        if (dataPac) {
-          document.getElementById('paciente').value = (dataPac.nome || '').toUpperCase();
-          document.getElementById('cns_paciente').value = dataPac.cns || '';
-          document.getElementById('idade').value = dataPac.idade || '';
-          document.getElementById('sexo').value = dataPac.sexo || 'M';
-          document.getElementById('telefone').value = dataPac.telefone || '';
-          document.getElementById('cep_paciente').value = dataPac.cep || '';
-          document.getElementById('rua').value = (dataPac.rua || dataPac.logradouro || '').toUpperCase();
-          document.getElementById('numero').value = dataPac.numero || '';
-          document.getElementById('bairro').value = (dataPac.bairro || '').toUpperCase();
-          document.getElementById('municipio').value = (dataPac.municipio || dataPac.cidade || 'ORLEANS').toUpperCase();
-          document.getElementById('estado').value = (dataPac.estado || dataPac.uf || 'SC').toUpperCase();
-          
-          await atualizarHospitaisPorMunicipio();
-
-          // Tratar Alergias encontradas no histórico do cadastro ou de ocorrências
-          const temAlergia = (dataPac.alergia_select === 'SIM') || (resOcorr && resOcorr.alergia_select === 'SIM');
-          const descAlergia = (dataPac.alergia_desc || (resOcorr ? resOcorr.alergia_desc : ''));
-
-          if (temAlergia) {
-            document.getElementById('alergia_select').value = 'SIM';
-            toggleAlergiaInput();
-            document.getElementById('alergia_desc').value = descAlergia;
-            dispararAlertaAlergia(descAlergia);
-          } else {
-            document.getElementById('alergia_select').value = 'NAO';
-            toggleAlergiaInput();
+          if (resOcorr && resOcorr.alergia_select === 'SIM') {
+            temAlergia = true;
+            descAlergia = resOcorr.alergia_desc || '';
           }
+        } catch (e) {}
+      }
 
-          salvarLocal();
-          alert("✅ Cadastro do paciente localizado com sucesso!");
-        } else {
-          alert("Nenhum cadastro prévio encontrado para este CPF. Preencha os campos normalmente.");
+      // B) BUSCA OFFLINE NO CACHE LOCAL DO TABLET (Se estiver sem internet ou falhar no banco)
+      if (!dataPac) {
+        const cacheRaw = localStorage.getItem('aph_pacientes_cache');
+        if (cacheRaw) {
+          try {
+            const cacheList = JSON.parse(cacheRaw);
+            dataPac = cacheList.find(p => p.cpf && (p.cpf.replace(/\D/g, "") === cpfRaw));
+          } catch(e) {}
         }
-      } catch (err) {
-        alert("Erro ao consultar a base de pacientes.");
+      }
+
+      if (dataPac) {
+        document.getElementById('paciente').value = (dataPac.nome || '').toUpperCase();
+        document.getElementById('cns_paciente').value = dataPac.cns || '';
+        if (dataPac.data_nascimento) {
+          document.getElementById('data_nascimento').value = dataPac.data_nascimento;
+          calcularIdadeAutomatico(document.getElementById('data_nascimento'));
+        }
+        if (dataPac.idade) document.getElementById('idade').value = dataPac.idade;
+        document.getElementById('sexo').value = dataPac.sexo || 'M';
+        document.getElementById('telefone').value = dataPac.telefone || '';
+        document.getElementById('cep_paciente').value = dataPac.cep || '';
+        document.getElementById('rua').value = (dataPac.rua || dataPac.logradouro || '').toUpperCase();
+        document.getElementById('numero').value = dataPac.numero || '';
+        document.getElementById('bairro').value = (dataPac.bairro || '').toUpperCase();
+        document.getElementById('municipio').value = (dataPac.municipio || dataPac.cidade || 'ORLEANS').toUpperCase();
+        document.getElementById('estado').value = (dataPac.estado || dataPac.uf || 'SC').toUpperCase();
+        
+        await atualizarHospitaisPorMunicipio();
+
+        if (dataPac.alergia_select === 'SIM') {
+          temAlergia = true;
+          if (dataPac.alergia_desc) descAlergia = dataPac.alergia_desc;
+        }
+
+        if (temAlergia) {
+          document.getElementById('alergia_select').value = 'SIM';
+          toggleAlergiaInput();
+          document.getElementById('alergia_desc').value = descAlergia;
+          dispararAlertaAlergia(descAlergia);
+        } else {
+          document.getElementById('alergia_select').value = 'NAO';
+          toggleAlergiaInput();
+        }
+
+        salvarLocal();
+        alert("✅ Cadastro do paciente localizado com sucesso!");
+      } else {
+        alert("Nenhum cadastro prévio encontrado para este CPF. Preencha os campos normalmente.");
       }
     }
 
@@ -1331,6 +1440,7 @@
 
       document.getElementById('cpf_paciente').value = dataOcorr.cpf_paciente || '';
       document.getElementById('paciente').value = (dataOcorr.paciente || '').toUpperCase();
+      document.getElementById('data_nascimento').value = dataOcorr.data_nascimento || '';
       document.getElementById('idade').value = dataOcorr.idade || '';
       document.getElementById('sexo').value = dataOcorr.sexo || 'M';
       document.getElementById('telefone').value = dataOcorr.telefone || '';
@@ -1416,6 +1526,7 @@
     function limparCamposPaciente() {
       document.getElementById('paciente').value = '';
       document.getElementById('cns_paciente').value = '';
+      document.getElementById('data_nascimento').value = '';
       document.getElementById('idade').value = '';
       document.getElementById('sexo').value = 'M';
       document.getElementById('telefone').value = '';
@@ -1453,7 +1564,7 @@
 
     function capturarEstadoFormularioClinico() {
       const obj = {};
-      const campos = ['cpf_paciente', 'cns_paciente', 'cep_paciente', 'paciente', 'idade', 'sexo', 'telefone', 'rua', 'numero', 'bairro', 'ponto_ref', 'municipio', 'estado', 'vias_aereas', 'respiracao', 'circulacao', 'g_oc', 'g_verb', 'g_mot', 'pupilas', 'bio_suspeita', 'bio_tipo_agente', 'bio_agente_outros', 'bio_desinfeccao', 'alergia_select', 'alergia_desc', 'med_continua_select', 'meds_continuas', 'evolucao_texto', 'hospital_destino', 'hospital_outros', 'desfecho_vitima', 'houve_recusa', 'tipo_assinante', 'cpf_assinante', 'nome_assinante', 'tel_assinante'];
+      const campos = ['cpf_paciente', 'cns_paciente', 'cep_paciente', 'paciente', 'data_nascimento', 'idade', 'sexo', 'telefone', 'rua', 'numero', 'bairro', 'ponto_ref', 'municipio', 'estado', 'vias_aereas', 'respiracao', 'circulacao', 'g_oc', 'g_verb', 'g_mot', 'pupilas', 'bio_suspeita', 'bio_tipo_agente', 'bio_agente_outros', 'bio_desinfeccao', 'alergia_select', 'alergia_desc', 'med_continua_select', 'meds_continuas', 'evolucao_texto', 'hospital_destino', 'hospital_outros', 'desfecho_vitima', 'houve_recusa', 'tipo_assinante', 'cpf_assinante', 'nome_assinante', 'tel_assinante'];
       
       campos.forEach(id => {
         const el = document.getElementById(id);
@@ -1500,7 +1611,7 @@
       if (Object.keys(rascunhoVitimas[numVitima]).length > 0) {
         restaurarEstadoFormularioClinico(rascunhoVitimas[numVitima]);
       } else {
-        const camposLimpar = ['cpf_paciente', 'cns_paciente', 'paciente', 'idade', 'telefone', 'evolucao_texto', 'cpf_assinante', 'nome_assinante', 'tel_assinante'];
+        const camposLimpar = ['cpf_paciente', 'cns_paciente', 'paciente', 'data_nascimento', 'idade', 'telefone', 'evolucao_texto', 'cpf_assinante', 'nome_assinante', 'tel_assinante'];
         camposLimpar.forEach(id => {
           const el = document.getElementById(id);
           if (el) el.value = '';
@@ -2234,6 +2345,7 @@
       atualizarStatusVisualFila();
       if (navigator.onLine) {
         sincronizarFichasPendentesOffline();
+        baixarEAtualizarCachePacientes(false);
       }
     }
 
@@ -2665,13 +2777,14 @@
 
         const cpfPacienteRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
 
-        // 1. Tentar Atualizar Cadastro de Pacientes no Banco se estivar Online
+        // 1. Tentar Atualizar Cadastro de Pacientes no Banco se estiver Online
         if (cpfPacienteRaw.length === 11 && navigator.onLine && _supabase) {
           try {
             const payloadPaciente = {
               cpf: cpfPacienteRaw,
               nome: document.getElementById('paciente').value.toUpperCase(),
               cns: document.getElementById('cns_paciente').value.replace(/\D/g, ""),
+              data_nascimento: document.getElementById('data_nascimento').value || null,
               idade: parseInt(document.getElementById('idade').value) || null,
               sexo: document.getElementById('sexo').value,
               telefone: document.getElementById('telefone').value,
@@ -2707,6 +2820,7 @@
           socorrista: document.getElementById('socorrista').value,
           cpf_paciente: document.getElementById('cpf_paciente').value,
           paciente: document.getElementById('paciente').value,
+          data_nascimento: document.getElementById('data_nascimento').value,
           idade: document.getElementById('idade').value,
           sexo: document.getElementById('sexo').value,
           telefone: document.getElementById('telefone').value,
