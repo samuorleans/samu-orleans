@@ -158,7 +158,7 @@
   <script>
     const dbNuvem = supabase.createClient(
       "https://rcpgukslnlfptreiusff.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
     );
 
     const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyQdLDoigigMzoQbUqaTIi13IdjLNDCS8njuN3uNBc6tqf5m03CFVYCRT9dP_G0BgjX/exec";
@@ -474,10 +474,20 @@
       document.getElementById('passo1').style.display = 'none';
       document.getElementById('passo2').style.display = 'block';
 
+      const containerModulo = document.getElementById('conteudoFormEspecifico');
+
       fetch(`modulos/${arquivoModulo}`)
         .then(res => res.text())
         .then(html => {
-          document.getElementById('conteudoFormEspecifico').innerHTML = html;
+          containerModulo.innerHTML = html;
+
+          // REFORÇA A EXECUÇÃO DOS SCRIPTS EMBUTIDOS DO MÓDULO IMPORTADO
+          Array.from(containerModulo.querySelectorAll('script')).forEach(oldScript => {
+            const newScript = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+          });
           
           setTimeout(() => {
             if (procSel === 'abastecimento') {
@@ -491,10 +501,11 @@
               renderizarTabelaMochilasTecnico();
             }
             if (procSel === 'manutencao') {
-              if (document.getElementById('m_data_exec')) {
-                document.getElementById('m_data_exec').valueAsDate = new Date();
+              if (typeof window.iniciarModuloManutencao === 'function') {
+                window.iniciarModuloManutencao();
+              } else if (typeof window.carregarListasFormManutencao === 'function') {
+                window.carregarListasFormManutencao();
               }
-              carregarHistoricoManutencao(viatura);
             }
           }, 150);
         });
@@ -507,6 +518,11 @@
 
     // ALTERNÂNCIA DE ABAS DO MÓDULO DE MANUTENÇÃO
     function alternarAbaManut(modo) {
+      if (typeof window.alternarAbaManut === 'function') {
+        window.alternarAbaManut(modo);
+        return;
+      }
+
       document.getElementById('m_modo_registro').value = modo;
 
       const btnExec = document.getElementById('btnAbaExec');
@@ -554,6 +570,11 @@
 
     // GRAVAÇÃO DA MANUTENÇÃO / AGENDAMENTO NO SUPABASE
     async function salvarManutencaoLivro(e) {
+      if (typeof window.salvarManutencaoLivro === 'function') {
+        window.salvarManutencaoLivro(e);
+        return;
+      }
+
       e.preventDefault();
 
       const viatura = document.getElementById('resumo_viatura') ? document.getElementById('resumo_viatura').innerText : 'USB-11';
@@ -575,13 +596,13 @@
       const payload = {
         viatura: viatura,
         responsavel_registro: profissional,
-        responsavel_lancamento: profissional, // MAPEADO PARA A COLUNA DO BANCO
+        responsavel_lancamento: profissional,
         status: modo,
         data_manutencao: modo === 'EXECUTADO' ? dataExec : null,
         data_agendada: modo === 'AGENDADO' ? dataAgend : null,
         km_no_servico: parseInt(document.getElementById('m_km').value) || 0,
         tipo_manutencao: document.getElementById('m_tipo').value,
-        oficina_prestador: document.getElementById('m_oficina').value.trim(),
+        oficina_prestador: document.getElementById('m_oficina') ? document.getElementById('m_oficina').value.trim() : '',
         numero_nota_fiscal: document.getElementById('m_nf') ? document.getElementById('m_nf').value.trim() : '',
         valor_total: document.getElementById('m_valor') ? (parseFloat(document.getElementById('m_valor').value) || 0) : 0,
         email_notificacao: document.getElementById('m_email') ? document.getElementById('m_email').value.trim() : '',
@@ -606,6 +627,11 @@
 
     // CARREGAMENTO DO HISTÓRICO DE MANUTENÇÃO
     async function carregarHistoricoManutencao(viatura) {
+      if (typeof window.carregarHistoricoManutencao === 'function') {
+        window.carregarHistoricoManutencao(viatura);
+        return;
+      }
+
       const tbody = document.getElementById('tbodyHistManut');
       if (!tbody) return;
 
