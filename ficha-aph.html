@@ -26,7 +26,30 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 8px; padding-bottom: 90px; }
+    body { background-color: var(--bg); color: var(--text); padding: 8px; padding-bottom: 90px; position: relative; }
+
+    /* CAMADA DE BLOQUEIO TOTAL PRÉ-LOGIN */
+    .form-locked-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(5px);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-align: center;
+      pointer-events: all;
+    }
+
+    body.locked form#aphForm {
+      pointer-events: none !important;
+      opacity: 0.4;
+      user-select: none;
+      filter: grayscale(80%);
+    }
 
     header {
       background: linear-gradient(135deg, #1e293b, #0f172a);
@@ -44,7 +67,6 @@
     header .header-info h1 { font-size: 1rem; font-weight: 800; text-transform: uppercase; color: #fff; }
     header .header-info p { font-size: 0.65rem; color: #94a3b8; font-weight: 600; }
 
-    /* ESTILO DO INDICADOR OFFLINE / ONLINE NO TOPO */
     .status-sync-bar {
       display: flex;
       align-items: center;
@@ -321,11 +343,10 @@
       text-transform: uppercase;
     }
 
-    /* ESTILO DE IMPRESSÃO A4 REFINADO */
     @media print {
       @page { size: A4 portrait; margin: 3mm; }
       html, body { width: 100%; height: 100%; background: #fff !important; padding: 0 !important; margin: 0 !important; color: #000000 !important; font-size: 6pt !important; line-height: 1.1; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; text-rendering: optimizeLegibility !important; }
-      .btn-submit, .btn-search, .btn-reabrir-historico, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .modal-med-overlay, .modal-auth-overlay, .modal-alergia-overlay, .vitima-selector-bar, .status-sync-bar, button, script { display: none !important; }
+      .btn-submit, .btn-search, .btn-reabrir-historico, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .modal-med-overlay, .modal-auth-overlay, .modal-alergia-overlay, .vitima-selector-bar, .status-sync-bar, .form-locked-overlay, button, script { display: none !important; }
       select, input[type="time"], input[type="date"] { -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background: transparent !important; background-image: none !important; }
       input[type="time"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-inner-spin-button, input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; -webkit-appearance: none !important; }
       header { background: #fff !important; color: #000000 !important; border-bottom: 1.5pt solid #000000; padding: 1px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-content: space-between !important; align-items: center !important; }
@@ -370,7 +391,19 @@
     }
   </style>
 </head>
-<body>
+<body class="locked">
+
+  <!-- OVERLAY DE BLOQUEIO TOTAL PRÉ-LOGIN -->
+  <div id="formLockedOverlay" class="form-locked-overlay">
+    <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
+    <h2 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 6px;">SISTEMA BLOQUEADO</h2>
+    <p style="font-size: 0.85rem; max-width: 300px; margin-bottom: 15px; opacity: 0.9;">
+      Faça login no plantão J3 para liberar o preenchimento do prontuário APH.
+    </p>
+    <button type="button" onclick="abrirLoginJ3()" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 800; font-size: 0.9rem; cursor: pointer; text-transform: uppercase;">
+      🔑 EFETUAR LOGIN J3
+    </button>
+  </div>
 
   <header>
     <div class="status-sync-bar">
@@ -998,16 +1031,16 @@
       </div>
     </div>
 
-    <!-- MODAL DE LOGIN J3 / ACESSO OPERACIONAL -->
-    <div class="modal-auth-overlay" id="modalLoginJ3" style="display: none;">
+    <!-- MODAL DE LOGIN J3 / ACESSO OPERACIONAL AUTOMÁTICO -->
+    <div class="modal-auth-overlay" id="modalLoginJ3" style="display: flex;">
       <div class="modal-auth-container" style="max-width: 380px;">
         <div class="modal-auth-header" style="background: #1e293b;">
           <span>🚑 LOGIN DE PLANTÃO J3</span>
-          <button type="button" class="modal-auth-close" onclick="fecharLoginJ3()">✕</button>
+          <button type="button" class="modal-auth-close" id="btnFecharLoginJ3" onclick="fecharLoginJ3()" style="display: none;">✕</button>
         </div>
         <div style="padding: 16px;">
           <p style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 12px; text-align: center;">
-            Informe suas credenciais do J3 para carregar sua escala e assinar a ficha APH.
+            Informe suas credenciais do J3 para desbloquear a ficha, carregar sua escala e assinar o prontuário APH.
           </p>
 
           <div style="margin-bottom: 10px;">
@@ -1021,7 +1054,7 @@
           </div>
 
           <button type="button" onclick="autenticarUsuarioJ3()" style="width: 100%; background: #dc2626; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 800; font-size: 0.85rem; cursor: pointer;">
-            🔑 ENTRAR NO PLANTÃO
+            🔑 ENTRAR NO PLANTÃO E LIBERAR
           </button>
         </div>
       </div>
@@ -1047,7 +1080,6 @@
   </form>
 
   <script>
-    /* REGISTRO DO SERVICE WORKER (PWA OFFLINE) */
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
@@ -1056,7 +1088,6 @@
       });
     }
 
-    /* CHAVES ATUALIZADAS E VINCULADAS AO PROJETO SUPABASE */
     const SUPABASE_URL = 'https://rcpgukslnlfptreiusff.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A';
 
@@ -1080,7 +1111,19 @@
       { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "", senha: "" }
     ];
 
-    /* CONTROLE DE SESSÃO E LOGIN DO J3 */
+    /* CONTROLE DE DESBLOQUEIO DE TELA E INTERFACE */
+    function desbloquearFormularioPorLogin() {
+      document.body.classList.remove('locked');
+      document.getElementById('formLockedOverlay').style.display = 'none';
+      document.getElementById('btnFecharLoginJ3').style.display = 'block';
+    }
+
+    function bloquearFormularioSemLogin() {
+      document.body.classList.add('locked');
+      document.getElementById('formLockedOverlay').style.display = 'flex';
+      document.getElementById('btnFecharLoginJ3').style.display = 'none';
+    }
+
     function abrirLoginJ3() {
       document.getElementById('j3_user_input').value = '';
       document.getElementById('j3_pass_input').value = '';
@@ -1089,6 +1132,10 @@
     }
 
     function fecharLoginJ3() {
+      if (!usuarioJ3Logado) {
+        alert("⚠️ Você precisa realizar o login para liberar o formulário.");
+        return;
+      }
       document.getElementById('modalLoginJ3').style.display = 'none';
     }
 
@@ -1127,10 +1174,11 @@
           localStorage.setItem('j3_usuario_ativo', JSON.stringify(colabEncontrado));
           
           atualizarInterfaceUsuarioJ3();
-          fecharLoginJ3();
-          alert(`✅ Login realizado com sucesso! Bem-vindo(a), ${colabEncontrado.nome}.`);
-
+          desbloquearFormularioPorLogin();
+          document.getElementById('modalLoginJ3').style.display = 'none';
+          
           preencherEquipeJ3Logado(colabEncontrado);
+          alert(`✅ Login realizado com sucesso! Bem-vindo(a), ${colabEncontrado.nome}. Formulario liberado.`);
         } else {
           alert("❌ Usuário ou senha incorretos. Verifique suas credenciais do J3.");
         }
@@ -1155,19 +1203,22 @@
         btnHeader.innerText = "🚪 Sair";
         btnHeader.onclick = encerarSessaoJ3;
         btnHeader.style.background = "#475569";
+        desbloquearFormularioPorLogin();
       } else {
         infoContainer.innerHTML = `<span>Status: <strong>Não Autenticado</strong></span>`;
         btnHeader.innerText = "🔑 Login J3";
         btnHeader.onclick = abrirLoginJ3;
         btnHeader.style.background = "#dc2626";
+        bloquearFormularioSemLogin();
       }
     }
 
     function encerarSessaoJ3() {
-      if (confirm("Deseja realmente sair da conta do J3?")) {
+      if (confirm("Deseja realmente sair da conta do J3? O formulário será bloqueado novamente.")) {
         usuarioJ3Logado = null;
         localStorage.removeItem('j3_usuario_ativo');
         atualizarInterfaceUsuarioJ3();
+        abrirLoginJ3();
       }
     }
 
@@ -1185,7 +1236,6 @@
       }
     }
 
-    /* CÁLCULO AUTOMÁTICO DE IDADE A PARTIR DA DATA DE NASCIMENTO */
     function calcularIdadeAutomatico(inputDataNasc) {
       const dataNascVal = inputDataNasc.value;
       if (!dataNascVal) return;
@@ -1208,7 +1258,6 @@
       salvarLocal();
     }
 
-    /* MONITOR E ATUALIZADOR DE STATUS OFFLINE / ONLINE */
     function atualizarStatusVisualFila() {
       const badge = document.getElementById('badgeSyncStatus');
       const btnSync = document.getElementById('btnManualSync');
@@ -1231,7 +1280,6 @@
       }
     }
 
-    /* RECEPTOR DE CONEXÃO: ENVIAR FICHAS PENDENTES DA MEMÓRIA LOCAL */
     window.addEventListener('online', () => {
       console.log("📶 Conexão detectada! Sincronizando fila de fichas offline...");
       sincronizarFichasPendentesOffline();
@@ -1242,7 +1290,6 @@
       atualizarStatusVisualFila();
     });
 
-    /* FUNÇÃO DE SINCRONIZAÇÃO COM TRATAMENTO E SANITIZAÇÃO DE DATAS */
     async function sincronizarFichasPendentesOffline() {
       const filaRaw = localStorage.getItem('aph_fila_pendentes_offline');
       if (!filaRaw) {
@@ -1267,7 +1314,6 @@
 
       for (const itemPayload of fila) {
         try {
-          // TRATAMENTO DE DATAS VAZIAS: Converte "" para null para evitar erro no Postgres
           const payloadFormatado = {
             ...itemPayload,
             data: (itemPayload.data && itemPayload.data.trim() !== '') ? itemPayload.data : null,
@@ -1305,7 +1351,6 @@
       }
     }
 
-    /* CARGA TÁTICA / CACHE LOCAL DA BASE DE PACIENTES PARA CONSULTA OFFLINE */
     async function baixarEAtualizarCachePacientes(alertaManual = false) {
       if (!navigator.onLine || !_supabase) {
         if (alertaManual) alert("⚠️ Sem conexão de internet para atualizar o banco local de pacientes.");
@@ -1328,7 +1373,6 @@
       }
     }
 
-    /* AVISO SONORO E POPUP EM TELA CHEIA PARA ALERTA DE ALERGIA */
     function tocarAlertaSonoroAlergia() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1371,7 +1415,6 @@
       }
     }
 
-    /* 1. BUSCA HÍBRIDA (ONLINE + LOCAL) DE DADOS CADASTRAIS DO PACIENTE */
     async function puxarCadastroPacienteSemSenha() {
       const cpfRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
       if (cpfRaw.length < 11) {
@@ -1464,7 +1507,6 @@
       }
     }
 
-    /* 2. REABERTURA DE OCORRÊNCIA COM CHECAGEM DE AUTORIA / ADMIN (SEÇÃO 1) */
     async function iniciarFluxoReaberturaOcorrencia() {
       const codOcorr = document.getElementById('codigo').value.trim();
       if (!codOcorr) {
@@ -1665,7 +1707,6 @@
       salvarLocal();
     }
 
-    /* NORMALIZAÇÃO DE STRINGS (SEM ACENTOS/CARACTERES ESPECIAIS) */
     function normalizarString(str) {
       if (!str) return '';
       return str.toString()
@@ -2196,6 +2237,7 @@
     }
 
     function salvarLocal() {
+      if (!usuarioJ3Logado) return;
       const formData = {};
       document.querySelectorAll('#aphForm input, #aphForm select, #aphForm textarea').forEach(el => {
         if (el.id) {
@@ -2300,7 +2342,9 @@
       recognition.start();
     }
 
+    /* FORMATADOR AUTOMÁTICO EM CAIXA ALTA (UPPERCASE) APENAS COM SESSÃO ATIVA */
     document.addEventListener('input', (e) => {
+      if (!usuarioJ3Logado) return;
       if (e.target.classList && e.target.classList.contains('uppercase-input')) {
         e.target.value = e.target.value.toUpperCase();
       }
@@ -2971,7 +3015,6 @@
       }
     }
 
-    /* SALVAMENTO COMPLETO DE FICHA COM SANITIZAÇÃO DE DATAS */
     async function salvarFichaOcorrenciaAPH() {
       let payloadOcorrencia = null;
       let insumosPayload = [];
@@ -3128,6 +3171,7 @@
     }
 
     document.addEventListener('click', function(e) {
+      if (!usuarioJ3Logado) return;
       const badgeBtn = e.target.closest('.btn-j-badge');
       if (badgeBtn && !badgeBtn.disabled) {
         e.preventDefault();
@@ -3162,6 +3206,7 @@
     }
 
     document.addEventListener('keyup', (e) => {
+      if (!usuarioJ3Logado) return;
       if (e.target) {
         if (e.target.id === 'cpf_paciente' || e.target.classList.contains('cpf-mask')) {
           let v = e.target.value.replace(/\D/g, "");
@@ -3205,13 +3250,14 @@
     }
 
     canvas.addEventListener('touchstart', (e) => {
+      if (!usuarioJ3Logado) return;
       writing = true; ctx.beginPath();
       const pos = getTouchPos(e); ctx.moveTo(pos.x, pos.y);
     }, { passive: false });
 
     canvas.addEventListener('touchend', () => { writing = false; });
     canvas.addEventListener('touchmove', (e) => {
-      if (!writing) return; e.preventDefault();
+      if (!writing || !usuarioJ3Logado) return; e.preventDefault();
       const pos = getTouchPos(e); ctx.lineWidth = 2; ctx.strokeStyle = "#000";
       ctx.lineTo(pos.x, pos.y); ctx.stroke();
     }, { passive: false });
@@ -3219,6 +3265,10 @@
     document.getElementById('btnClearSig').addEventListener('click', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); });
     
     document.getElementById('btnImprimir').addEventListener('click', () => { 
+      if (!usuarioJ3Logado) {
+        alert("Acesso negado: Faça o login J3 antes de imprimir.");
+        return;
+      }
       const confirmacao = confirm(
         `⚠️ CONFIRMA A IMPRESSÃO DA FICHA DA VÍTIMA ${vitimaAtual}?\n\n` +
         "• Os dados desta vítima e o cadastro do paciente serão salvos no Supabase.\n" +
@@ -3239,7 +3289,13 @@
 
     document.getElementById('data').valueAsDate = new Date();
     document.getElementById('data_hora_recusa').value = new Date().toLocaleString('pt-BR');
+    
+    // INICIALIZADOR COM CHECAGEM DE LOGIN
     inicializarDados();
+    atualizarInterfaceUsuarioJ3();
+    if (!usuarioJ3Logado) {
+      abrirLoginJ3();
+    }
   </script>
 </body>
 </html>
