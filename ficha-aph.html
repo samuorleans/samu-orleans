@@ -378,6 +378,16 @@
       <div id="badgeSyncStatus" class="badge-sync-status online">🟢 ONLINE</div>
       <button type="button" id="btnManualSync" class="btn-manual-sync" onclick="sincronizarFichasPendentesOffline()">📲 Sincronizar</button>
       <button type="button" id="btnCachePacientes" class="btn-cache-pacientes" onclick="baixarEAtualizarCachePacientes(true)" title="Baixar Pacientes do Banco para Acesso Offline">🔄 Carga Pacientes</button>
+      
+      <!-- INDICADOR E BOTÃO DE LOGIN J3 INTEGRADOR -->
+      <div class="header-user-status" style="display: inline-flex; align-items: center; gap: 6px; margin-left: 6px;">
+        <div id="usuarioJ3Info" style="font-size: 0.65rem; color: #cbd5e1; text-align: right;">
+          <span>Status: <strong>Não Autenticado</strong></span>
+        </div>
+        <button type="button" id="btnLoginJ3Header" onclick="abrirLoginJ3()" style="background: #dc2626; color: #fff; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.62rem; font-weight: 800; cursor: pointer;">
+          🔑 Login J3
+        </button>
+      </div>
     </div>
     <div class="header-info">
       <h1>SAMU 192 - ORLEANS / SC</h1>
@@ -988,6 +998,35 @@
       </div>
     </div>
 
+    <!-- MODAL DE LOGIN J3 / ACESSO OPERACIONAL -->
+    <div class="modal-auth-overlay" id="modalLoginJ3" style="display: none;">
+      <div class="modal-auth-container" style="max-width: 380px;">
+        <div class="modal-auth-header" style="background: #1e293b;">
+          <span>🚑 LOGIN DE PLANTÃO J3</span>
+          <button type="button" class="modal-auth-close" onclick="fecharLoginJ3()">✕</button>
+        </div>
+        <div style="padding: 16px;">
+          <p style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 12px; text-align: center;">
+            Informe suas credenciais do J3 para carregar sua escala e assinar a ficha APH.
+          </p>
+
+          <div style="margin-bottom: 10px;">
+            <label>Usuário / Matrícula / CPF</label>
+            <input type="text" id="j3_user_input" class="uppercase-input" placeholder="DIGITE SEU USUÁRIO" style="padding: 8px; font-size: 0.85rem;">
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <label>Senha J3</label>
+            <input type="password" id="j3_pass_input" placeholder="DIGITE SUA SENHA" style="padding: 8px; font-size: 0.85rem;">
+          </div>
+
+          <button type="button" onclick="autenticarUsuarioJ3()" style="width: 100%; background: #dc2626; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 800; font-size: 0.85rem; cursor: pointer;">
+            🔑 ENTRAR NO PLANTÃO
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- BLOCO DINÂMICO DE ASSINATURAS PARA IMPRESSÃO -->
     <div class="print-signatures-block" id="printSigBlock">
       <div class="sig-box" id="sigBoxTecnico">
@@ -1030,6 +1069,7 @@
     let inputMedAtualFocus = null;
     let vitimaAtual = 1;
 
+    let usuarioJ3Logado = null;
     let rascunhoVitimas = { 1: {}, 2: {} };
 
     if (window.supabase) {
@@ -1039,6 +1079,111 @@
     const COLABORADORES_FALLBACK = [
       { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "", senha: "" }
     ];
+
+    /* CONTROLE DE SESSÃO E LOGIN DO J3 */
+    function abrirLoginJ3() {
+      document.getElementById('j3_user_input').value = '';
+      document.getElementById('j3_pass_input').value = '';
+      document.getElementById('modalLoginJ3').style.display = 'flex';
+      setTimeout(() => document.getElementById('j3_user_input').focus(), 150);
+    }
+
+    function fecharLoginJ3() {
+      document.getElementById('modalLoginJ3').style.display = 'none';
+    }
+
+    async function autenticarUsuarioJ3() {
+      const usuarioInput = document.getElementById('j3_user_input').value.trim().toUpperCase();
+      const senhaInput = document.getElementById('j3_pass_input').value.trim();
+
+      if (!usuarioInput || !senhaInput) {
+        alert("Por favor, preencha o usuário e a senha.");
+        return;
+      }
+
+      try {
+        let colabEncontrado = null;
+
+        if (_supabase && navigator.onLine) {
+          const { data, error } = await _supabase
+            .from('colaboradores')
+            .select('*')
+            .or(`nome.ilike.%${usuarioInput}%,cpf.ilike.%${usuarioInput}%`)
+            .maybeSingle();
+
+          if (data && data.senha === senhaInput) {
+            colabEncontrado = data;
+          }
+        }
+
+        if (!colabEncontrado && typeof listaColaboradoresCache !== 'undefined') {
+          colabEncontrado = listaColaboradoresCache.find(
+            c => (c.nome.toUpperCase().includes(usuarioInput) || (c.cpf && c.cpf.includes(usuarioInput))) && c.senha === senhaInput
+          );
+        }
+
+        if (colabEncontrado) {
+          usuarioJ3Logado = colabEncontrado;
+          localStorage.setItem('j3_usuario_ativo', JSON.stringify(colabEncontrado));
+          
+          atualizarInterfaceUsuarioJ3();
+          fecharLoginJ3();
+          alert(`✅ Login realizado com sucesso! Bem-vindo(a), ${colabEncontrado.nome}.`);
+
+          preencherEquipeJ3Logado(colabEncontrado);
+        } else {
+          alert("❌ Usuário ou senha incorretos. Verifique suas credenciais do J3.");
+        }
+      } catch (err) {
+        console.error("Erro na autenticação J3:", err);
+        alert("Erro ao validar login. Verifique sua conexão.");
+      }
+    }
+
+    function atualizarInterfaceUsuarioJ3() {
+      const infoContainer = document.getElementById('usuarioJ3Info');
+      const btnHeader = document.getElementById('btnLoginJ3Header');
+      
+      const sessaoSalva = localStorage.getItem('j3_usuario_ativo');
+      if (sessaoSalva) {
+        try { usuarioJ3Logado = JSON.parse(sessaoSalva); } catch(e) {}
+      }
+
+      if (usuarioJ3Logado) {
+        const corenStr = usuarioJ3Logado.coren ? ` (COREN ${usuarioJ3Logado.coren})` : '';
+        infoContainer.innerHTML = `<span style="color: #4ade80;">🟢 ONLINE:</span> <strong>${usuarioJ3Logado.nome.split(' ')[0]}</strong>${corenStr}`;
+        btnHeader.innerText = "🚪 Sair";
+        btnHeader.onclick = encerarSessaoJ3;
+        btnHeader.style.background = "#475569";
+      } else {
+        infoContainer.innerHTML = `<span>Status: <strong>Não Autenticado</strong></span>`;
+        btnHeader.innerText = "🔑 Login J3";
+        btnHeader.onclick = abrirLoginJ3;
+        btnHeader.style.background = "#dc2626";
+      }
+    }
+
+    function encerarSessaoJ3() {
+      if (confirm("Deseja realmente sair da conta do J3?")) {
+        usuarioJ3Logado = null;
+        localStorage.removeItem('j3_usuario_ativo');
+        atualizarInterfaceUsuarioJ3();
+      }
+    }
+
+    function preencherEquipeJ3Logado(colaborador) {
+      const selectTec = document.getElementById('tec_enfermeiro');
+      const selectSoc = document.getElementById('socorrista');
+
+      if (colaborador.funcao && colaborador.funcao.toLowerCase().includes('condutor')) {
+        if (selectSoc) selectSoc.value = colaborador.nome;
+      } else {
+        if (selectTec) {
+          selectTec.value = colaborador.nome;
+          sincronizarTecnicoResp();
+        }
+      }
+    }
 
     /* CÁLCULO AUTOMÁTICO DE IDADE A PARTIR DA DATA DE NASCIMENTO */
     function calcularIdadeAutomatico(inputDataNasc) {
@@ -2430,6 +2575,7 @@
     }
 
     async function inicializarDados() {
+      atualizarInterfaceUsuarioJ3();
       addSvRow(true);
       await carregarInsumosELotesUnificados();
       await carregarColaboradoresRobusto();
