@@ -155,7 +155,7 @@
     label { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 1px; text-transform: uppercase; }
     .uppercase-input { text-transform: uppercase; }
 
-    input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea {
+    input[type="text"], input[type="password"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea {
       width: 100%;
       padding: 5px;
       border: 1px solid var(--border);
@@ -288,6 +288,32 @@
     .modal-med-list { flex: 1; overflow-y: auto; padding: 4px; max-height: 60vh; }
     .modal-med-item { padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 0.82rem; font-weight: 700; color: #0f172a; cursor: pointer; }
 
+    /* ESTILO REFORÇADO PARA O BOTÃO DE ENTAR NO PLANTÃO J3 */
+    .btn-login-j3-submit {
+      width: 100% !important;
+      background: #dc2626 !important;
+      color: #ffffff !important;
+      border: none !important;
+      padding: 12px !important;
+      border-radius: 6px !important;
+      font-weight: 800 !important;
+      font-size: 0.88rem !important;
+      cursor: pointer !important;
+      text-transform: uppercase !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      box-shadow: 0 4px 10px rgba(220, 38, 38, 0.4) !important;
+      transition: background-color 0.2s ease, transform 0.1s ease !important;
+    }
+
+    .btn-login-j3-submit:hover {
+      background: #b91c1c !important;
+    }
+
+    .btn-login-j3-submit:active {
+      transform: scale(0.98) !important;
+    }
+
     .psico-box { background: #fff7ed; border: 1px solid #fdba74; padding: 5px; border-radius: 4px; margin-top: 3px; }
     .btn-time-sv { background: var(--secondary); color: #fff; border: none; border-radius: 3px; padding: 2px 4px; font-size: 0.6rem; cursor: pointer; }
     .btn-add-med, .btn-add-sv { background: #166534; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; cursor: pointer; margin-top: 3px; }
@@ -358,7 +384,7 @@
       .card-header { background: #f1f5f9 !important; color: #000000 !important; border-bottom: 0.6pt solid #000000 !important; padding: 1px 3px !important; font-size: 5.5pt !important; font-weight: 900 !important; text-transform: uppercase; }
       .card-body { display: block !important; padding: 2px 3px !important; }
       label { font-size: 4.5pt !important; color: #000000 !important; margin-bottom: 0px !important; font-weight: 900 !important; }
-      input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.4pt solid #000000 !important; background: transparent !important; padding: 0px !important; font-weight: 900 !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; color: #000000 !important; }
+      input[type="text"], input[type="password"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.4pt solid #000000 !important; background: transparent !important; padding: 0px !important; font-weight: 900 !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; color: #000000 !important; }
       textarea { height: auto !important; resize: none; }
       .codigo-group { display: none !important; }
       .print-triagem-text { display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.6pt solid #000000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; color: #000000 !important; }
@@ -1044,16 +1070,16 @@
           </p>
 
           <div style="margin-bottom: 10px;">
-            <label>Usuário / Matrícula / CPF</label>
-            <input type="text" id="j3_user_input" class="uppercase-input" placeholder="DIGITE SEU USUÁRIO" style="padding: 8px; font-size: 0.85rem;">
+            <label>USUÁRIO / MATRÍCULA / CPF</label>
+            <input type="text" id="j3_user_input" class="uppercase-input" placeholder="DIGITE SEU USUÁRIO OU CPF" maxlength="18" style="padding: 8px; font-size: 0.85rem;" oninput="mascaraEFormatarLoginUsuario(this)">
           </div>
 
           <div style="margin-bottom: 14px;">
-            <label>Senha J3</label>
+            <label>SENHA J3</label>
             <input type="password" id="j3_pass_input" placeholder="DIGITE SUA SENHA" style="padding: 8px; font-size: 0.85rem;">
           </div>
 
-          <button type="button" onclick="autenticarUsuarioJ3()" style="width: 100%; background: #dc2626; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 800; font-size: 0.85rem; cursor: pointer;">
+          <button type="button" onclick="autenticarUsuarioJ3()" class="btn-login-j3-submit">
             🔑 ENTRAR NO PLANTÃO E LIBERAR
           </button>
         </div>
@@ -1111,6 +1137,26 @@
       { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "", senha: "" }
     ];
 
+    /* APLICAÇÃO DE MÁSCARA INTELIGENTE PARA CPF OU USUÁRIO/MATRÍCULA */
+    function mascaraEFormatarLoginUsuario(input) {
+      let val = input.value;
+      let soNumeros = val.replace(/\D/g, "");
+
+      // Se contém apenas números e atingiu até 11 dígitos, formata como CPF
+      if (soNumeros.length > 0 && val.replace(/[.\-]/g, "").match(/^\d+$/)) {
+        if (soNumeros.length > 11) soNumeros = soNumeros.slice(0, 11);
+        
+        if (soNumeros.length <= 11) {
+          soNumeros = soNumeros.replace(/(\d{3})(\d)/, "$1.$2");
+          soNumeros = soNumeros.replace(/(\d{3})(\d)/, "$1.$2");
+          soNumeros = soNumeros.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        }
+        input.value = soNumeros;
+      } else {
+        input.value = val.toUpperCase();
+      }
+    }
+
     /* CONTROLE DE DESBLOQUEIO DE TELA E INTERFACE */
     function desbloquearFormularioPorLogin() {
       document.body.classList.remove('locked');
@@ -1146,23 +1192,32 @@
     }
 
     async function autenticarUsuarioJ3() {
-      const usuarioInput = document.getElementById('j3_user_input').value.trim().toUpperCase();
+      const usuarioInputRaw = document.getElementById('j3_user_input').value.trim();
       const senhaInput = document.getElementById('j3_pass_input').value.trim();
 
-      if (!usuarioInput || !senhaInput) {
+      if (!usuarioInputRaw || !senhaInput) {
         alert("Por favor, preencha o usuário e a senha.");
         return;
       }
+
+      const usuarioInput = usuarioInputRaw.toUpperCase();
+      const apenasNumeros = usuarioInputRaw.replace(/\D/g, "");
+      const cpfComMascara = apenasNumeros.length === 11 ? 
+        apenasNumeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : usuarioInputRaw;
 
       try {
         let colabEncontrado = null;
 
         if (_supabase && navigator.onLine) {
-          const { data, error } = await _supabase
-            .from('colaboradores')
-            .select('*')
-            .or(`nome.ilike.%${usuarioInput}%,cpf.ilike.%${usuarioInput}%`)
-            .maybeSingle();
+          // Busca ampla por nome, CPF formatado ou CPF apenas números
+          let query = _supabase.from('colaboradores').select('*');
+          if (apenasNumeros.length >= 11) {
+            query = query.or(`cpf.ilike.%${apenasNumeros}%,cpf.ilike.%${cpfComMascara}%,nome.ilike.%${usuarioInput}%`);
+          } else {
+            query = query.or(`nome.ilike.%${usuarioInput}%,cpf.ilike.%${usuarioInput}%`);
+          }
+
+          const { data, error } = await query.limit(1).maybeSingle();
 
           if (data && data.senha === senhaInput) {
             colabEncontrado = data;
@@ -1170,9 +1225,16 @@
         }
 
         if (!colabEncontrado && typeof listaColaboradoresCache !== 'undefined') {
-          colabEncontrado = listaColaboradoresCache.find(
-            c => (c.nome.toUpperCase().includes(usuarioInput) || (c.cpf && c.cpf.includes(usuarioInput))) && c.senha === senhaInput
-          );
+          colabEncontrado = listaColaboradoresCache.find(c => {
+            const cpfBD = c.cpf ? c.cpf.replace(/\D/g, "") : "";
+            const nomeBD = c.nome ? c.nome.toUpperCase() : "";
+            
+            const matchUser = nomeBD.includes(usuarioInput) || 
+                              (apenasNumeros.length > 0 && cpfBD === apenasNumeros) ||
+                              (c.cpf && c.cpf.includes(usuarioInputRaw));
+
+            return matchUser && c.senha === senhaInput;
+          });
         }
 
         if (colabEncontrado) {
@@ -1186,7 +1248,7 @@
           preencherEquipeJ3Logado(colabEncontrado);
           alert(`✅ Login realizado com sucesso! Bem-vindo(a), ${colabEncontrado.nome}. Formulário liberado.`);
         } else {
-          alert("❌ Usuário ou senha incorretos. Verifique suas credenciais do J3.");
+          alert("❌ Usuário/CPF ou senha incorretos. Verifique suas credenciais do J3.");
         }
       } catch (err) {
         console.error("Erro na autenticação J3:", err);
@@ -2350,8 +2412,8 @@
 
     /* FORMATADOR AUTOMÁTICO EM CAIXA ALTA (UPPERCASE) APENAS COM SESSÃO ATIVA */
     document.addEventListener('input', (e) => {
-      if (!usuarioJ3Logado) return;
-      if (e.target.classList && e.target.classList.contains('uppercase-input')) {
+      if (!usuarioJ3Logado && e.target.id !== 'j3_user_input') return;
+      if (e.target.classList && e.target.classList.contains('uppercase-input') && e.target.id !== 'j3_user_input') {
         e.target.value = e.target.value.toUpperCase();
       }
     });
@@ -3212,9 +3274,9 @@
     }
 
     document.addEventListener('keyup', (e) => {
-      if (!usuarioJ3Logado) return;
+      if (!usuarioJ3Logado && e.target.id !== 'j3_user_input') return;
       if (e.target) {
-        if (e.target.id === 'cpf_paciente' || e.target.classList.contains('cpf-mask')) {
+        if ((e.target.id === 'cpf_paciente' || e.target.classList.contains('cpf-mask')) && e.target.id !== 'j3_user_input') {
           let v = e.target.value.replace(/\D/g, "");
           if (v.length > 11) v = v.slice(0, 11);
           v = v.replace(/(\d{3})(\d)/, "$1.$2");
