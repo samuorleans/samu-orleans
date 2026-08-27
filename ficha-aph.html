@@ -426,10 +426,10 @@
     <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
     <h2 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 6px;">SISTEMA BLOQUEADO</h2>
     <p style="font-size: 0.85rem; max-width: 300px; margin-bottom: 15px; opacity: 0.9;">
-      Acesso restrito à equipe de Enfermagem ativa no plantão J3.
+      Acesso restrito à equipe de Enfermagem ativa no plantão J3 ou Administração/Coordenação.
     </p>
     <button type="button" onclick="abrirLoginJ3()" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 800; font-size: 0.9rem; cursor: pointer; text-transform: uppercase;">
-      🔑 EFETUAR LOGIN J3
+      🔑 EFETUAR LOGIN
     </button>
   </div>
 
@@ -1085,7 +1085,7 @@
       </div>
       <div style="padding: 16px;">
         <p style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 12px; text-align: center;">
-          Acesso exclusivo para a equipe de Enfermagem ativa no plantão J3.
+          Acesso exclusivo para Enfermagem ativa no J3 ou Adm/Coordenação.
         </p>
 
         <div style="margin-bottom: 10px;">
@@ -1255,67 +1255,73 @@
           return;
         }
 
-        // 1. Normalização resiliente para ignorar acentos e maiúsculas/minúsculas
+        // 1. Normalização resiliente
         const funcaoBruta = (colabEncontrado.funcao || colabEncontrado.cargo || '').toUpperCase();
         const perfilBruto = (colabEncontrado.perfil || '').toUpperCase();
         const funcaoNorm = normalizarString(funcaoBruta);
         const perfilNorm = normalizarString(perfilBruto);
 
-        // 2. Validação direta de Condutor / Socorrista
+        // 2. Trava absoluta para Condutores / Socorristas puros
         const ehCondutorOuSocorrista = funcaoNorm.includes('condutor') || 
                                        funcaoNorm.includes('socorrista') || 
                                        funcaoBruta.includes('CONDUTOR') || 
                                        funcaoBruta.includes('SOCORRISTA');
 
-        // 3. Validação flexível por radicais para Enfermagem / Adm / Coordenação
-        const ehEnfermagemOuAdmin = funcaoNorm.includes('tecnic') || 
+        const ehAdminOuCoord = perfilNorm.includes('admin') || 
+                               perfilNorm.includes('coord') || 
+                               funcaoNorm.includes('coord') || 
+                               funcaoNorm.includes('admin') ||
+                               funcaoBruta.includes('COORDENAD') ||
+                               funcaoBruta.includes('ADMIN');
+
+        const ehTecnicoEnfermagem = funcaoNorm.includes('tecnic') || 
                                     funcaoNorm.includes('enferm') || 
-                                    funcaoNorm.includes('coord') || 
-                                    perfilNorm.includes('admin') || 
-                                    perfilNorm.includes('enferm') ||
-                                    funcaoBruta.includes('TÉCNIC') ||
+                                    funcaoBruta.includes('TÉCNIC') || 
                                     funcaoBruta.includes('ENFERM');
 
-        if (ehCondutorOuSocorrista && !ehEnfermagemOuAdmin) {
-          alert(`❌ ACESSO NEGADO!\n\nCondutores/Socorristas não possuem permissão para acessar a ficha APH.\nO preenchimento do prontuário é de acesso exclusivo da equipe de Enfermagem (Técnicos, Enfermeiros, Coordenadores e Administradores).`);
+        if (ehCondutorOuSocorrista && !ehAdminOuCoord && !ehTecnicoEnfermagem) {
+          alert(`❌ ACESSO NEGADO!\n\nCondutores/Socorristas não possuem permissão para acessar a ficha APH.`);
           return;
         }
 
-        if (!ehEnfermagemOuAdmin) {
+        if (!ehAdminOuCoord && !ehTecnicoEnfermagem) {
           alert(`❌ ACESSO NEGADO!\n\nSua função cadastrada (${colabEncontrado.funcao || 'Não informada'}) não possui permissão de acesso à ficha APH.`);
           return;
         }
 
-        // 4. Validação de Plantão ATIVO no Módulo J3
+        // 3. Validação de Plantão J3 (Isenta Adm e Coord)
         const plantaoAtivoBd = await buscarPlantaoAtivoJ3();
 
-        if (!plantaoAtivoBd) {
-          alert("❌ ACESSO BLOQUEADO: Não há nenhum plantão com status ATIVO registrado no Módulo J3 no momento. Realize a Assunção de Plantão primeiro.");
-          return;
-        }
+        if (!ehAdminOuCoord) {
+          if (!plantaoAtivoBd) {
+            alert("❌ ACESSO BLOQUEADO: Não há nenhum plantão com status ATIVO registrado no Módulo J3 no momento.");
+            return;
+          }
 
-        // 5. Validação se o profissional de enfermagem está no plantão ativo
-        const nomeColabNorm = normalizarString(colabEncontrado.nome);
-        const enfermagemNorm = normalizarString(plantaoAtivoBd.enfermagem || '');
+          const nomeColabNorm = normalizarString(colabEncontrado.nome);
+          const enfermagemNorm = normalizarString(plantaoAtivoBd.enfermagem || '');
 
-        const estaNoPlantaoAtivo = enfermagemNorm !== '' && (nomeColabNorm.includes(enfermagemNorm) || enfermagemNorm.includes(nomeColabNorm));
+          const estaNoPlantaoAtivo = enfermagemNorm !== '' && (nomeColabNorm.includes(enfermagemNorm) || enfermagemNorm.includes(nomeColabNorm));
 
-        if (!estaNoPlantaoAtivo) {
-          alert(`❌ ACESSO NEGADO!\n\nA profissional "${colabEncontrado.nome}" NÃO está cadastrada na vaga de ENFERMAGEM do plantão J3 ATIVO.\n\nProfissional de Enfermagem Ativa no J3:\n• ${plantaoAtivoBd.enfermagem || 'Nenhuma profissional registrada'}`);
-          return;
+          if (!estaNoPlantaoAtivo) {
+            alert(`❌ ACESSO NEGADO!\n\nA profissional "${colabEncontrado.nome}" NÃO está cadastrada na vaga de ENFERMAGEM do plantão J3 ATIVO.\n\nProfissional de Enfermagem Ativa no J3:\n• ${plantaoAtivoBd.enfermagem || 'Nenhuma profissional registrada'}`);
+            return;
+          }
         }
 
         plantaoJ3Ativo = plantaoAtivoBd;
         usuarioJ3Logado = colabEncontrado;
 
         localStorage.setItem('j3_usuario_ativo', JSON.stringify(colabEncontrado));
-        localStorage.setItem('j3_plantao_ativo_cache', JSON.stringify(plantaoAtivoBd));
+        if (plantaoAtivoBd) {
+          localStorage.setItem('j3_plantao_ativo_cache', JSON.stringify(plantaoAtivoBd));
+        }
         
-        preencherEquipeCompletaJ3(plantaoAtivoBd);
+        preencherEquipeCompletaJ3(plantaoAtivoBd, colabEncontrado);
         atualizarInterfaceUsuarioJ3();
         desbloquearFormularioPorLogin();
         
-        alert(`✅ Login verificado com sucesso no Plantão J3 ATIVO!\nBem-vindo(a), ${colabEncontrado.nome}.`);
+        alert(`✅ Login realizado com sucesso!\nBem-vindo(a), ${colabEncontrado.nome}.`);
 
       } catch (err) {
         console.error("Erro na autenticação J3:", err);
@@ -1323,44 +1329,56 @@
       }
     }
 
-    function preencherEquipeCompletaJ3(plantao) {
-      if (!plantao) return;
+    function preencherEquipeCompletaJ3(plantao, usuarioLogado) {
       const selectTec = document.getElementById('tec_enfermeiro');
       const selectSoc = document.getElementById('socorrista');
+      if (!selectTec || !selectSoc) return;
 
-      const nomeEnf = plantao.enfermagem ? plantao.enfermagem.trim() : '';
-      const nomeCond = plantao.condutor ? plantao.condutor.trim() : '';
+      const user = usuarioLogado || usuarioJ3Logado;
+      const plt = plantao || plantaoJ3Ativo;
 
-      if (nomeEnf && selectTec) {
+      let nomeEnf = plt && plt.enfermagem ? plt.enfermagem.trim() : '';
+      let nomeCond = plt && plt.condutor ? plt.condutor.trim() : '';
+
+      // Se for login direto do técnico, garante o preenchimento do próprio nome
+      if (!nomeEnf && user) {
+        nomeEnf = user.nome;
+      }
+
+      // Preenchimento / Injeção dinâmica no Select de Técnico
+      if (nomeEnf) {
         let optMatch = Array.from(selectTec.options).find(opt => 
+          normalizarString(opt.value) === normalizarString(nomeEnf) ||
           normalizarString(opt.value).includes(normalizarString(nomeEnf)) || 
           normalizarString(nomeEnf).includes(normalizarString(opt.value))
         );
 
-        if (!optMatch && selectTec.options.length > 0) {
+        if (!optMatch) {
           const newOpt = document.createElement('option');
           newOpt.value = nomeEnf;
           newOpt.innerText = nomeEnf.toUpperCase();
           selectTec.appendChild(newOpt);
           selectTec.value = nomeEnf;
-        } else if (optMatch) {
+        } else {
           selectTec.value = optMatch.value;
         }
       }
 
-      if (nomeCond && selectSoc) {
+      // Preenchimento / Injeção dinâmica no Select de Socorrista
+      if (nomeCond) {
         let optMatch = Array.from(selectSoc.options).find(opt => 
+          normalizarString(opt.value) === normalizarString(nomeCond) ||
           normalizarString(opt.value).includes(normalizarString(nomeCond)) || 
           normalizarString(nomeCond).includes(normalizarString(opt.value))
         );
 
-        if (!optMatch && selectSoc.options.length > 0) {
+        if (!optMatch) {
           const newOpt = document.createElement('option');
           newOpt.value = nomeCond;
           newOpt.innerText = nomeCond.toUpperCase();
           selectSoc.appendChild(newOpt);
           selectSoc.value = nomeCond;
-        } else if (optMatch) {
+        } else {
           selectSoc.value = optMatch.value;
         }
       }
@@ -1379,7 +1397,7 @@
 
       if (usuarioJ3Logado) {
         const corenStr = usuarioJ3Logado.coren ? ` (COREN ${usuarioJ3Logado.coren})` : '';
-        infoContainer.innerHTML = `<span style="color: #4ade80;">🟢 ONLINE J3:</span> <strong>${usuarioJ3Logado.nome.split(' ')[0]}</strong>${corenStr}`;
+        infoContainer.innerHTML = `<span style="color: #4ade80;">🟢 ONLINE:</span> <strong>${usuarioJ3Logado.nome.split(' ')[0]}</strong>${corenStr}`;
         btnHeader.innerText = "🚪 Sair";
         btnHeader.onclick = encerarSessaoJ3;
         btnHeader.style.background = "#475569";
@@ -1394,7 +1412,7 @@
     }
 
     function encerarSessaoJ3() {
-      if (confirm("Deseja realmente sair da conta do J3? O formulário será bloqueado novamente.")) {
+      if (confirm("Deseja realmente sair da conta? O formulário será bloqueado novamente.")) {
         usuarioJ3Logado = null;
         plantaoJ3Ativo = null;
         localStorage.removeItem('j3_usuario_ativo');
@@ -2751,6 +2769,8 @@
         const plantaoCache = localStorage.getItem('j3_plantao_ativo_cache');
         if (plantaoCache) {
           try { preencherEquipeCompletaJ3(JSON.parse(plantaoCache)); } catch(e) {}
+        } else {
+          preencherEquipeCompletaJ3(null, usuarioJ3Logado);
         }
       } else {
         bloquearFormularioSemLogin();
@@ -3416,7 +3436,7 @@
     
     document.getElementById('btnImprimir').addEventListener('click', () => { 
       if (!usuarioJ3Logado) {
-        alert("Acesso negado: Faça o login J3 antes de imprimir.");
+        alert("Acesso negado: Faça o login antes de imprimir.");
         return;
       }
       const confirmacao = confirm(
