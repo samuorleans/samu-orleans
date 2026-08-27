@@ -1242,7 +1242,7 @@
       atualizarStatusVisualFila();
     });
 
-    /* FUNÇÃO DE SINCRONIZAÇÃO TOTALMENTE ATUALIZADA (SEM CALLS DE RESET E COM LOGS EXPÓSITOS NO TABLET) */
+    /* FUNÇÃO DE SINCRONIZAÇÃO COM TRATAMENTO E SANITIZAÇÃO DE DATAS */
     async function sincronizarFichasPendentesOffline() {
       const filaRaw = localStorage.getItem('aph_fila_pendentes_offline');
       if (!filaRaw) {
@@ -1267,8 +1267,11 @@
 
       for (const itemPayload of fila) {
         try {
+          // TRATAMENTO DE DATAS VAZIAS: Converte "" para null para evitar erro no Postgres
           const payloadFormatado = {
             ...itemPayload,
+            data: (itemPayload.data && itemPayload.data.trim() !== '') ? itemPayload.data : null,
+            data_nascimento: (itemPayload.data_nascimento && itemPayload.data_nascimento.trim() !== '') ? itemPayload.data_nascimento : null,
             sinais_vitais: Array.isArray(itemPayload.sinais_vitais) ? itemPayload.sinais_vitais : [],
             insumos_utilizados: Array.isArray(itemPayload.insumos_utilizados) ? itemPayload.insumos_utilizados : [],
             lesoes_exposicao: itemPayload.lesoes_exposicao || {},
@@ -1383,7 +1386,6 @@
       let temAlergia = false;
       let descAlergia = '';
 
-      // A) BUSCA ONLINE NO SUPABASE (Se houver internet)
       if (navigator.onLine && _supabase) {
         try {
           const { data: resPac } = await _supabase
@@ -1411,7 +1413,6 @@
         } catch (e) {}
       }
 
-      // B) BUSCA OFFLINE NO CACHE LOCAL DO TABLET (Se estiver sem internet ou falhar no banco)
       if (!dataPac) {
         const cacheRaw = localStorage.getItem('aph_pacientes_cache');
         if (cacheRaw) {
@@ -2900,7 +2901,7 @@
               codigo: itemEncontrado.codigo,
               descricao: itemEncontrado.descricao,
               numero_lote: itemEncontrado.numero_lote,
-              data_validade: itemEncontrado.data_validade,
+              data_validade: (itemEncontrado.data_validade && itemEncontrado.data_validade.trim() !== '') ? itemEncontrado.data_validade : null,
               quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
               is_psicotropico: isPsico,
               via_administrada: via,
@@ -2970,7 +2971,7 @@
       }
     }
 
-    /* SALVAMENTO COMPLETO DE FICHA COM SUPORTE OFFLINE & FILA DE ESPERA */
+    /* SALVAMENTO COMPLETO DE FICHA COM SANITIZAÇÃO DE DATAS */
     async function salvarFichaOcorrenciaAPH() {
       let payloadOcorrencia = null;
       let insumosPayload = [];
@@ -2997,13 +2998,15 @@
 
         const cpfPacienteRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
 
+        const dataNascimentoVal = document.getElementById('data_nascimento').value;
+
         if (cpfPacienteRaw.length === 11 && navigator.onLine && _supabase) {
           try {
             const payloadPaciente = {
               cpf: cpfPacienteRaw,
               nome: document.getElementById('paciente').value.toUpperCase(),
               cns: document.getElementById('cns_paciente').value.replace(/\D/g, ""),
-              data_nascimento: document.getElementById('data_nascimento').value || null,
+              data_nascimento: (dataNascimentoVal && dataNascimentoVal.trim() !== '') ? dataNascimentoVal : null,
               idade: parseInt(document.getElementById('idade').value) || null,
               sexo: document.getElementById('sexo').value,
               telefone: document.getElementById('telefone').value,
@@ -3024,20 +3027,22 @@
         const canvasEl = document.getElementById('sig-canvas');
         const assinaturaBase64 = canvasEl ? canvasEl.toDataURL() : null;
 
+        const dataAtendimentoVal = document.getElementById('data').value;
+
         payloadOcorrencia = {
           codigo_ocorrencia: codFinalOcorrencia,
           cor_ocorrencia: document.getElementById('cor_ocorrencia').value,
           reclassificacao_codigo: document.getElementById('reclassificacao_codigo').value,
           reclassificacao_hora: document.getElementById('reclassificacao_hora').value,
           reclassificacao_medico: document.getElementById('reclassificacao_medico').value,
-          data: document.getElementById('data').value,
+          data: (dataAtendimentoVal && dataAtendimentoVal.trim() !== '') ? dataAtendimentoVal : null,
           regulador: document.getElementById('regulador').value,
           motivo_acionamento: document.getElementById('motivo_acionamento').value,
           tec_enfermeiro: document.getElementById('tec_enfermeiro').value,
           socorrista: document.getElementById('socorrista').value,
           cpf_paciente: document.getElementById('cpf_paciente').value,
           paciente: document.getElementById('paciente').value,
-          data_nascimento: document.getElementById('data_nascimento').value,
+          data_nascimento: (dataNascimentoVal && dataNascimentoVal.trim() !== '') ? dataNascimentoVal : null,
           idade: document.getElementById('idade').value,
           sexo: document.getElementById('sexo').value,
           telefone: document.getElementById('telefone').value,
