@@ -1187,7 +1187,6 @@
       document.getElementById('modalLoginJ3').style.display = 'none';
     }
 
-    /* BUSCA E VALIDAÇÃO EXCLUSIVA NA TABELA `plantoes_j3` COM STATUS 'ATIVO' */
     async function buscarPlantaoAtivoJ3() {
       if (!_supabase || !navigator.onLine) return null;
 
@@ -1256,7 +1255,38 @@
           return;
         }
 
-        // Validação obrigatória de Plantão ATIVO na tabela `plantoes_j3`
+        // 1. Normalização resiliente para ignorar acentos e maiúsculas/minúsculas
+        const funcaoBruta = (colabEncontrado.funcao || colabEncontrado.cargo || '').toUpperCase();
+        const perfilBruto = (colabEncontrado.perfil || '').toUpperCase();
+        const funcaoNorm = normalizarString(funcaoBruta);
+        const perfilNorm = normalizarString(perfilBruto);
+
+        // 2. Validação direta de Condutor / Socorrista
+        const ehCondutorOuSocorrista = funcaoNorm.includes('condutor') || 
+                                       funcaoNorm.includes('socorrista') || 
+                                       funcaoBruta.includes('CONDUTOR') || 
+                                       funcaoBruta.includes('SOCORRISTA');
+
+        // 3. Validação flexível por radicais para Enfermagem / Adm / Coordenação
+        const ehEnfermagemOuAdmin = funcaoNorm.includes('tecnic') || 
+                                    funcaoNorm.includes('enferm') || 
+                                    funcaoNorm.includes('coord') || 
+                                    perfilNorm.includes('admin') || 
+                                    perfilNorm.includes('enferm') ||
+                                    funcaoBruta.includes('TÉCNIC') ||
+                                    funcaoBruta.includes('ENFERM');
+
+        if (ehCondutorOuSocorrista && !ehEnfermagemOuAdmin) {
+          alert(`❌ ACESSO NEGADO!\n\nCondutores/Socorristas não possuem permissão para acessar a ficha APH.\nO preenchimento do prontuário é de acesso exclusivo da equipe de Enfermagem (Técnicos, Enfermeiros, Coordenadores e Administradores).`);
+          return;
+        }
+
+        if (!ehEnfermagemOuAdmin) {
+          alert(`❌ ACESSO NEGADO!\n\nSua função cadastrada (${colabEncontrado.funcao || 'Não informada'}) não possui permissão de acesso à ficha APH.`);
+          return;
+        }
+
+        // 4. Validação de Plantão ATIVO no Módulo J3
         const plantaoAtivoBd = await buscarPlantaoAtivoJ3();
 
         if (!plantaoAtivoBd) {
@@ -1264,22 +1294,7 @@
           return;
         }
 
-        // VERIFICAÇÃO DE PERFIL E FUNÇÃO: APENAS ENFERMAGEM E ADMIN
-        const funcaoNorm = normalizarString(colabEncontrado.funcao || colabEncontrado.cargo || '');
-        const perfilNorm = normalizarString(colabEncontrado.perfil || '');
-
-        const ehEnfermagemOuAdmin = funcaoNorm.includes('enferme') || 
-                                    funcaoNorm.includes('tecnico') || 
-                                    funcaoNorm.includes('coordenad') || 
-                                    perfilNorm.includes('admin') || 
-                                    perfilNorm.includes('enfermagem');
-
-        if (!ehEnfermagemOuAdmin || funcaoNorm.includes('condutor') || funcaoNorm.includes('socorrista')) {
-          alert(`❌ ACESSO NEGADO!\n\nCondutores/Socorristas não possuem permissão para acessar a ficha APH.\nO preenchimento do prontuário é de acesso exclusivo da equipe de Enfermagem (Técnicos, Enfermeiros, Coordenadores e Administradores).`);
-          return;
-        }
-
-        // Validação se a profissional de enfermagem está ativa no plantão J3
+        // 5. Validação se o profissional de enfermagem está no plantão ativo
         const nomeColabNorm = normalizarString(colabEncontrado.nome);
         const enfermagemNorm = normalizarString(plantaoAtivoBd.enfermagem || '');
 
@@ -1293,7 +1308,6 @@
         plantaoJ3Ativo = plantaoAtivoBd;
         usuarioJ3Logado = colabEncontrado;
 
-        // Salva a sessão ativa localmente
         localStorage.setItem('j3_usuario_ativo', JSON.stringify(colabEncontrado));
         localStorage.setItem('j3_plantao_ativo_cache', JSON.stringify(plantaoAtivoBd));
         
@@ -2718,7 +2732,6 @@
     }
 
     async function inicializarDados() {
-      // 1. Recupera sessão salva antes de montar a interface
       const sessaoSalva = localStorage.getItem('j3_usuario_ativo');
       if (sessaoSalva) {
         try { usuarioJ3Logado = JSON.parse(sessaoSalva); } catch(e) {}
@@ -2733,7 +2746,6 @@
       addMedRow();
       ajustarExibicaoAssinaturasImpressao();
 
-      // Caso esteja logado via F5, garante equipe selecionada
       if (usuarioJ3Logado) {
         desbloquearFormularioPorLogin();
         const plantaoCache = localStorage.getItem('j3_plantao_ativo_cache');
@@ -3427,8 +3439,7 @@
 
     document.getElementById('data').valueAsDate = new Date();
     document.getElementById('data_hora_recusa').value = new Date().toLocaleString('pt-BR');
-    
-    // INICIALIZAÇÃO DA APLICAÇÃO COM PERSISTÊNCIA DE SESSÃO E BUSCA CORRETA DA TABELA `plantoes_j3`
+
     inicializarDados();
   </script>
 </body>
