@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SAMU Connect — Central Operacional</title>
-  <!-- SDK DO SUPABASE ATUALIZADO PARA SUPORTAR PUBLISHABLE KEYS -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.1/dist/umd/supabase.min.js"></script>
+  <!-- SDK ESTÁVEL DO SUPABASE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --samu-navy: #0d233a;
@@ -157,9 +157,9 @@
   </div>
 
   <script>
-    // INICIALIZAÇÃO COM A NOVA PUBLISHABLE KEY
+    // CHAVE LEGADA ANON PUBLIC VÁLIDA PARA AUTENTICAÇÃO NO REST API
     const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_LaC2YnoF3htaAh0f_X8tNg_V9hOkEQ8";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
 
     const dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
