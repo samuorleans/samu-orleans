@@ -1,4 +1,7 @@
 <div class="manut-container" style="background: white; border-radius: 12px; padding: 15px; border-top: 4px solid #002b49;">
+  <!-- GATILHO DE EXECUÇÃO AUTOMÁTICA VIA DOM -->
+  <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="display:none;" onload="if(typeof inicializarManutencaoAuto === 'function') inicializarManutencaoAuto();">
+
   <div style="text-align: center; margin-bottom: 15px; border-bottom: 2px solid #cbd5e1; padding-bottom: 10px;">
     <h2 style="color: #002b49; font-size: 1.2rem; font-weight: 800;">🔧 Livro Digital de Manutenção da Viatura</h2>
     <p style="font-size: 0.8rem; color: #666;">Registro de serviços executados e agendamento preventivo</p>
@@ -124,7 +127,7 @@
 </div>
 
 <script>
-  function obterClienteSupabase() {
+  window.obterClienteSupabase = function() {
     if (typeof dbNuvem !== 'undefined' && dbNuvem) return dbNuvem;
     if (typeof supabaseClient !== 'undefined' && supabaseClient) return supabaseClient;
     if (typeof supabase !== 'undefined' && supabase.createClient) {
@@ -135,9 +138,9 @@
       return window.dbNuvem;
     }
     return null;
-  }
+  };
 
-  function alternarAbaManut(modo) {
+  window.alternarAbaManut = function(modo) {
     document.getElementById('m_modo_registro').value = modo;
 
     const btnExec = document.getElementById('btnAbaExec');
@@ -177,24 +180,19 @@
       boxValor.style.display = 'none';
       boxEmail.style.display = 'flex';
     }
-  }
+  };
 
-  async function carregarListasFormManutencao() {
-    const client = obterClienteSupabase();
+  window.carregarListasFormManutencao = async function() {
+    const client = window.obterClienteSupabase();
     if (!client) {
-      console.error("Supabase client indisponível no formulário.");
+      console.error("Cliente Supabase inacessível.");
       return;
     }
 
-    // 1. CARREGAR VIATURAS
+    // 1. VIATURAS
     try {
-      const { data: viaturas, error: errViat } = await client
-        .from('operacional_viaturas')
-        .select('*');
-
+      const { data: viaturas } = await client.from('operacional_viaturas').select('*');
       const selectViat = document.getElementById('m_viatura_id');
-      if (errViat) throw errViat;
-
       if (viaturas && viaturas.length > 0) {
         selectViat.innerHTML = '<option value="">-- Selecione a Viatura --</option>';
         viaturas.forEach(v => {
@@ -204,22 +202,16 @@
           selectViat.innerHTML += `<option value="${v.id}">${pref} ${mod} ${plc}</option>`;
         });
       } else {
-        selectViat.innerHTML = '<option value="">Nenhuma viatura cadastrada</option>';
+        selectViat.innerHTML = '<option value="">Nenhuma viatura encontrada</option>';
       }
     } catch (e) {
-      console.error("Erro ao buscar viaturas:", e);
-      document.getElementById('m_viatura_id').innerHTML = `<option value="">Erro ao carregar: ${e.message || 'Tabela inacessível'}</option>`;
+      document.getElementById('m_viatura_id').innerHTML = '<option value="">Erro ao buscar viaturas</option>';
     }
 
-    // 2. CARREGAR OFICINAS
+    // 2. OFICINAS
     try {
-      const { data: oficinas, error: errOfic } = await client
-        .from('operacional_oficinas')
-        .select('*');
-
+      const { data: oficinas } = await client.from('operacional_oficinas').select('*');
       const selectOfic = document.getElementById('m_oficina_id');
-      if (errOfic) throw errOfic;
-
       if (oficinas && oficinas.length > 0) {
         selectOfic.innerHTML = '<option value="">-- Selecione a Oficina Credenciada --</option>';
         oficinas.forEach(o => {
@@ -232,19 +224,13 @@
         selectOfic.innerHTML = '<option value="">Nenhuma oficina cadastrada</option>';
       }
     } catch (e) {
-      console.error("Erro ao buscar oficinas:", e);
-      document.getElementById('m_oficina_id').innerHTML = `<option value="">Erro ao carregar: ${e.message || 'Tabela inacessível'}</option>`;
+      document.getElementById('m_oficina_id').innerHTML = '<option value="">Erro ao buscar oficinas</option>';
     }
 
-    // 3. CARREGAR COLABORADORES
+    // 3. COLABORADORES
     try {
-      const { data: colaboradores, error: errColab } = await client
-        .from('colaboradores')
-        .select('*');
-
+      const { data: colaboradores } = await client.from('colaboradores').select('*');
       const selectColab = document.getElementById('m_colaborador_id');
-      if (errColab) throw errColab;
-
       if (colaboradores && colaboradores.length > 0) {
         selectColab.innerHTML = '<option value="">-- Selecione o Responsável --</option>';
         colaboradores.forEach(c => {
@@ -255,16 +241,15 @@
           }
         });
       } else {
-        selectColab.innerHTML = '<option value="">Nenhum colaborador cadastrado</option>';
+        selectColab.innerHTML = '<option value="">Nenhum colaborador encontrado</option>';
       }
     } catch (e) {
-      console.error("Erro ao buscar colaboradores:", e);
-      document.getElementById('m_colaborador_id').innerHTML = `<option value="">Erro ao carregar: ${e.message || 'Tabela inacessível'}</option>`;
+      document.getElementById('m_colaborador_id').innerHTML = '<option value="">Erro ao buscar colaboradores</option>';
     }
-  }
+  };
 
-  async function carregarHistoricoManutencao() {
-    const client = obterClienteSupabase();
+  window.carregarHistoricoManutencao = async function() {
+    const client = window.obterClienteSupabase();
     const viaturaId = document.getElementById('m_viatura_id').value;
     const tbody = document.getElementById('tbodyHistManut');
 
@@ -307,11 +292,11 @@
     } catch (err) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 12px; color: #d32f2f;">Erro ao consultar histórico.</td></tr>';
     }
-  }
+  };
 
-  async function salvarManutencaoLivro(e) {
+  window.salvarManutencaoLivro = async function(e) {
     e.preventDefault();
-    const client = obterClienteSupabase();
+    const client = window.obterClienteSupabase();
     if (!client) {
       alert("❌ Falha na conexão com o Supabase.");
       return;
@@ -343,16 +328,18 @@
       alert("✅ Manutenção registrada com sucesso no Livro Digital!");
       document.getElementById('formManutAcao').reset();
       document.getElementById('m_data_exec').value = new Date().toISOString().split('T')[0];
-      carregarHistoricoManutencao();
+      window.carregarHistoricoManutencao();
     } catch (err) {
       alert("❌ Erro ao salvar manutenção: " + err.message);
     }
-  }
+  };
 
-  // Execução com Retry / Delay para garantir que o contêiner e o script do Supabase estejam prontos
-  setTimeout(function() {
+  window.inicializarManutencaoAuto = function() {
     const elData = document.getElementById('m_data_exec');
     if (elData) elData.value = new Date().toISOString().split('T')[0];
-    carregarListasFormManutencao();
-  }, 100);
+    window.carregarListasFormManutencao();
+  };
+
+  // Disparo manual
+  window.inicializarManutencaoAuto();
 </script>
