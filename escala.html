@@ -83,6 +83,9 @@
     .col-fds { background-color: #e2e8f0 !important; font-weight: bold; }
     .col-feriado { background-color: #fecaca !important; color: #991b1b !important; font-weight: bold; }
 
+    .box-notas-rodape { margin-top: 15px; padding: 12px; background: #fffbe3; border: 1px solid #fde047; border-radius: 6px; font-size: 11px; color: #713f12; text-align: left; }
+    .box-notas-rodape h4 { margin: 0 0 6px 0; font-size: 11px; text-transform: uppercase; color: #854d0e; font-weight: bold; display: flex; align-items: center; gap: 6px; }
+
     .header-relatorio-impressao { display: none; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 10px; }
     .header-relatorio-impressao .rel-container { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
     .header-relatorio-impressao img.logo-relatorio { max-height: 65px; object-fit: contain; }
@@ -116,6 +119,9 @@
       .st-adm { background-color: #e0f2fe !important; color: #000 !important; -webkit-print-color-adjust: exact; }
       .col-fds { background-color: #e2e8f0 !important; font-weight: bold !important; -webkit-print-color-adjust: exact; }
       .col-feriado { background-color: #fecaca !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+
+      .box-notas-rodape { background: #fff !important; border: 1px solid #000 !important; color: #000 !important; margin-top: 10px !important; padding: 6px !important; font-size: 7.5pt !important; }
+      .box-notas-rodape h4 { color: #000 !important; font-size: 7.5pt !important; }
 
       .rodape-assinaturas { display: flex !important; justify-content: space-between; align-items: flex-end; margin-top: 25px; font-size: 8pt; }
       .campo-assinatura { text-align: center; width: 45%; border-top: 1px solid #000; padding-top: 4px; }
@@ -193,14 +199,14 @@
         <label>Mês / Ano da Escala</label>
         <div class="mes-selector">
           <button class="btn-arrow" type="button" onclick="mudarMes(-1)">◀</button>
-          <input type="month" id="escalaMesAno" value="2026-09" onchange="renderizarEscalas(); preencherDatasTrocasForm();">
+          <input type="month" id="escalaMesAno" value="2026-08" onchange="renderizarEscalas(); preencherDatasTrocasForm();">
           <button class="btn-arrow" type="button" onclick="mudarMes(1)">▶</button>
         </div>
       </div>
 
       <div class="form-group area-gestor-filtro" style="display:none;">
         <label>Data-Base Inicial Original (24x96)</label>
-        <input type="date" id="escalaDataBase" value="2026-09-01" onchange="renderizarEscalas(); preencherDatasTrocasForm();">
+        <input type="date" id="escalaDataBase" value="2026-06-01" onchange="renderizarEscalas(); preencherDatasTrocasForm();">
       </div>
 
       <div class="form-group area-gestor-filtro" style="display:none;">
@@ -238,12 +244,12 @@
 
       <div class="form-group area-gestor-filtro" id="grpDataInicioTrans" style="display:none;">
         <label>Início da Transição</label>
-        <input type="date" id="simDataInicio" value="2026-09-15">
+        <input type="date" id="simDataInicio" value="2026-06-20">
       </div>
 
       <div class="form-group area-gestor-filtro" id="grpDataFimTrans" style="display:none;">
         <label>Fim da Transição</label>
-        <input type="date" id="simDataFim" value="2026-09-30">
+        <input type="date" id="simDataFim" value="2026-12-31">
       </div>
 
       <div class="area-gestor-filtro" style="display:none; gap:6px; flex-wrap:wrap;">
@@ -260,7 +266,7 @@
         <div class="rel-texto">
           <h2>ESTADO DE SANTA CATARINA — SECRETARIA MUNICIPAL DE SAÚDE DE ORLEANS</h2>
           <h3>UNIDADE DE SUPORTE BÁSICO DE ATENDIMENTO MÓVEL — USB 11 ORLEANS</h3>
-          <p id="tituloEscalaImpressao">ESCALA OPERACIONAL MENSAL — SETEMBRO DE 2026</p>
+          <p id="tituloEscalaImpressao">ESCALA OPERACIONAL MENSAL — AGOSTO DE 2026</p>
         </div>
       </div>
     </div>
@@ -270,6 +276,12 @@
         <thead id="headTblGerada"></thead>
         <tbody id="bodyTblGerada"></tbody>
       </table>
+    </div>
+
+    <!-- BOX DE NOTAS EXPLICATIVAS NO RODAPÉ -->
+    <div id="containerNotasRodape" class="box-notas-rodape" style="display:none;">
+      <h4>📝 NOTAS EXPLICATIVAS DA ESCALA:</h4>
+      <div id="textoNotasRodape"></div>
     </div>
 
     <div class="rodape-assinaturas">
@@ -486,12 +498,13 @@
       "2026-11-15", "2026-12-25"
     ];
 
+    // MATRIZ OFICIAL SINCRONIZADA A PARTIR DE 01/06/2026 (Dupla 1: Renato & Luis)
     const duplasPadrao = [
+      { cond: "Renato Cândido", tec: "Luis Eduardo Formanski Vitório" },
+      { cond: "Daniel Alexandre Fernandes", tec: "Gicerléia Trindade da Rosa" },
       { cond: "Vanderlei José Tasca", tec: "Suandre Adão Machado" },
       { cond: "Márcio Becker", tec: "Rinaldo Calegario" },
-      { cond: "Lucas Vieira Mendes", tec: "Clênio Borges" },
-      { cond: "Renato Cândido", tec: "Luis Eduardo Formanski Vitório" },
-      { cond: "Daniel Alexandre Fernandes", tec: "Gicerléia Trindade da Rosa" }
+      { cond: "Lucas Vieira Mendes", tec: "Clênio Borges" }
     ];
 
     let colaboradores = [];
@@ -987,7 +1000,7 @@
       const inicioStr = document.getElementById("afastInicio").value;
       const fimStr = document.getElementById("afastFim").value;
       const container = document.getElementById("containerGradeDias");
-      const dataBaseStr = document.getElementById("escalaDataBase") ? document.getElementById("escalaDataBase").value : "2026-09-01";
+      const dataBaseStr = document.getElementById("escalaDataBase") ? document.getElementById("escalaDataBase").value : "2026-06-01";
       
       if (!nomeServidor || !inicioStr || !fimStr || !container) return;
 
@@ -1630,24 +1643,25 @@
       const afTec = afastamentos.find(a => a.funcao && (a.funcao.includes("Técnic") || a.funcao.includes("Enfermeir")) && !a.funcao.includes("Coordenadora") && a.regime && a.regime.includes("Categoria") && dtIso >= a.inicio && dtIso <= a.fim);
 
       if (afCond) {
-        const condutoresOficiais = ["Vanderlei José Tasca", "Márcio Becker", "Lucas Vieira Mendes", "Renato Cândido", "Daniel Alexandre Fernandes"];
-        const condutoresAtivos = condutoresOficiais.filter(nome => nome !== afCond.servidor);
+        // Sequência exata da rotação em 24x72 iniciando por quem cobriu no dia 20/06 (Renato Cândido)
+        const condutoresAtivos = ["Renato Cândido", "Daniel Alexandre Fernandes", "Vanderlei José Tasca", "Márcio Becker"];
         const dtIniAf = new Date(afCond.inicio + "T00:00:00");
         const diffAf = Math.floor((dtAtual.getTime() - dtIniAf.getTime()) / (1000 * 3600 * 24));
         if (diffAf >= 0 && condutoresAtivos.length > 0) {
           cond = condutoresAtivos[diffAf % condutoresAtivos.length];
-          obs = `Rodízio Categoria (${afCond.tipoMotivo || 'Afastamento'})`;
+          // Mantém a observação da linha limpa, pois a explicação estará na nota do rodapé
+          obs = "-";
         }
       }
 
       if (afTec) {
-        const tecsOficiais = ["Suandre Adão Machado", "Rinaldo Calegario", "Clênio Borges", "Luis Eduardo Formanski Vitório", "Gicerléia Trindade da Rosa"];
-        const tecsAtivos = tecsOficiais.filter(nome => nome !== afTec.servidor);
+        const tecsAtivos = ["Luis Eduardo Formanski Vitório", "Gicerléia Trindade da Rosa", "Suandre Adão Machado", "Rinaldo Calegario"];
         const dtIniAf = new Date(afTec.inicio + "T00:00:00");
         const diffAf = Math.floor((dtAtual.getTime() - dtIniAf.getTime()) / (1000 * 3600 * 24));
         if (diffAf >= 0 && tecsAtivos.length > 0) {
           tec = tecsAtivos[diffAf % tecsAtivos.length];
-          obs = `Rodízio Categoria (${afTec.tipoMotivo || 'Afastamento'})`;
+          // Mantém a observação da linha limpa, pois a explicação estará na nota do rodapé
+          obs = "-";
         }
       }
 
@@ -1745,6 +1759,32 @@
       body.innerHTML = "";
 
       const diasNoMes = new Date(ano, mes, 0).getDate();
+      const primeiroDiaMesStr = `${ano}-${String(mes).padStart(2,'0')}-01`;
+      const ultimoDiaMesStr = `${ano}-${String(mes).padStart(2,'0')}-${String(diasNoMes).padStart(2,'0')}`;
+
+      // VERIFICAÇÃO DE NOTAS EXPLICATIVAS DE CATEGORIA NO RODAPÉ DO MÊS
+      const notasMes = [];
+      afastamentos.forEach(a => {
+        if (a.regime && a.regime.includes("Categoria")) {
+          // Verifica se o afastamento intercepta o mês atual
+          if (a.inicio <= ultimoDiaMesStr && a.fim >= primeiroDiaMesStr) {
+            const dtIniFmt = a.inicio.split('-').reverse().join('/');
+            const dtFimFmt = a.fim.split('-').reverse().join('/');
+            const catNome = (a.funcao && a.funcao.includes("Condutor")) ? "Condutores Socorristas" : "Técnicos de Enfermagem";
+            notasMes.push(`• Durante o período de <b>${dtIniFmt} a ${dtFimFmt}</b>, a categoria de <b>${catNome}</b> opera temporariamente em <b>Rodízio Acelerado (24x72)</b> devido ao afastamento do servidor <b>${a.servidor}</b> (${a.tipoMotivo || 'Atestado Médico'}).`);
+          }
+        }
+      });
+
+      const containerNotas = document.getElementById("containerNotasRodape");
+      const textoNotas = document.getElementById("textoNotasRodape");
+
+      if (notasMes.length > 0 && containerNotas && textoNotas) {
+        textoNotas.innerHTML = notasMes.join("<br>");
+        containerNotas.style.display = "block";
+      } else if (containerNotas) {
+        containerNotas.style.display = "none";
+      }
 
       if (regimePadrao !== "40h" && regimePadrao !== "coren") {
         head.innerHTML = `<tr><th>DIA</th><th>SEMANA</th><th>PERÍODO</th><th>CONDUTOR SOCORRISTA</th><th>TÉCNICO DE ENFERMAGEM</th><th>OBSERVAÇÕES / ALTERAÇÕES</th></tr>`;
