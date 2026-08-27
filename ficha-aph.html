@@ -1791,6 +1791,50 @@
       }
     }
 
+    async function carregarEquipePlantaoJ3() {
+      if (!_supabase || !navigator.onLine) return;
+
+      try {
+        const hojeISO = new Date().toISOString().split('T')[0];
+
+        // Busca o plantão/escala ativa cadastrada para hoje no J3
+        const { data: plantaoAtivo, error } = await _supabase
+          .from('plantao')
+          .select('*')
+          .gte('data', hojeISO)
+          .order('data', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (plantaoAtivo && !error) {
+          const selectTec = document.getElementById('tec_enfermeiro');
+          const selectSoc = document.getElementById('socorrista');
+
+          // Tenta pré-selecionar o técnico do J3
+          if (plantaoAtivo.tecnico_enfermagem || plantaoAtivo.tecnico) {
+            const tecNome = plantaoAtivo.tecnico_enfermagem || plantaoAtivo.tecnico;
+            if (selectTec) {
+              const optMatch = Array.from(selectTec.options).find(opt => opt.value.toLowerCase().includes(tecNome.toLowerCase()) || tecNome.toLowerCase().includes(opt.value.toLowerCase()));
+              if (optMatch) selectTec.value = optMatch.value;
+            }
+          }
+
+          // Tenta pré-selecionar o condutor/socorrista do J3
+          if (plantaoAtivo.socorrista || plantaoAtivo.condutor) {
+            const socNome = plantaoAtivo.socorrista || plantaoAtivo.condutor;
+            if (selectSoc) {
+              const optMatch = Array.from(selectSoc.options).find(opt => opt.value.toLowerCase().includes(socNome.toLowerCase()) || socNome.toLowerCase().includes(opt.value.toLowerCase()));
+              if (optMatch) selectSoc.value = optMatch.value;
+            }
+          }
+
+          sincronizarTecnicoResp();
+        }
+      } catch (err) {
+        console.warn("Sem escala J3 para carregar automaticamente.");
+      }
+    }
+
     async function atualizarHospitaisPorMunicipio() {
       const selectHosp = document.getElementById('hospital_destino');
       const municipioRaw = (document.getElementById('municipio').value || '').trim();
@@ -2290,6 +2334,9 @@
         selectTec.innerHTML += `<option value="${c.nome}">${c.nome}${corenVal}</option>`;
         selectSoc.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
       });
+
+      // Puxa e seleciona a equipe configurada no J3
+      await carregarEquipePlantaoJ3();
     }
 
     async function carregarInsumosELotesUnificados() {
