@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAMU Connect - Gestão de Estoque & Validades</title>
     
-    <!-- Bootstrap 5 CSS & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- Supabase JS Client (v2) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -63,14 +61,13 @@
 </head>
 <body>
 
-    <!-- Header Centralizado via config.js -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-4 mb-4">
         <div class="container-fluid">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
-                <i class="bi bi-box-seam-fill text-danger fs-3"></i>
+            <a class="navbar-brand d-flex align-items-center gap-3" href="#">
+                <img id="app-logo" src="./logo.png" alt="Logo SAMU Connect" style="max-height: 45px; width: auto; object-fit: contain;" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=SAMU+Connect&background=D91656&color=fff&bold=true';">
                 <div>
                     <span class="fw-bold fs-4 d-block" id="app-title">SAMU Connect</span>
-                    <small class="text-white-50 fs-6" id="app-tenant">Carregando unidade...</small>
+                    <small class="text-white-50 fs-6" id="app-tenant">USB 11 - ORLEANS / SC</small>
                 </div>
             </a>
             <span class="navbar-text text-white bg-dark px-3 py-1 rounded-pill border border-secondary">
@@ -79,10 +76,8 @@
         </div>
     </nav>
 
-    <!-- Main Container -->
     <div class="container-fluid px-4">
 
-        <!-- Cards de Resumo Operacional -->
         <div class="row g-3 mb-4">
             <div class="col-md-3">
                 <div class="card card-custom p-3 border-start border-4 border-danger">
@@ -130,7 +125,6 @@
             </div>
         </div>
 
-        <!-- Abas de Navegação -->
         <ul class="nav nav-tabs mb-3" id="estoqueTabs" role="tablist">
             <li class="nav-item">
                 <button class="nav-link active fs-5 px-4" id="lotes-tab" data-bs-toggle="tab" data-bs-target="#lotes-pane" type="button"><i class="bi bi-card-checklist me-2"></i>Controle de Lotes & Validades</button>
@@ -142,7 +136,6 @@
 
         <div class="tab-content" id="estoqueTabsContent">
 
-            <!-- TAB 1: LOTES E VALIDADES -->
             <div class="tab-pane fade show active" id="lotes-pane" role="tabpanel">
                 <div class="card card-custom p-3 mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -175,7 +168,6 @@
                 </div>
             </div>
 
-            <!-- TAB 2: CATÁLOGO MESTRE -->
             <div class="tab-pane fade" id="mestre-pane" role="tabpanel">
                 <div class="card card-custom p-3 mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -210,7 +202,6 @@
         </div>
     </div>
 
-    <!-- MODAL NOVO INSUMO MESTRE -->
     <div class="modal fade" id="modalInsumoMestre" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -275,7 +266,6 @@
         </div>
     </div>
 
-    <!-- MODAL ENTRADA DE LOTE -->
     <div class="modal fade" id="modalLote" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -323,7 +313,6 @@
         </div>
     </div>
 
-    <!-- JS Scripts & Lógica Principal -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script type="module">
@@ -335,8 +324,14 @@
                 return;
             }
 
-            document.getElementById('app-title').textContent = CONFIG.SISTEMA.NOME;
-            document.getElementById('app-tenant').textContent = `${CONFIG.TENANT.NOME_UNIDADE} - ${CONFIG.TENANT.MUNICIPIO_UF}`;
+            // Injeção Dinâmica dos Metadados e da Logo Oficial
+            const logoElem = document.getElementById('app-logo');
+            if (logoElem) {
+                logoElem.src = CONFIG.TENANT?.URL_LOGO || CONFIG.LOGO_SISTEMA || './logo.png';
+            }
+
+            document.getElementById('app-title').textContent = CONFIG.SISTEMA?.NOME || "SAMU Connect";
+            document.getElementById('app-tenant').textContent = `${CONFIG.TENANT?.NOME_UNIDADE || "USB 11"} - ${CONFIG.TENANT?.MUNICIPIO_UF || "ORLEANS / SC"}`;
 
             fetchLotes();
             fetchMestre();
@@ -457,7 +452,7 @@
                 unidade_medida: document.getElementById('mestre-unidade').value,
                 estoque_minimo: parseInt(document.getElementById('mestre-est-min').value),
                 estoque_critico: parseInt(document.getElementById('mestre-est-crit').value),
-                unidade_base: CONFIG.TENANT.NOME_UNIDADE
+                unidade_base: CONFIG.TENANT?.NOME_UNIDADE || 'USB 11'
             };
 
             const { error } = await supabase.from('estoque_mestre').insert([payload]);
