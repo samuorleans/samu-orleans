@@ -252,12 +252,10 @@
       if (!nomeTecnico || nomeTecnico === '—') return '';
       const nomeNorm = nomeTecnico.trim().toUpperCase();
       
-      // Busca no mapa de colaboradores
       if (mapaColaboradoresCache[nomeNorm]) {
         return mapaColaboradoresCache[nomeNorm];
       }
 
-      // Procura por correspondência parcial de nome
       for (let key in mapaColaboradoresCache) {
         if (key.includes(nomeNorm) || nomeNorm.includes(key)) {
           return mapaColaboradoresCache[key];
@@ -279,23 +277,44 @@
       } catch(e){}
       let svRow = sv.length > 0 ? sv[0] : {};
 
-      // Parse Insumos (JSON)
+      // Parse Insumos (JSON ou Texto)
       let insumosHtml = '';
       try {
-        let insList = typeof f.insumos_utilizados === 'string' ? JSON.parse(f.insumos_utilizados) : f.insumos_utilizados;
-        if (Array.isArray(insList) && insList.length > 0) {
-          insList.forEach(i => {
-            const desc = v(i.descricao, v(i.nome));
-            const qtd = v(i.quantidade, '1');
-            const lote = v(i.numero_lote, 'SEM LOTE');
-            const val = i.data_validade ? formatarDataBR(i.data_validade) : 'N/A';
-            if (desc !== '—' && desc !== 'NENHUM INSUMO OU MEDICAÇÃO UTILIZADO') {
-              insumosHtml += `<div style="margin-bottom: 2px;">• <b>${desc}</b> — LOTE: ${lote} | VAL: ${val} (<b>QTD: ${qtd}</b>)</div>`;
+        if (f.insumos_utilizados) {
+          let rawInsumos = f.insumos_utilizados;
+          let insList = null;
+
+          if (typeof rawInsumos === 'string') {
+            try {
+              insList = JSON.parse(rawInsumos);
+            } catch (errJson) {
+              insumosHtml = `<div style="margin-bottom: 2px;">• <b>${rawInsumos}</b></div>`;
             }
-          });
+          } else {
+            insList = rawInsumos;
+          }
+
+          if (Array.isArray(insList) && insList.length > 0) {
+            insList.forEach(i => {
+              const desc = v(i.item, v(i.descricao, v(i.nome)));
+              const qtd = v(i.qtd, v(i.quantidade, '1'));
+              const lote = v(i.lote, v(i.numero_lote, 'SEM LOTE'));
+              const valRaw = v(i.validade, v(i.data_validade));
+              const val = valRaw !== '—' ? formatarDataBR(valRaw) : 'N/A';
+
+              if (desc !== '—' && desc !== 'NENHUM INSUMO OU MEDICAÇÃO UTILIZADO') {
+                insumosHtml += `<div style="margin-bottom: 2px;">• <b>${desc}</b> — LOTE: ${lote} | VAL: ${val} (<b>QTD: ${qtd}</b>)</div>`;
+              }
+            });
+          }
         }
-      } catch(e){}
-      if (!insumosHtml) insumosHtml = 'NENHUM INSUMO OU MEDICAÇÃO REGISTRADO';
+      } catch(e) {
+        console.error("Erro ao processar insumos:", e);
+      }
+
+      if (!insumosHtml || insumosHtml.trim() === '') {
+        insumosHtml = 'NENHUM INSUMO OU MEDICAÇÃO REGISTRADO';
+      }
 
       // Lesões por Região (Exposição / Trauma)
       let lesoesObj = null;
@@ -407,7 +426,7 @@
       const corenEncontrado = obterCorenTecnico(tecNomeBruto);
       const tecComCoren1 = corenEncontrado ? `${tecNomeBruto} (COREN ${corenEncontrado})` : tecNomeBruto;
       
-      // Técnico Responsável no Campo 7 (Técnico Resp. Automático)
+      // Técnico Responsável no Campo 7
       const tecRespCampo7 = v(f.tec_resp, tecComCoren1);
       const corenLabelBox = corenEncontrado ? `COREN ${corenEncontrado}` : 'COREN: ____________';
 
