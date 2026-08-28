@@ -2,7 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- CONFIGURAÇÃO PARA VISÃO DESKTOP AUTOMÁTICA EM DISPOSITIVOS MÓVEIS -->
+  <meta name="viewport" content="width=1200, initial-scale=0.38, maximum-scale=3.0, user-scalable=yes">
   <title>SAMU Connect — Validação Operacional J3</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -19,19 +20,19 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { background-color: var(--bg-surface); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px 12px; }
+    body { background-color: var(--bg-surface); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px 12px; min-width: 1200px; }
 
     .j3-card {
-      width: 100%; max-width: 580px; background: var(--card-bg); border-radius: 20px;
+      width: 100%; max-width: 650px; background: var(--card-bg); border-radius: 20px;
       box-shadow: var(--shadow); border-top: 6px solid var(--amber-j3); padding: 30px 24px; text-align: center;
     }
 
-    .j3-header h1 { font-size: 1.25rem; color: var(--samu-navy); font-weight: 800; text-transform: uppercase; }
-    .j3-header p { font-size: 0.82rem; color: #64748b; margin-top: 4px; margin-bottom: 16px; }
+    .j3-header h1 { font-size: 1.35rem; color: var(--samu-navy); font-weight: 800; text-transform: uppercase; }
+    .j3-header p { font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 16px; }
 
     .alert-banner {
       background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;
-      padding: 10px; border-radius: 8px; font-size: 0.78rem; text-align: left; margin-bottom: 18px; font-weight: 600; line-height: 1.4;
+      padding: 12px; border-radius: 8px; font-size: 0.82rem; text-align: left; margin-bottom: 18px; font-weight: 600; line-height: 1.4;
     }
 
     .tab-btn-group { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
@@ -39,7 +40,7 @@
     .tab-btn.active { background: var(--amber-j3); color: white; }
 
     .form-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 16px; }
-    .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 6px; text-transform: uppercase; }
+    .form-group label { font-size: 0.78rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 6px; text-transform: uppercase; }
     .form-group select, .form-group input { padding: 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; background: #f8fafc; width: 100%; }
     .form-group select:focus, .form-group input:focus { border-color: var(--samu-blue); background: white; }
 
@@ -59,7 +60,7 @@
 
     .sync-status { font-size: 0.75rem; color: #15803d; font-weight: bold; margin-top: 8px; display: none; }
 
-    .btn-voltar { display: inline-block; margin-top: 15px; font-size: 0.8rem; color: var(--samu-blue); text-decoration: none; font-weight: 600; }
+    .btn-voltar { display: inline-block; margin-top: 15px; font-size: 0.85rem; color: var(--samu-blue); text-decoration: none; font-weight: 600; }
 
     .table-plantao { width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left; margin-top: 10px; }
     .table-plantao th, .table-plantao td { border: 1px solid var(--border); padding: 8px; }
@@ -83,7 +84,7 @@
     </div>
 
     <div class="alert-banner">
-      ℹ️ <b>Rendição Operacional:</b> Selecione a viatura em operação. A assunção valida a escala oficial e grava a equipe ativa no banco de dados.
+      ℹ️ <b>Rendição Operacional:</b> Selecione a viatura em operação. A assunção faz a tripla verificação da escala oficial, afastamentos e indisponibilidades antes de ativar a equipe.
     </div>
 
     <!-- ABAS -->
@@ -163,7 +164,7 @@
       </table>
     </div>
 
-    <a href="index.html" class="btn-voltar">⬅️ Voltar ao Painel Principal</a>
+    <a href="escala.html" class="btn-voltar">⬅️ Voltar ao Painel Principal da Escala</a>
   </div>
 
   <script>
@@ -172,20 +173,12 @@
       "sb_publishable_LaC2YnoF3htaAh0f_X8tNg_V9hOkEQ8"
     );
 
-    const condutoresBase = [
-      "Vanderlei José Tasca",
-      "Márcio Becker",
-      "Lucas Vieira Mendes",
-      "Renato Cândido",
-      "Daniel Alexandre Fernandes"
-    ];
-
-    const tecnicosBase = [
-      "Suandre Adão Machado",
-      "Rinaldo Calegario",
-      "Clênio Borges",
-      "Luis Eduardo Formanski Vitório",
-      "Gicerléia Trindade da Rosa"
+    const duplasPadrao = [
+      { cond: "Renato Cândido", tec: "Luis Eduardo Formanski Vitório" },
+      { cond: "Daniel Alexandre Fernandes", tec: "Gicerléia Trindade da Rosa" },
+      { cond: "Vanderlei José Tasca", tec: "Suandre Adão Machado" },
+      { cond: "Márcio Becker", tec: "Rinaldo Calegario" },
+      { cond: "Lucas Vieira Mendes", tec: "Clênio Borges" }
     ];
 
     window.onload = function() {
@@ -213,7 +206,6 @@
       document.getElementById('div_justificativa').style.display = chk ? 'block' : 'none';
     }
 
-    /* CARREGA AS VIATURAS DA TABELA 'operacional_viaturas' */
     async function carregarViaturasDoBanco() {
       const selV = document.getElementById('j3_viatura');
 
@@ -241,7 +233,6 @@
           });
         }
       } catch (err) {
-        console.warn("Usando seletores padrão de viatura:", err);
         selV.innerHTML = `
           <option value="USB 11 (Titular)">🚑 USB 11 (Titular em Operação)</option>
           <option value="USB 11 (Reserva)">🚑 USB 11 (Reserva / Apoio & Eventos)</option>
@@ -249,7 +240,6 @@
       }
     }
 
-    /* CARREGA COLABORADORES DA TABELA 'colaboradores' */
     async function carregarEquipeDoBanco() {
       const selC = document.getElementById('j3_condutor');
       const selT = document.getElementById('j3_tecnico');
@@ -266,7 +256,7 @@
           selC.innerHTML = '<option value="">(Selecione o Condutor)</option>';
           selT.innerHTML = '<option value="">(Selecione a Enfermagem)</option>';
 
-          const ativos = servidores.filter(s => (s.status_cadastro || '').toUpperCase() === 'ATIVO');
+          const ativos = servidores.filter(s => (s.status_cadastro || 'ATIVO').toUpperCase() === 'ATIVO');
 
           ativos.forEach(s => {
             const rotulo = (s.funcao || '').toUpperCase();
@@ -276,96 +266,149 @@
               selT.innerHTML += `<option value="${s.nome}">${s.nome} (${s.funcao})</option>`;
             }
           });
-        } else {
-          throw new Error("Sem registros no banco");
         }
       } catch (err) {
-        console.warn("Recorrendo à lista local:", err);
         selC.innerHTML = '<option value="">(Selecione o Condutor)</option>';
         selT.innerHTML = '<option value="">(Selecione a Enfermagem)</option>';
-
-        condutoresBase.forEach(c => selC.innerHTML += `<option value="${c}">${c}</option>`);
-        tecnicosBase.forEach(t => selT.innerHTML += `<option value="${t}">${t}</option>`);
+        duplasPadrao.forEach(d => {
+          selC.innerHTML += `<option value="${d.cond}">${d.cond}</option>`;
+          selT.innerHTML += `<option value="${d.tec}">${d.tec}</option>`;
+        });
       }
     }
 
-    /* MOTOR DE VALIDAÇÃO DA ESCALA (TURNO 12H DIURNO/NOTURNO, AFASTAMENTOS E TROCAS) */
+    /* MOTOR UNIFICADO DE ESCALA DO DIA (COM TROCAS E RODÍZIOS) */
     async function obterEscalaOficialHoje() {
       const hoje = new Date();
       const hojeStr = hoje.toISOString().split('T')[0];
       const horaAtual = hoje.getHours();
       
       const ehTurnoDiurno = (horaAtual >= 7 && horaAtual < 19);
+      const dataBaseStr = "2026-06-01";
 
-      // Escala Base 24x96 (Início em 01/09/2026)
-      const dataBase = new Date("2026-09-01T00:00:00");
-      const dataHoje = new Date(hojeStr + "T00:00:00");
-      const diffDias = Math.floor((dataHoje.getTime() - dataBase.getTime()) / (1000 * 3600 * 24));
-      
-      let idxC = ((diffDias % condutoresBase.length) + condutoresBase.length) % condutoresBase.length;
-      let idxT = ((diffDias % tecnicosBase.length) + tecnicosBase.length) % tecnicosBase.length;
+      const dataBase = new Date(dataBaseStr + "T00:00:00");
+      const dtAtual = new Date(hojeStr + "T00:00:00");
+      const diffTime = dtAtual.getTime() - dataBase.getTime();
+      const diasCorridosBase = Math.floor(diffTime / (1000 * 3600 * 24));
 
-      let condutorEsperado = condutoresBase[idxC];
-      let tecnicoEsperado = tecnicosBase[idxT];
+      const eqIndex2496 = ((diasCorridosBase % duplasPadrao.length) + duplasPadrao.length) % duplasPadrao.length;
+      let cond = duplasPadrao[eqIndex2496].cond;
+      let tec = duplasPadrao[eqIndex2496].tec;
 
       try {
-        // Consulta 'afastamentos'
         const { data: afastamentos } = await dbNuvem.from('afastamentos').select('*');
 
         if (afastamentos && afastamentos.length > 0) {
-          afastamentos.forEach(af => {
-            const afInicio = af.inicio || af.data_inicio;
-            const afFim = af.fim || af.data_fim;
+          const afCond = afastamentos.find(a => (a.funcao || '').toLowerCase().includes("condutor") && (a.regime || '').includes("Categoria") && hojeStr >= a.inicio && hojeStr <= a.fim);
+          const afTec = afastamentos.find(a => (a.funcao || '').toLowerCase().includes("técnic") && !a.funcao.includes("Coordenadora") && (a.regime || '').includes("Categoria") && hojeStr >= a.inicio && hojeStr <= a.fim);
 
-            if (hojeStr >= afInicio && hojeStr <= afFim) {
-              if ((af.regime || '').includes('24x72')) {
-                const condutoresAtivos = condutoresBase.filter(c => c !== af.servidor);
-                let idx72 = ((diffDias % condutoresAtivos.length) + condutoresAtivos.length) % condutoresAtivos.length;
-                condutorEsperado = condutoresAtivos[idx72];
-              }
+          if (afCond) {
+            const condutoresAtivos = ["Renato Cândido", "Daniel Alexandre Fernandes", "Vanderlei José Tasca", "Márcio Becker"];
+            const dtIniAf = new Date(afCond.inicio + "T00:00:00");
+            const diffAf = Math.floor((dtAtual.getTime() - dtIniAf.getTime()) / (1000 * 3600 * 24));
+            if (diffAf >= 0 && condutoresAtivos.length > 0) {
+              cond = condutoresAtivos[diffAf % condutoresAtivos.length];
+            }
+          }
 
-              if ((af.regime || '').includes('Substituto') || af.substitutosDiarios) {
-                try {
-                  const mapaSubst = typeof af.substitutosDiarios === 'string' ? JSON.parse(af.substitutosDiarios) : af.substitutosDiarios;
-                  if (mapaSubst && mapaSubst[hojeStr] && mapaSubst[hojeStr] !== 'A DEFINIR') {
-                    condutorEsperado = mapaSubst[hojeStr];
-                  }
-                } catch(e) {}
-              }
+          if (afTec) {
+            const tecsAtivos = ["Luis Eduardo Formanski Vitório", "Gicerléia Trindade da Rosa", "Suandre Adão Machado", "Rinaldo Calegario"];
+            const dtIniAf = new Date(afTec.inicio + "T00:00:00");
+            const diffAf = Math.floor((dtAtual.getTime() - dtIniAf.getTime()) / (1000 * 3600 * 24));
+            if (diffAf >= 0 && tecsAtivos.length > 0) {
+              tec = tecsAtivos[diffAf % tecsAtivos.length];
+            }
+          }
+
+          afastamentos.forEach(atestado => {
+            if (hojeStr >= atestado.inicio && hojeStr <= atestado.fim) {
+              const mapaSubst = typeof atestado.substitutosDiarios === 'string' ? JSON.parse(atestado.substitutosDiarios) : atestado.substitutosDiarios;
+              const substDia = mapaSubst ? mapaSubst[hojeStr] : null;
+
+              if (cond === atestado.servidor && substDia && substDia !== "A DEFINIR") cond = substDia;
+              if (tec === atestado.servidor && substDia && substDia !== "A DEFINIR") tec = substDia;
             }
           });
         }
 
-        // Consulta 'trocas' (Com checagem do turno de 12h Diurno / Noturno)
-        const { data: trocas } = await dbNuvem.from('trocas').select('*').eq('status', 'APROVADO');
+        const { data: trocas } = await dbNuvem.from('trocas').select('*').or('status.eq.APROVADO,status.eq.PAGO / QUITADO');
 
         if (trocas && trocas.length > 0) {
-          trocas.forEach(tr => {
-            const ehSuaDataMinha = (tr.dataMinha === hojeStr);
-            const ehSuaDataDevolucao = (tr.dataDevolucao === hojeStr);
+          const trocasHoje = trocas.filter(t => t.dataMinha === hojeStr || t.dataDevolucao === hojeStr);
 
-            if (ehSuaDataMinha || ehSuaDataDevolucao) {
-              const p = tr.periodo || '24h';
-              const trocaAplicaHoje = (p === '24h') || 
-                                       (p === '12h_diurno' && ehTurnoDiurno) || 
-                                       (p === '12h_noturno' && !ehTurnoDiurno);
+          trocasHoje.forEach(t => {
+            const p = t.periodo || "24h";
+            const ehMinhaData = (t.dataMinha === hojeStr);
+            const titular = ehMinhaData ? t.solicitante : t.substituto;
+            const cobridor = ehMinhaData ? t.substituto : t.solicitante;
 
-              if (trocaAplicaHoje) {
-                const titular = ehSuaDataMinha ? tr.solicitante : tr.substituto;
-                const substituto = ehSuaDataMinha ? tr.substituto : tr.solicitante;
+            const trocaAplicaNoTurno = (p === "24h") || 
+                                       (p === "12h_diurno" && ehTurnoDiurno) || 
+                                       (p === "12h_noturno" && !ehTurnoDiurno);
 
-                if (condutorEsperado === titular) condutorEsperado = substituto;
-                if (tecnicoEsperado === titular) tecnicoEsperado = substituto;
-              }
+            if (trocaAplicaNoTurno) {
+              if (cond.includes(titular)) cond = cobridor;
+              if (tec.includes(titular)) tec = cobridor;
             }
           });
         }
-
       } catch (err) {
-        console.warn("Erro ao verificar exceções de escala:", err);
+        console.warn("Erro ao buscar escala oficial do dia:", err);
       }
 
-      return { condutor: condutorEsperado, tecnico: tecnicoEsperado };
+      return { 
+        condutor: cond.replace(/\s*\(.*?\)/g, "").trim(), 
+        tecnico: tec.replace(/\s*\(.*?\)/g, "").trim() 
+      };
+    }
+
+    /* TRIPLA VERIFICAÇÃO INTEGRADA (ESCALA DO DIA + AFASTAMENTOS + INDISPONIBILIDADE) */
+    async function validarAssuncaoJ3(condutorSelecionado, tecnicoSelecionado) {
+      const hojeStr = new Date().toISOString().split('T')[0];
+
+      // 1. Escala Oficial Calculada para o Dia
+      const escalaOficial = await obterEscalaOficialHoje();
+
+      // 2. Afastamentos Ativos no Banco
+      const { data: afastamentos } = await dbNuvem
+        .from('afastamentos')
+        .select('*')
+        .lte('inicio', hojeStr)
+        .gte('fim', hojeStr);
+
+      // 3. Servidores Indisponíveis no Banco
+      const { data: indisponiveis } = await dbNuvem
+        .from('servidores_indisponibilidade')
+        .select('*');
+
+      const condutorAfastado = afastamentos?.some(a => a.servidor === condutorSelecionado);
+      const tecnicoAfastado = afastamentos?.some(a => a.servidor === tecnicoSelecionado);
+
+      const condutorIndisponivel = indisponiveis?.some(i => (i.servidor || i.nome) === condutorSelecionado);
+      const tecnicoIndisponivel = indisponiveis?.some(i => (i.servidor || i.nome) === tecnicoSelecionado);
+
+      if (condutorAfastado || tecnicoAfastado || condutorIndisponivel || tecnicoIndisponivel) {
+        let motivo = "Servidor impedido de assumir o plantão:";
+        if (condutorAfastado) motivo += `\n• Condutor (${condutorSelecionado}) consta AFASTADO.`;
+        if (tecnicoAfastado) motivo += `\n• Enfermagem (${tecnicoSelecionado}) consta AFASTADA.`;
+        if (condutorIndisponivel) motivo += `\n• Condutor (${condutorSelecionado}) consta INDISPONÍVEL no sistema.`;
+        if (tecnicoIndisponivel) motivo += `\n• Enfermagem (${tecnicoSelecionado}) consta INDISPONÍVEL no sistema.`;
+
+        return { autorizada: false, motivo: motivo, escalaEsperada: escalaOficial };
+      }
+
+      const condutorBate = (!condutorSelecionado || condutorSelecionado === escalaOficial.condutor);
+      const tecnicoBate = (!tecnicoSelecionado || tecnicoSelecionado === escalaOficial.tecnico);
+
+      if (condutorBate && tecnicoBate) {
+        return { autorizada: true, escalaEsperada: escalaOficial };
+      } else {
+        return { 
+          autorizada: false, 
+          motivo: `A equipe selecionada não corresponde à escala calculada para hoje.\nEscala Esperada: ${escalaOficial.condutor} e ${escalaOficial.tecnico}`, 
+          escalaEsperada: escalaOficial 
+        };
+      }
     }
 
     async function processarJ3(e) {
@@ -382,13 +425,11 @@
         return;
       }
 
-      const escalaOficial = await obterEscalaOficialHoje();
-      const condutorValido = (!condutor || condutor === escalaOficial.condutor);
-      const tecnicoValido = (!tecnico || tecnico === escalaOficial.tecnico);
-      const ehEscalaCorreta = condutorValido && tecnicoValido;
+      // EXECUTA A TRIPLA VERIFICAÇÃO
+      const resultadoValidacao = await validarAssuncaoJ3(condutor, tecnico);
 
-      if (!ehEscalaCorreta && !ehExcepcional) {
-        alert(`⚠️ ATENÇÃO: A equipe selecionada não corresponde à escala oficial calculada para este horário.\n\nEscala Esperada: ${escalaOficial.condutor} e ${escalaOficial.tecnico}\n\nPor favor, marque a opção "Troca de última hora / Fora da Escala" e preencha a justificativa.`);
+      if (!resultadoValidacao.autorizada && !ehExcepcional) {
+        alert(`⚠️ ATENÇÃO:\n${resultadoValidacao.motivo}\n\nPor favor, marque a opção "Troca de última hora / Fora da Escala" e preencha a justificativa.`);
         document.getElementById('j3_chk_excepcional').checked = true;
         alternarJustificativa();
         document.getElementById('j3_justificativa').focus();
@@ -415,7 +456,6 @@
 
         if (usuarioValido || senha === 'samu192' || senha === '123456') {
           
-          // ALERTA DE SOBREPOSIÇÃO PARA A MESMA VIATURA (< 12 HORAS)
           const { data: plantoesAtivosViatura } = await dbNuvem
             .from('plantoes_j3')
             .select('*')
@@ -466,7 +506,6 @@
           } else {
             if (condutorFinal && tecnicoFinal) statusFinal = 'ATIVO';
 
-            // Se consolidou ATIVO, encerra apenas os plantões anteriores DA MESMA VIATURA
             if (statusFinal === 'ATIVO') {
               await dbNuvem.from('plantoes_j3').update({ status: 'ANTERIOR' }).eq('viatura', viatura).eq('status', 'ATIVO');
             }
@@ -482,7 +521,6 @@
             }]);
           }
 
-          // Grava a Sessão Local
           const plantaoSessao = {
             viatura: viatura,
             condutor: condutorFinal,
@@ -492,7 +530,6 @@
           };
           localStorage.setItem('samu_plantao_ativo', JSON.stringify(plantaoSessao));
 
-          // Mensagem Pronta para o WhatsApp da Regulação
           const agora = new Date().toLocaleString('pt-BR');
           const textoZapFormatado = `🚨 *PASSAGEM DE PLANTÃO J3 - ${viatura}*\n📅 Data/Hora: ${agora}\n🚑 Condutor: ${condutorFinal || 'Aguardando'}\n🩺 Enfermagem: ${tecnicoFinal || 'Aguardando'}\nStatus: ${statusFinal === 'ATIVO' ? 'Viatura Operacional e Equipe Confirmada' : 'Equipe em Rendição'}.`;
           
