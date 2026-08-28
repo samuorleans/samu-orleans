@@ -2,69 +2,84 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAMU 192 — Painel TV Kiosk</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SAMU 192 — Painel TV Kiosk Responsivo</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
+    :root {
+      --red-primary: #b71c1c;
+      --red-dark: #880e4f;
+      --slate-dark: #0f172a;
+      --slate-card: #1e293b;
+      --bg-main: #cbd5e1;
+      --border-color: #94a3b8;
+    }
+
     * { box-sizing: border-box; font-family: 'Inter', Arial, sans-serif; margin: 0; padding: 0; }
 
     html, body {
       width: 100vw;
       height: 100vh;
-      overflow: hidden;
-      background-color: #cbd5e1;
-      padding: 4px;
+      overflow: hidden !important;
+      background-color: var(--bg-main);
+      padding: 0.4vh;
     }
 
-    /* GRID PRINCIPAL: ESQUERDA (CARDS + COREN) / DIREITA (ESCALA OPERACIONAL 31 DIAS) */
+    /* GRID RESPONSIVO PRINCIPAL (DUAS COLUNAS PROPORCIONAIS) */
     .tv-grid {
       display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 6px;
+      grid-template-columns: 1.18fr 0.82fr;
+      gap: 0.5vw;
       width: 100%;
-      height: 100vh;
+      height: calc(100vh - 0.8vh);
     }
 
     .tv-col-esquerda {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      height: calc(100vh - 8px);
+      gap: 0.5vh;
+      height: 100%;
+      overflow: hidden;
     }
 
-    /* TRÊS CARDS SUPERIORES EM LINHA NA ESQUERDA */
+    /* TRÊS CARDS SUPERIORES RESPONSIVOS */
     .tv-row-cards {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 6px;
-      height: 145px;
+      grid-template-columns: 0.9fr 1.05fr 1.05fr;
+      gap: 0.5vw;
+      height: 25vh;
+      min-height: 25vh;
     }
 
     .tv-col-direita {
       display: flex;
       flex-direction: column;
-      height: calc(100vh - 8px);
+      height: 100%;
+      overflow: hidden;
     }
 
     .tv-card {
       background: #ffffff;
-      border: 1px solid #94a3b8;
+      border: 1px solid var(--border-color);
       border-radius: 6px;
-      padding: 5px;
+      padding: 0.6vh 0.4vw;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
       overflow: hidden;
     }
 
     .tv-card h3 {
-      font-size: 10px;
-      color: #0f172a;
-      border-bottom: 2px solid #b71c1c;
-      padding-bottom: 2px;
-      margin-bottom: 3px;
+      font-size: clamp(9px, 0.95vh, 14px);
+      color: var(--slate-dark);
+      border-bottom: 2px solid var(--red-primary);
+      padding-bottom: 0.2vh;
+      margin-bottom: 0.4vh;
       text-transform: uppercase;
       font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     .tv-table-container {
@@ -84,11 +99,11 @@
     }
 
     th {
-      background: #0f172a;
+      background: var(--slate-dark);
       color: #ffffff;
-      font-size: 7.5px;
+      font-size: clamp(7px, 0.85vh, 11px);
       text-transform: uppercase;
-      padding: 1px;
+      padding: 0.3vh 1px;
       text-align: center;
     }
 
@@ -99,21 +114,22 @@
       overflow: hidden;
       text-overflow: ellipsis;
       text-align: center;
-      font-size: 7.2px;
+      font-size: clamp(6.5px, 0.8vh, 10.5px);
       line-height: 1;
     }
 
-    /* AJUSTE ALTURA PROPORCIONAL DAS 31 LINHAS NA DIREITA (DO 01 AO 31 SEM CORTAR) */
+    /* AJUSTE PROPORCIONAL DAS 31 LINHAS NA DIREITA */
     #tblEscalaOperacional tbody tr {
-      height: calc((100vh - 45px) / 31);
+      height: calc((100vh - 5.5vh) / 31);
     }
 
-    .col-dia { width: 12%; font-weight: bold; }
-    .col-sem { width: 7%; }
-    .col-per { width: 10%; }
-    .col-cond { width: 33%; text-align: left !important; font-weight: 600; }
-    .col-tec { width: 33%; text-align: left !important; font-weight: 600; }
-    .col-obs { width: 5%; }
+    /* REAJUSTE DE LARGURA DE COLUNAS SOLICITADO */
+    .col-dia { width: 10%; font-weight: bold; }
+    .col-sem { width: 6%; }
+    .col-per { width: 8%; }
+    .col-cond { width: 28%; text-align: left !important; font-weight: 600; padding-left: 3px; }
+    .col-tec { width: 28%; text-align: left !important; font-weight: 600; padding-left: 3px; }
+    .col-obs { width: 20%; text-align: left !important; font-size: clamp(6px, 0.75vh, 9.5px); color: #0284c7; padding-left: 3px; }
 
     .txt-fds-vermelho { color: #dc2626 !important; font-weight: 800 !important; }
     
@@ -123,12 +139,16 @@
     }
     .tr-hoje-destaque td { color: #ffffff !important; font-weight: 800 !important; }
 
-    /* MATRIZ COREN */
+    /* MATRIZ COREN COMPACTADA COM ALTURA DE TABELA TÉCNICA */
+    #tblCorenMatriz tbody tr {
+      height: calc((75vh - 7vh) / 11);
+    }
+
     #tblCorenMatriz th.col-dia-coren,
     #tblCorenMatriz td.col-dia-coren {
       width: 2.2%;
       padding: 0 !important;
-      font-size: 6.5px !important;
+      font-size: clamp(6px, 0.72vh, 9px) !important;
       font-weight: bold;
     }
 
@@ -137,30 +157,47 @@
     .st-adm { background-color: #e0f2fe !important; color: #0369a1 !important; }
     .st-atest { background-color: #fee2e2 !important; color: #991b1b !important; }
 
-    /* CAIXINHA DE TEMPO REAL */
+    /* CARDS SUPERIORES E CAIXINHA DE TEMPO REAL */
     .tv-plantao-box {
-      background: linear-gradient(135deg, #b71c1c 0%, #880e4f 100%);
+      background: linear-gradient(135deg, var(--red-primary) 0%, var(--red-dark) 100%);
       border-radius: 4px;
-      padding: 3px;
+      padding: 0.4vh 0.3vw;
       text-align: center;
       color: #ffffff;
     }
-    .tv-plantao-cargo { font-size: 7.5px; text-transform: uppercase; opacity: 0.9; }
-    .tv-plantao-nome { font-size: 10px; font-weight: 800; }
+    .tv-plantao-cargo { font-size: clamp(6.5px, 0.75vh, 9px); text-transform: uppercase; opacity: 0.9; }
+    .tv-plantao-nome { font-size: clamp(8.5px, 1.05vh, 13px); font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .box-status-viatura {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 0.4vh 0.4vw;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4vw;
+    }
+
+    .logo-viatura-tv {
+      max-height: 3.2vh;
+      max-width: 3.2vw;
+      object-fit: contain;
+    }
   </style>
 </head>
 <body>
 
   <div class="tv-grid">
-    <!-- ESQUERDA: 3 CARDS EM CIMA + MATRIZ COREN EM BAIXO -->
+    <!-- ESQUERDA: 3 CARDS EM CIMA + MATRIZ COREN COMPACTADA EM BAIXO -->
     <div class="tv-col-esquerda">
       
-      <!-- TRÊS CAMPOS SUPERIORES -->
+      <!-- TRÊS CAMPOS SUPERIORES EXPANDIDOS VERTICALMENTE -->
       <div class="tv-row-cards">
         <!-- CARD 1: TEMPO REAL -->
         <div class="tv-card">
           <h3>⏱️ Tempo Real</h3>
-          <div style="display:flex; flex-direction:column; gap:3px; height:100%; justify-content:center;">
+          <div style="display:flex; flex-direction:column; gap:0.4vh; height:100%; justify-content:space-around;">
             <div class="tv-plantao-box">
               <div class="tv-plantao-cargo">🚘 Condutor Hoje</div>
               <div class="tv-plantao-nome" id="tvCondutorHoje">—</div>
@@ -169,36 +206,43 @@
               <div class="tv-plantao-cargo">🩺 Técnico Hoje</div>
               <div class="tv-plantao-nome" id="tvTecnicoHoje">—</div>
             </div>
-            <div style="background:#f1f5f9; border:1px solid #cbd5e1; padding:2px; border-radius:3px; text-align:center;">
-              <div style="font-size:8.5px; font-weight:800; color:#16a34a;">🟢 USB 11 DISPONÍVEL</div>
+            <div class="box-status-viatura">
+              <img src="logo.png" alt="Logo SAMU" class="logo-viatura-tv" onerror="this.style.display='none'">
+              <div style="text-align:right;">
+                <div style="font-size:clamp(6px, 0.68vh, 8.5px); color:#64748b; font-weight:bold;">USB 11 ORLEANS</div>
+                <div style="font-size:clamp(7.5px, 0.95vh, 11px); font-weight:800; color:#16a34a;">🟢 OPERACIONAL</div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- CARD 2: TROCAS E COBERTURAS -->
+        <!-- CARD 2: TROCAS E COBERTURAS (AMPLIADO) -->
         <div class="tv-card">
           <h3>🔄 Trocas & Coberturas</h3>
-          <div style="font-size:7.5px; color:#334155; padding:2px;">
-            <p>• Sincronizado com Supabase.</p>
-            <div style="margin-top:4px; background:#f8fafc; border:1px solid #e2e8f0; padding:4px; border-radius:4px;">
-              <small style="color:#64748b;">Sem alterações para hoje.</small>
+          <div style="font-size:clamp(7px, 0.82vh, 10.5px); color:#334155; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:0.2vh 0;">
+            <p style="font-weight:600;">• Sincronização automática via Supabase.</p>
+            <div id="tvConteudoTrocas" style="background:#f8fafc; border:1px solid #e2e8f0; padding:0.6vh 0.4vw; border-radius:4px; flex:1; margin-top:0.3vh; overflow:hidden;">
+              <small style="color:#64748b;">Nenhuma alteração de plantão pendente para a data de hoje.</small>
             </div>
           </div>
         </div>
 
-        <!-- CARD 3: AVISOS OPERACIONAIS -->
+        <!-- CARD 3: AVISOS OPERACIONAIS (AMPLIADO) -->
         <div class="tv-card">
           <h3>📢 Avisos USB 11</h3>
-          <div style="font-size:7.5px; color:#334155; padding:2px;">
-            <p>• Checklist diário da viatura às 07h.</p>
-            <p style="margin-top:2px;">• Banco de dados conectado.</p>
+          <div style="font-size:clamp(7px, 0.82vh, 10.5px); color:#334155; height:100%; display:flex; flex-direction:column; justify-content:flex-start; gap:0.5vh; padding:0.2vh 0;">
+            <p style="background:#f8fafc; padding:0.4vh 0.3vw; border-left:3px solid #b71c1c; border-radius:2px;">• <b>Checklist Diário:</b> Realizar inspeção da viatura e materiais pontualmente às 07:00h.</p>
+            <p style="background:#f8fafc; padding:0.4vh 0.3vw; border-left:3px solid #0284c7; border-radius:2px;">• <b>Conexão:</b> Sistema integrado com nuvem institucional e gestão de escalas.</p>
           </div>
         </div>
       </div>
 
-      <!-- MATRIZ COREN ORLEANS (COM MÊS REFERÊNCIA E ORDEM ALFABÉTICA) -->
+      <!-- MATRIZ COREN ORLEANS (COMPACTADA, EM ORDEM ALFABÉTICA DE A A Z) -->
       <div class="tv-card" style="flex: 1;">
-        <h3>📋 Matriz Oficial COREN — Orleans — <span id="tvTituloMesCoren">AGOSTO / 2026</span></h3>
+        <h3>
+          <span>📋 Matriz Oficial COREN — Orleans</span>
+          <span id="tvTituloMesCoren" style="color:#b71c1c;">AGOSTO / 2026</span>
+        </h3>
         <div class="tv-table-container">
           <table id="tblCorenMatriz">
             <thead id="headCoren"></thead>
@@ -209,10 +253,13 @@
 
     </div>
 
-    <!-- DIREITA: ESCALA OPERACIONAL MENSAL COMPLETA (OCUPA 100% DA ALTURA VERTICAL) -->
+    <!-- DIREITA: ESCALA OPERACIONAL MENSAL COMPLETA (OCUPA 100% DA ALTURA DA TELA) -->
     <div class="tv-col-direita">
       <div class="tv-card" style="height: 100%;">
-        <h3>📅 Escala Mensal Operacional — <span id="tvTituloMes">AGOSTO / 2026</span></h3>
+        <h3>
+          <span>📅 Escala Mensal Operacional</span>
+          <span id="tvTituloMes" style="color:#b71c1c;">AGOSTO / 2026</span>
+        </h3>
         <div class="tv-table-container">
           <table id="tblEscalaOperacional">
             <thead>
@@ -275,7 +322,7 @@
       document.getElementById("tvTituloMes").innerText = txtMes;
       document.getElementById("tvTituloMesCoren").innerText = txtMes;
 
-      // 1. ESCALA OPERACIONAL DIREITA (DO DIA 1 AO 30 OU 31)
+      // 1. ESCALA OPERACIONAL DIREITA (REAJUSTADA E COMPACTADA PARA OBSERVAÇÕES)
       const tbBody = document.getElementById("bodyEscala");
       tbBody.innerHTML = "";
       const diasNoMes = new Date(ano, mes, 0).getDate();
@@ -300,15 +347,15 @@
         `;
       }
 
-      // 2. MATRIZ COREN (ORDEM ALFABÉTICA)
+      // 2. MATRIZ COREN (COMPACTA E EM ORDEM ALFABÉTICA DE A A Z)
       const headCoren = document.getElementById("headCoren");
       const bodyCoren = document.getElementById("bodyCoren");
-      let headHtml = `<tr><th style="text-align:left; width:24%;">COLABORADOR</th><th style="width:7%;">REG.</th>`;
+      let headHtml = `<tr><th style="text-align:left; width:25%;">COLABORADOR</th><th style="width:6%;">REG.</th>`;
       for (let d = 1; d <= diasNoMes; d++) headHtml += `<th class="col-dia-coren">${String(d).padStart(2,'0')}</th>`;
       headHtml += `</tr>`;
       headCoren.innerHTML = headHtml;
 
-      // Lista em Ordem Alfabética
+      // Lista em Ordem Alfabética rigorosa
       const listaColaboradores = [
         "Clênio Borges",
         "Daniel Alexandre Fernandes",
@@ -325,7 +372,7 @@
 
       bodyCoren.innerHTML = "";
       listaColaboradores.forEach(nome => {
-        let line = `<tr><td style="text-align:left; font-weight:bold; font-size:6.8px;">${nome}</td><td style="font-size:6px;">N/A</td>`;
+        let line = `<tr><td style="text-align:left; font-weight:bold; font-size:clamp(6px, 0.73vh, 9px); padding-left:2px;">${nome}</td><td style="font-size:clamp(5.5px, 0.65vh, 8px);">N/A</td>`;
         const eh40h = nome.includes("Edimara");
 
         for (let d = 1; d <= diasNoMes; d++) {
@@ -345,7 +392,7 @@
         bodyCoren.innerHTML += line;
       });
 
-      // 3. TEMPO REAL
+      // 3. ATUALIZAÇÃO DO TEMPO REAL
       const resHoje = calcularEscalaNoDia(dtIsoHoje, dataBaseStr);
       document.getElementById("tvCondutorHoje").innerText = resHoje.cond;
       document.getElementById("tvTecnicoHoje").innerText = resHoje.tec;
