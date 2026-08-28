@@ -1,8 +1,3 @@
-/**
- * SAMU CONNECT - Central Configuration & Supabase Initializer
- * Version: 1.0.2
- */
-
 export const CONFIG = {
   SISTEMA: {
     NOME: "SAMU Connect",
@@ -13,7 +8,7 @@ export const CONFIG = {
     NOME_UNIDADE: "USB 11",
     MUNICIPIO_UF: "ORLEANS / SC",
     BASE_OPERACIONAL: "Orleans",
-    URL_LOGO: "./assets/logo.png"
+    URL_LOGO: "./logo.png" // Aponta diretamente para a logo na raiz do repositório
   },
   SUPABASE: {
     URL: "https://meqkgjjaidjptaljbybr.supabase.co",
@@ -29,14 +24,10 @@ export const CONFIG = {
   }
 };
 
-// Inicialização segura do cliente Supabase
 export const supabase = window.supabase
   ? window.supabase.createClient(CONFIG.SUPABASE.URL, CONFIG.SUPABASE.ANON_KEY)
   : null;
 
-/**
- * Injeta variáveis de estilo CSS e aplica metadados dinâmicos no DOM
- */
 export function initTheme() {
   const root = document.documentElement;
   root.style.setProperty('--primary-navy', CONFIG.THEME.PRIMARY_NAVY);
