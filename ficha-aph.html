@@ -3086,7 +3086,7 @@
         const inputQtd = tr.querySelector('.med-qtd');
         const psicoBox = tr.querySelector('.psico-box');
 
-        if (inputLabel && inputLabel.value.trim() !== '') {
+        if (inputLabel && inputLabel.value && inputLabel.value.trim() !== '') {
           const valDigitado = inputLabel.value.trim();
           const valNorm = normalizarString(valDigitado);
           
@@ -3102,19 +3102,21 @@
           let lacreNovo = null;
 
           if (isPsico) {
-            via = tr.querySelector('.psico-via').value;
+            const viaEl = tr.querySelector('.psico-via');
+            if (viaEl) via = viaEl.value;
+
             const inputRompido = tr.querySelector('.psico-lacre-rompido');
             const inputNovo = tr.querySelector('.psico-lacre-novo');
-            if (inputRompido && inputRompido.offsetParent !== null) lacreRompido = inputRompido.value.toUpperCase();
-            if (inputNovo && inputNovo.offsetParent !== null) lacreNovo = inputNovo.value.toUpperCase();
+            if (inputRompido && inputRompido.value) lacreRompido = inputRompido.value.toUpperCase();
+            if (inputNovo && inputNovo.value) lacreNovo = inputNovo.value.toUpperCase();
           }
 
           if (itemEncontrado) {
             insumosArray.push({
-              lote_id: itemEncontrado.lote_id,
-              codigo: itemEncontrado.codigo,
-              descricao: itemEncontrado.descricao,
-              numero_lote: itemEncontrado.numero_lote,
+              lote_id: itemEncontrado.lote_id || null,
+              codigo: itemEncontrado.codigo || null,
+              descricao: itemEncontrado.descricao || valDigitado,
+              numero_lote: itemEncontrado.numero_lote || 'SEM LOTE',
               data_validade: (itemEncontrado.data_validade && itemEncontrado.data_validade.trim() !== '') ? itemEncontrado.data_validade : null,
               quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
               is_psicotropico: isPsico,
