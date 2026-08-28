@@ -342,25 +342,25 @@
                             <div class="col-md-3">
                                 <div class="form-check form-switch mt-2">
                                     <input class="form-check-input" type="checkbox" id="hosp-vagazero" checked>
-                                    <label class="form-check-input-label fw-semibold">Vaga Zero</label>
+                                    <label class="form-check-label fw-semibold">Vaga Zero</label>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-check form-switch mt-2">
                                     <input class="form-check-input" type="checkbox" id="hosp-cti">
-                                    <label class="form-check-input-label fw-semibold">Possui CTI/UTI</label>
+                                    <label class="form-check-label fw-semibold">Possui CTI/UTI</label>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-check form-switch mt-2">
                                     <input class="form-check-input" type="checkbox" id="hosp-hemo">
-                                    <label class="form-check-input-label fw-semibold">Hemodinâmica</label>
+                                    <label class="form-check-label fw-semibold">Hemodinâmica</label>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-check form-switch mt-2">
                                     <input class="form-check-input" type="checkbox" id="hosp-mat">
-                                    <label class="form-check-input-label fw-semibold">Maternidade</label>
+                                    <label class="form-check-label fw-semibold">Maternidade</label>
                                 </div>
                             </div>
                         </div>
@@ -424,33 +424,33 @@
             `).join('');
         }
 
-        // Cadastrar Colaborador
+        // Cadastrar Colaborador (Corrigido sem campo 'id')
         document.getElementById('form-colaborador').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-save-colab');
             btn.disabled = true;
 
             const payload = {
-                id: crypto.randomUUID(), // Gera UUID para simulação de inserção direta sem Auth prévio
                 cpf: document.getElementById('colab-cpf').value.replace(/\D/g, ''),
                 nome_completo: document.getElementById('colab-nome').value,
                 nome_guerra: document.getElementById('colab-guerra').value,
                 email: document.getElementById('colab-email').value,
                 telefone: document.getElementById('colab-telefone').value,
                 cargo: document.getElementById('colab-cargo').value,
-                registro_prof: document.getElementById('colab-registro').value,
+                registro_prof: document.getElementById('colab-registro').value || null,
                 status: document.getElementById('colab-status').value,
-                tamanho_camisa: document.getElementById('colab-camisa').value,
-                tamanho_calca: document.getElementById('colab-calca').value,
-                tamanho_macacao: document.getElementById('colab-macacao').value,
-                tamanho_calcado: document.getElementById('colab-calcado').value,
+                tamanho_camisa: document.getElementById('colab-camisa').value || null,
+                tamanho_calca: document.getElementById('colab-calca').value || null,
+                tamanho_macacao: document.getElementById('colab-macacao').value || null,
+                tamanho_calcado: document.getElementById('colab-calcado').value || null,
                 unidade_base: CONFIG.TENANT.NOME_UNIDADE
             };
 
-            const { error } = await supabase.from('colaboradores').insert([payload]);
+            const { data, error } = await supabase.from('colaboradores').insert([payload]);
 
             btn.disabled = false;
             if (error) {
+                console.error('Erro ao salvar colaborador:', error);
                 alert('Erro ao salvar colaborador: ' + error.message);
             } else {
                 alert('Colaborador cadastrado com sucesso!');
@@ -514,9 +514,9 @@
                 cnes: document.getElementById('hosp-cnes').value || null,
                 tipo: document.getElementById('hosp-tipo').value,
                 porte: document.getElementById('hosp-porte').value,
-                rua_logradouro: document.getElementById('hosp-rua').value,
-                numero: document.getElementById('hosp-numero').value,
-                bairro: document.getElementById('hosp-bairro').value,
+                rua_logradouro: document.getElementById('hosp-rua').value || null,
+                numero: document.getElementById('hosp-numero').value || null,
+                bairro: document.getElementById('hosp-bairro').value || null,
                 municipio: document.getElementById('hosp-municipio').value,
                 uf: document.getElementById('hosp-uf').value,
                 telefone_plantao: document.getElementById('hosp-telefone').value,
@@ -530,6 +530,7 @@
 
             btn.disabled = false;
             if (error) {
+                console.error('Erro ao salvar hospital:', error);
                 alert('Erro ao salvar hospital: ' + error.message);
             } else {
                 alert('Hospital cadastrado com sucesso!');
@@ -543,7 +544,7 @@
         document.getElementById('search-colaborador').addEventListener('input', (e) => fetchColaboradores(e.target.value));
         document.getElementById('search-hospital').addEventListener('input', (e) => fetchHospitais(e.target.value));
 
-        // Inicialização
+        // Inicialização das tabelas
         fetchColaboradores();
         fetchHospitais();
     </script>
