@@ -1109,8 +1109,9 @@
       });
     }
 
+    // CHAVES DO SUPABASE
     const SUPABASE_URL = 'https://rcpgukslnlfptreiusff.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A';
 
     let _supabase = null;
     let mapaLotesUnificados = [];
@@ -1130,7 +1131,7 @@
     }
 
     const COLABORADORES_FALLBACK = [
-      { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "", senha: "" }
+      { nome: "Daniel Alexandre Fernandes", cpf: "01973946980", funcao: "Técnico de Enfermagem", perfil: "ADMIN", coren: "", senha: "" }
     ];
 
     function mascaraEFormatarLoginUsuario(input) {
@@ -1283,22 +1284,31 @@
           return;
         }
 
-        const plantaoAtivoBd = await buscarPlantaoAtivoJ3();
+        let plantaoAtivoBd = await buscarPlantaoAtivoJ3();
+
+        if (!plantaoAtivoBd) {
+          const cachePlantao = localStorage.getItem('j3_plantao_ativo_cache');
+          if (cachePlantao) {
+            try { plantaoAtivoBd = JSON.parse(cachePlantao); } catch(e){}
+          }
+        }
 
         if (!ehAdminOuCoord) {
-          if (!plantaoAtivoBd) {
-            alert("❌ ACESSO BLOQUEADO: Não há nenhum plantão com status ATIVO registrado no Módulo J3 no momento.");
+          if (!plantaoAtivoBd && navigator.onLine) {
+            alert("❌ ACESSO BLOQUEADO: Não há nenhum plantão com status ATIVO registrado no Módulo J3 no momento.\n\nPor favor, certifique-se de abrir o plantão no Módulo J3 primeiro.");
             return;
           }
 
-          const nomeColabNorm = normalizarString(colabEncontrado.nome);
-          const enfermagemNorm = normalizarString(plantaoAtivoBd.enfermagem || plantaoAtivoBd.tecnico || plantaoAtivoBd.tec_enfermeiro || '');
+          if (plantaoAtivoBd) {
+            const nomeColabNorm = normalizarString(colabEncontrado.nome);
+            const enfermagemNorm = normalizarString(plantaoAtivoBd.enfermagem || plantaoAtivoBd.tecnico || plantaoAtivoBd.tec_enfermeiro || '');
 
-          const estaNoPlantaoAtivo = enfermagemNorm !== '' && (nomeColabNorm.includes(enfermagemNorm) || enfermagemNorm.includes(nomeColabNorm));
+            const estaNoPlantaoAtivo = enfermagemNorm !== '' && (nomeColabNorm.includes(enfermagemNorm) || enfermagemNorm.includes(nomeColabNorm));
 
-          if (!estaNoPlantaoAtivo) {
-            alert(`❌ ACESSO NEGADO!\n\nA profissional "${colabEncontrado.nome}" NÃO está cadastrada na vaga de ENFERMAGEM do plantão J3 ATIVO.\n\nProfissional de Enfermagem Ativa no J3:\n• ${plantaoAtivoBd.enfermagem || plantaoAtivoBd.tecnico || 'Nenhuma profissional registrada'}`);
-            return;
+            if (!estaNoPlantaoAtivo && navigator.onLine) {
+              alert(`❌ ACESSO NEGADO!\n\nA profissional "${colabEncontrado.nome}" NÃO está cadastrada na vaga de ENFERMAGEM do plantão J3 ATIVO.\n\nProfissional de Enfermagem Ativa no J3:\n• ${plantaoAtivoBd.enfermagem || plantaoAtivoBd.tecnico || 'Nenhuma profissional registrada'}`);
+              return;
+            }
           }
         }
 
@@ -1329,13 +1339,11 @@
 
       let plantaoAtivo = plantaoJ3Ativo;
 
-      // 1. Prioriza o cache local do J3 (Prevenção contra erros de CORS e requisições bloqueadas)
       const cachePlantao = localStorage.getItem('j3_plantao_ativo_cache');
       if (cachePlantao) {
         try { plantaoAtivo = JSON.parse(cachePlantao); } catch(e){}
       }
 
-      // 2. Se estiver online e sem cache, consulta o Supabase
       if (!plantaoAtivo && navigator.onLine && _supabase) {
         try {
           plantaoAtivo = await buscarPlantaoAtivoJ3();
@@ -1345,7 +1353,6 @@
       let nomeEnf = plantaoAtivo ? (plantaoAtivo.enfermagem || plantaoAtivo.tecnico || plantaoAtivo.tec_enfermeiro) : null;
       let nomeCond = plantaoAtivo ? (plantaoAtivo.condutor || plantaoAtivo.socorrista || plantaoAtivo.motorista) : null;
 
-      // 3. Garante o preenchimento pelo usuário ativo na sessão
       if (!nomeEnf && usuarioJ3Logado) {
         nomeEnf = usuarioJ3Logado.nome;
       } else if (!nomeEnf) {
@@ -1358,7 +1365,6 @@
         }
       }
 
-      // 4. Injeta e seleciona o Técnico de Enfermagem
       if (nomeEnf) {
         const tecNorm = normalizarString(nomeEnf);
         let optEnf = Array.from(selectTec.options).find(opt => {
@@ -1378,7 +1384,6 @@
         sincronizarTecnicoResp();
       }
 
-      // 5. Injeta e seleciona o Condutor / Socorrista
       if (nomeCond) {
         const condNorm = normalizarString(nomeCond);
         let optCond = Array.from(selectSoc.options).find(opt => {
