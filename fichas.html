@@ -40,8 +40,6 @@
     /* LAYOUT DA FICHA APH OFICIAL */
     .ficha-oficial { display: none; background: #fff; padding: 5px; color: #000; font-size: 10px; }
     .ficha-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 6px; }
-    .ficha-header h2 { font-size: 14px; font-weight: 900; margin: 0; }
-    .ficha-header h3 { font-size: 12px; font-weight: 800; margin-top: 2px; }
 
     .sec-title { background: #000; color: #fff; font-weight: 800; padding: 2px 5px; font-size: 10px; margin-top: 6px; text-transform: uppercase; }
     
@@ -120,6 +118,7 @@
 
   <script>
     const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
+    // CHAVE ANON PUBLIC OFICIAL CORRIGIDA
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
 
     window.dbNuvem = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
@@ -216,7 +215,7 @@
       const f = listaFichasCache[index];
       if (!f) return;
 
-      // Parse Sinais Vitais (JSON)
+      // Sinais Vitais (JSON)
       let sv = [];
       try {
         if (f.sinais_vitais) {
@@ -225,7 +224,7 @@
       } catch(e){}
       let svRow = sv.length > 0 ? sv[0] : {};
 
-      // Parse Insumos (JSON)
+      // Insumos (JSON)
       let insumosHtml = '';
       try {
         let insList = typeof f.insumos_utilizados === 'string' ? JSON.parse(f.insumos_utilizados) : f.insumos_utilizados;
@@ -243,7 +242,7 @@
       } catch(e){}
       if (!insumosHtml) insumosHtml = 'NENHUM INSUMO OU MEDICAÇÃO REGISTRADO';
 
-      // Parse Lesões por Região (Exposição / Trauma)
+      // Lesões por Região (Exposição / Trauma)
       let lesoesObj = null;
       let temLesao = false;
       try {
@@ -305,7 +304,6 @@
         `;
       }
 
-      // Exibe a tabela se for ocorrência de trauma/sinistro ou se houver lesão marcada
       const tipoOcorr = v(f.tipo_ocorrencia).toLowerCase();
       const exibeLesoes = tipoOcorr.includes('trauma') || tipoOcorr.includes('sinistro') || tipoOcorr.includes('trânsito') || temLesao;
 
@@ -328,9 +326,12 @@
       else if (sexoFmt === 'F') sexoFmt = 'Feminino (F)';
 
       const htmlOficial = `
-        <div class="ficha-header">
-          <h2>SAMU 192 - ORLEANS / SC</h2>
-          <h3>FICHA DE ATENDIMENTO MÓVEL DE URGÊNCIA (USB 11)</h3>
+        <div class="ficha-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 6px;">
+          <img src="logo.png" alt="Logo" style="max-height: 48px; width: auto; object-fit: contain;">
+          <div style="flex: 1; text-align: center;">
+            <h2 style="font-size: 15px; font-weight: 900; margin: 0; padding-right: 48px;">SAMU 192 - ORLEANS / SC</h2>
+            <h3 style="font-size: 12px; font-weight: 800; margin-top: 2px; padding-right: 48px;">FICHA DE ATENDIMENTO MÓVEL DE URGÊNCIA (USB 11)</h3>
+          </div>
         </div>
 
         <div class="sec-title">1. CONTROLE OPERACIONAL & EQUIPE</div>
