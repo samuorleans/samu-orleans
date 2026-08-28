@@ -146,14 +146,17 @@
       tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px;">Buscando registros na tabela ocorrencias_aph...</td></tr>';
 
       try {
-        // Consulta configurada exatamente para a tabela 'ocorrencias_aph'
         const { data, error } = await window.dbNuvem
           .from('ocorrencias_aph')
           .select('*')
           .order('id', { ascending: false })
           .limit(30);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Erro retornado pelo Supabase:", error);
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 15px; color: var(--red);"><b>Erro Supabase:</b> ${error.message} (Código: ${error.code})<br><small style="color: #666;">Verifique se a política RLS (permissão SELECT) está liberada para a tabela <code>ocorrencias_aph</code> no painel Supabase.</small></td></tr>`;
+          return;
+        }
 
         listaFichasCache = data || [];
 
@@ -163,8 +166,8 @@
           tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px;">Nenhuma ocorrência encontrada em ocorrencias_aph.</td></tr>';
         }
       } catch (err) {
-        console.error("Erro Supabase:", err);
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px; color: var(--red);">Erro ao carregar fichas da tabela ocorrencias_aph.</td></tr>';
+        console.error("Exceção:", err);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px; color: var(--red);">Erro de conexão com o banco de dados.</td></tr>';
       }
     }
 
