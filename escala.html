@@ -14,11 +14,11 @@
       --slate-dark: #1e293b;
       --slate-muted: #64748b;
       --bg-light: #f8fafc;
-      --border-color: #e2e8f0;
+      --border-color: #cbd5e1;
     }
 
     * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', Arial, sans-serif; }
-    body { margin: 0; padding: 12px; background-color: #f1f5f9; color: var(--dark-blue); min-width: 1200px; }
+    body { margin: 0; padding: 12px; background-color: #e2e8f0; color: #0f172a; min-width: 1200px; }
 
     .container { width: 1200px; max-width: 1200px; margin: 0 auto; }
 
@@ -31,19 +31,19 @@
     .box-modal input:focus { border-color: var(--primary-red); outline: none; }
     .btn-fechar-modal { position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--slate-muted); font-weight: bold; }
 
-    header { background: linear-gradient(135deg, #b71c1c 0%, #880e4f 100%); color: #fff; padding: 16px 20px; border-radius: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff; padding: 16px 20px; border-radius: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 6px solid var(--primary-red); }
     .header-brand { display: flex; align-items: center; gap: 12px; }
     .header-brand img { max-height: 48px; border-radius: 6px; background: #fff; padding: 2px; }
     header h1 { margin: 0; font-size: 18px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
     header small { font-size: 12px; opacity: 0.9; }
-    .user-info { font-size: 12px; background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .user-info { font-size: 12px; background: rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
     .nav-tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; flex-wrap: wrap; }
-    .tab-btn { padding: 10px 16px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; background: #e2e8f0; color: #334155; font-size: 13px; transition: all 0.2s; }
-    .tab-btn.active { background: var(--primary-red); color: #fff; box-shadow: 0 2px 4px rgba(183, 28, 28, 0.3); }
+    .tab-btn { padding: 10px 16px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; background: #cbd5e1; color: #334155; font-size: 13px; transition: all 0.2s; }
+    .tab-btn.active { background: #0f172a; color: #fff; box-shadow: 0 2px 4px rgba(15, 23, 42, 0.3); }
 
     .card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 20px; }
-    .card h3 { margin-top: 0; color: var(--slate-dark); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
+    .card h3 { margin-top: 0; color: var(--slate-dark); border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
 
     .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: flex-end; }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
@@ -66,9 +66,9 @@
 
     .table-responsive { overflow-x: auto; background: #fff; border-radius: 8px; border: 1px solid var(--border-color); }
     table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; }
-    th { background: var(--slate-dark); color: #fff; padding: 10px 8px; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+    th { background: #0f172a; color: #fff; padding: 10px 8px; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
     td { padding: 8px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
-    tr:nth-child(even) { background-color: var(--bg-light); }
+    tr:nth-child(even) { background-color: #f1f5f9; }
 
     .badge { padding: 4px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
     .badge-pendente { background: #fef3c7; color: #b45309; }
@@ -98,12 +98,12 @@
 
     .rodape-assinaturas { display: none; }
 
-    /* ESTILOS DE ALTA DENSIDADE E COMPACTAÇÃO PARA MODO TV (1080p FULLSCREEN) */
+    /* REFORMULAÇÃO TOTAL - PALETA CLEAN E PROFISSIONAL MODO TV (1080p FULLSCREEN) */
     #painelTVGrid { display: none; }
     
     body.modo-tv-kiosk {
-      background-color: #0f172a !important;
-      color: #fff !important;
+      background-color: #cbd5e1 !important;
+      color: #0f172a !important;
       padding: 6px !important;
       margin: 0 !important;
       width: 100vw !important;
@@ -122,21 +122,21 @@
 
     body.modo-tv-kiosk #painelTVGrid {
       display: grid !important;
-      grid-template-columns: 1.15fr 0.85fr;
+      grid-template-columns: 1fr 1fr;
       grid-template-rows: 1.25fr 0.75fr;
-      gap: 6px;
+      gap: 8px;
       width: 100%;
       height: calc(100vh - 12px);
     }
 
     .tv-card {
-      background: #1e293b;
-      border: 1px solid #334155;
+      background: #ffffff;
+      border: 1px solid #94a3b8;
       border-radius: 8px;
-      padding: 6px 8px;
+      padding: 8px;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
       overflow: hidden;
     }
 
@@ -145,65 +145,120 @@
     }
 
     .tv-card h3 {
-      margin: 0 0 4px 0;
-      font-size: 12px;
-      color: #f8fafc;
-      border-bottom: 2px solid #b71c1c;
-      padding-bottom: 3px;
+      margin: 0 0 6px 0;
+      font-size: 13px;
+      color: #0f172a;
+      border-bottom: 3px solid #b71c1c;
+      padding-bottom: 4px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      font-weight: 800;
     }
 
     .tv-scrollable-table {
       flex: 1;
-      overflow: auto;
-      background: #0f172a;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: #ffffff;
       border-radius: 6px;
-      border: 1px solid #334155;
+      border: 1px solid #cbd5e1;
     }
 
     .tv-scrollable-table table {
       width: 100%;
-      color: #fff;
-      font-size: 8.5px;
+      color: #0f172a;
+      font-size: 9.5px;
       border-collapse: collapse;
+      table-layout: fixed;
     }
 
     .tv-scrollable-table th {
       position: sticky;
       top: 0;
-      background: #b71c1c;
+      background: #0f172a;
+      color: #ffffff;
       z-index: 2;
-      padding: 3px 2px;
+      padding: 5px 2px;
       font-size: 9px;
+      text-transform: uppercase;
       white-space: nowrap;
+      text-align: center;
     }
 
     .tv-scrollable-table td {
-      padding: 2px 3px;
-      border-bottom: 1px solid #1e293b;
+      padding: 4px 3px;
+      border-bottom: 1px solid #e2e8f0;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #0f172a !important;
+      text-align: center;
+    }
+
+    /* CORES DAS LINHAS DA TABELA - GARANTINDO CONTRASTE 100% VISÍVEL */
+    .tv-scrollable-table tr:nth-child(odd) {
+      background-color: #ffffff !important;
+    }
+
+    .tv-scrollable-table tr:nth-child(even) {
+      background-color: #f1f5f9 !important;
     }
 
     .tr-hoje-destaque {
       background: #b71c1c !important;
-      color: #fff !important;
+      color: #ffffff !important;
       font-weight: bold;
     }
+    
+    .tr-hoje-destaque td {
+      color: #ffffff !important;
+    }
 
-    .tv-plantao-box {
-      background: linear-gradient(135deg, #b71c1c 0%, #7f1d1d 100%);
-      border-radius: 6px;
-      padding: 6px;
-      margin-bottom: 4px;
+    /* ENQUADRAMENTO DA MATRIZ COREN PARA CABER TODOS OS 31 DIAS */
+    #tblTVCorenMatriz th.col-dia-coren,
+    #tblTVCorenMatriz td.col-dia-coren {
+      width: 2.1%;
+      padding: 2px 0 !important;
+      font-size: 7.5px !important;
+      font-weight: bold;
       text-align: center;
     }
 
-    .tv-plantao-cargo { font-size: 8.5px; text-transform: uppercase; opacity: 0.9; letter-spacing: 0.5px; margin-bottom: 1px; }
-    .tv-plantao-nome { font-size: 12px; font-weight: 800; color: #fff; }
+    #tblTVCorenMatriz td.st-i {
+      background-color: #fef08a !important;
+      color: #854d0e !important;
+    }
+
+    #tblTVCorenMatriz td.st-fol {
+      background-color: #dcfce7 !important;
+      color: #166534 !important;
+    }
+
+    #tblTVCorenMatriz td.st-adm {
+      background-color: #e0f2fe !important;
+      color: #0369a1 !important;
+    }
+
+    #tblTVCorenMatriz td.st-atest {
+      background-color: #fee2e2 !important;
+      color: #991b1b !important;
+    }
+
+    .tv-plantao-box {
+      background: linear-gradient(135deg, #b71c1c 0%, #880e4f 100%);
+      border-radius: 6px;
+      padding: 8px;
+      margin-bottom: 4px;
+      text-align: center;
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .tv-plantao-cargo { font-size: 9px; text-transform: uppercase; opacity: 0.9; letter-spacing: 0.5px; margin-bottom: 2px; }
+    .tv-plantao-nome { font-size: 13px; font-weight: 800; }
 
     @media print {
       .no-print, header, .nav-tabs, .card h3, .grid-form, .btn-arrow, #painelTVGrid { display: none !important; }
@@ -218,7 +273,7 @@
 <body class="modo-retrato">
 <div class="container">
 
-  <!-- PAINEL OPERACIONAL DA TV (SAMU CONNECT - MODO KIOSK) -->
+  <!-- PAINEL OPERACIONAL DA TV (SAMU CONNECT - MODO KIOSK CLEAN) -->
   <div id="painelTVGrid">
     <!-- QUADRANTE ESQUERDO (VERTICAL MAIOR): ESCALA MENSAL OPERACIONAL COMPLETA -->
     <div class="tv-card tv-card-esquerda-vertical">
@@ -227,12 +282,12 @@
         <table>
           <thead>
             <tr>
-              <th style="width:10%;">DIA</th>
+              <th style="width:12%;">DIA</th>
               <th style="width:8%;">SEM</th>
-              <th style="width:12%;">PERÍODO</th>
+              <th style="width:13%;">PERÍODO</th>
               <th style="width:28%;">CONDUTOR SOCORRISTA</th>
               <th style="width:28%;">TÉCNICO DE ENFERMAGEM</th>
-              <th style="width:14%;">OBSERVAÇÕES</th>
+              <th style="width:11%;">OBS.</th>
             </tr>
           </thead>
           <tbody id="bodyTVEscalaMensal"></tbody>
@@ -240,7 +295,7 @@
       </div>
     </div>
 
-    <!-- QUADRANTE SUPERIOR DIREITO: MATRIZ COREN COMPLETA (01 AO 31) -->
+    <!-- QUADRANTE SUPERIOR DIREITO: MATRIZ COREN COMPLETA (01 AO 31 SEM CORTES) -->
     <div class="tv-card">
       <h3>📋 Matriz Oficial COREN — Orleans</h3>
       <div class="tv-scrollable-table">
@@ -266,12 +321,12 @@
           </div>
         </div>
 
-        <div style="background:#334155; padding:6px; border-radius:6px; text-align:center;">
-          <div style="font-size:8.5px; color:#94a3b8; text-transform:uppercase;">Status da Viatura USB 11</div>
-          <div style="font-size:13px; font-weight:bold; color:#22c65e; margin-top:2px;">🟢 EM OPERAÇÃO / DISPONÍVEL</div>
+        <div style="background:#f1f5f9; border:1px solid #cbd5e1; padding:8px; border-radius:6px; text-align:center;">
+          <div style="font-size:9px; color:#64748b; font-weight:bold; text-transform:uppercase;">Status da Viatura USB 11</div>
+          <div style="font-size:13px; font-weight:800; color:#16a34a; margin-top:2px;">🟢 EM OPERAÇÃO / DISPONÍVEL</div>
         </div>
 
-        <div style="font-size:8.5px; color:#64748b; text-align:center;">
+        <div style="font-size:9px; color:#64748b; text-align:center; font-weight:600;">
           Sincronização Nuvem Supabase • Atualizado em tempo real
         </div>
       </div>
@@ -943,7 +998,7 @@
       const elTit = document.getElementById("tvTituloMesVigente");
       if (elTit) elTit.innerText = `${mesesNomes[mesAtual - 1]} / ${anoAtual}`;
 
-      // 1. QUADRANTE ESQUERDO: ESCALA OPERACIONAL COMPLETA (01 AO 31 + PERÍODO + OBSERVAÇÕES)
+      // 1. QUADRANTE ESQUERDO: ESCALA OPERACIONAL COMPLETA (TEXTO TOTALMENTE LEGÍVEL)
       const tbEscalaMensal = document.getElementById("bodyTVEscalaMensal");
       if (tbEscalaMensal) {
         tbEscalaMensal.innerHTML = "";
@@ -961,24 +1016,24 @@
               <td><b>${dtFmt}</b></td>
               <td>${diasSemanaAbrev[dtObj.getDay()]}</td>
               <td>07h às 07h</td>
-              <td style="text-align:left;">${res.cond}</td>
-              <td style="text-align:left;">${res.tec}</td>
+              <td style="text-align:left; font-weight:600;">${res.cond}</td>
+              <td style="text-align:left; font-weight:600;">${res.tec}</td>
               <td style="text-align:left; font-size:8px;">${res.obs}</td>
             </tr>
           `;
         }
       }
 
-      // 2. QUADRANTE SUPERIOR DIREITO: MATRIZ COREN COMPLETA (01 AO 31 MATRIZ PAISAGEM)
+      // 2. QUADRANTE SUPERIOR DIREITO: MATRIZ COREN AJUSTADA (01 AO 31 INTEGRAL EM 100% DA LARGURA)
       const headCoren = document.getElementById("headTVCorenMatriz");
       const bodyCoren = document.getElementById("bodyTVCorenMatriz");
       
       if (headCoren && bodyCoren) {
         const diasNoMes = new Date(anoAtual, mesAtual, 0).getDate();
 
-        let headHtml = `<tr><th style="text-align:left; min-width:90px;">NOME</th><th style="min-width:40px;">REG</th>`;
+        let headHtml = `<tr><th style="text-align:left; width:22%;">COLABORADOR</th><th style="width:13%;">REG.</th>`;
         for (let d = 1; d <= diasNoMes; d++) {
-          headHtml += `<th style="padding:1px 2px; font-size:8px;">${String(d).padStart(2,'0')}</th>`;
+          headHtml += `<th class="col-dia-coren">${String(d).padStart(2,'0')}</th>`;
         }
         headHtml += `</tr>`;
         headCoren.innerHTML = headHtml;
@@ -988,7 +1043,7 @@
 
         colaboradores.forEach(c => {
           let regExibido = c.coren !== "N/A" ? c.coren : c.cnh;
-          let line = `<tr><td style="text-align:left; font-weight:bold;">${c.nome}</td><td style="font-size:7.5px;">${regExibido}</td>`;
+          let line = `<tr><td style="text-align:left; font-weight:bold; font-size:8.5px;">${c.nome}</td><td style="font-size:7.5px; font-weight:600;">${regExibido}</td>`;
           const eh40h = c.funcao && c.funcao.includes("Coordenadora");
 
           for (let d = 1; d <= diasNoMes; d++) {
@@ -996,13 +1051,12 @@
             const dtIso = `${anoAtual}-${String(mesAtual).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
             const ehFds = (dtAtual.getDay() === 0 || dtAtual.getDay() === 6);
             const ehFeriado = feriadosOficiaisNacionais.includes(dtIso);
-            const fdsClass = ehFds ? "col-fds" : "";
 
             if (eh40h) {
               if (ehFds || ehFeriado) {
-                line += `<td class="st-fol ${ehFeriado ? 'col-feriado' : fdsClass}" style="padding:1px; font-size:7.5px;">FOL</td>`;
+                line += `<td class="col-dia-coren st-fol">FOL</td>`;
               } else {
-                line += `<td class="st-adm" style="padding:1px; font-size:7.5px;">ADM</td>`;
+                line += `<td class="col-dia-coren st-adm">ADM</td>`;
               }
             } else {
               const resDia = calcularEscalaNoDia(dtIso, dataBaseStr, "24x96");
@@ -1011,11 +1065,11 @@
               const atestado = afastamentos.find(a => a.servidor === c.nome && dtIso >= a.inicio && dtIso <= a.fim);
 
               if (atestado) {
-                line += `<td style="background-color:#fee2e2; color:#b91c1c; font-weight:bold; padding:1px; font-size:7px;">ATEST</td>`;
+                line += `<td class="col-dia-coren st-atest">ATEST</td>`;
               } else if (ehPlantaoCond || ehPlantaoTec) {
-                line += `<td class="st-i ${fdsClass}" style="padding:1px; font-size:7.5px;">I</td>`;
+                line += `<td class="col-dia-coren st-i">I</td>`;
               } else {
-                line += `<td class="st-fol ${fdsClass}" style="padding:1px; font-size:7.5px;">FOL</td>`;
+                line += `<td class="col-dia-coren st-fol">FOL</td>`;
               }
             }
           }
