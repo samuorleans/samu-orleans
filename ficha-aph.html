@@ -1386,98 +1386,117 @@
     }
 
     async function carregarColaboradoresRobusto() {
-      const selectTec = document.getElementById('tec_enfermeiro');
-      const selectSoc = document.getElementById('socorrista');
+  const selectTec = document.getElementById('tec_enfermeiro');
+  const selectSoc = document.getElementById('socorrista');
 
-      selectTec.innerHTML = '<option value="">Buscando equipe...</option>';
-      selectSoc.innerHTML = '<option value="">Buscando equipe...</option>';
+  selectTec.innerHTML = '<option value="">Buscando equipe...</option>';
+  selectSoc.innerHTML = '<option value="">Buscando equipe...</option>';
 
-      let colabs = null;
+  let colabs = null;
 
-      try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/colaboradores?select=*&order=nome.asc`, {
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-          }
-        });
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/colaboradores?select=*&order=nome.asc`, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    });
 
-        if (response.ok) {
-          colabs = await response.json();
-        }
-      } catch (errRest) {}
+    if (response.ok) {
+      colabs = await response.json();
+    }
+  } catch (errRest) {}
 
-      if (!colabs && _supabase) {
+  if (!colabs && _supabase) {
+    try {
+      const { data, error } = await _supabase.from('colaboradores').select('*').order('nome');
+      if (!error && data) colabs = data;
+    } catch (errSdk) {}
+  }
+
+  if (!colabs || colabs.length === 0) {
+    const cacheLocal = localStorage.getItem('aph_colaboradores_cache');
+    if (cacheLocal) {
+      colabs = JSON.parse(cacheLocal);
+    } else {
+      colabs = COLABORADORES_FALLBACK;
+    }
+  } else {
+    localStorage.setItem('aph_colaboradores_cache', JSON.stringify(colabs));
+  }
+
+  selectTec.innerHTML = '<option value="">-- Selecione o Téc. --</option>';
+  selectSoc.innerHTML = '<option value="">-- Selecione o Condutor --</option>';
+
+  colabs.forEach(c => {
+    const corenVal = c.coren ? ` (COREN ${c.coren})` : '';
+    selectTec.innerHTML += `<option value="${c.nome}">${c.nome}${corenVal}</option>`;
+    selectSoc.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+  });
+
+  // BUSCA E SELEÇÃO AUTOMÁTICA COMPATÍVEL
+  try {
+    let plantaoAtivo = null;
+
+    if (_supabase) {
+      // 1. Tenta buscar no plantoes_j3 por ATIVO ou ABERTO
+      const { data: dadosJ3 } = await _supabase
+        .from('plantoes_j3')
+        .select('*')
+        .or('status.eq.ATIVO,status.eq.ABERTO')
+        .order('id', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (dadosJ3) plantaoAtivo = dadosJ3;
+    }
+
+    // 2. Mapeamento dos nomes vindos do J3 (Flexível a variações da tabela)
+    let nomeTecnicoJ3 = plantaoAtivo ? (plantaoAtivo.enfermagem || plantaoAtivo.tecnico || plantaoAtivo.tec_enfermeiro || plantaoAtivo.usuario) : null;
+    let nomeCondutorJ3 = plantaoAtivo ? (plantaoAtivo.condutor || plantaoAtivo.socorrista || plantaoAtivo.motorista) : null;
+
+    // 3. Fallback para Sessão Ativa no LocalStorage (Se o J3 não retornar o técnico)
+    if (!nomeTecnicoJ3) {
+      const usuarioSessao = localStorage.getItem('usuario_logado') || localStorage.getItem('samu_user') || localStorage.getItem('user_nome');
+      if (usuarioSessao) {
         try {
-          const { data, error } = await _supabase.from('colaboradores').select('*').order('nome');
-          if (!error && data) colabs = data;
-        } catch (errSdk) {}
-      }
-
-      if (!colabs || colabs.length === 0) {
-        const cacheLocal = localStorage.getItem('aph_colaboradores_cache');
-        if (cacheLocal) {
-          colabs = JSON.parse(cacheLocal);
-        } else {
-          colabs = COLABORADORES_FALLBACK;
+          const parsed = JSON.parse(usuarioSessao);
+          nomeTecnicoJ3 = parsed.nome || parsed.user || usuarioSessao;
+        } catch(e) {
+          nomeTecnicoJ3 = usuarioSessao;
         }
-      } else {
-        localStorage.setItem('aph_colaboradores_cache', JSON.stringify(colabs));
-      }
-
-      selectTec.innerHTML = '<option value="">-- Selecione o Téc. --</option>';
-      selectSoc.innerHTML = '<option value="">-- Selecione o Condutor --</option>';
-
-      colabs.forEach(c => {
-        const corenVal = c.coren ? ` (COREN ${c.coren})` : '';
-        selectTec.innerHTML += `<option value="${c.nome}">${c.nome}${corenVal}</option>`;
-        selectSoc.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
-      });
-
-      // VINCULAÇÃO AUTOMÁTICA DA EQUIPE DO PLANTÃO J3 ATIVO
-      try {
-        let plantaoAtivo = null;
-
-        if (_supabase) {
-          const { data } = await _supabase
-            .from('plantoes_j3')
-            .select('enfermagem, condutor')
-            .eq('status', 'ATIVO')
-            .limit(1)
-            .maybeSingle();
-
-          if (data) plantaoAtivo = data;
-        }
-
-        if (!plantaoAtivo) {
-          const cachePlantao = localStorage.getItem('j3_plantao_ativo_cache');
-          if (cachePlantao) plantaoAtivo = JSON.parse(cachePlantao);
-        }
-
-        if (plantaoAtivo) {
-          // Seleciona o Técnico de Enfermagem ativo no J3
-          if (plantaoAtivo.enfermagem) {
-            const nomeEnfNorm = normalizarString(plantaoAtivo.enfermagem);
-            const optEnf = Array.from(selectTec.options).find(opt => normalizarString(opt.value).includes(nomeEnfNorm) || nomeEnfNorm.includes(normalizarString(opt.value)));
-            if (optEnf) {
-              selectTec.value = optEnf.value;
-              sincronizarTecnicoResp();
-            }
-          }
-
-          // Seleciona o Socorrista / Condutor ativo no J3
-          if (plantaoAtivo.condutor) {
-            const nomeCondNorm = normalizarString(plantaoAtivo.condutor);
-            const optCond = Array.from(selectSoc.options).find(opt => normalizarString(opt.value).includes(nomeCondNorm) || nomeCondNorm.includes(normalizarString(opt.value)));
-            if (optCond) {
-              selectSoc.value = optCond.value;
-            }
-          }
-        }
-      } catch (errJ3) {
-        console.warn("Não foi possível vincular a equipe do J3 automaticamente:", errJ3);
       }
     }
+
+    // 4. Seleciona o Técnico na lista
+    if (nomeTecnicoJ3) {
+      const tecNorm = normalizarString(nomeTecnicoJ3);
+      const optEnf = Array.from(selectTec.options).find(opt => {
+        const optNorm = normalizarString(opt.value);
+        return optNorm && (optNorm.includes(tecNorm) || tecNorm.includes(optNorm));
+      });
+      if (optEnf) {
+        selectTec.value = optEnf.value;
+        sincronizarTecnicoResp();
+      }
+    }
+
+    // 5. Seleciona o Condutor na lista
+    if (nomeCondutorJ3) {
+      const condNorm = normalizarString(nomeCondutorJ3);
+      const optCond = Array.from(selectSoc.options).find(opt => {
+        const optNorm = normalizarString(opt.value);
+        return optNorm && (optNorm.includes(condNorm) || condNorm.includes(optNorm));
+      });
+      if (optCond) {
+        selectSoc.value = optCond.value;
+      }
+    }
+
+  } catch (errJ3) {
+    console.warn("Aviso ao sincronizar equipe do J3:", errJ3);
+  }
+}
 
     function normalizarString(str) {
       if (!str) return '';
