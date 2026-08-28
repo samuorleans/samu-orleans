@@ -2,8 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <!-- CONFIGURAÇÃO PARA VISÃO DESKTOP AUTOMÁTICA EM DISPOSITIVOS MÓVEIS -->
-  <meta name="viewport" content="width=1200, initial-scale=0.38, maximum-scale=3.0, user-scalable=yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SAMU Connect — Validação Operacional J3</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -16,63 +15,112 @@
       --card-bg: #ffffff;
       --text-main: #1e293b;
       --border: #cbd5e1;
-      --shadow: 0 10px 30px rgba(13, 35, 58, 0.08);
+      --shadow: 0 10px 25px rgba(13, 35, 58, 0.08);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { background-color: var(--bg-surface); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px 12px; min-width: 1200px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    
+    body { 
+      background-color: var(--bg-surface); 
+      color: var(--text-main); 
+      display: flex; 
+      justify-content: center; 
+      align-items: flex-start; 
+      min-height: 100vh; 
+      padding: 12px; 
+      width: 100%;
+    }
 
     .j3-card {
-      width: 100%; max-width: 650px; background: var(--card-bg); border-radius: 20px;
-      box-shadow: var(--shadow); border-top: 6px solid var(--amber-j3); padding: 30px 24px; text-align: center;
+      width: 100%; 
+      max-width: 580px; 
+      background: var(--card-bg); 
+      border-radius: 16px;
+      box-shadow: var(--shadow); 
+      border-top: 5px solid var(--amber-j3); 
+      padding: 20px 16px; 
+      text-align: center;
+      margin: 0 auto;
     }
 
-    .j3-header h1 { font-size: 1.35rem; color: var(--samu-navy); font-weight: 800; text-transform: uppercase; }
-    .j3-header p { font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 16px; }
+    .j3-header h1 { font-size: 1.15rem; color: var(--samu-navy); font-weight: 800; text-transform: uppercase; }
+    .j3-header p { font-size: 0.8rem; color: #64748b; margin-top: 4px; margin-bottom: 14px; }
 
     .alert-banner {
-      background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;
-      padding: 12px; border-radius: 8px; font-size: 0.82rem; text-align: left; margin-bottom: 18px; font-weight: 600; line-height: 1.4;
+      background: #eff6ff; 
+      border: 1px solid #bfdbfe; 
+      color: #1e40af;
+      padding: 10px 12px; 
+      border-radius: 8px; 
+      font-size: 0.8rem; 
+      text-align: left; 
+      margin-bottom: 16px; 
+      font-weight: 600; 
+      line-height: 1.35;
     }
 
-    .tab-btn-group { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
-    .tab-btn { flex: 1; padding: 10px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.85rem; border-radius: 8px; cursor: pointer; color: var(--samu-navy); transition: 0.2s; }
+    .tab-btn-group { display: flex; gap: 6px; margin-bottom: 16px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+    .tab-btn { flex: 1; padding: 10px 6px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.8rem; border-radius: 8px; cursor: pointer; color: var(--samu-navy); transition: 0.2s; }
     .tab-btn.active { background: var(--amber-j3); color: white; }
 
-    .form-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 16px; }
-    .form-group label { font-size: 0.78rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 6px; text-transform: uppercase; }
-    .form-group select, .form-group input { padding: 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; background: #f8fafc; width: 100%; }
+    .form-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 14px; }
+    .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 4px; text-transform: uppercase; }
+    .form-group select, .form-group input { 
+      padding: 12px 10px; 
+      border: 1.5px solid var(--border); 
+      border-radius: 8px; 
+      font-size: 0.9rem; 
+      outline: none; 
+      background: #f8fafc; 
+      width: 100%;
+      -webkit-appearance: none;
+    }
     .form-group select:focus, .form-group input:focus { border-color: var(--samu-blue); background: white; }
 
     .box-excepcional { 
-      background: #fef3c7; border: 1px solid #fcd34d; padding: 16px; border-radius: 12px; margin-bottom: 20px; text-align: left; width: 100%;
+      background: #fef3c7; 
+      border: 1px solid #fcd34d; 
+      padding: 12px; 
+      border-radius: 10px; 
+      margin-bottom: 16px; 
+      text-align: left; 
+      width: 100%;
     }
-    .box-excepcional label { font-size: 0.85rem; font-weight: 700; color: #92400e; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-    
-    .area-justificativa { width: 100%; margin-top: 12px; }
-    .area-justificativa label { font-size: 0.75rem; font-weight: 700; color: #78350f; display: block; margin-bottom: 6px; }
+    .box-excepcional label { font-size: 0.8rem; font-weight: 700; color: #92400e; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .box-excepcional input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--amber-j3); }
+
+    .area-justificativa { width: 100%; margin-top: 10px; }
+    .area-justificativa label { font-size: 0.72rem; font-weight: 700; color: #78350f; display: block; margin-bottom: 4px; }
     .area-justificativa textarea { 
-      width: 100%; min-height: 100px; padding: 12px; border: 1.5px solid #f59e0b; border-radius: 10px; font-size: 0.9rem; outline: none; background: #ffffff; resize: vertical; line-height: 1.4;
+      width: 100%; min-height: 80px; padding: 10px; border: 1.5px solid #f59e0b; border-radius: 8px; font-size: 0.85rem; outline: none; background: #ffffff; resize: vertical; line-height: 1.35;
     }
 
-    .btn-j3 { width: 100%; background: var(--amber-j3); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
+    .btn-j3 { width: 100%; background: var(--amber-j3); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
     .btn-j3:hover { background: #b45309; }
 
     .sync-status { font-size: 0.75rem; color: #15803d; font-weight: bold; margin-top: 8px; display: none; }
 
-    .btn-voltar { display: inline-block; margin-top: 15px; font-size: 0.85rem; color: var(--samu-blue); text-decoration: none; font-weight: 600; }
+    .btn-voltar { display: inline-block; margin-top: 14px; font-size: 0.8rem; color: var(--samu-blue); text-decoration: none; font-weight: 600; }
 
-    .table-plantao { width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left; margin-top: 10px; }
-    .table-plantao th, .table-plantao td { border: 1px solid var(--border); padding: 8px; }
+    .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table-plantao { width: 100%; border-collapse: collapse; font-size: 0.78rem; text-align: left; margin-top: 8px; min-width: 480px; }
+    .table-plantao th, .table-plantao td { border: 1px solid var(--border); padding: 8px 6px; }
     .table-plantao th { background: var(--samu-navy); color: white; }
 
     .whatsapp-box {
-      background: #f0fdf4; border: 1px solid #bbf7d0; padding: 14px; border-radius: 10px;
-      margin-top: 15px; text-align: left; display: none;
+      background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px;
+      margin-top: 14px; text-align: left; display: none;
     }
-    .whatsapp-box h4 { color: #166534; font-size: 0.85rem; margin-bottom: 6px; }
-    .whatsapp-box textarea { width: 100%; font-size: 0.8rem; padding: 8px; border: 1px solid #86efac; border-radius: 6px; background: #fff; resize: none; }
-    .btn-zap { margin-top: 8px; background: #25d366; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    .whatsapp-box h4 { color: #166534; font-size: 0.8rem; margin-bottom: 6px; }
+    .whatsapp-box textarea { width: 100%; font-size: 0.78rem; padding: 8px; border: 1px solid #86efac; border-radius: 6px; background: #fff; resize: none; }
+    .btn-zap { margin-top: 8px; background: #25d366; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; width: 100%; justify-content: center; }
+
+    @media (min-width: 600px) {
+      body { padding: 30px 16px; }
+      .j3-card { padding: 28px 24px; }
+      .j3-header h1 { font-size: 1.3rem; }
+      .btn-zap { width: auto; }
+    }
   </style>
 </head>
 <body>
@@ -84,7 +132,7 @@
     </div>
 
     <div class="alert-banner">
-      ℹ️ <b>Rendição Operacional:</b> Selecione a viatura em operação. A assunção faz a tripla verificação da escala oficial, afastamentos e indisponibilidades antes de ativar a equipe.
+      ℹ️ <b>Rendição Operacional:</b> Selecione a viatura em operação. A assunção valida a escala oficial, afastamentos e indisponibilidades antes de ativar a equipe.
     </div>
 
     <!-- ABAS -->
@@ -148,20 +196,22 @@
 
     <!-- CONTEÚDO TAB 2 -->
     <div id="conteudoTab2" style="display: none;">
-      <table class="table-plantao">
-        <thead>
-          <tr>
-            <th>Status</th>
-            <th>Viatura</th>
-            <th>Condutor</th>
-            <th>Enfermagem</th>
-            <th>Data/Hora</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyPlantaoHistorico">
-          <tr><td colspan="5" style="text-align:center;">Consultando registros...</td></tr>
-        </tbody>
-      </table>
+      <div class="table-container">
+        <table class="table-plantao">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Viatura</th>
+              <th>Condutor</th>
+              <th>Enfermagem</th>
+              <th>Data/Hora</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyPlantaoHistorico">
+            <tr><td colspan="5" style="text-align:center;">Consultando registros...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <a href="escala.html" class="btn-voltar">⬅️ Voltar ao Painel Principal da Escala</a>
@@ -224,8 +274,8 @@
             const ehAtiva = (statusUpper === 'ATIVA' || statusUpper === 'TITULAR');
             
             const rotulo = ehAtiva 
-              ? `🚑 USB 11 (Titular em Operação — ${v.placa})` 
-              : `🚑 USB 11 (Reserva / Apoio & Eventos — ${v.placa})`;
+              ? `🚑 USB 11 (Titular — ${v.placa})` 
+              : `🚑 USB 11 (Reserva — ${v.placa})`;
             
             const valorParaBanco = ehAtiva ? `USB 11 (Titular - ${v.placa})` : `USB 11 (Reserva - ${v.placa})`;
             
@@ -277,7 +327,7 @@
       }
     }
 
-    /* MOTOR UNIFICADO DE ESCALA DO DIA (COM TROCAS E RODÍZIOS) */
+    /* MOTOR UNIFICADO DE ESCALA DO DIA */
     async function obterEscalaOficialHoje() {
       const hoje = new Date();
       const hojeStr = hoje.toISOString().split('T')[0];
@@ -362,21 +412,18 @@
       };
     }
 
-    /* TRIPLA VERIFICAÇÃO INTEGRADA (ESCALA DO DIA + AFASTAMENTOS + INDISPONIBILIDADE) */
+    /* TRIPLA VERIFICAÇÃO INTEGRADA */
     async function validarAssuncaoJ3(condutorSelecionado, tecnicoSelecionado) {
       const hojeStr = new Date().toISOString().split('T')[0];
 
-      // 1. Escala Oficial Calculada para o Dia
       const escalaOficial = await obterEscalaOficialHoje();
 
-      // 2. Afastamentos Ativos no Banco
       const { data: afastamentos } = await dbNuvem
         .from('afastamentos')
         .select('*')
         .lte('inicio', hojeStr)
         .gte('fim', hojeStr);
 
-      // 3. Servidores Indisponíveis no Banco
       const { data: indisponiveis } = await dbNuvem
         .from('servidores_indisponibilidade')
         .select('*');
@@ -391,8 +438,8 @@
         let motivo = "Servidor impedido de assumir o plantão:";
         if (condutorAfastado) motivo += `\n• Condutor (${condutorSelecionado}) consta AFASTADO.`;
         if (tecnicoAfastado) motivo += `\n• Enfermagem (${tecnicoSelecionado}) consta AFASTADA.`;
-        if (condutorIndisponivel) motivo += `\n• Condutor (${condutorSelecionado}) consta INDISPONÍVEL no sistema.`;
-        if (tecnicoIndisponivel) motivo += `\n• Enfermagem (${tecnicoSelecionado}) consta INDISPONÍVEL no sistema.`;
+        if (condutorIndisponivel) motivo += `\n• Condutor (${condutorSelecionado}) consta INDISPONÍVEL.`;
+        if (tecnicoIndisponivel) motivo += `\n• Enfermagem (${tecnicoSelecionado}) consta INDISPONÍVEL.`;
 
         return { autorizada: false, motivo: motivo, escalaEsperada: escalaOficial };
       }
@@ -425,7 +472,6 @@
         return;
       }
 
-      // EXECUTA A TRIPLA VERIFICAÇÃO
       const resultadoValidacao = await validarAssuncaoJ3(condutor, tecnico);
 
       if (!resultadoValidacao.autorizada && !ehExcepcional) {
