@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAMU 192 — Painel TV Kiosk</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; font-family: 'Inter', Arial, sans-serif; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-color: #cbd5e1;
+      padding: 4px;
+    }
+
+    .tv-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 0.65fr;
+      gap: 6px;
+      width: 100%;
+      height: 100vh;
+    }
+
+    .tv-col-esquerda {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      height: calc(100vh - 8px);
+    }
+
+    .tv-col-direita {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      height: calc(100vh - 8px);
+    }
+
+    .tv-card {
+      background: #ffffff;
+      border: 1px solid #94a3b8;
+      border-radius: 6px;
+      padding: 5px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .tv-card h3 {
+      font-size: 11px;
+      color: #0f172a;
+      border-bottom: 2px solid #b71c1c;
+      padding-bottom: 2px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    .tv-table-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+    }
+
+    table {
+      width: 100%;
+      height: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th {
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 8px;
+      text-transform: uppercase;
+      padding: 2px 1px;
+      text-align: center;
+    }
+
+    td {
+      padding: 0 2px;
+      border-bottom: 1px solid #e2e8f0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+      font-size: 7.5px;
+      line-height: 1.1;
+    }
+
+    /* Regra para forçar todas as 31 linhas dentro da viewport */
+    #tblEscalaOperacional tbody tr {
+      height: calc((100vh - 120px) / 31);
+    }
+
+    .col-dia { width: 11%; font-weight: bold; }
+    .col-sem { width: 6%; }
+    .col-per { width: 9%; }
+    .col-cond { width: 34%; text-align: left !important; font-weight: 600; }
+    .col-tec { width: 34%; text-align: left !important; font-weight: 600; }
+    .col-obs { width: 6%; }
+
+    .txt-fds-vermelho { color: #dc2626 !important; font-weight: 800 !important; }
+    
+    .tr-hoje-destaque {
+      background-color: #dc2626 !important;
+      color: #ffffff !important;
+    }
+    .tr-hoje-destaque td { color: #ffffff !important; font-weight: 800 !important; }
+
+    /* MATRIZ COREN */
+    #tblCorenMatriz th.col-dia-coren,
+    #tblCorenMatriz td.col-dia-coren {
+      width: 2.3%;
+      padding: 0 !important;
+      font-size: 6.8px !important;
+      font-weight: bold;
+    }
+
+    .st-i { background-color: #fef08a !important; color: #854d0e !important; }
+    .st-fol { background-color: #dcfce7 !important; color: #166534 !important; }
+    .st-adm { background-color: #e0f2fe !important; color: #0369a1 !important; }
+    .st-atest { background-color: #fee2e2 !important; color: #991b1b !important; }
+
+    /* PAINEL DIREITO */
+    .tv-plantao-box {
+      background: linear-gradient(135deg, #b71c1c 0%, #880e4f 100%);
+      border-radius: 4px;
+      padding: 4px;
+      text-align: center;
+      color: #ffffff;
+    }
+    .tv-plantao-cargo { font-size: 8px; text-transform: uppercase; opacity: 0.9; }
+    .tv-plantao-nome { font-size: 11px; font-weight: 800; }
+  </style>
+</head>
+<body>
+
+  <div class="tv-grid">
+    <!-- ESQUERDA -->
+    <div class="tv-col-esquerda">
+      <!-- ESCALA OPERACIONAL -->
+      <div class="tv-card" style="flex: 1.5;">
+        <h3>📅 Escala Mensal Operacional — <span id="tvTituloMes">AGOSTO / 2026</span></h3>
+        <div class="tv-table-container">
+          <table id="tblEscalaOperacional">
+            <thead>
+              <tr>
+                <th class="col-dia">DIA</th>
+                <th class="col-sem">SEM</th>
+                <th class="col-per">PERÍODO</th>
+                <th class="col-cond">CONDUTOR SOCORRISTA</th>
+                <th class="col-tec">TÉCNICO DE ENFERMAGEM</th>
+                <th class="col-obs">OBS.</th>
+              </tr>
+            </thead>
+            <tbody id="bodyEscala"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MATRIZ COREN HORIZONTAL -->
+      <div class="tv-card" style="flex: 0.8;">
+        <h3>📋 Matriz Oficial COREN — Orleans</h3>
+        <div class="tv-table-container">
+          <table id="tblCorenMatriz">
+            <thead id="headCoren"></thead>
+            <tbody id="bodyCoren"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIREITA -->
+    <div class="tv-col-direita">
+      <!-- TEMPO REAL -->
+      <div class="tv-card" style="flex: 0.8;">
+        <h3>⏱️ Condições em Tempo Real</h3>
+        <div style="display:flex; flex-direction:column; gap:4px; height:100%; justify-content:center;">
+          <div style="display:flex; gap:4px;">
+            <div class="tv-plantao-box" style="flex:1;">
+              <div class="tv-plantao-cargo">🚘 Condutor Hoje</div>
+              <div class="tv-plantao-nome" id="tvCondutorHoje">—</div>
+            </div>
+            <div class="tv-plantao-box" style="flex:1; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+              <div class="tv-plantao-cargo">🩺 Técnico Hoje</div>
+              <div class="tv-plantao-nome" id="tvTecnicoHoje">—</div>
+            </div>
+          </div>
+          <div style="background:#f1f5f9; border:1px solid #cbd5e1; padding:4px; border-radius:4px; text-align:center;">
+            <div style="font-size:7.5px; color:#64748b; font-weight:bold; text-transform:uppercase;">Status Viatura USB 11</div>
+            <div style="font-size:10px; font-weight:800; color:#16a34a;">🟢 EM OPERAÇÃO / DISPONÍVEL</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUADRADO 2: TROCAS E COBERTURAS -->
+      <div class="tv-card" style="flex: 1;">
+        <h3>🔄 Trocas & Coberturas Ativas</h3>
+        <div style="font-size:8.5px; color:#334155; padding:2px;">
+          <p>• Sincronização em tempo real com o banco de dados.</p>
+          <div style="margin-top:6px; background:#f8fafc; border:1px solid #e2e8f0; padding:6px; border-radius:4px;">
+            <small style="color:#64748b;">Nenhuma alteração pendente para a data de hoje.</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUADRADO 3: AVISOS OPERACIONAIS -->
+      <div class="tv-card" style="flex: 1;">
+        <h3>📢 Avisos Operacionais USB 11</h3>
+        <div style="font-size:8.5px; color:#334155; padding:2px;">
+          <p>• Checklist diário da viatura deve ser realizado impreterivelmente às 07h.</p>
+          <p style="margin-top:4px;">• Unidade operacional conectada ao Supabase.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co"; 
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"; 
+    let dbNuvem = null;
+
+    try {
+      if (typeof supabase !== 'undefined') {
+        dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+    } catch(e) {}
+
+    const duplasPadrao = [
+      { cond: "Renato Cândido", tec: "Luis Eduardo Formanski Vitório" },
+      { cond: "Daniel Alexandre Fernandes", tec: "Gicerléia Trindade da Rosa" },
+      { cond: "Vanderlei José Tasca", tec: "Suandre Adão Machado" },
+      { cond: "Márcio Becker", tec: "Rinaldo Calegario" },
+      { cond: "Lucas Vieira Mendes", tec: "Clênio Borges" }
+    ];
+
+    const diasSemanaAbrev = ["dom.", "seg.", "ter.", "qua.", "qui.", "sex.", "sáb."];
+
+    function calcularEscalaNoDia(dtIso, dataBaseStr) {
+      const dataBase = new Date(dataBaseStr + "T00:00:00");
+      const dtAtual = new Date(dtIso + "T00:00:00");
+      const diffTime = dtAtual.getTime() - dataBase.getTime();
+      const diasCorridosBase = Math.floor(diffTime / (1000 * 3600 * 24));
+      const eqIndex = ((diasCorridosBase % duplasPadrao.length) + duplasPadrao.length) % duplasPadrao.length;
+      return { cond: duplasPadrao[eqIndex].cond, tec: duplasPadrao[eqIndex].tec, obs: "-" };
+    }
+
+    function renderizarTV() {
+      const hoje = new Date();
+      const ano = hoje.getFullYear();
+      const mes = hoje.getMonth() + 1;
+      const diaAtual = hoje.getDate();
+      const dtIsoHoje = `${ano}-${String(mes).padStart(2,'0')}-${String(diaAtual).padStart(2,'0')}`;
+      const dataBaseStr = "2026-06-01";
+
+      const tbBody = document.getElementById("bodyEscala");
+      tbBody.innerHTML = "";
+      const diasNoMes = new Date(ano, mes, 0).getDate();
+
+      for (let d = 1; d <= diasNoMes; d++) {
+        const dtIso = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dtObj = new Date(ano, mes - 1, d);
+        const dtFmt = `${String(d).padStart(2,'0')}/${String(mes).padStart(2,'0')}/${ano}`;
+        const res = calcularEscalaNoDia(dtIso, dataBaseStr);
+        const ehHoje = (d === diaAtual);
+        const ehFds = (dtObj.getDay() === 0 || dtObj.getDay() === 6);
+
+        tbBody.innerHTML += `
+          <tr class="${ehHoje ? 'tr-hoje-destaque' : ''}">
+            <td class="col-dia"><b>${dtFmt}</b></td>
+            <td class="col-sem ${ehFds ? 'txt-fds-vermelho' : ''}">${diasSemanaAbrev[dtObj.getDay()]}</td>
+            <td class="col-per">07h-07h</td>
+            <td class="col-cond">${res.cond}</td>
+            <td class="col-tec">${res.tec}</td>
+            <td class="col-obs">${res.obs}</td>
+          </tr>
+        `;
+      }
+
+      // MATRIZ COREN
+      const headCoren = document.getElementById("headCoren");
+      const bodyCoren = document.getElementById("bodyCoren");
+      let headHtml = `<tr><th style="text-align:left; width:22%;">COLABORADOR</th><th style="width:8%;">REG.</th>`;
+      for (let d = 1; d <= diasNoMes; d++) headHtml += `<th class="col-dia-coren">${String(d).padStart(2,'0')}</th>`;
+      headHtml += `</tr>`;
+      headCoren.innerHTML = headHtml;
+
+      bodyCoren.innerHTML = "";
+      duplasPadrao.forEach(dp => {
+        [dp.cond, dp.tec].forEach(nome => {
+          let line = `<tr><td style="text-align:left; font-weight:bold; font-size:7px;">${nome}</td><td style="font-size:6px;">N/A</td>`;
+          for (let d = 1; d <= diasNoMes; d++) {
+            const dtIso = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const resDia = calcularEscalaNoDia(dtIso, dataBaseStr);
+            const ehPlantao = resDia.cond.includes(nome) || resDia.tec.includes(nome);
+            line += `<td class="col-dia-coren ${ehPlantao ? 'st-i' : 'st-fol'}">${ehPlantao ? 'I' : 'F'}</td>`;
+          }
+          line += `</tr>`;
+          bodyCoren.innerHTML += line;
+        });
+      });
+
+      const resHoje = calcularEscalaNoDia(dtIsoHoje, dataBaseStr);
+      document.getElementById("tvCondutorHoje").innerText = resHoje.cond;
+      document.getElementById("tvTecnicoHoje").innerText = resHoje.tec;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderizarTV();
+      setInterval(renderizarTV, 60000);
+    });
+  </script>
+</body>
+</html>
