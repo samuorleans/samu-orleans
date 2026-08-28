@@ -1865,6 +1865,9 @@
         dataOcorr.sinais_vitais.forEach((sv, idx) => addSvRow(idx === 0, sv));
       }
 
+      // RESTAURAÇÃO DE MEDICAÇÕES E INSUMOS
+      restaurarInsumosEGodsDoBanco(dataOcorr.insumos_utilizados);
+
       document.getElementById('alergia_select').value = dataOcorr.alergia_select || 'NAO';
       toggleAlergiaInput();
       document.getElementById('alergia_desc').value = dataOcorr.alergia_desc || '';
@@ -1891,6 +1894,68 @@
 
       checarEAtivarBotaoImpressao();
       salvarLocal();
+    }
+
+    function restaurarInsumosEGodsDoBanco(insumos) {
+      const tbody = document.getElementById('meds_body');
+      const chkNenhum = document.getElementById('chk_nenhum_insumo');
+      tbody.innerHTML = '';
+
+      if (!insumos || !Array.isArray(insumos) || insumos.length === 0) {
+        if (chkNenhum) {
+          chkNenhum.checked = false;
+          alternarNenhumInsumo(chkNenhum);
+        }
+        addMedRow();
+        return;
+      }
+
+      if (insumos.length === 1 && (insumos[0].codigo === 'NENHUM' || (insumos[0].descricao && insumos[0].descricao.includes('NENHUM INSUMO')))) {
+        if (chkNenhum) {
+          chkNenhum.checked = true;
+          alternarNenhumInsumo(chkNenhum);
+        }
+        return;
+      }
+
+      if (chkNenhum) {
+        chkNenhum.checked = false;
+        alternarNenhumInsumo(chkNenhum);
+      }
+
+      insumos.forEach(item => {
+        addMedRow();
+        const ultimaLinha = tbody.lastElementChild;
+        if (!ultimaLinha) return;
+
+        const inputSearch = ultimaLinha.querySelector('.med-search-input');
+        const inputQtd = ultimaLinha.querySelector('.med-qtd');
+
+        if (inputSearch) {
+          if (item.numero_lote && item.numero_lote !== 'N/A' && item.numero_lote !== 'SEM LOTE') {
+            const valFmt = item.data_validade ? new Date(item.data_validade).toLocaleDateString('pt-BR') : 'N/A';
+            inputSearch.value = `${item.descricao} — Lote: ${item.numero_lote} | Val: ${valFmt}`;
+          } else {
+            inputSearch.value = item.descricao || '';
+          }
+        }
+
+        if (inputQtd) {
+          inputQtd.value = item.quantidade || 1;
+        }
+
+        if (item.is_psicotropico) {
+          verificarPsicotropico(inputSearch);
+          
+          const viaSelect = ultimaLinha.querySelector('.psico-via');
+          const inputRompido = ultimaLinha.querySelector('.psico-lacre-rompido');
+          const inputNovo = ultimaLinha.querySelector('.psico-lacre-novo');
+
+          if (viaSelect && item.via_administrada) viaSelect.value = item.via_administrada;
+          if (inputRompido && item.lacre_rompido) inputRompido.value = item.lacre_rompido;
+          if (inputNovo && item.lacre_novo) inputNovo.value = item.lacre_novo;
+        }
+      });
     }
 
     function normalizarString(str) {
