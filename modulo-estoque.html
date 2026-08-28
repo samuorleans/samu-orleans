@@ -1,421 +1,505 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAMU Connect — Controle de Movimentação de Estoque</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --samu-red: #d32f2f;
-      --samu-navy: #0d233a;
-      --samu-blue: #1976d2;
-      --bg-surface: #f4f7fa;
-      --card-bg: #ffffff;
-      --text-main: #1e293b;
-      --border: #cbd5e1;
-      --shadow: 0 10px 30px rgba(13, 35, 58, 0.08);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { background-color: var(--bg-surface); color: var(--text-main); min-height: 100vh; padding: 20px 12px; }
-
-    .container { max-width: 900px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow); border-top: 6px solid var(--samu-navy); padding: 24px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMU Connect - Gestão de Estoque & Validades</title>
     
-    .header h1 { font-size: 1.3rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; display: flex; align-items: center; gap: 8px; }
-    .header p { font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 20px; }
+    <!-- Bootstrap 5 CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
-    .nav-tabs { display: flex; gap: 8px; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; overflow-x: auto; }
-    .tab-btn { padding: 10px 16px; border: none; background: #e2e8f0; font-weight: 700; font-size: 0.85rem; border-radius: 8px; cursor: pointer; color: var(--samu-navy); white-space: nowrap; transition: 0.2s; }
-    .tab-btn.active { background: #16a34a; color: white; }
-    .tab-btn.active-baixa { background: #d32f2f; color: white; }
+    <!-- Supabase JS Client (v2) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    .form-box { background: #f8fafc; border: 1.5px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 24px; }
-    .form-box h3 { font-size: 0.95rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+    <style>
+        :root {
+            --primary-navy: #0B192C;
+            --secondary-blue: #1E3E62;
+            --accent-red: #D91656;
+            --bg-light: #F4F6F9;
+            --surface: #FFFFFF;
+            --text-main: #212529;
+        }
 
-    .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-    .form-group { display: flex; flex-direction: column; text-align: left; }
-    .form-group label { font-size: 0.72rem; font-weight: 700; color: var(--samu-navy); margin-bottom: 4px; text-transform: uppercase; }
-    .form-group input, .form-group select { padding: 9px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none; background: white; width: 100%; }
-    .form-group input:focus, .form-group select:focus { border-color: var(--samu-blue); }
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
 
-    .btn-salvar { margin-top: 16px; background: #16a34a; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%; font-size: 0.9rem; display: flex; justify-content: center; align-items: center; gap: 8px; }
-    .btn-salvar-baixa { background: #d32f2f; }
+        .navbar-custom {
+            background-color: var(--primary-navy);
+            border-bottom: 4px solid var(--accent-red);
+        }
 
-    .table-container { overflow-x: auto; margin-top: 10px; }
-    .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left; }
-    .data-table th, .data-table td { border: 1px solid var(--border); padding: 10px; }
-    .data-table th { background: var(--samu-navy); color: white; text-transform: uppercase; font-size: 0.75rem; }
-    .data-table tr:nth-child(even) { background-color: #f8fafc; }
+        .card-custom {
+            background-color: var(--surface);
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
 
-    .btn-voltar { display: inline-block; margin-top: 20px; font-size: 0.85rem; color: var(--samu-blue); text-decoration: none; font-weight: 700; }
-  </style>
+        .btn-samu-primary {
+            background-color: var(--secondary-blue);
+            color: white;
+        }
+        .btn-samu-primary:hover {
+            background-color: var(--primary-navy);
+            color: white;
+        }
+
+        .table-custom thead {
+            background-color: var(--primary-navy);
+            color: white;
+        }
+
+        /* Indicadores de Validade */
+        .validade-vencido { background-color: #dc3545; color: white; font-weight: bold; }
+        .validade-critica { background-color: #fd7e14; color: white; font-weight: bold; } /* < 30 dias */
+        .validade-atencao { background-color: #ffc107; color: #000; font-weight: bold; }  /* < 60 dias */
+        .validade-ok { background-color: #198754; color: white; }
+    </style>
 </head>
 <body>
 
-  <div class="container">
-    <div class="header">
-      <h1>📦 CONTROLE DE MOVIMENTAÇÃO DE ESTOQUE</h1>
-      <p>Entrada de Materiais, Lotes e Baixas Operacionais (Avarias/Vencimento) — USB 11</p>
-    </div>
+    <!-- Header Centralizado via config.js -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-4 mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+                <i class="bi bi-box-seam-fill text-danger fs-3"></i>
+                <div>
+                    <span class="fw-bold fs-4 d-block" id="app-title">SAMU Connect</span>
+                    <small class="text-white-50 fs-6" id="app-tenant">Carregando unidade...</small>
+                </div>
+            </a>
+            <span class="navbar-text text-white bg-dark px-3 py-1 rounded-pill border border-secondary">
+                <i class="bi bi-capsule text-warning me-1"></i> Controle de Estoque & Lotes (Fase 2)
+            </span>
+        </div>
+    </nav>
 
-    <!-- ABAS PRINCIPAIS -->
-    <div class="nav-tabs">
-      <button class="tab-btn active" id="tabEntrada" onclick="alternarAba('entrada')">📦 Entrada de Insumos & Lotes</button>
-      <button class="tab-btn" id="tabBaixa" onclick="alternarAba('baixa')">🚨 Baixa / Ajuste de Estoque</button>
-    </div>
+    <!-- Main Container -->
+    <div class="container-fluid px-4">
 
-    <!-- ABA 1: ENTRADA DE INSUMOS -->
-    <div id="secaoEntrada" class="form-box">
-      <h3>🚛 LANÇAMENTO DE RECEBIMENTO DE CARGA</h3>
-      <form id="formEntrada" onsubmit="registrarEntradaLote(event)">
-        <div class="grid-form">
-          <div class="form-group" style="grid-column: span 2;">
-            <label>DIGITE OU SELECIONE O INSUMO (CADASTRO MESTRE):*</label>
-            <input type="text" id="input_insumo_nome" list="listaInsumosAuto" placeholder="🔍 DIGITE O NOME DO INSUMO..." required autocomplete="off">
-            <datalist id="listaInsumosAuto"></datalist>
-          </div>
-
-          <div class="form-group">
-            <label>Nº DO LOTE:*</label>
-            <input type="text" id="input_lote_num" placeholder="EX: L123456" required>
-          </div>
-
-          <div class="form-group">
-            <label>DATA DE VALIDADE:*</label>
-            <input type="date" id="input_lote_validade" required>
-          </div>
-
-          <div class="form-group">
-            <label>QUANTIDADE RECEBIDA:*</label>
-            <input type="number" id="input_lote_qtd" value="1" min="1" required>
-          </div>
-
-          <div class="form-group">
-            <label>RESPONSÁVEL PELO RECEBIMENTO:*</label>
-            <select id="select_resp_entrada" required>
-              <option value="">Consultando servidores...</option>
-            </select>
-          </div>
+        <!-- Cards de Resumo Operacional -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card card-custom p-3 border-start border-4 border-danger">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted fw-bold d-block">LOTES VENCIDOS / CRÍTICOS</small>
+                            <span class="fs-3 fw-bold text-danger" id="count-criticos">0</span>
+                        </div>
+                        <i class="bi bi-exclamation-triangle-fill fs-1 text-danger"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-custom p-3 border-start border-4 border-warning">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted fw-bold d-block">ATENÇÃO (&lt; 60 DIAS)</small>
+                            <span class="fs-3 fw-bold text-warning" id="count-atencao">0</span>
+                        </div>
+                        <i class="bi bi-clock-history fs-1 text-warning"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-custom p-3 border-start border-4 border-primary">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted fw-bold d-block">TOTAL DE INSUMOS MESTRE</small>
+                            <span class="fs-3 fw-bold text-primary" id="count-insumos">0</span>
+                        </div>
+                        <i class="bi bi-boxes fs-1 text-primary"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-custom p-3 border-start border-4 border-success">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted fw-bold d-block">LOTES EM DIA</small>
+                            <span class="fs-3 fw-bold text-success" id="count-ok">0</span>
+                        </div>
+                        <i class="bi bi-check-circle-fill fs-1 text-success"></i>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <button type="submit" class="btn-salvar">💾 REGISTRAR ENTRADA NO LOTE</button>
-      </form>
-    </div>
+        <!-- Abas de Navegação -->
+        <ul class="nav nav-tabs mb-3" id="estoqueTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active fs-5 px-4" id="lotes-tab" data-bs-toggle="tab" data-bs-target="#lotes-pane" type="button"><i class="bi bi-card-checklist me-2"></i>Controle de Lotes & Validades</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fs-5 px-4" id="mestre-tab" data-bs-toggle="tab" data-bs-target="#mestre-pane" type="button"><i class="bi bi-list-stars me-2"></i>Catálogo / Estoque Mestre</button>
+            </li>
+        </ul>
 
-    <!-- ABA 2: BAIXA DE INSUMOS COM BUSCA LIMPA -->
-    <div id="secaoBaixa" class="form-box" style="display: none;">
-      <h3>🚨 REGISTRO DE BAIXA DE ESTOQUE</h3>
-      <form id="formBaixa" onsubmit="registrarBaixaLote(event)">
-        <div class="grid-form">
-          <div class="form-group" style="grid-column: span 2;">
-            <label>DIGITE OU SELECIONE O LOTE PARA BAIXA (NOME OU Nº DO LOTE):*</label>
-            <input type="text" id="input_lote_baixa_busca" list="listaLotesBaixaAuto" placeholder="🔍 BUSQUE POR MEDICAMENTO OU LOTE..." required autocomplete="off">
-            <datalist id="listaLotesBaixaAuto"></datalist>
-          </div>
+        <div class="tab-content" id="estoqueTabsContent">
 
-          <div class="form-group">
-            <label>QUANTIDADE PARA BAIXA:*</label>
-            <input type="number" id="input_baixa_qtd" value="1" min="1" required>
-          </div>
+            <!-- TAB 1: LOTES E VALIDADES -->
+            <div class="tab-pane fade show active" id="lotes-pane" role="tabpanel">
+                <div class="card card-custom p-3 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="w-50">
+                            <input type="text" id="search-lote" class="form-control" placeholder="Buscar por Insumo, Lote ou Fabricante...">
+                        </div>
+                        <button class="btn btn-samu-primary" data-bs-toggle="modal" data-bs-target="#modalLote">
+                            <i class="bi bi-plus-circle me-1"></i> Dar Entrada de Lote
+                        </button>
+                    </div>
 
-          <div class="form-group">
-            <label>MOTIVO DA BAIXA:*</label>
-            <select id="select_baixa_motivo" required>
-              <option value="AVARIA">💥 Avaria / Quebra</option>
-              <option value="VENCIMENTO">📅 Vencimento de Validade</option>
-              <option value="AJUSTE">🔧 Ajuste de Inventário</option>
-              <option value="PERDA">❓ Perda / Extravio</option>
-            </select>
-          </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle table-custom">
+                            <thead>
+                                <tr>
+                                    <th>Insumo / Descrição</th>
+                                    <th>Categoria</th>
+                                    <th>Nº do Lote</th>
+                                    <th>Validade</th>
+                                    <th>Qtd. Atual</th>
+                                    <th>Localização</th>
+                                    <th>Status Validade</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-lotes">
+                                <tr><td colspan="7" class="text-center py-4 text-muted"><i class="bi bi-arrow-repeat me-2"></i>Carregando lotes de estoque...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
-          <div class="form-group" style="grid-column: span 2;">
-            <label>RESPONSÁVEL PELA BAIXA:*</label>
-            <select id="select_resp_baixa" required>
-              <option value="">Consultando servidores...</option>
-            </select>
-          </div>
+            <!-- TAB 2: CATÁLOGO MESTRE -->
+            <div class="tab-pane fade" id="mestre-pane" role="tabpanel">
+                <div class="card card-custom p-3 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="w-50">
+                            <input type="text" id="search-mestre" class="form-control" placeholder="Buscar por Descrição ou Princípio Ativo...">
+                        </div>
+                        <button class="btn btn-samu-primary" data-bs-toggle="modal" data-bs-target="#modalInsumoMestre">
+                            <i class="bi bi-box-seam me-1"></i> Cadastrar Novo Insumo Mestre
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle table-custom">
+                            <thead>
+                                <tr>
+                                    <th>Descrição</th>
+                                    <th>Princípio Ativo</th>
+                                    <th>Categoria</th>
+                                    <th>Unidade</th>
+                                    <th>Estoque Mínimo</th>
+                                    <th>Estoque Crítico</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-mestre">
+                                <tr><td colspan="6" class="text-center py-4 text-muted"><i class="bi bi-arrow-repeat me-2"></i>Carregando catálogo...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
-
-        <button type="submit" class="btn-salvar btn-salvar-baixa">🚨 CONFIRMAR BAIXA NO ESTOQUE</button>
-      </form>
     </div>
 
-    <!-- TABELA DE SALDOS POR LOTE -->
-    <h3 style="font-size: 0.9rem; color: var(--samu-navy); text-transform: uppercase; font-weight: 800; margin-bottom: 8px;">📊 SALDO ATUAL POR LOTE E VALIDADE</h3>
-    <div class="table-container">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>INSUMO</th>
-            <th>Nº LOTE</th>
-            <th>DATA VALIDADE</th>
-            <th style="text-align: center;">QUANTIDADE EM SALDO</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyLotesSaldo">
-          <tr><td colspan="4" style="text-align:center;">Consultando lotes no banco de dados...</td></tr>
-        </tbody>
-      </table>
+    <!-- MODAL NOVO INSUMO MESTRE -->
+    <div class="modal fade" id="modalInsumoMestre" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title"><i class="bi bi-box-seam me-2"></i>Cadastrar Insumo no Catálogo Mestre</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="form-insumo-mestre">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label fw-semibold">Descrição do Insumo / Medicamento *</label>
+                                <input type="text" class="form-control" id="mestre-descricao" placeholder="Ex: Ampola Adrenalina 1mg/ml 1ml" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Código de Barras</label>
+                                <input type="text" class="form-control" id="mestre-codbarras">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Princípio Ativo</label>
+                                <input type="text" class="form-control" id="mestre-principio" placeholder="Ex: Epinefrina">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Categoria *</label>
+                                <select class="form-select" id="mestre-categoria" required>
+                                    <option value="MEDICAMENTO">Medicamento</option>
+                                    <option value="CONTROLADO_PORT_344">Controlado (Port. 344)</option>
+                                    <option value="CORRELATO_DESCARTAVEL">Correlato / Descartável</option>
+                                    <option value="SOLUCAO_PARENTERAL">Solução Parenteral</option>
+                                    <option value="OXIGENOTERAPIA">Oxigenoterapia</option>
+                                    <option value="EPI">EPI</option>
+                                    <option value="EQUIPAMENTO_PORTATIL">Equipamento Portátil</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Unid. Medida *</label>
+                                <select class="form-select" id="mestre-unidade" required>
+                                    <option value="AMPOLA">Ampola</option>
+                                    <option value="FRASCO">Frasco</option>
+                                    <option value="COMPRIMIDO">Comprimido</option>
+                                    <option value="UNIDADE">Unidade</option>
+                                    <option value="CAIXA">Caixa</option>
+                                    <option value="PAR">Par</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Estoque Mínimo Aceitável</label>
+                                <input type="number" class="form-control" id="mestre-est-min" value="5" min="1" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Estoque Crítico (Alerta)</label>
+                                <input type="number" class="form-control" id="mestre-est-crit" value="2" min="1" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-samu-primary" id="btn-save-mestre">Salvar no Catálogo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
-    <a href="index.html" class="btn-voltar">⬅️ Voltar ao Painel Principal</a>
-  </div>
+    <!-- MODAL ENTRADA DE LOTE -->
+    <div class="modal fade" id="modalLote" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title"><i class="bi bi-card-checklist me-2"></i>Dar Entrada em Lote / Validade</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="form-lote">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Selecione o Insumo *</label>
+                                <select class="form-select" id="lote-insumo-id" required>
+                                    <option value="">Carregando opções...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Número do Lote *</label>
+                                <input type="text" class="form-control" id="lote-numero" required placeholder="Ex: LT2026-X89">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Data de Validade *</label>
+                                <input type="date" class="form-control" id="lote-validade" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Quantidade Recebida *</label>
+                                <input type="number" class="form-control" id="lote-quantidade" min="1" value="10" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Fabricante / Laboratório</label>
+                                <input type="text" class="form-control" id="lote-fabricante" placeholder="Ex: Eurofarma, Teuto">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Local de Armazenamento</label>
+                                <input type="text" class="form-control" id="lote-localizacao" value="Base Orleans - Maleta Central">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-samu-primary" id="btn-save-lote">Confirmar Entrada</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-  <script>
-    const dbNuvem = supabase.createClient(
-      "https://rcpgukslnlfptreiusff.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"
-    );
+    <!-- JS Scripts & Lógica Principal -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    let listaLotesComSaldo = [];
+    <script type="module">
+        import { CONFIG, supabase } from './config.js';
 
-    window.onload = function() {
-      carregarServidores();
-      carregarInsumosMestre();
-      carregarTabelaLotes();
-    };
-
-    function alternarAba(aba) {
-      document.getElementById('secaoEntrada').style.display = aba === 'entrada' ? 'block' : 'none';
-      document.getElementById('secaoBaixa').style.display = aba === 'baixa' ? 'block' : 'none';
-
-      const btnEntrada = document.getElementById('tabEntrada');
-      const btnBaixa = document.getElementById('tabBaixa');
-
-      if (aba === 'entrada') {
-        btnEntrada.className = 'tab-btn active';
-        btnBaixa.className = 'tab-btn';
-      } else {
-        btnEntrada.className = 'tab-btn';
-        btnBaixa.className = 'tab-btn active-baixa';
-        carregarLotesParaBaixa();
-      }
-    }
-
-    async function carregarServidores() {
-      const selectEntrada = document.getElementById('select_resp_entrada');
-      const selectBaixa = document.getElementById('select_resp_baixa');
-
-      try {
-        const { data, error } = await dbNuvem.from('colaboradores').select('*');
-        if (error) throw error;
-
-        selectEntrada.innerHTML = '<option value="">-- SELECIONE O RESPONSÁVEL --</option>';
-        selectBaixa.innerHTML = '<option value="">-- SELECIONE O RESPONSÁVEL --</option>';
-
-        if (data && data.length > 0) {
-          data.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
-          const ativos = data.filter(s => s.status !== 'DESLIGADO' && s.status_admin !== 'DESLIGADO');
-          ativos.forEach(s => {
-            const opt1 = document.createElement('option');
-            opt1.value = s.nome;
-            opt1.textContent = `${s.nome} (${s.funcao || 'Servidor'})`;
-            selectEntrada.appendChild(opt1);
-
-            const opt2 = document.createElement('option');
-            opt2.value = s.nome;
-            opt2.textContent = `${s.nome} (${s.funcao || 'Servidor'})`;
-            selectBaixa.appendChild(opt2);
-          });
-        }
-      } catch (err) {
-        console.error("Erro colaboradores:", err);
-        selectEntrada.innerHTML = '<option value="">Erro ao carregar colaboradores</option>';
-        selectBaixa.innerHTML = '<option value="">Erro ao carregar colaboradores</option>';
-      }
-    }
-
-    async function carregarInsumosMestre() {
-      const datalist = document.getElementById('listaInsumosAuto');
-      datalist.innerHTML = '';
-
-      try {
-        const { data, error } = await dbNuvem.from('estoque_mestre').select('*');
-        if (error) throw error;
-
-        if (data && data.length > 0) {
-          data.sort((a, b) => {
-            const descA = (a.descricao_insumo || a.descricao || a.nome || '').toUpperCase();
-            const descB = (b.descricao_insumo || b.descricao || b.nome || '').toUpperCase();
-            return descA.localeCompare(descB);
-          });
-
-          data.forEach(item => {
-            const nome = item.descricao_insumo || item.descricao || item.nome || '';
-            if (nome) {
-              const option = document.createElement('option');
-              option.value = nome;
-              datalist.appendChild(option);
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!supabase) {
+                alert('Erro crítico: Falha ao carregar o cliente Supabase. Verifique o arquivo config.js.');
+                return;
             }
-          });
+
+            document.getElementById('app-title').textContent = CONFIG.SISTEMA.NOME;
+            document.getElementById('app-tenant').textContent = `${CONFIG.TENANT.NOME_UNIDADE} - ${CONFIG.TENANT.MUNICIPIO_UF}`;
+
+            fetchLotes();
+            fetchMestre();
+        });
+
+        // Calculadora de Alerta de Validades em Dias
+        function getValidadeStatus(dataValidadeStr) {
+            const hoje = new Date();
+            const validade = new Date(dataValidadeStr);
+            const diffDias = Math.ceil((validade - hoje) / (1000 * 60 * 60 * 24));
+
+            if (diffDias < 0) return { badge: 'validade-vencido', label: 'VENCIDO' };
+            if (diffDias <= 30) return { badge: 'validade-critica', label: `CRÍTICO (${diffDias} dias)` };
+            if (diffDias <= 60) return { badge: 'validade-atencao', label: `ATENÇÃO (${diffDias} dias)` };
+            return { badge: 'validade-ok', label: `OK (${diffDias} dias)` };
         }
-      } catch (err) {
-        console.error("Erro estoque_mestre:", err);
-      }
-    }
 
-    async function carregarTabelaLotes() {
-      const tbody = document.getElementById('tbodyLotesSaldo');
+        // ==============================================================================
+        // MÓDULO LOTES & VALIDADES
+        // ==============================================================================
+        async function fetchLotes(searchQuery = '') {
+            const tbody = document.getElementById('tbody-lotes');
+            let query = supabase.from('estoque_lotes').select(`
+                *,
+                estoque_mestre ( descricao, categoria, unidade_medida )
+            `).order('data_validade', { ascending: true });
 
-      try {
-        const { data, error } = await dbNuvem.from('estoque_lotes').select('*');
-        if (error) throw error;
+            const { data, error } = await query;
 
-        if (data && data.length > 0) {
-          tbody.innerHTML = '';
+            if (error) {
+                console.error('Erro ao carregar lotes:', error);
+                tbody.innerHTML = `<tr><td colspan="7" class="text-danger text-center">Erro: ${error.message}</td></tr>`;
+                return;
+            }
 
-          // Ordenação por nome de medicamento
-          data.sort((a, b) => {
-            const descA = (a.descricao_insumo || a.insumo_nome || '').toUpperCase();
-            const descB = (b.descricao_insumo || b.insumo_nome || '').toUpperCase();
-            return descA.localeCompare(descB);
-          });
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Nenhum lote cadastrado no estoque.</td></tr>`;
+                return;
+            }
 
-          data.forEach(l => {
-            const val = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
-            const nomeInsumo = l.descricao_insumo || l.insumo_nome || '—';
-            const qtd = l.quantidade_entrada !== undefined ? l.quantidade_entrada : (l.quantidade_saldo || 0);
+            // Atualização dos Contadores
+            let countCriticos = 0, countAtencao = 0, countOk = 0;
 
-            tbody.innerHTML += `
-              <tr>
-                <td><b>${nomeInsumo}</b></td>
-                <td>${l.numero_lote || '—'}</td>
-                <td>${val}</td>
-                <td style="text-align: center; font-weight: 800; color: ${qtd > 0 ? '#15803d' : '#b91c1c'};">${qtd}</td>
-              </tr>
-            `;
-          });
-        } else {
-          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 15px; color:#64748b;">Nenhum lote registrado.</td></tr>';
+            tbody.innerHTML = data.map(l => {
+                const statusVal = getValidadeStatus(l.data_validade);
+                if (statusVal.badge === 'validade-vencido' || statusVal.badge === 'validade-critica') countCriticos++;
+                else if (statusVal.badge === 'validade-atencao') countAtencao++;
+                else countOk++;
+
+                return `
+                    <tr>
+                        <td class="fw-bold">${l.estoque_mestre ? l.estoque_mestre.descricao : 'Insumo Removido'}</td>
+                        <td><small class="badge bg-secondary">${l.estoque_mestre ? l.estoque_mestre.categoria : '-'}</small></td>
+                        <td><code>${l.numero_lote}</code></td>
+                        <td>${new Date(l.data_validade).toLocaleDateString('pt-BR')}</td>
+                        <td class="fw-bold">${l.quantidade_atual} ${l.estoque_mestre ? l.estoque_mestre.unidade_medida : ''}</td>
+                        <td><small>${l.localizacao_armazenamento}</small></td>
+                        <td><span class="badge ${statusVal.badge}">${statusVal.label}</span></td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('count-criticos').textContent = countCriticos;
+            document.getElementById('count-atencao').textContent = countAtencao;
+            document.getElementById('count-ok').textContent = countOk;
         }
-      } catch (err) {
-        console.error("Erro estoque_lotes:", err);
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#d32f2f;">Erro ao carregar dados da tabela estoque_lotes.</td></tr>';
-      }
-    }
 
-    async function registrarEntradaLote(e) {
-      e.preventDefault();
+        // ==============================================================================
+        // MÓDULO CATÁLOGO MESTRE
+        // ==============================================================================
+        async function fetchMestre() {
+            const tbody = document.getElementById('tbody-mestre');
+            const selectInsumo = document.getElementById('lote-insumo-id');
 
-      const insumoNome = document.getElementById('input_insumo_nome').value.trim();
-      const numLote = document.getElementById('input_lote_num').value.trim();
-      const validade = document.getElementById('input_lote_validade').value;
-      const qtd = parseInt(document.getElementById('input_lote_qtd').value) || 0;
-      const responsavel = document.getElementById('select_resp_entrada').value;
+            const { data, error } = await supabase.from('estoque_mestre').select('*').order('descricao', { ascending: true });
 
-      if (!insumoNome || !numLote || !validade || qtd <= 0 || !responsavel) {
-        alert("Preencha todos os campos obrigatórios.");
-        return;
-      }
+            if (error) {
+                console.error('Erro ao buscar mestre:', error);
+                tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center">Erro: ${error.message}</td></tr>`;
+                return;
+            }
 
-      try {
-        const payload = {
-          descricao_insumo: insumoNome,
-          numero_lote: numLote,
-          data_validade: validade,
-          quantidade_entrada: qtd,
-          responsavel_entrada: responsavel
-        };
+            document.getElementById('count-insumos').textContent = data ? data.length : 0;
 
-        const { error } = await dbNuvem.from('estoque_lotes').insert([payload]);
-        if (error) throw error;
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Nenhum insumo cadastrado no catálogo mestre.</td></tr>`;
+                selectInsumo.innerHTML = `<option value="">Nenhum insumo cadastrado</option>`;
+                return;
+            }
 
-        alert("✅ Entrada de lote registrada com sucesso!");
-        document.getElementById('formEntrada').reset();
-        carregarTabelaLotes();
-      } catch (err) {
-        console.error("Erro ao registrar entrada:", err);
-        alert("Erro ao salvar entrada.");
-      }
-    }
+            // Popula Tabela
+            tbody.innerHTML = data.map(m => `
+                <tr>
+                    <td class="fw-bold text-primary">${m.descricao}</td>
+                    <td>${m.principio_ativo || '-'}</td>
+                    <td><span class="badge bg-dark">${m.categoria}</span></td>
+                    <td>${m.unidade_medida}</td>
+                    <td><span class="badge bg-info text-dark">${m.estoque_minimo}</span></td>
+                    <td><span class="badge bg-danger">${m.estoque_critico}</span></td>
+                </tr>
+            `).join('');
 
-    /* CARREGAR LOTES EM DATALIST FORMATADO E LIMPO PARA A ABA DE BAIXA */
-    async function carregarLotesParaBaixa() {
-      const datalist = document.getElementById('listaLotesBaixaAuto');
-      datalist.innerHTML = '';
-
-      try {
-        const { data, error } = await dbNuvem.from('estoque_lotes').select('*');
-        if (error) throw error;
-
-        if (data && data.length > 0) {
-          listaLotesComSaldo = data;
-
-          // Ordenação alfabética
-          listaLotesComSaldo.sort((a, b) => {
-            const descA = (a.descricao_insumo || a.insumo_nome || '').toUpperCase();
-            const descB = (b.descricao_insumo || b.insumo_nome || '').toUpperCase();
-            return descA.localeCompare(descB);
-          });
-
-          listaLotesComSaldo.forEach(l => {
-            const val = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
-            const nomeInsumo = l.descricao_insumo || l.insumo_nome || '—';
-            const qtd = l.quantidade_entrada !== undefined ? l.quantidade_entrada : (l.quantidade_saldo || 0);
-
-            const option = document.createElement('option');
-            // Formatação limpa sem ID no texto do autocomplete
-            option.value = `${nomeInsumo} — Lote: ${l.numero_lote} (Saldo: ${qtd} | Val: ${val})`;
-            datalist.appendChild(option);
-          });
+            // Popula Select do Modal de Lotes
+            selectInsumo.innerHTML = data.map(m => `<option value="${m.id}">${m.descricao} (${m.categoria})</option>`).join('');
         }
-      } catch (err) {
-        console.error("Erro ao carregar lotes para baixa:", err);
-      }
-    }
 
-    /* REGISTRAR BAIXA COMPATÍVEL COM O FORMATO LIMPO */
-    async function registrarBaixaLote(e) {
-      e.preventDefault();
+        // Submit Insumo Mestre
+        document.getElementById('form-insumo-mestre').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-mestre');
+            btn.disabled = true;
 
-      const buscaTexto = document.getElementById('input_lote_baixa_busca').value.trim();
-      const qtdBaixa = parseInt(document.getElementById('input_baixa_qtd').value) || 0;
-      const responsavel = document.getElementById('select_resp_baixa').value;
+            const payload = {
+                descricao: document.getElementById('mestre-descricao').value,
+                codigo_barras: document.getElementById('mestre-codbarras').value || null,
+                principio_ativo: document.getElementById('mestre-principio').value || null,
+                categoria: document.getElementById('mestre-categoria').value,
+                unidade_medida: document.getElementById('mestre-unidade').value,
+                estoque_minimo: parseInt(document.getElementById('mestre-est-min').value),
+                estoque_critico: parseInt(document.getElementById('mestre-est-crit').value),
+                unidade_base: CONFIG.TENANT.NOME_UNIDADE
+            };
 
-      if (!buscaTexto || qtdBaixa <= 0 || !responsavel) {
-        alert("Preencha todos os campos da baixa.");
-        return;
-      }
+            const { error } = await supabase.from('estoque_mestre').insert([payload]);
 
-      // Localiza o objeto do lote correspondente pela busca do texto
-      const loteAtual = listaLotesComSaldo.find(l => {
-        const val = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
-        const nomeInsumo = l.descricao_insumo || l.insumo_nome || '—';
-        const qtd = l.quantidade_entrada !== undefined ? l.quantidade_entrada : (l.quantidade_saldo || 0);
-        
-        const formatoExato = `${nomeInsumo} — Lote: ${l.numero_lote} (Saldo: ${qtd} | Val: ${val})`;
-        
-        return buscaTexto === formatoExato || 
-               buscaTexto.toLowerCase().includes((l.numero_lote || '').toLowerCase()) && buscaTexto.toLowerCase().includes(nomeInsumo.toLowerCase());
-      });
+            btn.disabled = false;
+            if (error) {
+                alert('Erro ao salvar no catálogo: ' + error.message);
+            } else {
+                alert('Insumo cadastrado no catálogo mestre!');
+                document.getElementById('form-insumo-mestre').reset();
+                bootstrap.Modal.getInstance(document.getElementById('modalInsumoMestre')).hide();
+                fetchMestre();
+            }
+        });
 
-      if (!loteAtual) {
-        alert("Lote não encontrado. Por favor, selecione uma das opções sugeridas na lista.");
-        return;
-      }
+        // Submit Lote
+        document.getElementById('form-lote').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-lote');
+            btn.disabled = true;
 
-      const qtdAtual = loteAtual.quantidade_entrada !== undefined ? loteAtual.quantidade_entrada : (loteAtual.quantidade_saldo || 0);
+            const payload = {
+                insumo_id: document.getElementById('lote-insumo-id').value,
+                numero_lote: document.getElementById('lote-numero').value,
+                data_validade: document.getElementById('lote-validade').value,
+                quantidade_atual: parseInt(document.getElementById('lote-quantidade').value),
+                fabricante: document.getElementById('lote-fabricante').value || null,
+                localizacao_armazenamento: document.getElementById('lote-localizacao').value
+            };
 
-      if (qtdBaixa > qtdAtual) {
-        alert(`A quantidade da baixa (${qtdBaixa}) não pode ser maior que o saldo atual (${qtdAtual}).`);
-        return;
-      }
+            const { error } = await supabase.from('estoque_lotes').insert([payload]);
 
-      try {
-        const novoSaldo = qtdAtual - qtdBaixa;
-        const { error } = await dbNuvem.from('estoque_lotes').update({ quantidade_entrada: novoSaldo }).eq('id', loteAtual.id);
-        if (error) throw error;
-
-        alert("✅ Baixa de estoque realizada com sucesso!");
-        document.getElementById('formBaixa').reset();
-        carregarLotesParaBaixa();
-        carregarTabelaLotes();
-      } catch (err) {
-        console.error("Erro ao registrar baixa:", err);
-        alert("Erro ao registrar baixa no banco.");
-      }
-    }
-  </script>
+            btn.disabled = false;
+            if (error) {
+                alert('Erro ao cadastrar lote: ' + error.message);
+            } else {
+                alert('Lote e validade registrados com sucesso!');
+                document.getElementById('form-lote').reset();
+                bootstrap.Modal.getInstance(document.getElementById('modalLote')).hide();
+                fetchLotes();
+            }
+        });
+    </script>
 </body>
 </html>
