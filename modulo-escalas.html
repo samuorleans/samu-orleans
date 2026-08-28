@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMU Connect - Escalas & Plantões Operacionais</title>
+    
+    <!-- Bootstrap 5 CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Supabase JS Client (v2) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --primary-navy: #0B192C;
+            --secondary-blue: #1E3E62;
+            --accent-red: #D91656;
+            --bg-light: #F4F6F9;
+            --surface: #FFFFFF;
+            --text-main: #212529;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .navbar-custom {
+            background-color: var(--primary-navy);
+            border-bottom: 4px solid var(--accent-red);
+        }
+
+        .card-custom {
+            background-color: var(--surface);
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .btn-samu-primary {
+            background-color: var(--secondary-blue);
+            color: white;
+        }
+        .btn-samu-primary:hover {
+            background-color: var(--primary-navy);
+            color: white;
+        }
+
+        .table-custom thead {
+            background-color: var(--primary-navy);
+            color: white;
+        }
+
+        .badge-status-PREVISTO { background-color: #0dcaf0; color: #000; }
+        .badge-status-EM_ANDAMENTO { background-color: #198754; color: #fff; }
+        .badge-status-CONCLUIDO { background-color: #6c757d; color: #fff; }
+        .badge-status-TROCA_SOLICITADA { background-color: #fd7e14; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <!-- Header Centralizado e Padronizado com Logo Oficial -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-4 mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center gap-3" href="#">
+                <img id="app-logo" src="./logo.png" alt="Logo SAMU Connect" style="max-height: 45px; width: auto; object-fit: contain;" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=SAMU+Connect&background=D91656&color=fff&bold=true';">
+                <div>
+                    <span class="fw-bold fs-4 d-block" id="app-title">SAMU Connect</span>
+                    <small class="text-white-50 fs-6" id="app-tenant">USB 11 - ORLEANS / SC</small>
+                </div>
+            </a>
+            <span class="navbar-text text-white bg-dark px-3 py-1 rounded-pill border border-secondary">
+                <i class="bi bi-calendar-event text-warning me-1"></i> Escalas & Plantões (Fase 3)
+            </span>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container-fluid px-4 mb-5">
+
+        <!-- Barra de Ações e Filtros -->
+        <div class="card card-custom p-3 mb-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold mb-1">Filtrar por Data do Plantão</label>
+                    <input type="date" id="filter-data-escala" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold mb-1">Turno</label>
+                    <select class="form-select" id="filter-turno">
+                        <option value="">Todos os Turnos</option>
+                        <option value="DIURNO_12H">Diurno (12h)</option>
+                        <option value="NOTURNO_12H">Noturno (12h)</option>
+                        <option value="EXPEDIENTE_24H">24 Horas</option>
+                    </select>
+                </div>
+                <div class="col-md-6 d-flex gap-2 justify-content-md-end align-items-end">
+                    <button class="btn btn-samu-primary" data-bs-toggle="modal" data-bs-target="#modalNovaEscala">
+                        <i class="bi bi-calendar-plus me-1"></i> Nova Escala de Plantão
+                    </button>
+                    <button class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#modalTrocaPlantao">
+                        <i class="bi bi-arrow-left-right me-1"></i> Solicitar Troca
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Escalas de Plantão -->
+        <div class="card card-custom p-3">
+            <h5 class="fw-bold text-primary mb-3"><i class="bi bi-people-fill me-2"></i>Escala de Plantões Cadastrados</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle table-custom">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Turno</th>
+                            <th>Viatura</th>
+                            <th>Condutor / Socorrista</th>
+                            <th>Técnico / Enfermagem</th>
+                            <th>Suporte Médico (Se USA)</th>
+                            <th>Status do Plantão</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-escalas">
+                        <tr><td colspan="7" class="text-center py-4 text-muted"><i class="bi bi-arrow-repeat me-2"></i>Carregando escala de plantão...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL NOVA ESCALA DE PLANTÃO -->
+    <div class="modal fade" id="modalNovaEscala" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>Cadastrar Plantão da Guarnição</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="form-nova-escala">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Data do Plantão *</label>
+                                <input type="date" class="form-control" id="escala-data" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Tipo do Turno *</label>
+                                <select class="form-select" id="escala-turno" required>
+                                    <option value="DIURNO_12H" selected>Diurno (12h - 07:00 às 19:00)</option>
+                                    <option value="NOTURNO_12H">Noturno (12h - 19:00 às 07:00)</option>
+                                    <option value="EXPEDIENTE_24H">24 Horas</option>
+                                    <option value="SOBREAVISO">Sobreaviso</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Viatura *</label>
+                                <select class="form-select select-viatura" id="escala-viatura-id" required>
+                                    <option value="">Carregando viaturas...</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Socorrista Condutor *</label>
+                                <select class="form-select select-condutor" id="escala-condutor-id" required>
+                                    <option value="">Carregando condutores...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Técnico em Enfermagem *</label>
+                                <select class="form-select select-tecnico" id="escala-tecnico-id" required>
+                                    <option value="">Carregando equipe de enfermagem...</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Enfermeiro (Opcional - Se USA)</label>
+                                <select class="form-select select-enfermeiro" id="escala-enfermeiro-id">
+                                    <option value="">Nenhum / Não aplicável</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Médico (Opcional - Se USA)</label>
+                                <select class="form-select select-medico" id="escala-medico-id">
+                                    <option value="">Nenhum / Não aplicável</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-samu-primary" id="btn-save-escala">Salvar Escala</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SOLICITAÇÃO DE TROCA DE PLANTÃO -->
+    <div class="modal fade" id="modalTrocaPlantao" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title"><i class="bi bi-arrow-left-right me-2"></i>Registrar Troca de Serviço / Substituição</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="form-troca-plantao">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Selecione o Plantão Origem *</label>
+                                <select class="form-select" id="troca-escala-id" required>
+                                    <option value="">Carregando plantões previstos...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Condutor Substituito (Novo)</label>
+                                <select class="form-select select-condutor" id="troca-substituto-condutor-id">
+                                    <option value="">Sem alteração de condutor</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Técnico Substituto (Novo)</label>
+                                <select class="form-select select-tecnico" id="troca-substituto-tecnico-id">
+                                    <option value="">Sem alteração de técnico</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Justificativa / Motivo da Troca *</label>
+                                <textarea class="form-control" id="troca-observacoes" rows="2" placeholder="Ex: Permuta autorizada entre os servidores para compensação de horas..." required></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning fw-bold" id="btn-save-troca">Confirmar Troca</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Scripts & Lógica Principal -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module">
+        import { CONFIG, supabase } from './config.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!supabase) {
+                alert('Erro crítico: Falha ao carregar o cliente Supabase. Verifique o arquivo config.js.');
+                return;
+            }
+
+            // Injeção Dinâmica dos Metadados e da Logo Oficial
+            const logoElem = document.getElementById('app-logo');
+            if (logoElem) {
+                logoElem.src = CONFIG.TENANT?.URL_LOGO || CONFIG.LOGO_SISTEMA || './logo.png';
+            }
+
+            document.getElementById('app-title').textContent = CONFIG.SISTEMA?.NOME || "SAMU Connect";
+            document.getElementById('app-tenant').textContent = `${CONFIG.TENANT?.NOME_UNIDADE || "USB 11"} - ${CONFIG.TENANT?.MUNICIPIO_UF || "ORLEANS / SC"}`;
+
+            // Define a data atual no filtro por padrão
+            document.getElementById('filter-data-escala').value = new Date().toISOString().split('T')[0];
+
+            carregarSeleetores();
+            fetchEscalas();
+
+            document.getElementById('filter-data-escala').addEventListener('change', fetchEscalas);
+            document.getElementById('filter-turno').addEventListener('change', fetchEscalas);
+        });
+
+        async function carregarSeleetores() {
+            // Viaturas
+            const { data: viaturas } = await supabase.from('operacional_viaturas').select('*').order('prefixo');
+            if (viaturas) {
+                document.querySelectorAll('.select-viatura').forEach(s => {
+                    s.innerHTML = viaturas.map(v => `<option value="${v.id}">${v.prefixo} (${v.placa || 'USB'})</option>`).join('');
+                });
+            }
+
+            // Colaboradores
+            const { data: colabs } = await supabase.from('colaboradores').select('*').eq('status', 'ATIVO').order('nome_guerra');
+            if (colabs) {
+                const condutores = colabs.filter(c => c.cargo === 'CONDUTOR');
+                const tecnicos = colabs.filter(c => c.cargo === 'TECNICO_ENF');
+                const enfermeiros = colabs.filter(c => c.cargo === 'ENFERMEIRO');
+                const medicos = colabs.filter(c => c.cargo === 'MEDICO');
+
+                const condHtml = (condutores.length > 0 ? condutores : colabs).map(c => `<option value="${c.id}">${c.nome_guerra} - ${c.nome_completo}</option>`).join('');
+                const tecHtml = (tecnicos.length > 0 ? tecnicos : colabs).map(c => `<option value="${c.id}">${c.nome_guerra} - ${c.nome_completo}</option>`).join('');
+                
+                document.querySelectorAll('.select-condutor').forEach(s => s.innerHTML = condHtml);
+                document.querySelectorAll('.select-tecnico').forEach(s => s.innerHTML = tecHtml);
+                
+                document.querySelectorAll('.select-enfermeiro').forEach(s => {
+                    s.innerHTML = '<option value="">Nenhum / Não aplicável</option>' + enfermeiros.map(c => `<option value="${c.id}">${c.nome_guerra}</option>`).join('');
+                });
+
+                document.querySelectorAll('.select-medico').forEach(s => {
+                    s.innerHTML = '<option value="">Nenhum / Não aplicável</option>' + medicos.map(c => `<option value="${c.id}">${c.nome_guerra}</option>`).join('');
+                });
+            }
+        }
+
+        async function fetchEscalas() {
+            const tbody = document.getElementById('tbody-escalas');
+            const dataFiltro = document.getElementById('filter-data-escala').value;
+            const turnoFiltro = document.getElementById('filter-turno').value;
+
+            let query = supabase.from('operacional_escalas').select(`
+                *,
+                operacional_viaturas ( prefixo ),
+                condutor:colaboradores!operacional_escalas_condutor_id_fkey ( nome_guerra ),
+                tecnico:colaboradores!operacional_escalas_tecnico_id_fkey ( nome_guerra ),
+                substituto_condutor:colaboradores!operacional_escalas_substituto_condutor_id_fkey ( nome_guerra ),
+                substituto_tecnico:colaboradores!operacional_escalas_substituto_tecnico_id_fkey ( nome_guerra )
+            `).order('data_plantao', { ascending: false });
+
+            if (dataFiltro) query = query.eq('data_plantao', dataFiltro);
+            if (turnoFiltro) query = query.eq('tipo_turno', turnoFiltro);
+
+            const { data, error } = await query;
+
+            if (error) {
+                console.error('Erro ao buscar escalas:', error);
+                tbody.innerHTML = `<tr><td colspan="7" class="text-danger text-center">Erro: ${error.message}</td></tr>`;
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Nenhuma escala cadastrada para esta data/filtro.</td></tr>`;
+                return;
+            }
+
+            // Atualiza o select de trocas com os plantões vigentes
+            const selectTroca = document.getElementById('troca-escala-id');
+            selectTroca.innerHTML = data.map(e => `<option value="${e.id}">${e.data_plantao} - ${e.tipo_turno} (${e.operacional_viaturas?.prefixo || 'USB'})</option>`).join('');
+
+            tbody.innerHTML = data.map(e => {
+                const nomeCondutor = e.substituto_condutor ? `<span class="text-warning fw-bold">${e.substituto_condutor.nome_guerra} (Subst.)</span>` : (e.condutor?.nome_guerra || '-');
+                const nomeTecnico = e.substituto_tecnico ? `<span class="text-warning fw-bold">${e.substituto_tecnico.nome_guerra} (Subst.)</span>` : (e.tecnico?.nome_guerra || '-');
+
+                return `
+                    <tr>
+                        <td class="fw-bold">${new Date(e.data_plantao + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
+                        <td><span class="badge bg-secondary">${e.tipo_turno}</span></td>
+                        <td class="fw-bold text-primary">${e.operacional_viaturas ? e.operacional_viaturas.prefixo : 'USB 11'}</td>
+                        <td>${nomeCondutor}</td>
+                        <td>${nomeTecnico}</td>
+                        <td><small>${e.medico_id ? 'Medicina Suporte' : 'Sem Médico'}</small></td>
+                        <td><span class="badge badge-status-${e.status}">${e.status}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Submeter Nova Escala
+        document.getElementById('form-nova-escala').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-escala');
+            btn.disabled = true;
+
+            const payload = {
+                data_plantao: document.getElementById('escala-data').value,
+                tipo_turno: document.getElementById('escala-turno').value,
+                viatura_id: document.getElementById('escala-viatura-id').value,
+                condutor_id: document.getElementById('escala-condutor-id').value,
+                tecnico_id: document.getElementById('escala-tecnico-id').value,
+                enfermeiro_id: document.getElementById('escala-enfermeiro-id').value || null,
+                medico_id: document.getElementById('escala-medico-id').value || null,
+                status: 'PREVISTO'
+            };
+
+            const { error } = await supabase.from('operacional_escalas').insert([payload]);
+
+            btn.disabled = false;
+            if (error) {
+                alert('Erro ao salvar escala: ' + error.message);
+            } else {
+                alert('Escala do plantão cadastrada com sucesso!');
+                document.getElementById('form-nova-escala').reset();
+                bootstrap.Modal.getInstance(document.getElementById('modalNovaEscala')).hide();
+                fetchEscalas();
+            }
+        });
+
+        // Submeter Troca de Plantão
+        document.getElementById('form-troca-plantao').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-troca');
+            btn.disabled = true;
+
+            const escalaId = document.getElementById('troca-escala-id').value;
+            const subCondutor = document.getElementById('troca-substituto-condutor-id').value || null;
+            const subTecnico = document.getElementById('troca-substituto-tecnico-id').value || null;
+
+            const payload = {
+                substituto_condutor_id: subCondutor,
+                substituto_tecnico_id: subTecnico,
+                observacoes_troca: document.getElementById('troca-observacoes').value,
+                status: 'TROCA_SOLICITADA'
+            };
+
+            const { error } = await supabase.from('operacional_escalas').update(payload).eq('id', escalaId);
+
+            btn.disabled = false;
+            if (error) {
+                alert('Erro ao solicitar troca: ' + error.message);
+            } else {
+                alert('Troca de plantão registrada com sucesso!');
+                document.getElementById('form-troca-plantao').reset();
+                bootstrap.Modal.getInstance(document.getElementById('modalTrocaPlantao')).hide();
+                fetchEscalas();
+            }
+        });
+    </script>
+</body>
+</html>
