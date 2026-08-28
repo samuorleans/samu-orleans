@@ -3129,6 +3129,7 @@
       salvarLocal();
     }
 
+    /* FUNÇÃO AJUSTADA: GARANTE O SALVAMENTO DE INSUMOS E PSICOTRÓPICOS NO SUPABASE */
     function obterInsumosUtilizadosPayload() {
       const chkNenhum = document.getElementById('chk_nenhum_insumo');
       
@@ -3176,33 +3177,30 @@
             if (inputNovo && inputNovo.value) lacreNovo = inputNovo.value.toUpperCase();
           }
 
-          if (itemEncontrado) {
-            insumosArray.push({
-              lote_id: itemEncontrado.lote_id || null,
-              codigo: itemEncontrado.codigo || null,
-              descricao: itemEncontrado.descricao || valDigitado,
-              numero_lote: itemEncontrado.numero_lote || 'SEM LOTE',
-              data_validade: (itemEncontrado.data_validade && itemEncontrado.data_validade.trim() !== '') ? itemEncontrado.data_validade : null,
-              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
-              is_psicotropico: isPsico,
-              via_administrada: via,
-              lacre_rompido: lacreRompido,
-              lacre_novo: lacreNovo
-            });
-          } else {
-            insumosArray.push({
-              lote_id: null,
-              codigo: null,
-              descricao: valDigitado.toUpperCase(),
-              numero_lote: 'N/A',
-              data_validade: null,
-              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
-              is_psicotropico: isPsico,
-              via_administrada: via,
-              lacre_rompido: lacreRompido,
-              lacre_novo: lacreNovo
-            });
+          let loteExtraido = 'SEM LOTE';
+          let valExtraida = null;
+
+          if (valDigitado.includes('— Lote:')) {
+            const partes = valDigitado.split('— Lote:');
+            if (partes[1]) {
+              const subPartes = partes[1].split('| Val:');
+              loteExtraido = subPartes[0].trim();
+              if (subPartes[1]) valExtraida = subPartes[1].trim();
+            }
           }
+
+          insumosArray.push({
+            lote_id: itemEncontrado ? (itemEncontrado.lote_id || null) : null,
+            codigo: itemEncontrado ? (itemEncontrado.codigo || 'INS-DIV') : 'INS-DIV',
+            descricao: itemEncontrado ? itemEncontrado.descricao : (valDigitado.split('— Lote:')[0] || valDigitado).trim(),
+            numero_lote: itemEncontrado ? itemEncontrado.numero_lote : loteExtraido,
+            data_validade: itemEncontrado ? (itemEncontrado.data_validade || null) : valExtraida,
+            quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
+            is_psicotropico: isPsico,
+            via_administrada: via,
+            lacre_rompido: lacreRompido,
+            lacre_novo: lacreNovo
+          });
         }
       });
 
