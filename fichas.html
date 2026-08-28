@@ -37,7 +37,7 @@
 
     .btn-print { background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
 
-    /* ESTILO EXATO DA FICHA APH OFICIAL DO SAMU ORLEANS */
+    /* ESTILO EXATO DA FICHA APH OFICIAL */
     .ficha-oficial { display: none; background: #fff; padding: 10px; border: 2px solid #000; font-size: 11px; color: #000; }
     .ficha-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 8px; }
     .ficha-header h2 { font-size: 15px; font-weight: 900; margin: 0; }
@@ -55,7 +55,7 @@
     table.tbl-ficha th, table.tbl-ficha td { border: 1px solid #000; padding: 4px; text-align: center; font-size: 10px; }
     table.tbl-ficha th { background: #f0f0f0; font-weight: 800; }
 
-    /* REGRAS DE IMPRESSÃO A4 */
+    /* IMPRESSÃO A4 */
     @media print {
       body { background: white; padding: 0; margin: 0; }
       .no-print { display: none !important; }
@@ -105,7 +105,6 @@
         </table>
       </div>
 
-      <!-- CONTAINER DA FICHA DE IMPRESSÃO NO MESMO FORMATO DA OFICIAL -->
       <div id="areaFichaImpressao" class="ficha-oficial">
         
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;" class="no-print">
@@ -113,9 +112,7 @@
           <button onclick="window.print()" style="padding: 10px 20px; background: #16a34a; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; font-size: 0.9rem;">🖨️ Imprimir Ficha Oficial</button>
         </div>
 
-        <div id="conteudoFichaDetalhada">
-          <!-- CONTEÚDO FORMATADO INJETADO VIA JAVASCRIPT -->
-        </div>
+        <div id="conteudoFichaDetalhada"></div>
 
       </div>
 
@@ -141,6 +138,15 @@
       } else {
         alert("❌ Senha incorreta.");
       }
+    }
+
+    function g(obj, ...chaves) {
+      for (let c of chaves) {
+        if (obj && obj[c] !== undefined && obj[c] !== null && String(obj[c]).trim() !== "") {
+          return obj[c];
+        }
+      }
+      return '—';
     }
 
     async function carregarFichasAPH() {
@@ -172,14 +178,15 @@
       tbody.innerHTML = '';
 
       dados.forEach((f, idx) => {
-        const dt = f.data_hora || f.data_atendimento || (f.created_at ? f.created_at.replace('T', ' ').substring(0, 16) : '—');
-        const paciente = f.nome_paciente || f.paciente_nome || f.paciente || 'Paciente Não Identificado';
-        const viatura = f.viatura || f.prefixo || 'USB 11';
-        const ocorr = f.numero_ocorrencia || f.num_ocorrencia || f.ocorrencia || '—';
+        const dt = g(f, 'data_hora', 'data_atendimento', 'created_at');
+        const dtFmt = dt !== '—' ? dt.replace('T', ' ').substring(0, 16) : '—';
+        const paciente = g(f, 'nome_paciente', 'paciente_nome', 'paciente', 'nome_completo');
+        const viatura = g(f, 'viatura', 'prefixo', 'viatura_prefixo');
+        const ocorr = g(f, 'numero_ocorrencia', 'num_ocorrencia', 'ocorrencia', 'numero');
 
         tbody.innerHTML += `
           <tr>
-            <td><b>${dt}</b></td>
+            <td><b>${dtFmt}</b></td>
             <td>${paciente}</td>
             <td>${viatura}</td>
             <td>${ocorr}</td>
@@ -194,9 +201,9 @@
     function filtrarTabela() {
       const termo = document.getElementById('inputBusca').value.toLowerCase();
       const filtrados = listaFichasCache.filter(f => {
-        const pac = (f.nome_paciente || f.paciente_nome || f.paciente || '').toLowerCase();
-        const viat = (f.viatura || f.prefixo || '').toLowerCase();
-        const ocorr = (f.numero_ocorrencia || f.num_ocorrencia || f.ocorrencia || '').toLowerCase();
+        const pac = g(f, 'nome_paciente', 'paciente_nome', 'paciente', 'nome_completo').toLowerCase();
+        const viat = g(f, 'viatura', 'prefixo').toLowerCase();
+        const ocorr = g(f, 'numero_ocorrencia', 'num_ocorrencia', 'ocorrencia').toLowerCase();
         return pac.includes(termo) || viat.includes(termo) || ocorr.includes(termo);
       });
       renderizarTabela(filtrados);
@@ -206,61 +213,61 @@
       const f = listaFichasCache[index];
       if (!f) return;
 
-      const dtFull = f.data_hora || f.data_atendimento || f.created_at || '—';
+      const dtFull = g(f, 'data_hora', 'data_atendimento', 'created_at');
       const dtData = dtFull !== '—' ? dtFull.split('T')[0].split('-').reverse().join('/') : '—';
       const dtHora = dtFull !== '—' && dtFull.includes('T') ? dtFull.split('T')[1].substring(0,5) : '—';
 
       const htmlOficial = `
         <div class="ficha-header">
           <h2>SAMU 192 - ORLEANS / SC</h2>
-          <h3>FICHA DE ATENDIMENTO MÓVEL DE URGÊNCIA (${f.viatura || 'USB 11'})</h3>
+          <h3>FICHA DE ATENDIMENTO MÓVEL DE URGÊNCIA (${g(f, 'viatura', 'prefixo') !== '—' ? g(f, 'viatura', 'prefixo') : 'USB 11'})</h3>
         </div>
 
         <div class="sec-title">1. CONTROLE OPERACIONAL & EQUIPE</div>
         <div class="grid-box" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
-          <div class="cell"><span class="lbl">Nº OCORRÊNCIA</span><span class="val">${f.numero_ocorrencia || f.num_ocorrencia || '—'}</span></div>
-          <div class="cell"><span class="lbl">CÓDIGO TRIAGEM</span><span class="val">${f.codigo_triagem || f.triagem || 'AMARELO (AM)'}</span></div>
+          <div class="cell"><span class="lbl">Nº OCORRÊNCIA</span><span class="val">${g(f, 'numero_ocorrencia', 'num_ocorrencia', 'ocorrencia')}</span></div>
+          <div class="cell"><span class="lbl">CÓDIGO TRIAGEM</span><span class="val">${g(f, 'codigo_triagem', 'triagem', 'cor_triagem')}</span></div>
           <div class="cell"><span class="lbl">DATA</span><span class="val">${dtData}</span></div>
-          <div class="cell"><span class="lbl">MOTIVO ACIONAMENTO</span><span class="val">${f.motivo_acionamento || f.motivo || '—'}</span></div>
+          <div class="cell"><span class="lbl">MOTIVO ACIONAMENTO</span><span class="val">${g(f, 'motivo_acionamento', 'motivo', 'queixa_principal')}</span></div>
         </div>
         <div class="grid-box" style="grid-template-columns: 1fr 1fr 1fr;">
-          <div class="cell"><span class="lbl">MÉDICO REGULADOR INICIAL</span><span class="val">${f.medico_regulador || '—'}</span></div>
-          <div class="cell"><span class="lbl">TÉC. DE ENFERMAGEM</span><span class="val">${f.tec_enfermagem || f.tecnico_nome || '—'}</span></div>
-          <div class="cell"><span class="lbl">SOCORRISTA (CONDUTOR)</span><span class="val">${f.condutor_nome || f.socorrista_nome || '—'}</span></div>
+          <div class="cell"><span class="lbl">MÉDICO REGULADOR INICIAL</span><span class="val">${g(f, 'medico_regulador', 'medico_regulador_inicial', 'medico')}</span></div>
+          <div class="cell"><span class="lbl">TÉC. DE ENFERMAGEM</span><span class="val">${g(f, 'tec_enfermagem', 'tecnico_enfermagem', 'tecnico_nome', 'tecnico')}</span></div>
+          <div class="cell"><span class="lbl">SOCORRISTA (CONDUTOR)</span><span class="val">${g(f, 'condutor_nome', 'socorrista_nome', 'condutor', 'socorrista')}</span></div>
         </div>
         <div class="grid-box" style="grid-template-columns: repeat(6, 1fr);">
-          <div class="cell"><span class="lbl">SAÍDA BASE</span><span class="val">${f.hora_saida_base || dtHora}</span></div>
-          <div class="cell"><span class="lbl">CHEG. LOCAL</span><span class="val">${f.hora_cheg_local || '—'}</span></div>
-          <div class="cell"><span class="lbl">SAÍDA LOCAL</span><span class="val">${f.hora_saida_local || '—'}</span></div>
-          <div class="cell"><span class="lbl">DESTINO</span><span class="val">${f.hora_destino || '—'}</span></div>
-          <div class="cell"><span class="lbl">DISPONÍVEL</span><span class="val">${f.hora_disponivel || '—'}</span></div>
-          <div class="cell"><span class="lbl">NA BASE</span><span class="val">${f.hora_na_base || '—'}</span></div>
+          <div class="cell"><span class="lbl">SAÍDA BASE</span><span class="val">${g(f, 'hora_saida_base', 'saida_base') !== '—' ? g(f, 'hora_saida_base', 'saida_base') : dtHora}</span></div>
+          <div class="cell"><span class="lbl">CHEG. LOCAL</span><span class="val">${g(f, 'hora_cheg_local', 'chegada_local')}</span></div>
+          <div class="cell"><span class="lbl">SAÍDA LOCAL</span><span class="val">${g(f, 'hora_saida_local', 'saida_local')}</span></div>
+          <div class="cell"><span class="lbl">DESTINO</span><span class="val">${g(f, 'hora_destino', 'chegada_destino')}</span></div>
+          <div class="cell"><span class="lbl">DISPONÍVEL</span><span class="val">${g(f, 'hora_disponivel', 'disponivel')}</span></div>
+          <div class="cell"><span class="lbl">NA BASE</span><span class="val">${g(f, 'hora_na_base', 'retorno_base')}</span></div>
         </div>
 
         <div class="sec-title">2. IDENTIFICAÇÃO DO PACIENTE & LOCAL</div>
         <div class="grid-box" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
-          <div class="cell"><span class="lbl">NOME COMPLETO DO PACIENTE</span><span class="val">${f.nome_paciente || f.paciente_nome || f.paciente || 'NÃO INFORMADO'}</span></div>
-          <div class="cell"><span class="lbl">CPF / RG</span><span class="val">${f.cpf || f.documento || '—'}</span></div>
-          <div class="cell"><span class="lbl">DATA NASC.</span><span class="val">${f.data_nasc || '—'}</span></div>
-          <div class="cell"><span class="lbl">IDADE / SEXO</span><span class="val">${f.idade || '—'} anos | ${f.sexo || '—'}</span></div>
+          <div class="cell"><span class="lbl">NOME COMPLETO DO PACIENTE</span><span class="val">${g(f, 'nome_paciente', 'paciente_nome', 'paciente', 'nome_completo')}</span></div>
+          <div class="cell"><span class="lbl">CPF / RG</span><span class="val">${g(f, 'cpf', 'documento', 'rg')}</span></div>
+          <div class="cell"><span class="lbl">DATA NASC.</span><span class="val">${g(f, 'data_nasc', 'data_nascimento', 'dt_nasc')}</span></div>
+          <div class="cell"><span class="lbl">IDADE / SEXO</span><span class="val">${g(f, 'idade')} | ${g(f, 'sexo')}</span></div>
         </div>
         <div class="grid-box" style="grid-template-columns: 2fr 1fr 1fr;">
-          <div class="cell"><span class="lbl">RUA / LOGRADOURO</span><span class="val">${f.rua || f.endereco || '—'}</span></div>
-          <div class="cell"><span class="lbl">BAIRRO</span><span class="val">${f.bairro || '—'}</span></div>
-          <div class="cell"><span class="lbl">MUNICÍPIO / UF</span><span class="val">${f.municipio || 'ORLEANS'} / ${f.uf || 'SC'}</span></div>
+          <div class="cell"><span class="lbl">RUA / LOGRADOURO</span><span class="val">${g(f, 'rua', 'logradouro', 'endereco')}</span></div>
+          <div class="cell"><span class="lbl">BAIRRO</span><span class="val">${g(f, 'bairro')}</span></div>
+          <div class="cell"><span class="lbl">MUNICÍPIO / UF</span><span class="val">${g(f, 'municipio', 'cidade')} / ${g(f, 'uf', 'estado')}</span></div>
         </div>
 
         <div class="sec-title">3. TIPO OCORRÊNCIA</div>
         <div class="grid-box" style="grid-template-columns: 1fr;">
-          <div class="cell"><span class="lbl">NATUREZA DO ATENDIMENTO</span><span class="val">${f.tipo_ocorrencia || f.natureza || 'CLÍNICO / TRAUMA'}</span></div>
+          <div class="cell"><span class="lbl">NATUREZA DO ATENDIMENTO</span><span class="val">${g(f, 'tipo_ocorrencia', 'natureza_ocorrencia', 'natureza')}</span></div>
         </div>
 
         <div class="sec-title">4. AVALIAÇÃO TÁTICA & EXAME FÍSICO (ABCDE)</div>
         <div class="grid-box" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
-          <div class="cell"><span class="lbl">A - VIAS AÉREAS</span><span class="val">${f.vias_aereas || 'Pérvea (Livre)'}</span></div>
-          <div class="cell"><span class="lbl">B - RESPIRAÇÃO</span><span class="val">${f.respiracao || 'Eupneico'}</span></div>
-          <div class="cell"><span class="lbl">C - PULSO / PELE</span><span class="val">${f.pulso_pele || 'Regular'}</span></div>
-          <div class="cell"><span class="lbl">D - GLASGOW TOTAL</span><span class="val">${f.glasgow || '15/15'}</span></div>
+          <div class="cell"><span class="lbl">A - VIAS AÉREAS</span><span class="val">${g(f, 'vias_aereas', 'a_vias_aereas')}</span></div>
+          <div class="cell"><span class="lbl">B - RESPIRAÇÃO</span><span class="val">${g(f, 'respiracao', 'b_respiracao')}</span></div>
+          <div class="cell"><span class="lbl">C - PULSO / PELE</span><span class="val">${g(f, 'pulso_pele', 'c_circulacao')}</span></div>
+          <div class="cell"><span class="lbl">D - GLASGOW TOTAL</span><span class="val">${g(f, 'glasgow', 'escala_glasgow')}</span></div>
         </div>
 
         <div class="sec-title">5. SINAIS VITAIS (MEDIÇÕES APH)</div>
@@ -280,46 +287,46 @@
           <tbody>
             <tr>
               <td>${dtHora}</td>
-              <td>${f.pa || f.pressao_arterial || '—'}</td>
-              <td>${f.fc || f.frequencia_cardiaca || '—'}</td>
-              <td>${f.fr || '—'}</td>
-              <td>${f.spo2 || f.saturacao || '—'}%</td>
-              <td>${f.temperatura || '—'}</td>
-              <td>${f.glicemia || f.hgt || '—'}</td>
-              <td>${f.pupilas || 'Isocóricas'}</td>
+              <td>${g(f, 'pa', 'pressao_arterial', 'pressao')}</td>
+              <td>${g(f, 'fc', 'frequencia_cardiaca', 'frequencia')}</td>
+              <td>${g(f, 'fr', 'frequencia_respiratoria')}</td>
+              <td>${g(f, 'spo2', 'saturacao', 'sat')}%</td>
+              <td>${g(f, 'temperatura', 'temp')}</td>
+              <td>${g(f, 'glicemia', 'hgt')}</td>
+              <td>${g(f, 'pupilas')}</td>
             </tr>
           </tbody>
         </table>
 
         <div class="sec-title">6. MEDICAÇÕES & INSUMOS UTILIZADOS</div>
         <div class="grid-box" style="grid-template-columns: 1fr;">
-          <div class="cell"><span class="val">${f.insumos_utilizados || f.insumos || 'NENHUM INSUMO REGISTRADO'}</span></div>
+          <div class="cell"><span class="val">${g(f, 'insumos_utilizados', 'insumos', 'medicacoes')}</span></div>
         </div>
 
         <div class="sec-title">7. ANAMNESE, EVOLUÇÃO E CONDUTA</div>
         <div class="grid-box" style="grid-template-columns: 1fr;">
           <div class="cell" style="min-height: 50px;">
             <span class="lbl">EVOLUÇÃO E CONDUTA</span>
-            <span class="val" style="font-weight: normal; font-size: 10px;">${f.relato_ocorrencia || f.observacoes || f.procedimentos || f.relato || 'Sem observações.'}</span>
+            <span class="val" style="font-weight: normal; font-size: 10px;">${g(f, 'relato_ocorrencia', 'observacoes', 'procedimentos', 'relato', 'conduta', 'anamnese')}</span>
           </div>
         </div>
 
         <div class="sec-title">8. DESFECHO DO ATENDIMENTO & ASSINATURA</div>
         <div class="grid-box" style="grid-template-columns: 1fr 1fr;">
-          <div class="cell"><span class="lbl">DESFECHO / DESTINO</span><span class="val">${f.desfecho || 'TRANSPORTADO AO HOSPITAL RECEPTOR'}</span></div>
-          <div class="cell"><span class="lbl">HOSPITAL RECEPTOR</span><span class="val">${f.hospital_destino || f.destino || 'HOSPITAL SANTA OTÍLIA - ORLEANS'}</span></div>
+          <div class="cell"><span class="lbl">DESFECHO / DESTINO</span><span class="val">${g(f, 'desfecho', 'desfecho_atendimento')}</span></div>
+          <div class="cell"><span class="lbl">HOSPITAL RECEPTOR</span><span class="val">${g(f, 'hospital_destino', 'destino', 'hospital')}</span></div>
         </div>
 
         <div style="margin-top: 35px; display: flex; justify-content: space-around; text-align: center;">
           <div>
             _______________________________________<br>
-            <b>${f.condutor_nome || f.socorrista_nome || 'SOCORRISTA RESPONSÁVEL'}</b><br>
-            <span style="font-size: 9px;">Assinatura e Carimbo</span>
+            <b>${g(f, 'condutor_nome', 'socorrista_nome', 'condutor')}</b><br>
+            <span style="font-size: 9px;">Assinatura do Socorrista</span>
           </div>
           <div>
             _______________________________________<br>
-            <b>${f.tec_enfermagem || f.tecnico_nome || 'ENFERMAGEM / HOSPITAL RECEPTOR'}</b><br>
-            <span style="font-size: 9px;">Assinatura e Carimbo / COREN / CRM</span>
+            <b>${g(f, 'tec_enfermagem', 'tecnico_nome', 'tecnico')}</b><br>
+            <span style="font-size: 9px;">Assinatura / COREN / CRM</span>
           </div>
         </div>
       `;
