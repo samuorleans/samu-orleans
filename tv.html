@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SAMU 192 — Painel TV Kiosk Responsivo</title>
+  <title>Sistema Integrado de Escalas e Trocas — SAMU 192 USB 11 Orleans</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -24,14 +24,16 @@
       padding: 0.3vh 0.3vw;
     }
 
+    /* GRID PRINCIPAL MODELO TELA TV */
     .tv-grid {
       display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
+      grid-template-columns: 1.3fr 0.7fr;
       gap: 0.4vw;
       width: 100%;
       height: calc(100vh - 0.6vh);
     }
 
+    /* COLUNA DA ESQUERDA: ESCALA EM CIMA + MATRIZ COREN EM BAIXO */
     .tv-col-esquerda {
       display: flex;
       flex-direction: column;
@@ -40,18 +42,11 @@
       overflow: hidden;
     }
 
-    /* CARDS SUPERIORES AINDA MAIORES (EXPANDIDOS PARA EMPURRAR A MATRIZ COREN) */
-    .tv-row-cards {
-      display: grid;
-      grid-template-columns: 0.85fr 1.05fr 1.1fr;
-      gap: 0.4vw;
-      height: 42vh; 
-      min-height: 42vh;
-    }
-
+    /* COLUNA DA DIREITA: TEMPO REAL / TROCAS / AVISOS */
     .tv-col-direita {
       display: flex;
       flex-direction: column;
+      gap: 0.4vh;
       height: 100%;
       overflow: hidden;
     }
@@ -59,8 +54,8 @@
     .tv-card {
       background: #ffffff;
       border: 1px solid var(--border-color);
-      border-radius: 5px;
-      padding: 0.4vh 0.4vw;
+      border-radius: 4px;
+      padding: 0.3vh 0.4vw;
       display: flex;
       flex-direction: column;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
@@ -68,7 +63,7 @@
     }
 
     .tv-card h3 {
-      font-size: clamp(9px, 0.9vh, 13px);
+      font-size: clamp(8.5px, 0.85vh, 12px);
       color: var(--slate-dark);
       border-bottom: 2px solid var(--red-primary);
       padding-bottom: 0.2vh;
@@ -86,7 +81,7 @@
       flex-direction: column;
       overflow: hidden;
       border: 1px solid #cbd5e1;
-      border-radius: 4px;
+      border-radius: 3px;
     }
 
     table {
@@ -99,9 +94,9 @@
     th {
       background: var(--slate-dark);
       color: #ffffff;
-      font-size: clamp(7px, 0.8vh, 10.5px);
+      font-size: clamp(6.5px, 0.75vh, 10px);
       text-transform: uppercase;
-      padding: 0.2vh 1px;
+      padding: 0.15vh 1px;
       text-align: center;
     }
 
@@ -112,13 +107,13 @@
       overflow: hidden;
       text-overflow: ellipsis;
       text-align: center;
-      font-size: clamp(6.5px, 0.78vh, 10px);
+      font-size: clamp(6px, 0.72vh, 9.5px);
       line-height: 1;
     }
 
-    /* ESCALA OPERACIONAL DIREITA */
+    /* ESCALA OPERACIONAL COMPACTA NA ESQUERDA SUPERIOR */
     #tblEscalaOperacional tbody tr {
-      height: calc((100vh - 5vh) / 31);
+      height: calc((66vh - 4vh) / 31);
     }
 
     .col-dia { width: 10%; font-weight: bold; }
@@ -126,7 +121,7 @@
     .col-per { width: 8%; }
     .col-cond { width: 28%; text-align: left !important; font-weight: 600; padding-left: 2px; }
     .col-tec { width: 28%; text-align: left !important; font-weight: 600; padding-left: 2px; }
-    .col-obs { width: 20%; text-align: left !important; font-size: clamp(6px, 0.72vh, 9px); color: #0284c7; padding-left: 2px; }
+    .col-obs { width: 20%; text-align: left !important; font-size: clamp(5.5px, 0.65vh, 8.5px); color: #0284c7; padding-left: 2px; }
 
     .txt-fds-vermelho { color: #dc2626 !important; font-weight: 800 !important; }
     
@@ -136,9 +131,9 @@
     }
     .tr-hoje-destaque td { color: #ffffff !important; font-weight: 800 !important; }
 
-    /* MATRIZ COREN ACHATADA NO RODAPÉ */
+    /* MATRIZ COREN ACHATADA NO RODAPÉ ESQUERDO */
     #tblCorenMatriz tbody tr {
-      height: calc((55vh - 4vh) / 12);
+      height: calc((34vh - 4vh) / 12);
     }
 
     #tblCorenMatriz th.col-dia-coren,
@@ -154,31 +149,38 @@
     .st-adm { background-color: #e0f2fe !important; color: #0369a1 !important; }
     .st-atest { background-color: #fee2e2 !important; color: #991b1b !important; }
 
-    /* CARDS SUPERIORES */
+    /* ESTILOS DA COLUNA DIREITA */
+    .tv-plantao-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.3vw;
+    }
+
     .tv-plantao-box {
       background: linear-gradient(135deg, var(--red-primary) 0%, var(--red-dark) 100%);
-      border-radius: 4px;
-      padding: 0.8vh 0.4vw;
+      border-radius: 3px;
+      padding: 0.4vh 0.3vw;
       text-align: center;
       color: #ffffff;
     }
-    .tv-plantao-cargo { font-size: clamp(7px, 0.85vh, 10px); text-transform: uppercase; opacity: 0.9; }
-    .tv-plantao-nome { font-size: clamp(10px, 1.3vh, 15px); font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tv-plantao-cargo { font-size: clamp(6px, 0.7vh, 8.5px); text-transform: uppercase; opacity: 0.9; }
+    .tv-plantao-nome { font-size: clamp(8px, 1vh, 12px); font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     .box-status-viatura {
       background: #f1f5f9;
       border: 1px solid #cbd5e1;
-      padding: 0.6vh 0.5vw;
-      border-radius: 4px;
+      padding: 0.3vh 0.4vw;
+      border-radius: 3px;
+      margin-top: 0.4vh;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       gap: 0.4vw;
     }
 
     .logo-viatura-tv {
-      max-height: 4.5vh;
-      max-width: 4.5vw;
+      max-height: 2.2vh;
+      max-width: 2.2vw;
       object-fit: contain;
     }
   </style>
@@ -186,68 +188,10 @@
 <body>
 
   <div class="tv-grid">
-    <!-- ESQUERDA -->
+    <!-- COLUNA DA ESQUERDA (ESCALA OPERACIONAL EM CIMA + COREN EM BAIXO) -->
     <div class="tv-col-esquerda">
-      <!-- 3 CARDS SUPERIORES AMPLIADOS -->
-      <div class="tv-row-cards">
-        <div class="tv-card">
-          <h3>⏱️ Tempo Real</h3>
-          <div style="display:flex; flex-direction:column; gap:0.6vh; height:100%; justify-content:space-around;">
-            <div class="tv-plantao-box">
-              <div class="tv-plantao-cargo">🚘 Condutor Hoje</div>
-              <div class="tv-plantao-nome" id="tvCondutorHoje">—</div>
-            </div>
-            <div class="tv-plantao-box" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
-              <div class="tv-plantao-cargo">🩺 Técnico Hoje</div>
-              <div class="tv-plantao-nome" id="tvTecnicoHoje">—</div>
-            </div>
-            <div class="box-status-viatura">
-              <img src="logo.png" alt="Logo SAMU" class="logo-viatura-tv" onerror="this.style.display='none'">
-              <div style="text-align:right;">
-                <div style="font-size:clamp(6.5px, 0.75vh, 9px); color:#64748b; font-weight:bold;">USB 11 ORLEANS</div>
-                <div style="font-size:clamp(8.5px, 1.1vh, 12px); font-weight:800; color:#16a34a;">🟢 OPERACIONAL</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="tv-card">
-          <h3>🔄 Trocas & Coberturas</h3>
-          <div style="font-size:clamp(7.5px, 0.9vh, 11px); color:#334155; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:0.2vh 0;">
-            <p style="font-weight:600;">• Sincronizado via Supabase.</p>
-            <div id="tvConteudoTrocas" style="background:#f8fafc; border:1px solid #e2e8f0; padding:0.8vh 0.5vw; border-radius:4px; flex:1; margin-top:0.4vh; overflow:hidden;">
-              <small style="color:#64748b;">Nenhuma alteração de plantão pendente para a data de hoje.</small>
-            </div>
-          </div>
-        </div>
-
-        <div class="tv-card">
-          <h3>📢 Avisos USB 11</h3>
-          <div style="font-size:clamp(7.5px, 0.9vh, 11px); color:#334155; height:100%; display:flex; flex-direction:column; justify-content:flex-start; gap:0.6vh; padding:0.2vh 0;">
-            <p style="background:#f8fafc; padding:0.5vh 0.5vw; border-left:3px solid #b71c1c; border-radius:2px;">• <b>Checklist Diário:</b> Realizar inspeção da viatura pontualmente às 07:00h.</p>
-            <p style="background:#f8fafc; padding:0.5vh 0.5vw; border-left:3px solid #0284c7; border-radius:2px;">• <b>Conexão:</b> Sistema integrado com a nuvem institucional.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- MATRIZ COREN ACHATADA NO RODAPÉ -->
-      <div class="tv-card" style="flex: 1;">
-        <h3>
-          <span>📋 MATRIZ OFICIAL COREN — ORLEANS</span>
-          <span id="tvTituloMesCoren" style="color:#b71c1c;">AGOSTO / 2026</span>
-        </h3>
-        <div class="tv-table-container">
-          <table id="tblCorenMatriz">
-            <thead id="headCoren"></thead>
-            <tbody id="bodyCoren"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- DIREITA -->
-    <div class="tv-col-direita">
-      <div class="tv-card" style="height: 100%;">
+      <!-- ESCALA OPERACIONAL SUPERIOR -->
+      <div class="tv-card" style="height: 66vh;">
         <h3>
           <span>📅 ESCALA MENSUAL OPERACIONAL</span>
           <span id="tvTituloMes" style="color:#b71c1c;">AGOSTO / 2026</span>
@@ -266,6 +210,66 @@
             </thead>
             <tbody id="bodyEscala"></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- MATRIZ COREN INFERIOR -->
+      <div class="tv-card" style="height: 34vh;">
+        <h3>
+          <span>📋 MATRIZ OFICIAL COREN — ORLEANS</span>
+          <span id="tvTituloMesCoren" style="color:#b71c1c;">AGOSTO / 2026</span>
+        </h3>
+        <div class="tv-table-container">
+          <table id="tblCorenMatriz">
+            <thead id="headCoren"></thead>
+            <tbody id="bodyCoren"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUNA DA DIREITA (TEMPO REAL / TROCAS / AVISOS) -->
+    <div class="tv-col-direita">
+      <!-- CARD 1: CONDIÇÕES EM TEMPO REAL -->
+      <div class="tv-card" style="height: 18vh;">
+        <h3>⏱️ CONDIÇÕES EM TEMPO REAL</h3>
+        <div style="display:flex; flex-direction:column; justify-content:center; height:100%;">
+          <div class="tv-plantao-container">
+            <div class="tv-plantao-box">
+              <div class="tv-plantao-cargo">🚘 CONDUTOR HOJE</div>
+              <div class="tv-plantao-nome" id="tvCondutorHoje">—</div>
+            </div>
+            <div class="tv-plantao-box" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+              <div class="tv-plantao-cargo">🩺 TÉCNICO HOJE</div>
+              <div class="tv-plantao-nome" id="tvTecnicoHoje">—</div>
+            </div>
+          </div>
+          <div class="box-status-viatura">
+            <img src="logo.png" alt="Logo SAMU" class="logo-viatura-tv" onerror="this.style.display='none'">
+            <div style="font-size:clamp(7px, 0.85vh, 10.5px); font-weight:800; color:#16a34a;">
+              🟢 STATUS VIATURA USB 11: EM OPERAÇÃO / DISPONÍVEL
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2: TROCAS & COBERTURAS ATIVAS -->
+      <div class="tv-card" style="flex: 1;">
+        <h3>🔄 TROCAS & COBERTURAS ATIVAS</h3>
+        <div style="font-size:clamp(7px, 0.82vh, 10px); color:#334155; height:100%; display:flex; flex-direction:column; padding:0.2vh 0;">
+          <p style="color:#64748b; font-size:clamp(6.5px, 0.75vh, 9px);">• Sincronização em tempo real com Supabase.</p>
+          <div id="tvConteudoTrocas" style="background:#f8fafc; border:1px solid #e2e8f0; padding:0.6vh 0.4vw; border-radius:3px; flex:1; margin-top:0.3vh; overflow:hidden;">
+            <small style="color:#64748b;">Nenhuma alteração pendente para a data de hoje.</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: AVISOS OPERACIONAIS USB 11 -->
+      <div class="tv-card" style="height: 22vh;">
+        <h3>📢 AVISOS OPERACIONAIS USB 11</h3>
+        <div style="font-size:clamp(7px, 0.82vh, 10px); color:#334155; height:100%; display:flex; flex-direction:column; justify-content:flex-start; gap:0.4vh; padding:0.2vh 0;">
+          <p style="background:#f8fafc; padding:0.4vh 0.4vw; border-left:3px solid #b71c1c; border-radius:2px;">• Checklist diário da viatura deve ser realizado impreterivelmente às 07h.</p>
+          <p style="background:#f8fafc; padding:0.4vh 0.4vw; border-left:3px solid #0284c7; border-radius:2px;">• Unidade operacional conectada ao Supabase - rede nacional.</p>
         </div>
       </div>
     </div>
