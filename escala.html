@@ -22,7 +22,7 @@
 
     .container { width: 1200px; max-width: 1200px; margin: 0 auto; }
 
-    /* OVERLAY E MODAIS CLEAN */
+    /* OVERLAY E MODAIS */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(5px); }
     .box-modal { background: #fff; padding: 30px; border-radius: 12px; width: 90%; max-width: 420px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); text-align: center; position: relative; }
     .box-modal img.logo-modal { max-height: 65px; margin-bottom: 12px; object-fit: contain; }
@@ -98,18 +98,19 @@
 
     .rodape-assinaturas { display: none; }
 
-    /* ESTILOS REVISADOS DO MODO TV (ESCALA MENSAL À ESQUERDA VERTICAL) */
+    /* ESTILOS DE ALTA DENSIDADE E COMPACTAÇÃO PARA MODO TV (1080p FULLSCREEN) */
     #painelTVGrid { display: none; }
     
     body.modo-tv-kiosk {
       background-color: #0f172a !important;
       color: #fff !important;
-      padding: 10px !important;
+      padding: 8px !important;
       margin: 0 !important;
       width: 100vw !important;
       height: 100vh !important;
       min-width: 100vw !important;
       overflow: hidden !important;
+      box-sizing: border-box !important;
     }
 
     body.modo-tv-kiosk header,
@@ -121,34 +122,34 @@
 
     body.modo-tv-kiosk #painelTVGrid {
       display: grid !important;
-      grid-template-columns: 1.2fr 0.8fr;
-      grid-template-rows: 1fr 1fr;
-      gap: 12px;
+      grid-template-columns: 1.25fr 0.75fr;
+      grid-template-rows: 1.15fr 0.85fr;
+      gap: 8px;
       width: 100%;
-      height: calc(100vh - 20px);
+      height: calc(100vh - 16px);
     }
 
     .tv-card {
       background: #1e293b;
       border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 14px;
+      border-radius: 8px;
+      padding: 8px 10px;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
       overflow: hidden;
     }
 
     .tv-card-esquerda-vertical {
-      grid-row: span 2; /* Ocupa as 2 linhas verticais do lado esquerdo */
+      grid-row: span 2;
     }
 
     .tv-card h3 {
-      margin: 0 0 10px 0;
-      font-size: 15px;
+      margin: 0 0 6px 0;
+      font-size: 13px;
       color: #f8fafc;
       border-bottom: 2px solid #b71c1c;
-      padding-bottom: 6px;
+      padding-bottom: 4px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       display: flex;
@@ -158,16 +159,17 @@
 
     .tv-scrollable-table {
       flex: 1;
-      overflow-y: auto;
+      overflow-y: hidden; /* Remove barra de rolagem para enquadrar 100% dos dias */
       background: #0f172a;
-      border-radius: 8px;
+      border-radius: 6px;
       border: 1px solid #334155;
     }
 
     .tv-scrollable-table table {
       width: 100%;
       color: #fff;
-      font-size: 11px;
+      font-size: 9.5px; /* Proporção ideal para caber do dia 1 ao 31 */
+      border-collapse: collapse;
     }
 
     .tv-scrollable-table th {
@@ -175,6 +177,13 @@
       top: 0;
       background: #b71c1c;
       z-index: 2;
+      padding: 4px 2px;
+      font-size: 10px;
+    }
+
+    .tv-scrollable-table td {
+      padding: 2.5px 4px; /* Linhas compactas */
+      border-bottom: 1px solid #1e293b;
     }
 
     .tr-hoje-destaque {
@@ -185,14 +194,14 @@
 
     .tv-plantao-box {
       background: linear-gradient(135deg, #b71c1c 0%, #7f1d1d 100%);
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 8px;
+      border-radius: 6px;
+      padding: 8px;
+      margin-bottom: 4px;
       text-align: center;
     }
 
-    .tv-plantao-cargo { font-size: 10px; text-transform: uppercase; opacity: 0.9; letter-spacing: 1px; margin-bottom: 2px; }
-    .tv-plantao-nome { font-size: 18px; font-weight: 800; color: #fff; }
+    .tv-plantao-cargo { font-size: 9px; text-transform: uppercase; opacity: 0.9; letter-spacing: 0.5px; margin-bottom: 1px; }
+    .tv-plantao-nome { font-size: 13px; font-weight: 800; color: #fff; }
 
     @media print {
       .no-print, header, .nav-tabs, .card h3, .grid-form, .btn-arrow, #painelTVGrid { display: none !important; }
@@ -211,7 +220,7 @@
   <div id="painelTVGrid">
     <!-- QUADRANTE ESQUERDO (VERTICAL MAIOR): ESCALA MENSAL DO MÊS VIGENTE -->
     <div class="tv-card tv-card-esquerda-vertical">
-      <h3>📅 Escala Mensal Operacional — <span id="tvTituloMesVigente">AUGUSTO / 2026</span></h3>
+      <h3>📅 Escala Mensal Operacional — <span id="tvTituloMesVigente">AGOSTO / 2026</span></h3>
       <div class="tv-scrollable-table" id="containerTVScrollEsquerda">
         <table>
           <thead>
@@ -231,7 +240,7 @@
     <div class="tv-card">
       <h3>📋 Matriz Oficial COREN — Orleans</h3>
       <div class="tv-scrollable-table">
-        <table style="font-size:10px;">
+        <table>
           <thead>
             <tr>
               <th style="text-align:left;">COLABORADOR</th>
@@ -249,23 +258,23 @@
     <div class="tv-card">
       <h3>⏱️ Condições em Tempo Real</h3>
       <div style="flex:1; display:flex; flex-direction:column; justify-content:space-around;">
-        <div style="display:flex; gap:10px;">
+        <div style="display:flex; gap:8px;">
           <div class="tv-plantao-box" style="flex:1; margin:0;">
             <div class="tv-plantao-cargo">🚘 Condutor Hoje</div>
-            <div class="tv-plantao-nome" id="tvCondutorHoje" style="font-size:14px;">—</div>
+            <div class="tv-plantao-nome" id="tvCondutorHoje">—</div>
           </div>
           <div class="tv-plantao-box" style="flex:1; margin:0; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
             <div class="tv-plantao-cargo">🩺 Técnico Hoje</div>
-            <div class="tv-plantao-nome" id="tvTecnicoHoje" style="font-size:14px;">—</div>
+            <div class="tv-plantao-nome" id="tvTecnicoHoje">—</div>
           </div>
         </div>
 
-        <div style="background:#334155; padding:10px; border-radius:8px; text-align:center;">
-          <div style="font-size:10px; color:#94a3b8; text-transform:uppercase;">Status da Viatura USB 11</div>
-          <div style="font-size:16px; font-weight:bold; color:#22c65e; margin-top:2px;">🟢 EM OPERAÇÃO / DISPONÍVEL</div>
+        <div style="background:#334155; padding:8px; border-radius:6px; text-align:center;">
+          <div style="font-size:9px; color:#94a3b8; text-transform:uppercase;">Status da Viatura USB 11</div>
+          <div style="font-size:14px; font-weight:bold; color:#22c65e; margin-top:2px;">🟢 EM OPERAÇÃO / DISPONÍVEL</div>
         </div>
 
-        <div style="font-size:10px; color:#64748b; text-align:center;">
+        <div style="font-size:9px; color:#64748b; text-align:center;">
           Sincronização Nuvem Supabase • Atualizado em tempo real
         </div>
       </div>
@@ -959,14 +968,6 @@
             </tr>
           `;
         }
-
-        // ROLAGEM AUTOMÁTICA ATÉ O DIA ATUAL
-        setTimeout(() => {
-          const elHoje = document.getElementById(`tr-tv-dia-${diaAtual}`);
-          if (elHoje) {
-            elHoje.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 300);
       }
 
       // 2. QUADRANTE SUPERIOR DIREITO: MATRIZ COREN DO MÊS
