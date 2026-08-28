@@ -248,6 +248,24 @@
       renderizarTabela(filtrados);
     }
 
+    function obterCorenTecnico(nomeTecnico) {
+      if (!nomeTecnico || nomeTecnico === '—') return '';
+      const nomeNorm = nomeTecnico.trim().toUpperCase();
+      
+      // Busca no mapa de colaboradores
+      if (mapaColaboradoresCache[nomeNorm]) {
+        return mapaColaboradoresCache[nomeNorm];
+      }
+
+      // Procura por correspondência parcial de nome
+      for (let key in mapaColaboradoresCache) {
+        if (key.includes(nomeNorm) || nomeNorm.includes(key)) {
+          return mapaColaboradoresCache[key];
+        }
+      }
+      return '';
+    }
+
     function abrirFichaParaImpressao(index) {
       const f = listaFichasCache[index];
       if (!f) return;
@@ -384,10 +402,14 @@
       if (sexoFmt === 'M') sexoFmt = 'Masculino (M)';
       else if (sexoFmt === 'F') sexoFmt = 'Feminino (F)';
 
-      // COREN do Técnico
-      const nomeTec = v(f.tec_enfermeiro).trim().toUpperCase();
-      let corenTec = mapaColaboradoresCache[nomeTec] || '';
-      const corenLabel = corenTec ? `COREN ${corenTec}` : 'COREN: ____________';
+      // COREN e Nome do Técnico de Enfermagem
+      const tecNomeBruto = v(f.tec_enfermeiro).trim().toUpperCase();
+      const corenEncontrado = obterCorenTecnico(tecNomeBruto);
+      const tecComCoren1 = corenEncontrado ? `${tecNomeBruto} (COREN ${corenEncontrado})` : tecNomeBruto;
+      
+      // Técnico Responsável no Campo 7 (Técnico Resp. Automático)
+      const tecRespCampo7 = v(f.tec_resp, tecComCoren1);
+      const corenLabelBox = corenEncontrado ? `COREN ${corenEncontrado}` : 'COREN: ____________';
 
       // Regras de Exibição do Bloco de Assinaturas
       const desfecho = v(f.desfecho_vitima);
@@ -399,8 +421,8 @@
         assinaturasBlock = `
           <div class="print-signatures-block tres-colunas">
             <div class="sig-box">
-              <div class="sig-title">${v(f.tec_enfermeiro, 'TÉCNICO DE ENFERMAGEM')}</div>
-              <div class="sig-line">ASSINATURA E CARIMBO / ${corenLabel}</div>
+              <div class="sig-title">${tecNomeBruto !== '—' ? tecNomeBruto : 'TÉCNICO DE ENFERMAGEM'}</div>
+              <div class="sig-line">ASSINATURA E CARIMBO / ${corenLabelBox}</div>
             </div>
             <div class="sig-box">
               <div class="sig-title">DECLARANTE / TESTEMUNHA</div>
@@ -416,8 +438,8 @@
         assinaturasBlock = `
           <div class="print-signatures-block duas-colunas">
             <div class="sig-box">
-              <div class="sig-title">${v(f.tec_enfermeiro, 'TÉCNICO DE ENFERMAGEM')}</div>
-              <div class="sig-line">ASSINATURA E CARIMBO / ${corenLabel}</div>
+              <div class="sig-title">${tecNomeBruto !== '—' ? tecNomeBruto : 'TÉCNICO DE ENFERMAGEM'}</div>
+              <div class="sig-line">ASSINATURA E CARIMBO / ${corenLabelBox}</div>
             </div>
             <div class="sig-box">
               <div class="sig-title">${v(f.tipo_assinante, 'DECLARANTE')}: ${nomeAssinante}</div>
@@ -429,8 +451,8 @@
         assinaturasBlock = `
           <div class="print-signatures-block duas-colunas">
             <div class="sig-box">
-              <div class="sig-title">${v(f.tec_enfermeiro, 'TÉCNICO DE ENFERMAGEM')}</div>
-              <div class="sig-line">ASSINATURA E CARIMBO / ${corenLabel}</div>
+              <div class="sig-title">${tecNomeBruto !== '—' ? tecNomeBruto : 'TÉCNICO DE ENFERMAGEM'}</div>
+              <div class="sig-line">ASSINATURA E CARIMBO / ${corenLabelBox}</div>
             </div>
             <div class="sig-box">
               <div class="sig-title">MÉDICO RECEPTOR / REGULADOR</div>
@@ -459,7 +481,7 @@
         ${reclassHtml}
         <div class="grid-box" style="grid-template-columns: 1fr 1fr 1fr;">
           <div class="cell"><span class="lbl">MÉDICO REGULADOR INICIAL</span><span class="val">${v(f.regulador)}</span></div>
-          <div class="cell"><span class="lbl">TÉC. DE ENFERMAGEM</span><span class="val">${v(f.tec_enfermeiro)}</span></div>
+          <div class="cell"><span class="lbl">TÉC. DE ENFERMAGEM</span><span class="val">${tecComCoren1}</span></div>
           <div class="cell"><span class="lbl">SOCORRISTA (CONDUTOR)</span><span class="val">${v(f.socorrista)}</span></div>
         </div>
         <div class="grid-box" style="grid-template-columns: repeat(7, 1fr);">
@@ -537,13 +559,17 @@
         <div class="sec-title">7. ANAMNESE, EVOLUÇÃO E CONDUTA</div>
         <div class="grid-box" style="grid-template-columns: 1fr 1fr;">
           <div class="cell"><span class="lbl">ALERGIAS?</span><span class="val">${v(f.alergia_select)} ${v(f.alergia_desc) !== '—' ? '(' + f.alergia_desc + ')' : ''}</span></div>
-          <div class="cell"><span class="lbl">MEDICAÇÃO CONTÍNUA?</span><span class="val">${v(f.med_continua_select)} ${v(f.med_continua_desc) !== '—' ? '(' + f.med_continua_desc + ')' : ''}</span></div>
+          <div class="cell"><span class="lbl">MEDICAÇÃO CONTÍNUA?</span><span class="val">${v(f.med_continua_select)} ${v(f.meds_continuas, f.med_continua_desc) !== '—' ? '(' + v(f.meds_continuas, f.med_continua_desc) + ')' : ''}</span></div>
         </div>
         <div class="grid-box" style="grid-template-columns: 1fr;">
           <div class="cell" style="min-height: 45px;">
             <span class="lbl">EVOLUÇÃO E CONDUTA</span>
             <span class="val" style="font-weight: normal; font-size: 9.5px; white-space: pre-wrap;">${v(f.evolucao_texto)}</span>
           </div>
+        </div>
+        <div class="grid-box" style="grid-template-columns: 1fr 1fr;">
+          <div class="cell"><span class="lbl">TÉCNICO RESP. (PREENCHIMENTO)</span><span class="val">${tecRespCampo7}</span></div>
+          <div class="cell"><span class="lbl">DESTINO / HOSPITAL RECEPTOR</span><span class="val">${v(f.hospital_destino)}</span></div>
         </div>
 
         <div class="sec-title">8. DESFECHO DO ATENDIMENTO & ASSINATURA</div>
