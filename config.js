@@ -1,6 +1,6 @@
 /**
  * SAMU CONNECT - Central Configuration & Supabase Initializer
- * Version: 1.0.0
+ * Version: 1.0.1 (URL Fix)
  */
 
 export const CONFIG = {
@@ -16,6 +16,7 @@ export const CONFIG = {
     URL_LOGO: "./assets/logo.png"
   },
   SUPABASE: {
+    // URL e Anon Key sincronizadas
     URL: "https://meqkgjjaidptaljbybr.supabase.co",
     ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lcWtnamphaWRqcHRhbGpieWJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MzMxOTcsImV4cCI6MjEwMzUwOTE5N30.af78fsdsBzC0-bgozbJ3Orgr_Xh5BzhmYNJkXgp1Ki0"
   },
@@ -29,11 +30,13 @@ export const CONFIG = {
   }
 };
 
-// Inicializador do Cliente Supabase
-export const supabase = window.supabase.createClient(CONFIG.SUPABASE.URL, CONFIG.SUPABASE.ANON_KEY);
+// Inicialização resiliente do cliente Supabase
+export const supabase = window.supabase
+  ? window.supabase.createClient(CONFIG.SUPABASE.URL, CONFIG.SUPABASE.ANON_KEY)
+  : null;
 
 /**
- * Injeta variáveis de estilo CSS e aplica metadados dinamicos no DOM
+ * Injeta variáveis de estilo CSS e aplica metadados dinâmicos no DOM
  */
 export function initTheme() {
   const root = document.documentElement;
@@ -44,11 +47,9 @@ export function initTheme() {
   root.style.setProperty('--surface', CONFIG.THEME.SURFACE);
   root.style.setProperty('--text-main', CONFIG.THEME.TEXT_MAIN);
 
-  // Define o título do documento dinamicamente
   document.title = `${CONFIG.SISTEMA.NOME} | ${CONFIG.TENANT.NOME_UNIDADE} - ${CONFIG.TENANT.MUNICIPIO_UF}`;
 }
 
-// Auto-executável no carregamento
 if (typeof window !== 'undefined') {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initTheme);
