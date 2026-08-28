@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAMU Connect — Central de Fichas APH</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --navy: #0d233a;
+      --blue: #1976d2;
+      --red: #d32f2f;
+      --bg: #f4f7fa;
+      --border: #cbd5e1;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background-color: var(--bg); color: #1e293b; padding: 20px 12px; }
+
+    .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-top: 6px solid var(--navy); padding: 20px; }
+    
+    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 12px; }
+    .header h1 { color: var(--navy); font-size: 1.2rem; font-weight: 800; text-transform: uppercase; }
+    .header p { color: #64748b; font-size: 0.8rem; font-weight: 600; }
+
+    /* TELA DE LOGIN */
+    #boxAuth { max-width: 350px; margin: 40px auto; text-align: center; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1.5px solid var(--border); }
+    #boxAuth input { width: 100%; padding: 10px; border: 1.5px solid var(--border); border-radius: 8px; margin: 10px 0; text-align: center; font-size: 1.1rem; font-weight: 700; outline: none; }
+    #boxAuth button { width: 100%; padding: 10px; background: var(--navy); color: white; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; }
+
+    /* CONTEÚDO DA LISTA DE FICHAS */
+    #areaFichas { display: none; }
+    
+    .busca-box { display: flex; gap: 10px; margin-bottom: 15px; }
+    .busca-box input { flex: 1; padding: 10px; border: 1.5px solid var(--border); border-radius: 8px; outline: none; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 10px; }
+    th { background: var(--navy); color: white; padding: 10px; text-align: left; font-size: 0.8rem; }
+    td { padding: 10px; border-bottom: 1px solid var(--border); }
+    tr:hover { background: #f1f5f9; }
+
+    .btn-print { background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; font-size: 0.75rem; }
+
+    /* ESTILO DE IMPRESSÃO A4 */
+    @media print {
+      body { background: white; padding: 0; }
+      .no-print { display: none !important; }
+      .container { box-shadow: none; border: none; padding: 0; max-width: 100%; }
+      #areaFichaImpressao { display: block !important; }
+    }
+
+    #areaFichaImpressao { display: none; padding: 15px; border: 2px solid var(--navy); border-radius: 8px; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- TELA DE AUTENTICAÇÃO SIMPLES -->
+    <div id="boxAuth" class="no-print">
+      <h2 style="font-size: 1rem; color: var(--navy); margin-bottom: 8px;">🔑 Acesso Restrito Hospital</h2>
+      <p style="font-size: 0.75rem; color: #64748b;">Digite a senha única para visualizar e imprimir as fichas APH do plantão.</p>
+      <input type="password" id="inputSenhaAcesso" placeholder="Digite a Senha..." onkeypress="tratarTecla(event)">
+      <button type="button" onclick="validarAcesso()">Acessar Fichas</button>
+    </div>
+
+    <!-- ÁREA PRINCIPAL COM A TABELA DE FICHAS -->
+    <div id="areaFichas">
+      
+      <div class="header no-print">
+        <h1>🏥 SAMU CONNECT — CONSULTA & IMPRESSÃO DE FICHAS APH</h1>
+        <p>USB 11 ORLEANS — Emissão rápida de comprovante de atendimento</p>
+      </div>
+
+      <div class="busca-box no-print">
+        <input type="text" id="inputBusca" placeholder="🔍 Buscar por Nome do Paciente, Ocorrência ou Viatura..." onkeyup="filtrarTabela()">
+        <button type="button" onclick="carregarFichasAPH()" style="padding: 10px 15px; background: var(--blue); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">🔄 Atualizar</button>
+      </div>
+
+      <div class="no-print" style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Data / Hora</th>
+              <th>Paciente</th>
+              <th>Viatura</th>
+              <th>Ocorrência</th>
+              <th style="text-align: center;">Ação</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyFichas">
+            <tr><td colspan="5" style="text-align: center; padding: 15px;">Carregando fichas...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- VISUALIZAÇÃO FORMATADA DA FICHA SELECIONADA PARA IMPRESSÃO -->
+      <div id="areaFichaImpressao">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--navy); padding-bottom: 8px; margin-bottom: 12px;">
+          <div>
+            <h2 style="font-size: 1.1rem; color: var(--navy); font-weight: 800;">SAMU 192 — FICHA DE ATENDIMENTO PRÉ-HOSPITALAR (APH)</h2>
+            <p style="font-size: 0.75rem; color: #555;">USB 11 ORLEANS — Comprovante de Entrega Hospitalar</p>
+          </div>
+          <button class="no-print" onclick="fecharFichaImpressao()" style="padding: 6px 12px; background: #64748b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">⬅️ Voltar à Lista</button>
+        </div>
+
+        <div id="conteudoFichaDetalhada" style="font-size: 0.85rem; line-height: 1.5;">
+          <!-- OS DADOS DA FICHA SELECIONADA SERÃO INJETADOS AQUI -->
+        </div>
+
+        <div class="no-print" style="margin-top: 20px; text-align: center;">
+          <button onclick="window.print()" style="padding: 12px 24px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer;">🖨️ Imprimir Ficha Agora</button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
+
+    window.dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let listaFichasCache = [];
+
+    function tratarTecla(e) {
+      if (e.key === 'Enter') validarAcesso();
+    }
+
+    function validarAcesso() {
+      const senha = document.getElementById('inputSenhaAcesso').value.trim();
+      
+      // SENHA ÚNICA SIMPLES (Ex: 192 ou samu192)
+      if (senha === '192' || senha === 'samu192' || senha === '123456') {
+        document.getElementById('boxAuth').style.display = 'none';
+        document.getElementById('areaFichas').style.display = 'block';
+        carregarFichasAPH();
+      } else {
+        alert("❌ Senha incorreta. Tente novamente.");
+      }
+    }
+
+    async function carregarFichasAPH() {
+      const tbody = document.getElementById('tbodyFichas');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px;">Buscando registros no banco de dados...</td></tr>';
+
+      try {
+        // Tenta buscar na tabela 'ficha_aph' ou 'operacional_checklists'
+        const { data, error } = await window.dbNuvem
+          .from('ficha_aph')
+          .select('*')
+          .order('id', { ascending: false })
+          .limit(30);
+
+        if (error) throw error;
+
+        listaFichasCache = data || [];
+
+        if (listaFichasCache.length > 0) {
+          renderizarTabela(listaFichasCache);
+        } else {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px;">Nenhuma ficha APH encontrada no sistema.</td></tr>';
+        }
+      } catch (err) {
+        console.error("Erro Supabase:", err);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px; color: var(--red);">Erro ao carregar fichas. Verifique a conexão.</td></tr>';
+      }
+    }
+
+    function renderizarTabela(dados) {
+      const tbody = document.getElementById('tbodyFichas');
+      tbody.innerHTML = '';
+
+      dados.forEach((f, idx) => {
+        const dt = f.data_hora || f.created_at ? f.created_at.replace('T', ' ').substring(0, 16) : '—';
+        const paciente = f.nome_paciente || f.paciente_nome || f.paciente || 'Paciente Não Identificado';
+        const viatura = f.viatura || f.prefixo || 'USB 11';
+        const ocorr = f.numero_ocorrencia || f.ocorrencia || '—';
+
+        tbody.innerHTML += `
+          <tr>
+            <td><b>${dt}</b></td>
+            <td>${paciente}</td>
+            <td>${viatura}</td>
+            <td>${ocorr}</td>
+            <td style="text-align: center;">
+              <button class="btn-print" onclick="abrirFichaParaImpressao(${idx})">🖨️ Imprimir</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function filtrarTabela() {
+      const termo = document.getElementById('inputBusca').value.toLowerCase();
+      const filtrados = listaFichasCache.filter(f => {
+        const pac = (f.nome_paciente || f.paciente || '').toLowerCase();
+        const viat = (f.viatura || '').toLowerCase();
+        const ocorr = (f.numero_ocorrencia || '').toLowerCase();
+        return pac.includes(termo) || viat.includes(termo) || ocorr.includes(termo);
+      });
+      renderizarTabela(filtrados);
+    }
+
+    function abrirFichaParaImpressao(index) {
+      const f = listaFichasCache[index];
+      if (!f) return;
+
+      const htmlDetalhes = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid #cbd5e1; padding-bottom: 10px;">
+          <div><b>Data/Hora:</b> ${f.data_hora || f.created_at || '—'}</div>
+          <div><b>Viatura:</b> ${f.viatura || 'USB 11'}</div>
+          <div><b>Ocorrência Nº:</b> ${f.numero_ocorrencia || '—'}</div>
+          <div><b>Equipe/Socorrista:</b> ${f.profissional_nome || f.condutor_nome || '—'}</div>
+        </div>
+
+        <div style="background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px;">
+          <h3 style="font-size: 0.9rem; color: var(--navy); margin-bottom: 6px;">👤 DADOS DO PACIENTE</h3>
+          <div><b>Nome:</b> ${f.nome_paciente || f.paciente || 'Não informado'}</div>
+          <div><b>Idade / Sexo:</b> ${f.idade || '—'} anos | ${f.sexo || '—'}</div>
+          <div><b>CPF / RG:</b> ${f.documento || '—'}</div>
+        </div>
+
+        <div style="background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px;">
+          <h3 style="font-size: 0.9rem; color: var(--navy); margin-bottom: 6px;">🩺 SINAIS VITAIS E AVALIAÇÃO</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+            <div><b>PA:</b> ${f.pa || '—'} mmHg</div>
+            <div><b>FC:</b> ${f.fc || '—'} bpm</div>
+            <div><b>SpO2:</b> ${f.spo2 || '—'} %</div>
+            <div><b>Glicemia:</b> ${f.glicemia || '—'} mg/dL</div>
+            <div><b>Glasgow:</b> ${f.glasgow || '—'}</div>
+            <div><b>Temp:</b> ${f.temperatura || '—'} °C</div>
+          </div>
+        </div>
+
+        <div style="background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px;">
+          <h3 style="font-size: 0.9rem; color: var(--navy); margin-bottom: 6px;">📋 RELATO DA OCORRÊNCIA E PROCEDIMENTOS</h3>
+          <p>${f.relato_ocorrencia || f.observacoes || f.procedimentos || 'Nenhum detalhe adicional registrado.'}</p>
+        </div>
+
+        <div style="margin-top: 30px; display: flex; justify-content: space-around; text-align: center;">
+          <div>
+            _______________________________________<br>
+            <b>Assinatura do Socorrista</b>
+          </div>
+          <div>
+            _______________________________________<br>
+            <b>Assinatura da Enfermagem / Hospital Destino</b>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('conteudoFichaDetalhada').innerHTML = htmlDetalhes;
+      document.querySelector('.no-print').style.display = 'none';
+      document.getElementById('areaFichaImpressao').style.display = 'block';
+    }
+
+    function fecharFichaImpressao() {
+      document.getElementById('areaFichaImpressao').style.display = 'none';
+      document.querySelector('.no-print').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
+
