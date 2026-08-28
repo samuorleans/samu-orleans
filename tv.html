@@ -16,9 +16,10 @@
       padding: 4px;
     }
 
+    /* GRID PRINCIPAL: ESQUERDA (CARDS + COREN) / DIREITA (ESCALA OPERACIONAL 31 DIAS) */
     .tv-grid {
       display: grid;
-      grid-template-columns: 1.35fr 0.65fr;
+      grid-template-columns: 1.15fr 0.85fr;
       gap: 6px;
       width: 100%;
       height: 100vh;
@@ -31,10 +32,17 @@
       height: calc(100vh - 8px);
     }
 
+    /* TRÊS CARDS SUPERIORES EM LINHA NA ESQUERDA */
+    .tv-row-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      height: 145px;
+    }
+
     .tv-col-direita {
       display: flex;
       flex-direction: column;
-      gap: 6px;
       height: calc(100vh - 8px);
     }
 
@@ -50,11 +58,11 @@
     }
 
     .tv-card h3 {
-      font-size: 11px;
+      font-size: 10px;
       color: #0f172a;
       border-bottom: 2px solid #b71c1c;
       padding-bottom: 2px;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
       text-transform: uppercase;
       font-weight: 800;
     }
@@ -78,9 +86,9 @@
     th {
       background: #0f172a;
       color: #ffffff;
-      font-size: 8px;
+      font-size: 7.5px;
       text-transform: uppercase;
-      padding: 2px 1px;
+      padding: 1px;
       text-align: center;
     }
 
@@ -91,21 +99,21 @@
       overflow: hidden;
       text-overflow: ellipsis;
       text-align: center;
-      font-size: 7.5px;
-      line-height: 1.1;
+      font-size: 7.2px;
+      line-height: 1;
     }
 
-    /* Regra para forçar todas as 31 linhas dentro da viewport */
+    /* AJUSTE ALTURA PROPORCIONAL DAS 31 LINHAS NA DIREITA (DO 01 AO 31 SEM CORTAR) */
     #tblEscalaOperacional tbody tr {
-      height: calc((100vh - 120px) / 31);
+      height: calc((100vh - 45px) / 31);
     }
 
-    .col-dia { width: 11%; font-weight: bold; }
-    .col-sem { width: 6%; }
-    .col-per { width: 9%; }
-    .col-cond { width: 34%; text-align: left !important; font-weight: 600; }
-    .col-tec { width: 34%; text-align: left !important; font-weight: 600; }
-    .col-obs { width: 6%; }
+    .col-dia { width: 12%; font-weight: bold; }
+    .col-sem { width: 7%; }
+    .col-per { width: 10%; }
+    .col-cond { width: 33%; text-align: left !important; font-weight: 600; }
+    .col-tec { width: 33%; text-align: left !important; font-weight: 600; }
+    .col-obs { width: 5%; }
 
     .txt-fds-vermelho { color: #dc2626 !important; font-weight: 800 !important; }
     
@@ -118,9 +126,9 @@
     /* MATRIZ COREN */
     #tblCorenMatriz th.col-dia-coren,
     #tblCorenMatriz td.col-dia-coren {
-      width: 2.3%;
+      width: 2.2%;
       padding: 0 !important;
-      font-size: 6.8px !important;
+      font-size: 6.5px !important;
       font-weight: bold;
     }
 
@@ -129,25 +137,81 @@
     .st-adm { background-color: #e0f2fe !important; color: #0369a1 !important; }
     .st-atest { background-color: #fee2e2 !important; color: #991b1b !important; }
 
-    /* PAINEL DIREITO */
+    /* CAIXINHA DE TEMPO REAL */
     .tv-plantao-box {
       background: linear-gradient(135deg, #b71c1c 0%, #880e4f 100%);
       border-radius: 4px;
-      padding: 4px;
+      padding: 3px;
       text-align: center;
       color: #ffffff;
     }
-    .tv-plantao-cargo { font-size: 8px; text-transform: uppercase; opacity: 0.9; }
-    .tv-plantao-nome { font-size: 11px; font-weight: 800; }
+    .tv-plantao-cargo { font-size: 7.5px; text-transform: uppercase; opacity: 0.9; }
+    .tv-plantao-nome { font-size: 10px; font-weight: 800; }
   </style>
 </head>
 <body>
 
   <div class="tv-grid">
-    <!-- ESQUERDA -->
+    <!-- ESQUERDA: 3 CARDS EM CIMA + MATRIZ COREN EM BAIXO -->
     <div class="tv-col-esquerda">
-      <!-- ESCALA OPERACIONAL -->
-      <div class="tv-card" style="flex: 1.5;">
+      
+      <!-- TRÊS CAMPOS SUPERIORES -->
+      <div class="tv-row-cards">
+        <!-- CARD 1: TEMPO REAL -->
+        <div class="tv-card">
+          <h3>⏱️ Tempo Real</h3>
+          <div style="display:flex; flex-direction:column; gap:3px; height:100%; justify-content:center;">
+            <div class="tv-plantao-box">
+              <div class="tv-plantao-cargo">🚘 Condutor Hoje</div>
+              <div class="tv-plantao-nome" id="tvCondutorHoje">—</div>
+            </div>
+            <div class="tv-plantao-box" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+              <div class="tv-plantao-cargo">🩺 Técnico Hoje</div>
+              <div class="tv-plantao-nome" id="tvTecnicoHoje">—</div>
+            </div>
+            <div style="background:#f1f5f9; border:1px solid #cbd5e1; padding:2px; border-radius:3px; text-align:center;">
+              <div style="font-size:8.5px; font-weight:800; color:#16a34a;">🟢 USB 11 DISPONÍVEL</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 2: TROCAS E COBERTURAS -->
+        <div class="tv-card">
+          <h3>🔄 Trocas & Coberturas</h3>
+          <div style="font-size:7.5px; color:#334155; padding:2px;">
+            <p>• Sincronizado com Supabase.</p>
+            <div style="margin-top:4px; background:#f8fafc; border:1px solid #e2e8f0; padding:4px; border-radius:4px;">
+              <small style="color:#64748b;">Sem alterações para hoje.</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 3: AVISOS OPERACIONAIS -->
+        <div class="tv-card">
+          <h3>📢 Avisos USB 11</h3>
+          <div style="font-size:7.5px; color:#334155; padding:2px;">
+            <p>• Checklist diário da viatura às 07h.</p>
+            <p style="margin-top:2px;">• Banco de dados conectado.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- MATRIZ COREN ORLEANS (COM MÊS REFERÊNCIA E ORDEM ALFABÉTICA) -->
+      <div class="tv-card" style="flex: 1;">
+        <h3>📋 Matriz Oficial COREN — Orleans — <span id="tvTituloMesCoren">AGOSTO / 2026</span></h3>
+        <div class="tv-table-container">
+          <table id="tblCorenMatriz">
+            <thead id="headCoren"></thead>
+            <tbody id="bodyCoren"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- DIREITA: ESCALA OPERACIONAL MENSAL COMPLETA (OCUPA 100% DA ALTURA VERTICAL) -->
+    <div class="tv-col-direita">
+      <div class="tv-card" style="height: 100%;">
         <h3>📅 Escala Mensal Operacional — <span id="tvTituloMes">AGOSTO / 2026</span></h3>
         <div class="tv-table-container">
           <table id="tblEscalaOperacional">
@@ -163,61 +227,6 @@
             </thead>
             <tbody id="bodyEscala"></tbody>
           </table>
-        </div>
-      </div>
-
-      <!-- MATRIZ COREN HORIZONTAL -->
-      <div class="tv-card" style="flex: 0.8;">
-        <h3>📋 Matriz Oficial COREN — Orleans</h3>
-        <div class="tv-table-container">
-          <table id="tblCorenMatriz">
-            <thead id="headCoren"></thead>
-            <tbody id="bodyCoren"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- DIREITA -->
-    <div class="tv-col-direita">
-      <!-- TEMPO REAL -->
-      <div class="tv-card" style="flex: 0.8;">
-        <h3>⏱️ Condições em Tempo Real</h3>
-        <div style="display:flex; flex-direction:column; gap:4px; height:100%; justify-content:center;">
-          <div style="display:flex; gap:4px;">
-            <div class="tv-plantao-box" style="flex:1;">
-              <div class="tv-plantao-cargo">🚘 Condutor Hoje</div>
-              <div class="tv-plantao-nome" id="tvCondutorHoje">—</div>
-            </div>
-            <div class="tv-plantao-box" style="flex:1; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
-              <div class="tv-plantao-cargo">🩺 Técnico Hoje</div>
-              <div class="tv-plantao-nome" id="tvTecnicoHoje">—</div>
-            </div>
-          </div>
-          <div style="background:#f1f5f9; border:1px solid #cbd5e1; padding:4px; border-radius:4px; text-align:center;">
-            <div style="font-size:7.5px; color:#64748b; font-weight:bold; text-transform:uppercase;">Status Viatura USB 11</div>
-            <div style="font-size:10px; font-weight:800; color:#16a34a;">🟢 EM OPERAÇÃO / DISPONÍVEL</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- QUADRADO 2: TROCAS E COBERTURAS -->
-      <div class="tv-card" style="flex: 1;">
-        <h3>🔄 Trocas & Coberturas Ativas</h3>
-        <div style="font-size:8.5px; color:#334155; padding:2px;">
-          <p>• Sincronização em tempo real com o banco de dados.</p>
-          <div style="margin-top:6px; background:#f8fafc; border:1px solid #e2e8f0; padding:6px; border-radius:4px;">
-            <small style="color:#64748b;">Nenhuma alteração pendente para a data de hoje.</small>
-          </div>
-        </div>
-      </div>
-
-      <!-- QUADRADO 3: AVISOS OPERACIONAIS -->
-      <div class="tv-card" style="flex: 1;">
-        <h3>📢 Avisos Operacionais USB 11</h3>
-        <div style="font-size:8.5px; color:#334155; padding:2px;">
-          <p>• Checklist diário da viatura deve ser realizado impreterivelmente às 07h.</p>
-          <p style="margin-top:4px;">• Unidade operacional conectada ao Supabase.</p>
         </div>
       </div>
     </div>
@@ -243,6 +252,7 @@
     ];
 
     const diasSemanaAbrev = ["dom.", "seg.", "ter.", "qua.", "qui.", "sex.", "sáb."];
+    const mesesNomes = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"];
 
     function calcularEscalaNoDia(dtIso, dataBaseStr) {
       const dataBase = new Date(dataBaseStr + "T00:00:00");
@@ -261,6 +271,11 @@
       const dtIsoHoje = `${ano}-${String(mes).padStart(2,'0')}-${String(diaAtual).padStart(2,'0')}`;
       const dataBaseStr = "2026-06-01";
 
+      const txtMes = `${mesesNomes[mes - 1]} / ${ano}`;
+      document.getElementById("tvTituloMes").innerText = txtMes;
+      document.getElementById("tvTituloMesCoren").innerText = txtMes;
+
+      // 1. ESCALA OPERACIONAL DIREITA (DO DIA 1 AO 30 OU 31)
       const tbBody = document.getElementById("bodyEscala");
       tbBody.innerHTML = "";
       const diasNoMes = new Date(ano, mes, 0).getDate();
@@ -285,29 +300,52 @@
         `;
       }
 
-      // MATRIZ COREN
+      // 2. MATRIZ COREN (ORDEM ALFABÉTICA)
       const headCoren = document.getElementById("headCoren");
       const bodyCoren = document.getElementById("bodyCoren");
-      let headHtml = `<tr><th style="text-align:left; width:22%;">COLABORADOR</th><th style="width:8%;">REG.</th>`;
+      let headHtml = `<tr><th style="text-align:left; width:24%;">COLABORADOR</th><th style="width:7%;">REG.</th>`;
       for (let d = 1; d <= diasNoMes; d++) headHtml += `<th class="col-dia-coren">${String(d).padStart(2,'0')}</th>`;
       headHtml += `</tr>`;
       headCoren.innerHTML = headHtml;
 
+      // Lista em Ordem Alfabética
+      const listaColaboradores = [
+        "Clênio Borges",
+        "Daniel Alexandre Fernandes",
+        "Edimara Tochetto Suaya Netto",
+        "Gicerléia Trindade da Rosa",
+        "Lucas Vieira Mendes",
+        "Luis Eduardo Formanski Vitório",
+        "Márcio Becker",
+        "Renato Cândido",
+        "Rinaldo Calegario",
+        "Suandre Adão Machado",
+        "Vanderlei José Tasca"
+      ];
+
       bodyCoren.innerHTML = "";
-      duplasPadrao.forEach(dp => {
-        [dp.cond, dp.tec].forEach(nome => {
-          let line = `<tr><td style="text-align:left; font-weight:bold; font-size:7px;">${nome}</td><td style="font-size:6px;">N/A</td>`;
-          for (let d = 1; d <= diasNoMes; d++) {
-            const dtIso = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      listaColaboradores.forEach(nome => {
+        let line = `<tr><td style="text-align:left; font-weight:bold; font-size:6.8px;">${nome}</td><td style="font-size:6px;">N/A</td>`;
+        const eh40h = nome.includes("Edimara");
+
+        for (let d = 1; d <= diasNoMes; d++) {
+          const dtObj = new Date(ano, mes - 1, d);
+          const dtIso = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+          const ehFds = (dtObj.getDay() === 0 || dtObj.getDay() === 6);
+
+          if (eh40h) {
+            line += `<td class="col-dia-coren ${ehFds ? 'st-fol' : 'st-adm'}">${ehFds ? 'F' : 'ADM'}</td>`;
+          } else {
             const resDia = calcularEscalaNoDia(dtIso, dataBaseStr);
             const ehPlantao = resDia.cond.includes(nome) || resDia.tec.includes(nome);
             line += `<td class="col-dia-coren ${ehPlantao ? 'st-i' : 'st-fol'}">${ehPlantao ? 'I' : 'F'}</td>`;
           }
-          line += `</tr>`;
-          bodyCoren.innerHTML += line;
-        });
+        }
+        line += `</tr>`;
+        bodyCoren.innerHTML += line;
       });
 
+      // 3. TEMPO REAL
       const resHoje = calcularEscalaNoDia(dtIsoHoje, dataBaseStr);
       document.getElementById("tvCondutorHoje").innerText = resHoje.cond;
       document.getElementById("tvTecnicoHoje").innerText = resHoje.tec;
