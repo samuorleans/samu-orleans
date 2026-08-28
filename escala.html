@@ -101,8 +101,74 @@
 
     .rodape-assinaturas { display: none; }
 
+    /* ESTILOS ESPECÍFICOS DO MODO TV (SAMU CONNECT) */
+    #painelTVGrid { display: none; }
+    
+    body.modo-tv-kiosk {
+      background-color: #0f172a !important;
+      color: #fff !important;
+      padding: 10px !important;
+      margin: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      min-width: 100vw !important;
+      overflow: hidden !important;
+    }
+
+    body.modo-tv-kiosk header,
+    body.modo-tv-kiosk .nav-tabs,
+    body.modo-tv-kiosk #abaEscalas,
+    body.modo-tv-kiosk #abaTrocas,
+    body.modo-tv-kiosk #abaAfastamentos,
+    body.modo-tv-kiosk #abaAdmin { display: none !important; }
+
+    body.modo-tv-kiosk #painelTVGrid {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 15px;
+      width: 100%;
+      height: calc(100vh - 20px);
+    }
+
+    .tv-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+
+    .tv-card h3 {
+      margin: 0 0 12px 0;
+      font-size: 16px;
+      color: #f8fafc;
+      border-bottom: 2px solid #b71c1c;
+      padding-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tv-plantao-box {
+      background: linear-gradient(135deg, #b71c1c 0%, #7f1d1d 100%);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+
+    .tv-plantao-cargo { font-size: 11px; text-transform: uppercase; opacity: 0.9; letter-spacing: 1px; margin-bottom: 4px; }
+    .tv-plantao-nome { font-size: 20px; font-weight: 800; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+
     @media print {
-      .no-print, header, .nav-tabs, .card h3, .grid-form, .btn-arrow { display: none !important; }
+      .no-print, header, .nav-tabs, .card h3, .grid-form, .btn-arrow, #painelTVGrid { display: none !important; }
       body { background: #fff; padding: 0; margin: 0; color: #000; min-width: 100% !important; }
       .container { width: 100% !important; max-width: 100% !important; }
       .card { box-shadow: none; border: none; padding: 0; margin: 0; }
@@ -134,6 +200,68 @@
 </head>
 <body class="modo-retrato">
 <div class="container">
+
+  <!-- PAINEL OPERACIONAL DA TV (SAMU CONNECT - MODO KIOSK) -->
+  <div id="painelTVGrid">
+    <!-- QUADRO 1: PLANTÃO OPERACIONAL DO DIA -->
+    <div class="tv-card">
+      <h3>🚑 Plantão do Dia — USB 11 Orleans <span id="tvDataHoje" style="font-size:12px; color:#94a3b8;"></span></h3>
+      <div style="display:flex; flex-direction:column; justify-content:center; flex:1;">
+        <div class="tv-plantao-box">
+          <div class="tv-plantao-cargo">🚘 Condutor Socorrista</div>
+          <div class="tv-plantao-nome" id="tvCondutorHoje">CARREGANDO...</div>
+        </div>
+        <div class="tv-plantao-box" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+          <div class="tv-plantao-cargo">🩺 Técnico em Enfermagem</div>
+          <div class="tv-plantao-nome" id="tvTecnicoHoje">CARREGANDO...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUADRO 2: VISÃO COREN DA SEMANA -->
+    <div class="tv-card">
+      <h3>📋 Escala da Semana (COREN)</h3>
+      <div class="table-responsive" style="flex:1; background:#0f172a; border-color:#334155;">
+        <table id="tblTVSemana" style="color:#fff;">
+          <thead>
+            <tr><th>DIA</th><th>DATA</th><th>CONDUTOR</th><th>TÉCNICO</th></tr>
+          </thead>
+          <tbody id="bodyTVSemana"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- QUADRO 3: TROCAS & LICENÇAS ATIVAS -->
+    <div class="tv-card">
+      <h3>🔄 Trocas Aprovadas & Licenças</h3>
+      <div class="table-responsive" style="flex:1; background:#0f172a; border-color:#334155;">
+        <table style="color:#fff;">
+          <thead>
+            <tr><th>DATA</th><th>TIPO</th><th>DETALHES / COBERTURA</th></tr>
+          </thead>
+          <tbody id="bodyTVTrocas"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- QUADRO 4: INFORMATIVOS DA BASE -->
+    <div class="tv-card">
+      <h3>📊 Samu Connect — Orleans</h3>
+      <div style="flex:1; display:flex; flex-direction:column; justify-content:space-around; align-items:center; text-align:center; padding:10px;">
+        <div style="font-size:14px; color:#cbd5e1;">
+          <b>Sincronização em Tempo Real</b><br>
+          <span style="font-size:11px; color:#64748b;">Nuvem Supabase Conectada</span>
+        </div>
+        <div style="background:#334155; padding:12px 20px; border-radius:8px; width:100%;">
+          <div style="font-size:11px; color:#94a3b8; text-transform:uppercase;">Status da Viatura USB 11</div>
+          <div style="font-size:18px; font-weight:bold; color:#22c65e; margin-top:4px;">🟢 EM OPERAÇÃO / DISPONÍVEL</div>
+        </div>
+        <div style="font-size:10px; color:#64748b;">
+          Atualizado automaticamente a cada 60 segundos.
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL DE LOGIN DE ACESSO RESTRITO -->
   <div id="modalLogin" class="modal-overlay">
@@ -719,9 +847,12 @@
 
     async function carregarDados() {
       if (!dbNuvem) {
-        document.getElementById("stNuvem").innerText = "❌ Nuvem Desconectada";
-        document.getElementById("stNuvem").style.background = "#fee2e2";
-        document.getElementById("stNuvem").style.color = "#b91c1c";
+        const st = document.getElementById("stNuvem");
+        if (st) {
+          st.innerText = "❌ Nuvem Desconectada";
+          st.style.background = "#fee2e2";
+          st.style.color = "#b91c1c";
+        }
         return;
       }
 
@@ -747,14 +878,20 @@
             : a.substitutosDiarios
         }));
 
-        document.getElementById("stNuvem").innerText = "☁️ Nuvem Supabase Ativa";
-        document.getElementById("stNuvem").style.background = "#dcfce7";
-        document.getElementById("stNuvem").style.color = "#15803d";
+        const st = document.getElementById("stNuvem");
+        if (st) {
+          st.innerText = "☁️ Nuvem Supabase Ativa";
+          st.style.background = "#dcfce7";
+          st.style.color = "#15803d";
+        }
       } catch(e) {
         console.error("Erro ao carregar do Supabase:", e);
-        document.getElementById("stNuvem").innerText = "⚠️ Falha ao Sincronizar";
-        document.getElementById("stNuvem").style.background = "#fef3c7";
-        document.getElementById("stNuvem").style.color = "#b45309";
+        const st = document.getElementById("stNuvem");
+        if (st) {
+          st.innerText = "⚠️ Falha ao Sincronizar";
+          st.style.background = "#fef3c7";
+          st.style.color = "#b45309";
+        }
       }
 
       ordenarAlfabeticamente();
@@ -770,10 +907,86 @@
       renderizarAdminTrocas();
       renderizarEscalas();
       preencherDatasTrocasForm();
+
+      // MODO TV (SAMU CONNECT)
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('modo') === 'tv') {
+        document.body.classList.add('modo-tv-kiosk');
+        renderizarPainelTV();
+      }
+    }
+
+    function renderizarPainelTV() {
+      const hoje = new Date();
+      const dtIsoHoje = hoje.toISOString().split("T")[0];
+      const dataBaseStr = document.getElementById("escalaDataBase") ? document.getElementById("escalaDataBase").value : "2026-06-01";
+
+      // DATA NO CABEÇALHO
+      const elDt = document.getElementById("tvDataHoje");
+      if (elDt) {
+        elDt.innerText = `${String(hoje.getDate()).padStart(2,'0')}/${String(hoje.getMonth()+1).padStart(2,'0')}/${hoje.getFullYear()}`;
+      }
+
+      // 1. PLANTÃO HOJE
+      const resHoje = calcularEscalaNoDia(dtIsoHoje, dataBaseStr, "24x96");
+      const elCond = document.getElementById("tvCondutorHoje");
+      const elTec = document.getElementById("tvTecnicoHoje");
+      if (elCond) elCond.innerHTML = resHoje.cond;
+      if (elTec) elTec.innerHTML = resHoje.tec;
+
+      // 2. ESCALA DA SEMANA (PRÓXIMOS 7 DIAS)
+      const tbSemana = document.getElementById("bodyTVSemana");
+      if (tbSemana) {
+        tbSemana.innerHTML = "";
+        for (let i = 0; i < 7; i++) {
+          const dt = new Date();
+          dt.setDate(hoje.getDate() + i);
+          const dtIso = dt.toISOString().split("T")[0];
+          const dtFmt = `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}`;
+          const res = calcularEscalaNoDia(dtIso, dataBaseStr, "24x96");
+          const ehHoje = (i === 0);
+
+          tbSemana.innerHTML += `
+            <tr style="${ehHoje ? 'background:#b71c1c; font-weight:bold;' : ''}">
+              <td>${diasSemanaAbrev[dt.getDay()]}</td>
+              <td>${dtFmt}</td>
+              <td style="font-size:11px;">${res.cond}</td>
+              <td style="font-size:11px;">${res.tec}</td>
+            </tr>
+          `;
+        }
+      }
+
+      // 3. TROCAS E LICENÇAS ATIVAS NO MÊS
+      const tbTrocasTV = document.getElementById("bodyTVTrocas");
+      if (tbTrocasTV) {
+        tbTrocasTV.innerHTML = "";
+        const trocasAprovadas = trocas.filter(t => t.status === "APROVADO").slice(0, 5);
+
+        if (trocasAprovadas.length === 0) {
+          tbTrocasTV.innerHTML = `<tr><td colspan="3" style="color:#64748b; padding:10px;">Nenhuma troca agendada para os próximos dias.</td></tr>`;
+        } else {
+          trocasAprovadas.forEach(t => {
+            const dtFmt = t.dataMinha ? t.dataMinha.split('-').reverse().join('/') : '-';
+            tbTrocasTV.innerHTML += `
+              <tr>
+                <td><b>${dtFmt}</b></td>
+                <td>${t.tipo}</td>
+                <td style="font-size:10px; text-align:left;"><b>${t.solicitante}</b> ➔ <b>${t.substituto}</b></td>
+              </tr>
+            `;
+          });
+        }
+      }
     }
 
     function init() {
       carregarDados();
+
+      // ATUALIZAÇÃO AUTOMÁTICA SILENCIOSA A CADA 60 SEGUNDOS (TV & WEB)
+      setInterval(async () => {
+        await carregarDados();
+      }, 60000);
     }
 
     function trocarAba(aba) {
