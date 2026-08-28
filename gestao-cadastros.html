@@ -75,7 +75,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-4 mb-4">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center gap-3" href="#">
-                <img id="app-logo" src="logo.png" alt="Logo SAMU Connect" style="max-height: 45px; width: auto; object-fit: contain;">
+                <img id="app-logo" src="./logo.png" alt="Logo SAMU Connect" style="max-height: 45px; width: auto; object-fit: contain;" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=SAMU+Connect&background=D91656&color=fff&bold=true';">
                 <div>
                     <span class="fw-bold fs-4 d-block" id="app-title">SAMU Connect</span>
                     <small class="text-white-50 fs-6" id="app-tenant">USB 11 - ORLEANS / SC</small>
@@ -370,7 +370,7 @@
             // Injeção Dinâmica dos Metadados e da Logo Oficial
             const logoElem = document.getElementById('app-logo');
             if (logoElem) {
-                logoElem.src = CONFIG.LOGO_SISTEMA || CONFIG.TENANT?.URL_LOGO || 'logo.png';
+                logoElem.src = CONFIG.TENANT?.URL_LOGO || CONFIG.LOGO_SISTEMA || './logo.png';
             }
 
             document.getElementById('app-title').textContent = CONFIG.SISTEMA?.NOME || "SAMU Connect";
