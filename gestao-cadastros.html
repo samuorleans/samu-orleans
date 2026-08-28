@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAMU Connect - Cadastros Base</title>
     
+    <!-- Bootstrap 5 CSS & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
+    <!-- Supabase JS Client (v2) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -59,15 +61,6 @@
             color: white;
         }
 
-        .btn-samu-red {
-            background-color: var(--accent-red);
-            color: white;
-        }
-        .btn-samu-red:hover {
-            background-color: #b01043;
-            color: white;
-        }
-
         .table-custom thead {
             background-color: var(--primary-navy);
             color: white;
@@ -81,13 +74,14 @@
 </head>
 <body>
 
+    <!-- Header Centralizado via config.js -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-4 mb-4">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center gap-2" href="#">
                 <i class="bi bi-hospital-fill text-danger fs-3"></i>
                 <div>
                     <span class="fw-bold fs-4 d-block" id="app-title">SAMU Connect</span>
-                    <small class="text-white-50 fs-6" id="app-tenant">USB 11 - ORLEANS / SC</small>
+                    <small class="text-white-50 fs-6" id="app-tenant">Carregando unidade...</small>
                 </div>
             </a>
             <span class="navbar-text text-white bg-dark px-3 py-1 rounded-pill border border-secondary">
@@ -96,8 +90,10 @@
         </div>
     </nav>
 
+    <!-- Main Container -->
     <div class="container-fluid px-4">
 
+        <!-- Abas NAVEGAÇÃO -->
         <ul class="nav nav-tabs mb-3" id="cadastroTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active fs-5 px-4" id="colaboradores-tab" data-bs-toggle="tab" data-bs-target="#colaboradores-pane" type="button" role="tab"><i class="bi bi-people-fill me-2"></i>Colaboradores</button>
@@ -109,6 +105,7 @@
 
         <div class="tab-content" id="cadastroTabsContent">
 
+            <!-- TAB 1: COLABORADORES -->
             <div class="tab-pane fade show active" id="colaboradores-pane" role="tabpanel">
                 <div class="card card-custom p-3 mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -136,7 +133,7 @@
                             </thead>
                             <tbody id="tbody-colaboradores">
                                 <tr>
-                                    <td colspan="8" class="text-center py-4 text-muted"><i class="bi bi-arrow-repeat spin me-2"></i>Carregando dados do Supabase...</td>
+                                    <td colspan="8" class="text-center py-4 text-muted"><i class="bi bi-arrow-repeat me-2"></i>Carregando dados do Supabase...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -144,6 +141,7 @@
                 </div>
             </div>
 
+            <!-- TAB 2: HOSPITAIS -->
             <div class="tab-pane fade" id="hospitais-pane" role="tabpanel">
                 <div class="card card-custom p-3 mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -169,7 +167,7 @@
                             </thead>
                             <tbody id="tbody-hospitais">
                                 <tr>
-                                    <td colspan="6" class="text-center py-4 text-muted"><i class="bi bi-arrow-repeat spin me-2"></i>Carregando dados...</td>
+                                    <td colspan="6" class="text-center py-4 text-muted"><i class="bi bi-arrow-repeat me-2"></i>Carregando hospitais...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -180,6 +178,7 @@
         </div>
     </div>
 
+    <!-- MODAL COLABORADOR -->
     <div class="modal fade" id="modalColaborador" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -263,6 +262,7 @@
         </div>
     </div>
 
+    <!-- MODAL HOSPITAL -->
     <div class="modal fade" id="modalHospital" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -365,26 +365,32 @@
         </div>
     </div>
 
+    <!-- JS Scripts & Lógica Principal -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script type="module">
         import { CONFIG, supabase } from './config.js';
 
-        // Atualizar textos da UI dinamicamente via Config Global
-        document.getElementById('app-title').textContent = CONFIG.SISTEMA.NOME;
-        document.getElementById('app-tenant').textContent = `${CONFIG.TENANT.NOME_UNIDADE} - ${CONFIG.TENANT.MUNICIPIO_UF}`;
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!supabase) {
+                alert('Erro crítico: Falha ao carregar o cliente Supabase. Verifique o arquivo config.js.');
+                return;
+            }
+
+            // Configuração Dinâmica da UI via config.js
+            document.getElementById('app-title').textContent = CONFIG.SISTEMA.NOME;
+            document.getElementById('app-tenant').textContent = `${CONFIG.TENANT.NOME_UNIDADE} - ${CONFIG.TENANT.MUNICIPIO_UF}`;
+
+            // Carregamento Inicial
+            fetchColaboradores();
+            fetchHospitais();
+        });
 
         // ==============================================================================
         // MÓDULO COLABORADORES
         // ==============================================================================
         async function fetchColaboradores(searchQuery = '') {
             const tbody = document.getElementById('tbody-colaboradores');
-            
-            if (!supabase) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-danger text-center">Cliente Supabase não inicializado. Verifique o arquivo config.js.</td></tr>`;
-                return;
-            }
-
             let query = supabase.from('colaboradores').select('*').order('nome_guerra', { ascending: true });
             
             if (searchQuery) {
@@ -395,7 +401,7 @@
 
             if (error) {
                 console.error('Erro ao buscar colaboradores:', error);
-                tbody.innerHTML = `<tr><td colspan="8" class="text-danger text-center">Erro ao carregar dados (${error.message}).</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="text-danger text-center">Erro ao carregar colaboradores: ${error.message}</td></tr>`;
                 return;
             }
 
@@ -427,4 +433,119 @@
             const payload = {
                 cpf: document.getElementById('colab-cpf').value.replace(/\D/g, ''),
                 nome_completo: document.getElementById('colab-nome').value,
-                nome_guerra: document.getElementById('colab-guerra').
+                nome_guerra: document.getElementById('colab-guerra').value,
+                email: document.getElementById('colab-email').value,
+                telefone: document.getElementById('colab-telefone').value,
+                cargo: document.getElementById('colab-cargo').value,
+                registro_prof: document.getElementById('colab-registro').value || null,
+                status: document.getElementById('colab-status').value,
+                tamanho_camisa: document.getElementById('colab-camisa').value || null,
+                tamanho_calca: document.getElementById('colab-calca').value || null,
+                tamanho_macacao: document.getElementById('colab-macacao').value || null,
+                tamanho_calcado: document.getElementById('colab-calcado').value || null,
+                unidade_base: CONFIG.TENANT.NOME_UNIDADE
+            };
+
+            const { data, error } = await supabase.from('colaboradores').insert([payload]).select();
+
+            btn.disabled = false;
+            if (error) {
+                console.error('Erro ao salvar colaborador:', error);
+                alert('Erro ao salvar colaborador: ' + error.message);
+            } else {
+                alert('Colaborador cadastrado com sucesso!');
+                document.getElementById('form-colaborador').reset();
+                const modalEl = document.getElementById('modalColaborador');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+                fetchColaboradores();
+            }
+        });
+
+        // ==============================================================================
+        // MÓDULO HOSPITAIS
+        // ==============================================================================
+        async function fetchHospitais(searchQuery = '') {
+            const tbody = document.getElementById('tbody-hospitais');
+            let query = supabase.from('hospitais').select('*').order('nome_fantasia', { ascending: true });
+
+            if (searchQuery) {
+                query = query.or(`nome_fantasia.ilike.%${searchQuery}%,municipio.ilike.%${searchQuery}%`);
+            }
+
+            const { data, error } = await query;
+
+            if (error) {
+                console.error('Erro ao carregar hospitais:', error);
+                tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center">Erro ao carregar hospitais: ${error.message}</td></tr>`;
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Nenhum hospital cadastrado.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(h => `
+                <tr>
+                    <td class="fw-bold">${h.nome_fantasia} ${h.cnes ? `<small class="text-muted">(${h.cnes})</small>` : ''}</td>
+                    <td>${h.municipio} / ${h.uf}</td>
+                    <td><small>${h.tipo} - ${h.porte}</small></td>
+                    <td>${h.telefone_plantao}</td>
+                    <td>
+                        ${h.possui_cti ? '<span class="badge bg-danger me-1">CTI</span>' : ''}
+                        ${h.possui_hemodinamica ? '<span class="badge bg-warning text-dark me-1">HEMO</span>' : ''}
+                        ${h.possui_maternidade ? '<span class="badge bg-info text-dark">MAT</span>' : ''}
+                    </td>
+                    <td>
+                        ${h.vagas_zero_suportadas ? '<span class="badge bg-success">SIM</span>' : '<span class="badge bg-secondary">NÃO</span>'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Cadastrar Hospital
+        document.getElementById('form-hospital').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-hosp');
+            btn.disabled = true;
+
+            const payload = {
+                nome_fantasia: document.getElementById('hosp-fantasia').value,
+                cnes: document.getElementById('hosp-cnes').value || null,
+                tipo: document.getElementById('hosp-tipo').value,
+                porte: document.getElementById('hosp-porte').value,
+                rua_logradouro: document.getElementById('hosp-rua').value || null,
+                numero: document.getElementById('hosp-numero').value || null,
+                bairro: document.getElementById('hosp-bairro').value || null,
+                municipio: document.getElementById('hosp-municipio').value,
+                uf: document.getElementById('hosp-uf').value,
+                telefone_plantao: document.getElementById('hosp-telefone').value,
+                vagas_zero_suportadas: document.getElementById('hosp-vagazero').checked,
+                possui_cti: document.getElementById('hosp-cti').checked,
+                possui_hemodinamica: document.getElementById('hosp-hemo').checked,
+                possui_maternidade: document.getElementById('hosp-mat').checked
+            };
+
+            const { data, error } = await supabase.from('hospitais').insert([payload]).select();
+
+            btn.disabled = false;
+            if (error) {
+                console.error('Erro ao salvar hospital:', error);
+                alert('Erro ao salvar hospital: ' + error.message);
+            } else {
+                alert('Hospital cadastrado com sucesso!');
+                document.getElementById('form-hospital').reset();
+                const modalEl = document.getElementById('modalHospital');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+                fetchHospitais();
+            }
+        });
+
+        // Eventos de Busca em Tempo Real
+        document.getElementById('search-colaborador').addEventListener('input', (e) => fetchColaboradores(e.target.value));
+        document.getElementById('search-hospital').addEventListener('input', (e) => fetchHospitais(e.target.value));
+    </script>
+</body>
+</html>
