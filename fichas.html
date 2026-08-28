@@ -296,13 +296,13 @@
 
           if (Array.isArray(insList) && insList.length > 0) {
             insList.forEach(i => {
-              const desc = v(i.item, v(i.descricao, v(i.nome)));
-              const qtd = v(i.qtd, v(i.quantidade, '1'));
-              const lote = v(i.lote, v(i.numero_lote, 'SEM LOTE'));
+              const desc = v(i.desc, v(i.descricao, v(i.item, v(i.nome))));
+              const qtd = v(i.quantidade, v(i.qtd, '1'));
+              const lote = v(i.lote, v(i.numero_lote, v(i.lote_id, 'SEM LOTE')));
               const valRaw = v(i.validade, v(i.data_validade));
               const val = valRaw !== '—' ? formatarDataBR(valRaw) : 'N/A';
 
-              if (desc !== '—' && desc !== 'NENHUM INSUMO OU MEDICAÇÃO UTILIZADO') {
+              if (desc !== '—' && !desc.toUpperCase().includes('NENHUM INSUMO')) {
                 insumosHtml += `<div style="margin-bottom: 2px;">• <b>${desc}</b> — LOTE: ${lote} | VAL: ${val} (<b>QTD: ${qtd}</b>)</div>`;
               }
             });
