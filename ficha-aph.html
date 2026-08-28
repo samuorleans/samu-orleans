@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Ficha APH - SAMU 192 Orleans</title>
+
+  <!-- PWA Manifest & Theme Color -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e293b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="logo.png">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -18,7 +26,30 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 8px; padding-bottom: 90px; }
+    body { background-color: var(--bg); color: var(--text); padding: 8px; padding-bottom: 90px; position: relative; }
+
+    /* OVERLAY DE BLOQUEIO TOTAL PRÉ-LOGIN */
+    .form-locked-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(5px);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-align: center;
+      pointer-events: all;
+    }
+
+    body.locked form#aphForm {
+      pointer-events: none !important;
+      opacity: 0.4;
+      user-select: none;
+      filter: grayscale(80%);
+    }
 
     header {
       background: linear-gradient(135deg, #1e293b, #0f172a);
@@ -35,6 +66,53 @@
     header .header-info { text-align: right; }
     header .header-info h1 { font-size: 1rem; font-weight: 800; text-transform: uppercase; color: #fff; }
     header .header-info p { font-size: 0.65rem; color: #94a3b8; font-weight: 600; }
+
+    .status-sync-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .badge-sync-status {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.62rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .badge-sync-status.online { background: #16a34a; color: #ffffff; }
+    .badge-sync-status.offline { background: #ea580c; color: #ffffff; animation: alertPulse 1.5s infinite alternate; }
+    
+    .btn-manual-sync {
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.62rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: none;
+    }
+
+    .btn-cache-pacientes {
+      background: #334155;
+      color: #ffffff;
+      border: none;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.62rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
 
     .card {
       background: var(--card-bg);
@@ -77,7 +155,7 @@
     label { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 1px; text-transform: uppercase; }
     .uppercase-input { text-transform: uppercase; }
 
-    input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea {
+    input[type="text"], input[type="password"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea {
       width: 100%;
       padding: 5px;
       border: 1px solid var(--border);
@@ -102,12 +180,16 @@
     .cor-vd { background-color: #16a34a; }
     .cor-az { background-color: #2563eb; }
 
-    .print-triagem-text, .print-signatures-block { display: none; }
+    .print-triagem-text, .print-signatures-block, .print-tipo-ocorrencia-text { display: none; }
 
     .search-group { display: flex; gap: 3px; }
     .btn-search {
       background: var(--secondary); color: #fff; border: none; padding: 0 8px; border-radius: 4px;
       font-size: 0.68rem; font-weight: bold; cursor: pointer; height: 29px;
+    }
+    .btn-reabrir-historico {
+      background: #1e293b; color: #ffffff; border: none; padding: 0 10px; border-radius: 4px;
+      font-size: 0.68rem; font-weight: 800; cursor: pointer; height: 29px; display: flex; align-items: center; gap: 4px;
     }
 
     .j-block-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 4px; }
@@ -152,41 +234,49 @@
     .med-table input.med-search-input { margin-bottom: 0; font-size: 0.78rem; padding: 5px; text-align: left; cursor: pointer; }
     .med-table input.med-qtd { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: center; }
 
-    .modal-med-overlay {
+    .modal-med-overlay, .modal-auth-overlay, .modal-alergia-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.75);
-      z-index: 99999;
+      background: rgba(15, 23, 42, 0.85);
+      z-index: 100000;
       display: none;
-      align-items: flex-start;
+      align-items: center;
       justify-content: center;
       padding: 12px;
-      backdrop-filter: blur(2px);
+      backdrop-filter: blur(3px);
+      pointer-events: auto !important;
     }
-    .modal-med-container {
+
+    .modal-med-container, .modal-auth-container, .modal-alergia-container {
       background: #ffffff;
       width: 100%;
-      max-width: 600px;
+      max-width: 500px;
       border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
       display: flex;
       flex-direction: column;
-      max-height: 85vh;
       overflow: hidden;
-      margin-top: 10px;
       border: 2px solid var(--primary);
+      pointer-events: auto !important;
     }
-    .modal-med-header {
+
+    .modal-alergia-container { border: 3px solid #dc2626; animation: alertPulse 1s infinite alternate; }
+    @keyframes alertPulse { from { box-shadow: 0 0 10px #dc2626; } to { box-shadow: 0 0 25px #dc2626; } }
+
+    .modal-med-header, .modal-auth-header, .modal-alergia-header {
       background: var(--secondary);
       color: #fff;
-      padding: 10px;
+      padding: 10px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-weight: 800;
       font-size: 0.85rem;
     }
-    .modal-med-close {
+
+    .modal-alergia-header { background: #991b1b; }
+
+    .modal-med-close, .modal-auth-close {
       background: var(--primary);
       color: #fff;
       border: none;
@@ -195,45 +285,40 @@
       font-weight: bold;
       cursor: pointer;
     }
-    .modal-med-search-box {
-      padding: 8px;
-      background: #f1f5f9;
-      border-bottom: 1px solid #cbd5e1;
-    }
-    .modal-med-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 4px;
-      -webkit-overflow-scrolling: touch;
-    }
-    .modal-med-item {
-      padding: 12px 10px;
-      border-bottom: 1px solid #e2e8f0;
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: #0f172a;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-    .modal-med-item:active {
-      background: #fee2e2;
-      color: #991b1b;
+
+    .modal-med-search-box { padding: 8px; background: #f1f5f9; border-bottom: 1px solid #cbd5e1; }
+    .modal-med-list { flex: 1; overflow-y: auto; padding: 4px; max-height: 60vh; }
+    .modal-med-item { padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 0.82rem; font-weight: 700; color: #0f172a; cursor: pointer; }
+
+    .btn-login-j3-submit {
+      width: 100% !important;
+      background: #dc2626 !important;
+      color: #ffffff !important;
+      border: none !important;
+      padding: 12px !important;
+      border-radius: 6px !important;
+      font-weight: 800 !important;
+      font-size: 0.88rem !important;
+      cursor: pointer !important;
+      text-transform: uppercase !important;
+      opacity: 1 !important;
+      filter: none !important;
+      pointer-events: auto !important;
+      box-shadow: 0 4px 10px rgba(220, 38, 38, 0.4) !important;
+      transition: background-color 0.2s ease, transform 0.1s ease !important;
     }
 
-    .psico-box {
-      background: #fff7ed;
-      border: 1px solid #fdba74;
-      padding: 5px;
-      border-radius: 4px;
-      margin-top: 3px;
-    }
-    
+    .btn-login-j3-submit:hover { background: #b91c1c !important; }
+    .btn-login-j3-submit:active { transform: scale(0.98) !important; }
+
+    .psico-box { background: #fff7ed; border: 1px solid #fdba74; padding: 5px; border-radius: 4px; margin-top: 3px; }
     .btn-time-sv { background: var(--secondary); color: #fff; border: none; border-radius: 3px; padding: 2px 4px; font-size: 0.6rem; cursor: pointer; }
     .btn-add-med, .btn-add-sv { background: #166534; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; cursor: pointer; margin-top: 3px; }
     .btn-del-med { background: #991b1b; color: white; border: none; padding: 2px 5px; border-radius: 3px; font-weight: bold; cursor: pointer; }
 
-    .checkbox-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
-    .checkbox-grid label { display: flex; align-items: center; gap: 3px; font-weight: 600; background: #f8fafc; padding: 4px; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 0.68rem; }
+    .radio-grid-ocorrencia { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+    .radio-grid-ocorrencia label { display: flex; align-items: center; gap: 6px; font-weight: 700; background: #f8fafc; padding: 6px 8px; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 0.75rem; color: #0f172a; cursor: pointer; }
+    .radio-grid-ocorrencia input[type="radio"] { width: 16px; height: 16px; margin: 0; }
 
     .btn-mic { background: #0284c7; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; float: right; }
     .btn-mic.recording { background: #dc2626; animation: pulse 1s infinite; }
@@ -246,108 +331,120 @@
       color: white; border: none; padding: 11px; border-radius: 6px; font-size: 0.85rem; font-weight: 800;
       box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3); width: calc(100% - 16px); z-index: 1000; text-transform: uppercase; cursor: pointer;
     }
+    .btn-submit:disabled { background: #94a3b8 !important; box-shadow: none !important; cursor: not-allowed; }
 
     .j-print-label { display: none; }
 
+    .vitima-selector-bar { display: flex; gap: 6px; margin-bottom: 6px; background: #e2e8f0; padding: 4px; border-radius: 6px; }
+    .btn-vitima-tab { flex: 1; padding: 6px; border: none; background: #cbd5e1; font-weight: 800; font-size: 0.72rem; border-radius: 4px; cursor: pointer; color: #334155; }
+    .btn-vitima-tab.active { background: var(--primary); color: #fff; }
+
+    .btn-alergia-confirm {
+      width: 100%;
+      background: #dc2626;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 900;
+      cursor: pointer;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .btn-alergia-negate {
+      width: 100%;
+      background: #475569;
+      color: white;
+      border: none;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
     @media print {
-      @page { size: A4 portrait; margin: 4mm; }
-      html, body { width: 100%; height: 100%; background: #fff !important; padding: 0 !important; margin: 0 !important; color: #000 !important; font-size: 5.5pt !important; line-height: 1.15; }
-      .btn-submit, .btn-search, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .modal-med-overlay, button, script { display: none !important; }
-      
-      select, input[type="time"], input[type="date"] {
-        -webkit-appearance: none !important;
-        -moz-appearance: none !important;
-        appearance: none !important;
-        background: transparent !important;
-        background-image: none !important;
-      }
-
-      input[type="time"]::-webkit-calendar-picker-indicator,
-      input[type="time"]::-webkit-inner-spin-button,
-      input[type="date"]::-webkit-calendar-picker-indicator {
-        display: none !important;
-        -webkit-appearance: none !important;
-      }
-
-      header {
-        background: #fff !important; color: #000 !important; border-bottom: 1.5pt solid #000; padding: 2px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-content: space-between !important; align-items: center !important;
-      }
-      header img { height: 32px !important; }
+      @page { size: A4 portrait; margin: 3mm; }
+      html, body { width: 100%; height: 100%; background: #fff !important; padding: 0 !important; margin: 0 !important; color: #000000 !important; font-size: 6pt !important; line-height: 1.1; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; text-rendering: optimizeLegibility !important; }
+      .btn-submit, .btn-search, .btn-reabrir-historico, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .modal-med-overlay, .modal-auth-overlay, .modal-alergia-overlay, .vitima-selector-bar, .status-sync-bar, .form-locked-overlay, button, script { display: none !important; }
+      select, input[type="time"], input[type="date"] { -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background: transparent !important; background-image: none !important; }
+      input[type="time"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-inner-spin-button, input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; -webkit-appearance: none !important; }
+      header { background: #fff !important; color: #000000 !important; border-bottom: 1.5pt solid #000000; padding: 1px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-content: space-between !important; align-items: center !important; }
+      header img { height: 28px !important; }
       header .header-info { text-align: right !important; }
-      header h1 { font-size: 9pt !important; margin: 0; color: #000 !important; font-weight: 900 !important; letter-spacing: 0.5px; }
-      header p { font-size: 5.5pt !important; margin: 0; font-weight: bold; color: #000 !important; }
-
-      .card { box-shadow: none !important; border: 0.5pt solid #000 !important; margin-bottom: 2px !important; padding: 0 !important; border-radius: 0 !important; page-break-inside: avoid !important; }
-      .card-header { background: #f1f5f9 !important; color: #000 !important; border-bottom: 0.5pt solid #000 !important; padding: 1px 3px !important; font-size: 5.5pt !important; font-weight: 900 !important; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      header h1 { font-size: 8.5pt !important; margin: 0; color: #000000 !important; font-weight: 900 !important; letter-spacing: 0.5px; }
+      header p { font-size: 5pt !important; margin: 0; font-weight: 900; color: #000000 !important; }
+      .card { box-shadow: none !important; border: 0.6pt solid #000000 !important; margin-bottom: 2px !important; padding: 0 !important; border-radius: 0 !important; page-break-inside: avoid !important; }
+      .card-header { background: #f1f5f9 !important; color: #000000 !important; border-bottom: 0.6pt solid #000000 !important; padding: 1px 3px !important; font-size: 5.5pt !important; font-weight: 900 !important; text-transform: uppercase; }
       .card-body { display: block !important; padding: 2px 3px !important; }
-      label { font-size: 4.5pt !important; color: #000 !important; margin-bottom: 0px !important; font-weight: 800 !important; }
-      input[type="text"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.3pt solid #666 !important; background: transparent !important; padding: 0px !important; font-weight: 800 !important; font-size: 5.5pt !important; margin-bottom: 0px !important; height: auto !important; color: #000 !important; }
+      label { font-size: 4.5pt !important; color: #000000 !important; margin-bottom: 0px !important; font-weight: 900 !important; }
+      input[type="text"], input[type="password"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.4pt solid #000000 !important; background: transparent !important; padding: 0px !important; font-weight: 900 !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; color: #000000 !important; }
       textarea { height: auto !important; resize: none; }
-      
       .codigo-group { display: none !important; }
-      .print-triagem-text {
-        display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.5pt solid #000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;
-      }
-
-      #printReclassificacaoBox { display: none !important; }
-
+      .print-triagem-text { display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.6pt solid #000000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; color: #000000 !important; }
+      #box_reclassificacao_wrapper.sem-reclassificacao { display: none !important; }
+      .radio-grid-ocorrencia { display: none !important; }
+      .print-tipo-ocorrencia-text { display: block !important; font-size: 6.5pt !important; font-weight: 900 !important; color: #000000 !important; padding: 2px 0 !important; text-transform: uppercase; }
+      #printReclassificacaoBox:empty, .print-ocultar-vazio { display: none !important; }
       .j-block-container { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 2px !important; }
-      .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; border: 0.4pt solid #000 !important; background: transparent !important; padding: 1px !important; }
+      .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; text-align: center !important; border: 0.4pt solid #000000 !important; background: transparent !important; padding: 1px !important; }
       .btn-j-badge { display: none !important; }
-      .j-print-label { display: block !important; font-size: 4.2pt !important; font-weight: 900 !important; text-transform: uppercase; text-align: center; }
-      .j-time-input { height: 11px !important; font-size: 5.5pt !important; font-weight: 900 !important; border: none !important; text-align: center !important; width: 100% !important; }
-
-      .sv-table th, .sv-table td, .table-expo th, .table-expo td { font-size: 5pt !important; padding: 1px !important; border: 0.4pt solid #000 !important; text-align: center !important; }
-      .med-table th, .med-table td { font-size: 5pt !important; padding: 1px !important; border: 0.4pt solid #000 !important; }
+      .j-print-label { display: block !important; font-size: 4.2pt !important; font-weight: 900 !important; text-transform: uppercase; text-align: center !important; color: #000000 !important; width: 100% !important; }
+      .j-time-input { height: 11px !important; font-size: 5.5pt !important; font-weight: 900 !important; border: none !important; text-align: center !important; width: 100% !important; color: #000000 !important; }
+      .sv-table th, .sv-table td, .table-expo th, .table-expo td, .med-table th, .med-table td { font-size: 5.2pt !important; padding: 1px !important; border: 0.4pt solid #000000 !important; color: #000000 !important; font-weight: 900 !important; }
+      .sv-table td, .table-expo td { text-align: center !important; }
       .med-table td { text-align: left !important; }
       .med-table td.td-center { text-align: center !important; }
       .med-table input.med-search-input { text-align: left !important; }
       .med-table input.med-qtd { text-align: center !important; }
-      
-      canvas { height: 28px !important; border: 0.4pt solid #000 !important; }
-
-      .print-signatures-block {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 4px;
-        margin-top: 4px;
-        padding-top: 2px;
-        page-break-inside: avoid;
-      }
-      .print-signatures-block.duas-colunas {
-        grid-template-columns: 1fr 1fr !important;
-      }
-      .sig-box {
-        border: 0.4pt solid #000;
-        padding: 3px;
-        text-align: center;
-        min-height: 44px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
-      .sig-line {
-        border-top: 0.4pt solid #000;
-        margin-top: 20px;
-        font-size: 4.8pt;
-        font-weight: bold;
-        text-transform: uppercase;
-      }
-
-      .glasgow-total-box {
-        font-size: 7pt !important;
-        padding: 1px !important;
-        border: 0.4pt solid #000 !important;
-        background: transparent !important;
-        box-shadow: none !important;
-      }
+      .sv-time-val { text-align: center !important; }
+      .col-excluir-print { display: none !important; }
+      #box_nenhum_insumo_wrapper.ocultar-aviso-print { display: none !important; }
+      .med-row-insumo-comum { display: none !important; }
+      canvas { height: 26px !important; border: 0.4pt solid #000000 !important; }
+      .print-signatures-block { display: grid !important; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 3px; padding-top: 1px; page-break-inside: avoid; }
+      .print-signatures-block.tres-colunas { grid-template-columns: 1fr 1fr 1fr !important; }
+      .sig-box { border: 0.4pt solid #000000; padding: 2px; text-align: center; min-height: 40px; display: flex; flex-direction: column; justify-content: space-between; }
+      .sig-line { border-top: 0.4pt solid #000000; margin-top: 18px; font-size: 4.5pt; font-weight: 900; text-transform: uppercase; color: #000000; }
+      .sig-title { font-size: 4.5pt; font-weight: bold; color: #000000; text-align: center; }
+      .glasgow-total-box { font-size: 7pt !important; padding: 1px !important; border: 0.4pt solid #000000 !important; background: transparent !important; box-shadow: none !important; color: #000000 !important; }
     }
   </style>
 </head>
-<body>
+<body class="locked">
+
+  <!-- OVERLAY DE BLOQUEIO TOTAL PRÉ-LOGIN -->
+  <div id="formLockedOverlay" class="form-locked-overlay">
+    <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
+    <h2 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 6px;">SISTEMA BLOQUEADO</h2>
+    <p style="font-size: 0.85rem; max-width: 300px; margin-bottom: 15px; opacity: 0.9;">
+      Acesso restrito à equipe de Enfermagem ativa no plantão J3 ou Administração/Coordenação.
+    </p>
+    <button type="button" onclick="abrirLoginJ3()" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 800; font-size: 0.9rem; cursor: pointer; text-transform: uppercase;">
+      🔑 EFETUAR LOGIN
+    </button>
+  </div>
 
   <header>
-    <img src="logo.png" alt="SAMU Logo" onerror="this.style.display='none'">
+    <div class="status-sync-bar">
+      <img src="logo.png" alt="SAMU Logo" onerror="this.style.display='none'">
+      <div id="badgeSyncStatus" class="badge-sync-status online">🟢 ONLINE</div>
+      <button type="button" id="btnManualSync" class="btn-manual-sync" onclick="sincronizarFichasPendentesOffline()">📲 Sincronizar</button>
+      <button type="button" id="btnCachePacientes" class="btn-cache-pacientes" onclick="baixarEAtualizarCachePacientes(true)" title="Baixar Pacientes do Banco para Acesso Offline">🔄 Carga Pacientes</button>
+      
+      <!-- INDICADOR E BOTÃO DE LOGIN J3 INTEGRADOR -->
+      <div class="header-user-status" style="display: inline-flex; align-items: center; gap: 6px; margin-left: 6px;">
+        <div id="usuarioJ3Info" style="font-size: 0.65rem; color: #cbd5e1; text-align: right;">
+          <span>Status: <strong>Não Autenticado</strong></span>
+        </div>
+        <button type="button" id="btnLoginJ3Header" onclick="abrirLoginJ3()" style="background: #dc2626; color: #fff; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.62rem; font-weight: 800; cursor: pointer;">
+          🔑 Login J3
+        </button>
+      </div>
+    </div>
     <div class="header-info">
       <h1>SAMU 192 - ORLEANS / SC</h1>
       <p>FICHA DE ATENDIMENTO MÓVEL DE URGÊNCIA (USB 11)</p>
@@ -356,14 +453,20 @@
 
   <form id="aphForm">
 
-    <!-- SEÇÃO 1: CONTROLE OPERACIONAL (FIXO E EXPANDIDO) -->
+    <!-- SEÇÃO 1: CONTROLE OPERACIONAL -->
     <div class="card active" id="sec1">
       <div class="card-header">
         <span>1. Controle Operacional & Equipe</span>
       </div>
       <div class="card-body">
         <div class="grid-3">
-          <div><label>Nº Ocorrência</label><input type="tel" inputmode="numeric" id="codigo" class="uppercase-input" required placeholder="Nº OCORRÊNCIA"></div>
+          <div>
+            <label>Nº Ocorrência</label>
+            <div class="search-group">
+              <input type="tel" inputmode="numeric" id="codigo" class="uppercase-input" required placeholder="Nº OCORRÊNCIA">
+              <button type="button" class="btn-reabrir-historico" onclick="iniciarFluxoReaberturaOcorrencia()" title="Reabrir Ocorrência Antiga">📂 Reabrir</button>
+            </div>
+          </div>
           <div>
             <label>CÓDIGO TRIAGEM</label>
             <input type="hidden" id="cor_ocorrencia" value="VM">
@@ -380,8 +483,7 @@
           <div><label>Data</label><input type="date" id="data"></div>
         </div>
 
-        <!-- RECLASSIFICAÇÃO DE CÓDIGO -->
-        <div style="margin-top: 4px; padding: 5px; background: #f8fafc; border: 1px dashed var(--border); border-radius: 4px;">
+        <div id="box_reclassificacao_wrapper" class="sem-reclassificacao" style="margin-top: 4px; padding: 5px; background: #f8fafc; border: 1px dashed var(--border); border-radius: 4px;">
           <label style="color: #0f172a; font-weight: 800;">RECLASSIFICAÇÃO DE CÓDIGO (REGULAÇÃO MÉDICA)</label>
           <div class="grid-reclassificacao-otimizado">
             <div>
@@ -422,7 +524,6 @@
           </div>
         </div>
 
-        <!-- MÓDULO DOS J'S E QTA -->
         <div class="j-block-container">
           <div class="j-row-tactical">
             <span class="j-print-label">J9 (Saída Base)</span>
@@ -481,19 +582,25 @@
       </div>
     </div>
 
-    <!-- SEÇÃO 2: IDENTIFICAÇÃO DO PACIENTE & LOCAL -->
+    <!-- SEÇÃO 2: IDENTIFICAÇÃO DO PACIENTE & MULTI-VÍTIMAS -->
     <div class="card" id="sec2">
       <div class="card-header" onclick="toggleCard('sec2')">
         <span>2. Identificação do Paciente & Local</span>
         <span class="icon-toggle">▼</span>
       </div>
       <div class="card-body">
+        
+        <div class="vitima-selector-bar">
+          <button type="button" class="btn-vitima-tab active" id="tabVitima1" onclick="alternarVitima(1)">Vítima 1 (Principal)</button>
+          <button type="button" class="btn-vitima-tab" id="tabVitima2" onclick="alternarVitima(2)">+ Vítima 2 (Secundária)</button>
+        </div>
+
         <div class="grid-3">
           <div>
-            <label>CPF Paciente</label>
+            <label>CPF Paciente / Busca Cadastro</label>
             <div class="search-group">
-              <input type="tel" inputmode="numeric" id="cpf_paciente" placeholder="000.000.000-00" maxlength="14">
-              <button type="button" class="btn-search" onclick="buscarPacienteCPF()">🔍 Buscar</button>
+              <input type="tel" inputmode="numeric" id="cpf_paciente" placeholder="000.000.000-00" maxlength="14" oninput="aoModificarCPF(this)">
+              <button type="button" class="btn-search" onclick="puxarCadastroPacienteSemSenha()">🔍 Puxar Dados</button>
             </div>
           </div>
           <div><label>CNS (Cartão SUS)</label><input type="tel" inputmode="numeric" id="cns_paciente" placeholder="000 0000 0000 0000" maxlength="15"></div>
@@ -508,8 +615,15 @@
           <input type="text" id="paciente" class="uppercase-input" style="font-weight: 700;" placeholder="NOME DO PACIENTE">
         </div>
 
-        <div class="grid-3">
-          <div><label>Idade</label><input type="number" inputmode="numeric" id="idade"></div>
+        <div class="grid-4" style="margin-top: 2px;">
+          <div>
+            <label>Data Nasc.</label>
+            <input type="date" id="data_nascimento" onchange="calcularIdadeAutomatico(this)">
+          </div>
+          <div>
+            <label>Idade (Anos)</label>
+            <input type="number" inputmode="numeric" id="idade" placeholder="EX: 45">
+          </div>
           <div>
             <label>Sexo</label>
             <select id="sexo">
@@ -529,26 +643,30 @@
         <div class="grid-4">
           <div><label>Bairro</label><input type="text" id="bairro" class="uppercase-input"></div>
           <div><label>Ponto de Referência</label><input type="text" id="ponto_ref" class="uppercase-input"></div>
-          <div><label>Município</label><input type="text" id="municipio" class="uppercase-input" value="ORLEANS"></div>
+          <div>
+            <label>Município</label>
+            <input type="text" id="municipio" class="uppercase-input" value="ORLEANS" onchange="atualizarHospitaisPorMunicipio()">
+          </div>
           <div><label>Estado (UF)</label><input type="text" id="estado" class="uppercase-input" value="SC" maxlength="2"></div>
         </div>
       </div>
     </div>
 
-    <!-- SEÇÃO 3: TIPO DE ATENDIMENTO -->
+    <!-- SEÇÃO 3: TIPO DE OCORRÊNCIA -->
     <div class="card" id="sec3">
       <div class="card-header" onclick="toggleCard('sec3')">
-        <span>3. Tipo de Atendimento</span>
+        <span>3. Tipo Ocorrência *</span>
         <span class="icon-toggle">▼</span>
       </div>
       <div class="card-body">
-        <div class="checkbox-grid">
-          <label><input type="checkbox" value="Clínico Adulto"> Clínico Adulto</label>
-          <label><input type="checkbox" value="Clínico Pediátrico"> Clin. Pediátrico</label>
-          <label><input type="checkbox" value="Obstétrico"> Obstétrico</label>
-          <label><input type="checkbox" id="chk_trauma" value="Causas Externas / Trauma" onchange="alternarExibicaoExposicaoTrauma()"> Causas Ext. / Trauma</label>
-          <label><input type="checkbox" value="Psiquiátrico"> Psiquiátrico</label>
+        <div class="radio-grid-ocorrencia">
+          <label><input type="radio" name="tipo_ocorrencia" value="Sinistro de Trânsito" onchange="tratarSelecaoTipoOcorrencia(this)"> Sinistro de Trânsito</label>
+          <label><input type="radio" name="tipo_ocorrencia" value="Clínico" onchange="tratarSelecaoTipoOcorrencia(this)"> Clínico</label>
+          <label><input type="radio" name="tipo_ocorrencia" value="Clínico - Psiquiátrico" onchange="tratarSelecaoTipoOcorrencia(this)"> Clínico - Psiquiátrico</label>
+          <label><input type="radio" name="tipo_ocorrencia" value="APH - Trauma" onchange="tratarSelecaoTipoOcorrencia(this)"> APH - Trauma</label>
         </div>
+        
+        <div id="printTipoOcorrenciaBox" class="print-tipo-ocorrencia-text">TIPO OCORRÊNCIA: NÃO INFORMADO</div>
       </div>
     </div>
 
@@ -562,15 +680,15 @@
         <div class="grid-3" style="margin-bottom: 4px;">
           <div>
             <label>A - Vias Aéreas</label>
-            <select><option>Pérvea (Livre)</option><option>Obstrução Parcial</option><option>Obstrução Total</option></select>
+            <select id="vias_aereas"><option>Pérvea (Livre)</option><option>Obstrução Parcial</option><option>Obstrução Total</option></select>
           </div>
           <div>
             <label>B - Respiração</label>
-            <select><option>Eupneico</option><option>Dispneico</option><option>Apneia</option><option>Parada Respiratória</option></select>
+            <select id="respiracao"><option>Eupneico</option><option>Dispneico</option><option>Apneia</option><option>Parada Respiratória</option></select>
           </div>
           <div>
             <label>C - Pulso / Pele</label>
-            <select><option>Regular</option><option>Irregular</option><option>Filiforme</option><option>Parada Circulatória</option></select>
+            <select id="circulacao"><option>Regular</option><option>Irregular</option><option>Filiforme</option><option>Parada Circulatória</option></select>
           </div>
         </div>
 
@@ -609,7 +727,7 @@
             </div>
             <div>
               <label>Pupilas</label>
-              <select style="font-size: 0.72rem;">
+              <select id="pupilas" style="font-size: 0.72rem;">
                 <option>Isocóricas</option>
                 <option>Anisocóricas</option>
                 <option>Miose</option>
@@ -626,25 +744,24 @@
         </div>
 
         <div id="box_exposicao_lesoes" style="display: none; margin-top: 4px;">
-          <label style="color: var(--primary-dark); font-weight: 800;">E - Exposição / Lesões por Região (Trauma)</label>
-          <table class="table-expo">
+          <label style="color: var(--primary-dark); font-weight: 800;">E - Exposição / Lesões por Região (Trauma / Sinistro)</label>
+          <table class="table-expo" id="tabela_lesoes_expo">
             <thead>
               <tr>
                 <th>REGIÃO</th><th>Ferida/Corte</th><th>Fratura/Luxação</th><th>Queimadura</th><th>Escoriação</th><th>Edema/Hematoma</th>
               </tr>
             </thead>
             <tbody>
-              <tr><td>Cabeça/Pescoço</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
-              <tr><td>Tronco</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
-              <tr><td>Pelve</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
-              <tr><td>M. Superior (D/E)</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
-              <tr><td>M. Inferior (D/E)</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr data-regiao="Cabeca/Pescoco"><td>Cabeça/Pescoço</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr data-regiao="Tronco"><td>Tronco</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr data-regiao="Pelve"><td>Pelve</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr data-regiao="MSup"><td>M. Superior (D/E)</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr data-regiao="MInf"><td>M. Inferior (D/E)</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
             </tbody>
           </table>
         </div>
 
-        <!-- ÁRVORE DE DECISÃO DE BIOSSEGURANÇA -->
-        <div style="margin-top: 6px; padding: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;">
+        <div id="box_bio_wrapper" style="margin-top: 6px; padding: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;">
           <label style="color: var(--secondary); font-weight: 800; font-size: 0.68rem;">
             ☣️ BIOSSEGURANÇA: PACIENTE COM SUSPEITA OU CONFIRMAÇÃO DE DOENÇA INFECTOCONTAGIOSA / MATERIAL BIOLÓGICO?
           </label>
@@ -691,14 +808,14 @@
         <table class="sv-table">
           <thead>
             <tr>
-              <th style="width: 75px;">Hora</th>
+              <th style="width: 75px; text-align: center;">Hora</th>
               <th>PA (mmHg)</th>
               <th>FC (bpm)</th>
               <th>FR (mpm)</th>
               <th>SpO₂ (%)</th>
               <th>Temp (ºC)</th>
               <th>HGT (mg/dL)</th>
-              <th style="width: 25px;">#</th>
+              <th style="width: 25px;" class="col-excluir-print">#</th>
             </tr>
           </thead>
           <tbody id="sv_body">
@@ -717,7 +834,7 @@
       </div>
       <div class="card-body">
 
-        <div style="margin-bottom: 6px; background: #f8fafc; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
+        <div id="box_nenhum_insumo_wrapper" class="ocultar-aviso-print" style="margin-bottom: 6px; background: #f8fafc; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
           <label style="display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 800; color: #1e293b; cursor: pointer;">
             <input type="checkbox" id="chk_nenhum_insumo" onchange="alternarNenhumInsumo(this)" style="width: 16px; height: 16px;">
             🚫 NENHUM INSUMO OU MEDICAÇÃO FOI UTILIZADO NESTE ATENDIMENTO
@@ -730,7 +847,7 @@
               <tr>
                 <th>Insumo Selecionado (Com Lote e Validade)</th>
                 <th style="width: 80px; text-align: center;">Qtd</th>
-                <th style="width: 35px; text-align: center;">#</th>
+                <th style="width: 35px; text-align: center;" class="col-excluir-print">#</th>
               </tr>
             </thead>
             <tbody id="meds_body">
@@ -791,7 +908,9 @@
           <div><label>Técnico Resp. (Automático)</label><input type="text" id="tec_resp" readonly style="background: #e2e8f0; font-weight: bold;"></div>
           <div>
             <label>Destino / Hospital Receptor</label>
-            <select id="hospital_destino" onchange="toggleHospitalOutros()"><option value="">Buscando Hospitais...</option></select>
+            <select id="hospital_destino" onchange="toggleHospitalOutros()">
+              <option value="">Carregando hospitais...</option>
+            </select>
             <input type="text" id="hospital_outros" class="uppercase-input" placeholder="DIGITE O NOME DO HOSPITAL..." style="display: none; margin-top: 3px;">
           </div>
         </div>
@@ -874,59 +993,1010 @@
       </div>
     </div>
 
-    <!-- ESTRUTURA DO POPUP MODAL DE BUSCA DE MEDICAÇÃO -->
-    <div class="modal-med-overlay" id="modalMedOverlay">
-      <div class="modal-med-container">
-        <div class="modal-med-header">
-          <span>🔍 SELEÇÃO DE INSUMO / MEDICAÇÃO</span>
-          <button type="button" class="modal-med-close" onclick="fecharModalBuscaMed()">✕ FECHAR</button>
-        </div>
-        <div class="modal-med-search-box">
-          <input type="text" id="modalMedInput" class="uppercase-input" placeholder="DIGITE NOME, LOTE OU VALIDADE..." oninput="filtrarListaModal(this.value)" onkeyup="filtrarListaModal(this.value)">
-        </div>
-        <div class="modal-med-list" id="modalMedList">
-          <!-- Itens renderizados via JS -->
-        </div>
-      </div>
-    </div>
-
-    <!-- CAMPO EXCLUSIVO DA IMPRESSÃO P&B -->
+    <!-- BLOCO DINÂMICO DE ASSINATURAS PARA IMPRESSÃO -->
     <div class="print-signatures-block" id="printSigBlock">
-      <div class="sig-box">
-        <div style="font-size: 4.5pt; font-weight: bold;">TÉCNICO DE ENFERMAGEM</div>
+      <div class="sig-box" id="sigBoxTecnico">
+        <div class="sig-title">TÉCNICO DE ENFERMAGEM</div>
         <div class="sig-line">ASSINATURA E CARIMBO / COREN</div>
       </div>
-      <div class="sig-box" id="sigBoxDeclarante">
-        <div style="font-size: 4.5pt; font-weight: bold;">DECLARANTE / VÍTIMA / RESPONSÁVEL</div>
+      <div class="sig-box" id="sigBoxDeclarante" style="display: none;">
+        <div class="sig-title">DECLARANTE / VÍTIMA / RESPONSÁVEL</div>
         <div class="sig-line">ASSINATURA FÍSICA DO DECLARANTE</div>
       </div>
       <div class="sig-box" id="sigBoxMedico">
-        <div style="font-size: 4.5pt; font-weight: bold;">MÉDICO RECEPTOR / REGULADOR</div>
+        <div class="sig-title">MÉDICO RECEPTOR / REGULADOR</div>
         <div class="sig-line">ASSINATURA E CARIMBO / CRM</div>
       </div>
     </div>
 
-    <button type="button" class="btn-submit" id="btnImprimir">Imprimir / Gerar 2 Vias A4</button>
+    <button type="button" class="btn-submit" id="btnImprimir" disabled>Imprimir Ficha (Vítima 1)</button>
   </form>
 
+  <!-- MODAIS ISOLADOS FORA DO FORMULARIO -->
+
+  <div class="modal-med-overlay" id="modalMedOverlay">
+    <div class="modal-med-container">
+      <div class="modal-med-header">
+        <span>🔍 SELEÇÃO DE INSUMO / MEDICAÇÃO</span>
+        <button type="button" class="modal-med-close" onclick="fecharModalBuscaMed()">✕ FECHAR</button>
+      </div>
+      <div class="modal-med-search-box">
+        <input type="text" id="modalMedInput" class="uppercase-input" placeholder="DIGITE NOME, LOTE OU VALIDADE..." oninput="filtrarListaModal(this.value)" onkeyup="filtrarListaModal(this.value)">
+      </div>
+      <div class="modal-med-list" id="modalMedList"></div>
+    </div>
+  </div>
+
+  <div class="modal-auth-overlay" id="modalAuthOverlay">
+    <div class="modal-auth-container">
+      <div class="modal-auth-header">
+        <span>🔒 AUTENTICAÇÃO ADMINISTRATIVA / TERCEIROS</span>
+        <button type="button" class="modal-auth-close" onclick="fecharModalAuth()">✕ FECHAR</button>
+      </div>
+      <div style="padding: 15px;">
+        <p style="font-size: 0.75rem; color: #475569; font-weight: 600; margin-bottom: 10px;">
+          Esta ocorrência foi registrada por outro profissional. Para reabrir este prontuário, informe a senha de um usuário com perfil <strong>ADMIN</strong>:
+        </p>
+        <label>SENHA DE ADMINISTRADOR</label>
+        <input type="password" id="auth_pass_input" placeholder="DIGITE SUA SENHA CADASTRADA..." style="padding: 8px; font-size: 0.9rem; margin-bottom: 10px;">
+        <button type="button" onclick="confirmarAutenticacaoEBuscar()" style="width: 100%; background: var(--secondary); color: white; border: none; padding: 10px; border-radius: 4px; font-weight: 800; cursor: pointer;">
+          🔓 CONFIRMAR ACESSO ADMIN
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-alergia-overlay" id="modalAlergiaOverlay">
+    <div class="modal-alergia-container">
+      <div class="modal-alergia-header">
+        <span>⚠️ ALERTA CRÍTICO DE SEGURANÇA: PACIENTE ALÉRGICO</span>
+      </div>
+      <div style="padding: 16px; text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 6px;">🚫🚨</div>
+        <h2 style="color: #991b1b; font-size: 1.1rem; font-weight: 900; margin-bottom: 8px;">ATENÇÃO TÁTICA DA EQUIPE!</h2>
+        <p style="font-size: 0.8rem; color: #0f172a; font-weight: 700; margin-bottom: 10px;">
+          Este paciente possui histórico de <span style="color: #dc2626; text-decoration: underline;">ALERGIA MEDICAMENTOSA</span> registrado em prontuário:
+        </p>
+        <div id="alergia_alerta_texto" style="background: #fef2f2; border: 2px dashed #dc2626; padding: 10px; border-radius: 6px; font-size: 0.95rem; font-weight: 900; color: #991b1b; margin-bottom: 14px;">
+          NENHUMA INFORMADA
+        </div>
+
+        <button type="button" class="btn-alergia-confirm" onclick="confirmarAlergiaTatica(true)">
+          ✅ CONFIRMAR ALERGIA (NÃO ADMINISTRAR MEDICAMENTO)
+        </button>
+
+        <button type="button" class="btn-alergia-negate" onclick="confirmarAlergiaTatica(false)">
+          ❌ NEGA ALERGIA / INFORMAÇÃO DIVERGENTE
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-auth-overlay" id="modalLoginJ3" style="display: flex;">
+    <div class="modal-auth-container" style="max-width: 380px;">
+      <div class="modal-auth-header" style="background: #1e293b;">
+        <span>ambulância LOGIN DE PLANTÃO J3</span>
+        <button type="button" class="modal-auth-close" id="btnFecharLoginJ3" onclick="fecharLoginJ3()" style="display: none;">✕</button>
+      </div>
+      <div style="padding: 16px;">
+        <p style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 12px; text-align: center;">
+          Acesso exclusivo para Enfermagem ativa no J3 ou Adm/Coordenação.
+        </p>
+
+        <div style="margin-bottom: 10px;">
+          <label>USUÁRIO / MATRÍCULA / CPF</label>
+          <input type="text" id="j3_user_input" class="uppercase-input" placeholder="DIGITE SEU USUÁRIO OU CPF" maxlength="18" style="padding: 8px; font-size: 0.85rem;" oninput="mascaraEFormatarLoginUsuario(this)">
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label>SENHA J3</label>
+          <input type="password" id="j3_pass_input" placeholder="DIGITE SUA SENHA" style="padding: 8px; font-size: 0.85rem;">
+        </div>
+
+        <button type="button" onclick="autenticarUsuarioJ3()" class="btn-login-j3-submit">
+          🔑 ENTRAR NO PLANTÃO E LIBERAR
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('✅ Service Worker PWA registrado com sucesso:', reg.scope))
+          .catch(err => console.warn('⚠️ Falha ao registrar Service Worker PWA:', err));
+      });
+    }
+
     const SUPABASE_URL = 'https://rcpgukslnlfptreiusff.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A';
 
     let _supabase = null;
     let mapaLotesUnificados = [];
+    let listaColaboradoresCache = [];
     let wakeLock = null;
     let recognition = null;
     let isRecording = false;
     let inputMedAtualFocus = null;
+    let vitimaAtual = 1;
+
+    let usuarioJ3Logado = null;
+    let plantaoJ3Ativo = null;
+    let rascunhoVitimas = { 1: {}, 2: {} };
 
     if (window.supabase) {
       _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
     const COLABORADORES_FALLBACK = [
-      { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "" }
+      { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "", senha: "" }
     ];
+
+    function mascaraEFormatarLoginUsuario(input) {
+      let val = input.value;
+      let soNumeros = val.replace(/\D/g, "");
+
+      if (soNumeros.length > 0 && val.replace(/[.\-]/g, "").match(/^\d+$/)) {
+        if (soNumeros.length > 11) soNumeros = soNumeros.slice(0, 11);
+        
+        if (soNumeros.length <= 11) {
+          soNumeros = soNumeros.replace(/(\d{3})(\d)/, "$1.$2");
+          soNumeros = soNumeros.replace(/(\d{3})(\d)/, "$1.$2");
+          soNumeros = soNumeros.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        }
+        input.value = soNumeros;
+      } else {
+        input.value = val.toUpperCase();
+      }
+    }
+
+    function desbloquearFormularioPorLogin() {
+      document.body.classList.remove('locked');
+      document.getElementById('formLockedOverlay').style.display = 'none';
+      document.getElementById('modalLoginJ3').style.display = 'none';
+      document.getElementById('btnFecharLoginJ3').style.display = 'block';
+    }
+
+    function bloquearFormularioSemLogin() {
+      document.body.classList.add('locked');
+      document.getElementById('formLockedOverlay').style.display = 'flex';
+      document.getElementById('btnFecharLoginJ3').style.display = 'none';
+    }
+
+    function abrirLoginJ3() {
+      document.getElementById('j3_user_input').value = '';
+      document.getElementById('j3_pass_input').value = '';
+      document.getElementById('formLockedOverlay').style.display = 'none';
+      document.getElementById('modalLoginJ3').style.display = 'flex';
+      setTimeout(() => document.getElementById('j3_user_input').focus(), 150);
+    }
+
+    function fecharLoginJ3() {
+      if (!usuarioJ3Logado) {
+        document.getElementById('formLockedOverlay').style.display = 'flex';
+        document.getElementById('modalLoginJ3').style.display = 'none';
+        alert("⚠️ Você precisa realizar o login para liberar o formulário.");
+        return;
+      }
+      document.getElementById('modalLoginJ3').style.display = 'none';
+    }
+
+    async function buscarPlantaoAtivoJ3() {
+      if (!_supabase || !navigator.onLine) return null;
+
+      try {
+        let { data, error } = await _supabase
+          .from('plantoes_j3')
+          .select('*')
+          .or('status.eq.ATIVO,status.eq.ABERTO')
+          .order('id', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        return data || null;
+      } catch (err) {
+        console.error("Erro ao buscar plantão ativo J3:", err);
+        return null;
+      }
+    }
+
+    async function autenticarUsuarioJ3() {
+      const usuarioInputRaw = document.getElementById('j3_user_input').value.trim();
+      const senhaInput = document.getElementById('j3_pass_input').value.trim();
+
+      if (!usuarioInputRaw || !senhaInput) {
+        alert("Por favor, preencha o usuário e a senha.");
+        return;
+      }
+
+      const usuarioInput = usuarioInputRaw.toUpperCase();
+      const apenasNumeros = usuarioInputRaw.replace(/\D/g, "");
+      const cpfComMascara = apenasNumeros.length === 11 ? 
+        apenasNumeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : usuarioInputRaw;
+
+      try {
+        let colabEncontrado = null;
+
+        if (_supabase && navigator.onLine) {
+          let query = _supabase.from('colaboradores').select('*');
+          if (apenasNumeros.length >= 11) {
+            query = query.or(`cpf.ilike.%${apenasNumeros}%,cpf.ilike.%${cpfComMascara}%,nome.ilike.%${usuarioInput}%`);
+          } else {
+            query = query.or(`nome.ilike.%${usuarioInput}%,cpf.ilike.%${usuarioInput}%`);
+          }
+
+          const { data, error } = await query.limit(1).maybeSingle();
+
+          if (data && String(data.senha).trim() === senhaInput) {
+            colabEncontrado = data;
+          }
+        }
+
+        if (!colabEncontrado && typeof listaColaboradoresCache !== 'undefined') {
+          colabEncontrado = listaColaboradoresCache.find(c => {
+            const cpfBD = c.cpf ? c.cpf.replace(/\D/g, "") : "";
+            const nomeBD = c.nome ? c.nome.toUpperCase() : "";
+            
+            const matchUser = nomeBD.includes(usuarioInput) || 
+                              (apenasNumeros.length > 0 && cpfBD === apenasNumeros) ||
+                              (c.cpf && c.cpf.includes(usuarioInputRaw));
+
+            return matchUser && String(c.senha).trim() === senhaInput;
+          });
+        }
+
+        if (!colabEncontrado) {
+          alert("❌ Usuário/CPF ou senha incorretos.");
+          return;
+        }
+
+        const funcaoBruta = (colabEncontrado.funcao || colabEncontrado.cargo || '').toUpperCase();
+        const perfilBruto = (colabEncontrado.perfil || '').toUpperCase();
+        const funcaoNorm = normalizarString(funcaoBruta);
+        const perfilNorm = normalizarString(perfilBruto);
+
+        const ehCondutorOuSocorrista = funcaoNorm.includes('condutor') || 
+                                       funcaoNorm.includes('socorrista') || 
+                                       funcaoBruta.includes('CONDUTOR') || 
+                                       funcaoBruta.includes('SOCORRISTA');
+
+        const ehAdminOuCoord = perfilNorm.includes('admin') || 
+                               perfilNorm.includes('coord') || 
+                               funcaoNorm.includes('coord') || 
+                               funcaoNorm.includes('admin') ||
+                               funcaoBruta.includes('COORDENAD') ||
+                               funcaoBruta.includes('ADMIN');
+
+        const ehTecnicoEnfermagem = funcaoNorm.includes('tecnic') || 
+                                    funcaoNorm.includes('enferm') || 
+                                    funcaoBruta.includes('TÉCNIC') || 
+                                    funcaoBruta.includes('ENFERM');
+
+        if (ehCondutorOuSocorrista && !ehAdminOuCoord && !ehTecnicoEnfermagem) {
+          alert(`❌ ACESSO NEGADO!\n\nCondutores/Socorristas não possuem permissão para acessar a ficha APH.`);
+          return;
+        }
+
+        if (!ehAdminOuCoord && !ehTecnicoEnfermagem) {
+          alert(`❌ ACESSO NEGADO!\n\nSua função cadastrada (${colabEncontrado.funcao || 'Não informada'}) não possui permissão de acesso à ficha APH.`);
+          return;
+        }
+
+        const plantaoAtivoBd = await buscarPlantaoAtivoJ3();
+
+        if (!ehAdminOuCoord) {
+          if (!plantaoAtivoBd) {
+            alert("❌ ACESSO BLOQUEADO: Não há nenhum plantão com status ATIVO registrado no Módulo J3 no momento.");
+            return;
+          }
+
+          const nomeColabNorm = normalizarString(colabEncontrado.nome);
+          const enfermagemNorm = normalizarString(plantaoAtivoBd.enfermagem || plantaoAtivoBd.tecnico || plantaoAtivoBd.tec_enfermeiro || '');
+
+          const estaNoPlantaoAtivo = enfermagemNorm !== '' && (nomeColabNorm.includes(enfermagemNorm) || enfermagemNorm.includes(nomeColabNorm));
+
+          if (!estaNoPlantaoAtivo) {
+            alert(`❌ ACESSO NEGADO!\n\nA profissional "${colabEncontrado.nome}" NÃO está cadastrada na vaga de ENFERMAGEM do plantão J3 ATIVO.\n\nProfissional de Enfermagem Ativa no J3:\n• ${plantaoAtivoBd.enfermagem || plantaoAtivoBd.tecnico || 'Nenhuma profissional registrada'}`);
+            return;
+          }
+        }
+
+        plantaoJ3Ativo = plantaoAtivoBd;
+        usuarioJ3Logado = colabEncontrado;
+
+        localStorage.setItem('j3_usuario_ativo', JSON.stringify(colabEncontrado));
+        if (plantaoAtivoBd) {
+          localStorage.setItem('j3_plantao_ativo_cache', JSON.stringify(plantaoAtivoBd));
+        }
+        
+        await vincularEquipeJ3Ativa();
+        atualizarInterfaceUsuarioJ3();
+        desbloquearFormularioPorLogin();
+        
+        alert(`✅ Login realizado com sucesso!\nBem-vindo(a), ${colabEncontrado.nome}.`);
+
+      } catch (err) {
+        console.error("Erro na autenticação J3:", err);
+        alert("Erro ao validar login no J3. Verifique sua conexão.");
+      }
+    }
+
+    async function vincularEquipeJ3Ativa() {
+      const selectTec = document.getElementById('tec_enfermeiro');
+      const selectSoc = document.getElementById('socorrista');
+      if (!selectTec || !selectSoc) return;
+
+      let plantaoAtivo = plantaoJ3Ativo;
+
+      if (!plantaoAtivo) {
+        plantaoAtivo = await buscarPlantaoAtivoJ3();
+      }
+
+      if (!plantaoAtivo) {
+        const cachePlantao = localStorage.getItem('j3_plantao_ativo_cache');
+        if (cachePlantao) {
+          try { plantaoAtivo = JSON.parse(cachePlantao); } catch(e){}
+        }
+      }
+
+      let nomeEnf = plantaoAtivo ? (plantaoAtivo.enfermagem || plantaoAtivo.tecnico || plantaoAtivo.tec_enfermeiro) : null;
+      let nomeCond = plantaoAtivo ? (plantaoAtivo.condutor || plantaoAtivo.socorrista || plantaoAtivo.motorista) : null;
+
+      if (!nomeEnf) {
+        const sessaoUser = localStorage.getItem('j3_usuario_ativo');
+        if (sessaoUser) {
+          try {
+            const userObj = JSON.parse(sessaoUser);
+            nomeEnf = userObj.nome;
+          } catch(e) {}
+        }
+      }
+
+      if (nomeEnf) {
+        const tecNorm = normalizarString(nomeEnf);
+        let optEnf = Array.from(selectTec.options).find(opt => {
+          const optNorm = normalizarString(opt.value);
+          return optNorm && (optNorm.includes(tecNorm) || tecNorm.includes(optNorm));
+        });
+
+        if (!optEnf) {
+          const newOpt = document.createElement('option');
+          newOpt.value = nomeEnf;
+          newOpt.innerText = nomeEnf.toUpperCase();
+          selectTec.appendChild(newOpt);
+          selectTec.value = nomeEnf;
+        } else {
+          selectTec.value = optEnf.value;
+        }
+        sincronizarTecnicoResp();
+      }
+
+      if (nomeCond) {
+        const condNorm = normalizarString(nomeCond);
+        let optCond = Array.from(selectSoc.options).find(opt => {
+          const optNorm = normalizarString(opt.value);
+          return optNorm && (optNorm.includes(condNorm) || condNorm.includes(optNorm));
+        });
+
+        if (!optCond) {
+          const newOpt = document.createElement('option');
+          newOpt.value = nomeCond;
+          newOpt.innerText = nomeCond.toUpperCase();
+          selectSoc.appendChild(newOpt);
+          selectSoc.value = nomeCond;
+        } else {
+          selectSoc.value = optCond.value;
+        }
+      }
+    }
+
+    function atualizarInterfaceUsuarioJ3() {
+      const infoContainer = document.getElementById('usuarioJ3Info');
+      const btnHeader = document.getElementById('btnLoginJ3Header');
+      
+      const sessaoSalva = localStorage.getItem('j3_usuario_ativo');
+      if (sessaoSalva && !usuarioJ3Logado) {
+        try { usuarioJ3Logado = JSON.parse(sessaoSalva); } catch(e) {}
+      }
+
+      if (usuarioJ3Logado) {
+        const corenStr = usuarioJ3Logado.coren ? ` (COREN ${usuarioJ3Logado.coren})` : '';
+        infoContainer.innerHTML = `<span style="color: #4ade80;">🟢 ONLINE:</span> <strong>${usuarioJ3Logado.nome.split(' ')[0]}</strong>${corenStr}`;
+        btnHeader.innerText = "🚪 Sair";
+        btnHeader.onclick = encerarSessaoJ3;
+        btnHeader.style.background = "#475569";
+        desbloquearFormularioPorLogin();
+      } else {
+        infoContainer.innerHTML = `<span>Status: <strong>Não Autenticado</strong></span>`;
+        btnHeader.innerText = "🔑 Login J3";
+        btnHeader.onclick = abrirLoginJ3;
+        btnHeader.style.background = "#dc2626";
+        bloquearFormularioSemLogin();
+      }
+    }
+
+    function encerarSessaoJ3() {
+      if (confirm("Deseja realmente sair da conta? O formulário será bloqueado novamente.")) {
+        usuarioJ3Logado = null;
+        plantaoJ3Ativo = null;
+        localStorage.removeItem('j3_usuario_ativo');
+        localStorage.removeItem('j3_plantao_ativo_cache');
+        atualizarInterfaceUsuarioJ3();
+        abrirLoginJ3();
+      }
+    }
+
+    function calcularIdadeAutomatico(inputDataNasc) {
+      const dataNascVal = inputDataNasc.value;
+      if (!dataNascVal) return;
+
+      const hoje = new Date();
+      const nascimento = new Date(dataNascVal);
+
+      if (isNaN(nascimento.getTime())) return;
+
+      let idadeAnos = hoje.getFullYear() - nascimento.getFullYear();
+      const m = hoje.getMonth() - nascimento.getMonth();
+
+      if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+        idadeAnos--;
+      }
+
+      if (idadeAnos >= 0) {
+        document.getElementById('idade').value = idadeAnos;
+      }
+      salvarLocal();
+    }
+
+    function atualizarStatusVisualFila() {
+      const badge = document.getElementById('badgeSyncStatus');
+      const btnSync = document.getElementById('btnManualSync');
+      const filaRaw = localStorage.getItem('aph_fila_pendentes_offline') || '[]';
+      
+      let fila = [];
+      try { fila = JSON.parse(filaRaw); } catch(e) { fila = []; }
+
+      const qtdPendentes = fila.length;
+
+      if (qtdPendentes > 0) {
+        badge.className = "badge-sync-status offline";
+        badge.innerText = `🟠 OFFLINE (${qtdPendentes} PENDENTE${qtdPendentes > 1 ? 'S' : ''})`;
+        btnSync.style.display = "inline-block";
+        btnSync.innerText = `📲 Sincronizar (${qtdPendentes})`;
+      } else {
+        badge.className = "badge-sync-status online";
+        badge.innerText = "🟢 ONLINE";
+        btnSync.style.display = "none";
+      }
+    }
+
+    window.addEventListener('online', () => {
+      console.log("📶 Conexão detectada! Sincronizando fila de fichas offline...");
+      sincronizarFichasPendentesOffline();
+      baixarEAtualizarCachePacientes(false);
+    });
+
+    window.addEventListener('offline', () => {
+      atualizarStatusVisualFila();
+    });
+
+    async function sincronizarFichasPendentesOffline() {
+      const filaRaw = localStorage.getItem('aph_fila_pendentes_offline');
+      if (!filaRaw) {
+        atualizarStatusVisualFila();
+        return;
+      }
+
+      let fila = [];
+      try { fila = JSON.parse(filaRaw); } catch(e) { fila = []; }
+
+      if (!Array.isArray(fila) || fila.length === 0) {
+        atualizarStatusVisualFila();
+        return;
+      }
+
+      if (!window._supabase && window.supabase) {
+        _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+
+      let enviadasComSucesso = 0;
+      const novaFila = [];
+
+      for (const itemPayload of fila) {
+        try {
+          const payloadFormatado = {
+            ...itemPayload,
+            data: (itemPayload.data && itemPayload.data.trim() !== '') ? itemPayload.data : null,
+            data_nascimento: (itemPayload.data_nascimento && itemPayload.data_nascimento.trim() !== '') ? itemPayload.data_nascimento : null,
+            sinais_vitais: Array.isArray(itemPayload.sinais_vitais) ? itemPayload.sinais_vitais : [],
+            insumos_utilizados: Array.isArray(itemPayload.insumos_utilizados) ? itemPayload.insumos_utilizados : [],
+            lesoes_exposicao: itemPayload.lesoes_exposicao || {},
+            updated_at: new Date().toISOString()
+          };
+
+          const { data, error } = await _supabase
+            .from('ocorrencias_aph')
+            .upsert([payloadFormatado], { onConflict: 'codigo_ocorrencia' });
+
+          if (error) {
+            alert(`❌ Erro no envio (${itemPayload.codigo_ocorrencia}):\n${error.message}`);
+            novaFila.push(itemPayload);
+          } else {
+            enviadasComSucesso++;
+            if (payloadFormatado.insumos_utilizados && payloadFormatado.insumos_utilizados.length > 0) {
+              await processarBaixaEstoqueELacres(payloadFormatado.insumos_utilizados, payloadFormatado.codigo_ocorrencia);
+            }
+          }
+        } catch (e) {
+          alert(`❌ Falha de Conexão/Exceção:\n${e.message || e}`);
+          novaFila.push(itemPayload);
+        }
+      }
+
+      localStorage.setItem('aph_fila_pendentes_offline', JSON.stringify(novaFila));
+      atualizarStatusVisualFila();
+
+      if (enviadasComSucesso > 0) {
+        alert(`📶 SUCESSO: ${enviadasComSucesso} ficha(s) pendente(s) foram salvas no Supabase!`);
+      }
+    }
+
+    async function baixarEAtualizarCachePacientes(alertaManual = false) {
+      if (!navigator.onLine || !_supabase) {
+        if (alertaManual) alert("⚠️ Sem conexão de internet para atualizar o banco local de pacientes.");
+        return;
+      }
+
+      try {
+        const { data: listPac, error } = await _supabase
+          .from('pacientes')
+          .select('*')
+          .order('updated_at', { ascending: false })
+          .limit(500);
+
+        if (!error && listPac) {
+          localStorage.setItem('aph_pacientes_cache', JSON.stringify(listPac));
+          if (alertaManual) alert(`✅ CARGA CONCLUÍDA: ${listPac.length} cadastros de pacientes salvos no tablet para acesso offline!`);
+        }
+      } catch (e) {
+        if (alertaManual) alert("Erro ao sincronizar base de pacientes.");
+      }
+    }
+
+    function tocarAlertaSonoroAlergia() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.4);
+
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+      } catch (e) {}
+    }
+
+    function dispararAlertaAlergia(textoAlergia) {
+      tocarAlertaSonoroAlergia();
+      document.getElementById('alergia_alerta_texto').innerText = (textoAlergia || "NÃO ESPECIFICADA").toUpperCase();
+      document.getElementById('modalAlergiaOverlay').style.display = 'flex';
+    }
+
+    function confirmarAlergiaTatica(pacienteConfirmouAlergia) {
+      document.getElementById('modalAlergiaOverlay').style.display = 'none';
+
+      if (pacienteConfirmouAlergia) {
+        document.getElementById('alergia_select').value = 'SIM';
+        toggleAlergiaInput();
+        salvarLocal();
+      } else {
+        document.getElementById('alergia_select').value = 'NAO';
+        toggleAlergiaInput();
+        salvarLocal();
+        alert("ℹ️ Alergia desmarcada após confirmação tática com o paciente/familiar.");
+      }
+    }
+
+    async function puxarCadastroPacienteSemSenha() {
+      const cpfRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
+      if (cpfRaw.length < 11) {
+        alert("Digite um CPF com 11 dígitos para puxar o cadastro.");
+        return;
+      }
+
+      limparCamposPaciente();
+      const cpfFormatado = cpfRaw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+
+      let dataPac = null;
+      let temAlergia = false;
+      let descAlergia = '';
+
+      if (navigator.onLine && _supabase) {
+        try {
+          const { data: resPac } = await _supabase
+            .from('pacientes')
+            .select('*')
+            .or(`cpf.ilike.%${cpfRaw}%,cpf.ilike.%${cpfFormatado}%`)
+            .limit(1)
+            .maybeSingle();
+
+          if (resPac) dataPac = resPac;
+
+          const { data: resOcorr } = await _supabase
+            .from('ocorrencias_aph')
+            .select('alergia_select, alergia_desc')
+            .or(`cpf_paciente.ilike.%${cpfRaw}%,cpf_paciente.ilike.%${cpfFormatado}%`)
+            .eq('alergia_select', 'SIM')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (resOcorr && resOcorr.alergia_select === 'SIM') {
+            temAlergia = true;
+            descAlergia = resOcorr.alergia_desc || '';
+          }
+        } catch (e) {}
+      }
+
+      if (!dataPac) {
+        const cacheRaw = localStorage.getItem('aph_pacientes_cache');
+        if (cacheRaw) {
+          try {
+            const cacheList = JSON.parse(cacheRaw);
+            dataPac = cacheList.find(p => p.cpf && (p.cpf.replace(/\D/g, "") === cpfRaw));
+          } catch(e) {}
+        }
+      }
+
+      if (dataPac) {
+        document.getElementById('paciente').value = (dataPac.nome || '').toUpperCase();
+        document.getElementById('cns_paciente').value = dataPac.cns || '';
+        if (dataPac.data_nascimento) {
+          document.getElementById('data_nascimento').value = dataPac.data_nascimento;
+          calcularIdadeAutomatico(document.getElementById('data_nascimento'));
+        }
+        if (dataPac.idade) document.getElementById('idade').value = dataPac.idade;
+        document.getElementById('sexo').value = dataPac.sexo || 'M';
+        document.getElementById('telefone').value = dataPac.telefone || '';
+        document.getElementById('cep_paciente').value = dataPac.cep || '';
+        document.getElementById('rua').value = (dataPac.rua || dataPac.logradouro || '').toUpperCase();
+        document.getElementById('numero').value = dataPac.numero || '';
+        document.getElementById('bairro').value = (dataPac.bairro || '').toUpperCase();
+        document.getElementById('municipio').value = (dataPac.municipio || dataPac.cidade || 'ORLEANS').toUpperCase();
+        document.getElementById('estado').value = (dataPac.estado || dataPac.uf || 'SC').toUpperCase();
+        
+        await atualizarHospitaisPorMunicipio();
+
+        if (dataPac.alergia_select === 'SIM') {
+          temAlergia = true;
+          if (dataPac.alergia_desc) descAlergia = dataPac.alergia_desc;
+        }
+
+        if (temAlergia) {
+          document.getElementById('alergia_select').value = 'SIM';
+          toggleAlergiaInput();
+          document.getElementById('alergia_desc').value = descAlergia;
+          dispararAlertaAlergia(descAlergia);
+        } else {
+          document.getElementById('alergia_select').value = 'NAO';
+          toggleAlergiaInput();
+        }
+
+        salvarLocal();
+        alert("✅ Cadastro do paciente localizado com sucesso!");
+      } else {
+        alert("Nenhum cadastro prévio encontrado para este CPF. Preencha os campos normalmente.");
+      }
+    }
+
+    async function iniciarFluxoReaberturaOcorrencia() {
+      const codOcorr = document.getElementById('codigo').value.trim();
+      if (!codOcorr) {
+        alert("Informe o Nº da Ocorrência no Item 1 para reabrir.");
+        return;
+      }
+
+      try {
+        const { data: dataOcorr, error } = await _supabase
+          .from('ocorrencias_aph')
+          .select('*')
+          .eq('codigo_ocorrencia', codOcorr)
+          .maybeSingle();
+
+        if (error || !dataOcorr) {
+          alert("Ocorrência não localizada na base de dados.");
+          return;
+        }
+
+        const tecSelecionado = (document.getElementById('tec_enfermeiro').value || '').trim().toUpperCase();
+        const tecAutorFicha = (dataOcorr.tec_enfermeiro || '').trim().toUpperCase();
+
+        if (tecSelecionado !== '' && tecSelecionado === tecAutorFicha) {
+          restaurarFichaCompletaDoBanco(dataOcorr);
+          registrarLogAuditoria(codOcorr, 'REABERTURA_PROPRIA', tecSelecionado, 'servidor');
+          alert("✅ Ficha reaberta com sucesso pelo próprio técnico responsável!");
+        } else {
+          document.getElementById('auth_pass_input').value = '';
+          document.getElementById('modalAuthOverlay').style.display = 'flex';
+          setTimeout(() => document.getElementById('auth_pass_input').focus(), 150);
+        }
+      } catch (err) {
+        alert("Erro ao consultar ocorrência.");
+      }
+    }
+
+    function fecharModalAuth() {
+      document.getElementById('modalAuthOverlay').style.display = 'none';
+    }
+
+    async function confirmarAutenticacaoEBuscar() {
+      const senhaInput = document.getElementById('auth_pass_input').value.trim();
+      const codOcorr = document.getElementById('codigo').value.trim();
+
+      if (!senhaInput) {
+        alert("Por favor, digite a senha.");
+        return;
+      }
+
+      try {
+        let autorizadoAdmin = false;
+        let nomeAdmin = '';
+
+        if (_supabase) {
+          const { data: userAdmins } = await _supabase
+            .from('colaboradores')
+            .select('nome, senha, perfil')
+            .eq('perfil', 'admin');
+
+          if (userAdmins && userAdmins.length > 0) {
+            const adminValido = userAdmins.find(adm => adm.senha && String(adm.senha).trim() === senhaInput);
+            if (adminValido) {
+              autorizadoAdmin = true;
+              nomeAdmin = adminValido.nome;
+            }
+          }
+        }
+
+        if (autorizadoAdmin) {
+          fecharModalAuth();
+          
+          const { data: dataOcorr } = await _supabase
+            .from('ocorrencias_aph')
+            .select('*')
+            .eq('codigo_ocorrencia', codOcorr)
+            .maybeSingle();
+
+          if (dataOcorr) {
+            restaurarFichaCompletaDoBanco(dataOcorr);
+            registrarLogAuditoria(codOcorr, 'REABERTURA_TERCEIROS', nomeAdmin, 'admin');
+            alert(`✅ Prontuário reaberto com autorização administrativa (Admin: ${nomeAdmin})!`);
+          }
+        } else {
+          alert("❌ Acesso negado! Senha incorreta ou perfil sem privilégios de Administrador.");
+        }
+
+      } catch (err) {
+        alert("Erro na verificação de senha no banco de dados.");
+      }
+    }
+
+    async function registrarLogAuditoria(codigoOcorrencia, tipoAcao, usuario, perfil) {
+      try {
+        if (_supabase) {
+          await _supabase.from('ocorrencias_aph_logs').insert([{
+            codigo_ocorrencia: codigoOcorrencia,
+            tipo_acao: tipoAcao,
+            usuario_responsavel: usuario,
+            perfil_usuario: perfil,
+            created_at: new Date().toISOString()
+          }]);
+        }
+      } catch (e) {}
+    }
+
+    function restaurarFichaCompletaDoBanco(dataOcorr) {
+      document.getElementById('codigo').value = dataOcorr.codigo_ocorrencia || '';
+      if (dataOcorr.cor_ocorrencia) {
+        const btnCorSel = document.querySelector(`.btn-cor.cor-${dataOcorr.cor_ocorrencia.toLowerCase()}`);
+        if (btnCorSel) selecionarCodigo(dataOcorr.cor_ocorrencia, btnCorSel);
+      }
+      document.getElementById('data').value = dataOcorr.data || '';
+      document.getElementById('reclassificacao_codigo').value = dataOcorr.reclassificacao_codigo || '';
+      document.getElementById('reclassificacao_hora').value = dataOcorr.reclassificacao_hora || '';
+      document.getElementById('reclassificacao_medico').value = dataOcorr.reclassificacao_medico || '';
+      atualizarTextoReclassificacaoImpressao();
+
+      document.getElementById('regulador').value = dataOcorr.regulador || '';
+      document.getElementById('motivo_acionamento').value = dataOcorr.motivo_acionamento || '';
+      document.getElementById('tec_enfermeiro').value = dataOcorr.tec_enfermeiro || '';
+      document.getElementById('socorrista').value = dataOcorr.socorrista || '';
+      sincronizarTecnicoResp();
+
+      document.getElementById('horaJ9').value = dataOcorr.hora_j9 || '';
+      document.getElementById('horaJ10').value = dataOcorr.hora_j10 || '';
+      document.getElementById('horaQTA').value = dataOcorr.hora_qta || '';
+      document.getElementById('horaJ9_INT').value = dataOcorr.hora_j9_int || '';
+      document.getElementById('horaJ10_INT').value = dataOcorr.hora_j10_int || '';
+      document.getElementById('horaJ11').value = dataOcorr.hora_j11 || '';
+      document.getElementById('horaJ12').value = dataOcorr.hora_j12 || '';
+
+      document.getElementById('cpf_paciente').value = dataOcorr.cpf_paciente || '';
+      document.getElementById('paciente').value = (dataOcorr.paciente || '').toUpperCase();
+      document.getElementById('data_nascimento').value = dataOcorr.data_nascimento || '';
+      document.getElementById('idade').value = dataOcorr.idade || '';
+      document.getElementById('sexo').value = dataOcorr.sexo || 'M';
+      document.getElementById('telefone').value = dataOcorr.telefone || '';
+      document.getElementById('rua').value = (dataOcorr.rua || '').toUpperCase();
+      document.getElementById('bairro').value = (dataOcorr.bairro || '').toUpperCase();
+      document.getElementById('municipio').value = (dataOcorr.municipio || 'ORLEANS').toUpperCase();
+      document.getElementById('estado').value = (dataOcorr.estado || 'SC').toUpperCase();
+      atualizarHospitaisPorMunicipio();
+
+      if (dataOcorr.tipo_ocorrencia) {
+        const radioToSelect = document.querySelector(`input[name="tipo_ocorrencia"][value="${dataOcorr.tipo_ocorrencia}"]`);
+        if (radioToSelect) {
+          radioToSelect.checked = true;
+          tratarSelecaoTipoOcorrencia(radioToSelect);
+        }
+      }
+
+      document.getElementById('vias_aereas').value = dataOcorr.vias_aereas || 'Pérvea (Livre)';
+      document.getElementById('respiracao').value = dataOcorr.respiracao || 'Eupneico';
+      document.getElementById('circulacao').value = dataOcorr.circulacao || 'Regular';
+      document.getElementById('g_oc').value = dataOcorr.glasgow_ocular || 4;
+      document.getElementById('g_verb').value = dataOcorr.glasgow_verbal || 5;
+      document.getElementById('g_mot').value = dataOcorr.glasgow_motor || 6;
+      document.getElementById('pupilas').value = dataOcorr.pupilas || 'Isocóricas';
+      document.getElementById('glasgow_total_val').innerText = `TOTAL GLASGOW: ${dataOcorr.glasgow_total || 15} / 15`;
+
+      restaurarLesoesExposicao(dataOcorr.lesoes_exposicao);
+
+      document.getElementById('bio_suspeita').value = dataOcorr.bio_suspeita || 'NAO';
+      alternarBiosseguranca(document.getElementById('bio_suspeita'));
+      document.getElementById('bio_tipo_agente').value = dataOcorr.bio_tipo_agente || 'Síndrome Respiratória/Gripal';
+      document.getElementById('bio_desinfeccao').value = dataOcorr.bio_desinfeccao || 'NÃO SE APLICA';
+
+      if (dataOcorr.sinais_vitais && Array.isArray(dataOcorr.sinais_vitais) && dataOcorr.sinais_vitais.length > 0) {
+        document.getElementById('sv_body').innerHTML = '';
+        dataOcorr.sinais_vitais.forEach((sv, idx) => addSvRow(idx === 0, sv));
+      }
+
+      restaurarInsumosEGodsDoBanco(dataOcorr.insumos_utilizados);
+
+      document.getElementById('alergia_select').value = dataOcorr.alergia_select || 'NAO';
+      toggleAlergiaInput();
+      document.getElementById('alergia_desc').value = dataOcorr.alergia_desc || '';
+
+      if (dataOcorr.alergia_select === 'SIM') {
+        dispararAlertaAlergia(dataOcorr.alergia_desc);
+      }
+
+      document.getElementById('med_continua_select').value = dataOcorr.med_continua_select || 'NAO';
+      toggleMedContinuaInput();
+      document.getElementById('meds_continuas').value = dataOcorr.meds_continuas || '';
+
+      document.getElementById('evolucao_texto').value = dataOcorr.evolucao_texto || '';
+      if (dataOcorr.hospital_destino) document.getElementById('hospital_destino').value = dataOcorr.hospital_destino;
+
+      document.getElementById('desfecho_vitima').value = dataOcorr.desfecho_vitima || 'TRANSPORTADO';
+      document.getElementById('houve_recusa').value = dataOcorr.houve_recusa || 'NAO';
+      alternarExibicaoRecusa();
+
+      document.getElementById('tipo_assinante').value = dataOcorr.tipo_assinante || 'Vítima';
+      document.getElementById('cpf_assinante').value = dataOcorr.cpf_assinante || '';
+      document.getElementById('nome_assinante').value = dataOcorr.nome_assinante || '';
+      document.getElementById('tel_assinante').value = dataOcorr.tel_assinante || '';
+
+      checarEAtivarBotaoImpressao();
+      salvarLocal();
+    }
+
+    function restaurarInsumosEGodsDoBanco(insumos) {
+      const tbody = document.getElementById('meds_body');
+      const chkNenhum = document.getElementById('chk_nenhum_insumo');
+      tbody.innerHTML = '';
+
+      if (!insumos || !Array.isArray(insumos) || insumos.length === 0) {
+        if (chkNenhum) {
+          chkNenhum.checked = false;
+          alternarNenhumInsumo(chkNenhum);
+        }
+        addMedRow();
+        return;
+      }
+
+      if (insumos.length === 1 && (insumos[0].codigo === 'NENHUM' || (insumos[0].descricao && insumos[0].descricao.includes('NENHUM INSUMO')))) {
+        if (chkNenhum) {
+          chkNenhum.checked = true;
+          alternarNenhumInsumo(chkNenhum);
+        }
+        return;
+      }
+
+      if (chkNenhum) {
+        chkNenhum.checked = false;
+        alternarNenhumInsumo(chkNenhum);
+      }
+
+      insumos.forEach(item => {
+        addMedRow();
+        const ultimaLinha = tbody.lastElementChild;
+        if (!ultimaLinha) return;
+
+        const inputSearch = ultimaLinha.querySelector('.med-search-input');
+        const inputQtd = ultimaLinha.querySelector('.med-qtd');
+
+        if (inputSearch) {
+          if (item.numero_lote && item.numero_lote !== 'N/A' && item.numero_lote !== 'SEM LOTE') {
+            const valFmt = item.data_validade ? new Date(item.data_validade).toLocaleDateString('pt-BR') : 'N/A';
+            inputSearch.value = `${item.descricao} — Lote: ${item.numero_lote} | Val: ${valFmt}`;
+          } else {
+            inputSearch.value = item.descricao || '';
+          }
+        }
+
+        if (inputQtd) {
+          inputQtd.value = item.quantidade || 1;
+        }
+
+        if (item.is_psicotropico) {
+          verificarPsicotropico(inputSearch);
+          
+          const viaSelect = ultimaLinha.querySelector('.psico-via');
+          const inputRompido = ultimaLinha.querySelector('.psico-lacre-rompido');
+          const inputNovo = ultimaLinha.querySelector('.psico-lacre-novo');
+
+          if (viaSelect && item.via_administrada) viaSelect.value = item.via_administrada;
+          if (inputRompido && item.lacre_rompido) inputRompido.value = item.lacre_rompido;
+          if (inputNovo && item.lacre_novo) inputNovo.value = item.lacre_novo;
+        }
+      });
+    }
+
+    function normalizarString(str) {
+      if (!str) return '';
+      return str.toString()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]/g, '');
+    }
+
+    function normalizarNomeCidade(cidadeStr) {
+      if (!cidadeStr) return '';
+      const parteCidade = cidadeStr.split('/')[0].trim();
+      return normalizarString(parteCidade).toUpperCase();
+    }
+
+    function limparCamposPaciente() {
+      document.getElementById('paciente').value = '';
+      document.getElementById('cns_paciente').value = '';
+      document.getElementById('data_nascimento').value = '';
+      document.getElementById('idade').value = '';
+      document.getElementById('sexo').value = 'M';
+      document.getElementById('telefone').value = '';
+      document.getElementById('cep_paciente').value = '';
+      document.getElementById('rua').value = '';
+      document.getElementById('numero').value = '';
+      document.getElementById('bairro').value = '';
+      document.getElementById('ponto_ref').value = '';
+      document.getElementById('municipio').value = 'ORLEANS';
+      document.getElementById('estado').value = 'SC';
+    }
+
+    function aoModificarCPF(input) {
+      limparCamposPaciente();
+      salvarLocal();
+    }
 
     async function ativarWakeLockPermanente() {
       try {
@@ -946,26 +2016,95 @@
       return e.returnValue;
     });
 
+    function capturarEstadoFormularioClinico() {
+      const obj = {};
+      const campos = ['cpf_paciente', 'cns_paciente', 'cep_paciente', 'paciente', 'data_nascimento', 'idade', 'sexo', 'telefone', 'rua', 'numero', 'bairro', 'ponto_ref', 'municipio', 'estado', 'vias_aereas', 'respiracao', 'circulacao', 'g_oc', 'g_verb', 'g_mot', 'pupilas', 'bio_suspeita', 'bio_tipo_agente', 'bio_agente_outros', 'bio_desinfeccao', 'alergia_select', 'alergia_desc', 'med_continua_select', 'meds_continuas', 'evolucao_texto', 'hospital_destino', 'hospital_outros', 'desfecho_vitima', 'houve_recusa', 'tipo_assinante', 'cpf_assinante', 'nome_assinante', 'tel_assinante'];
+      
+      campos.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) obj[id] = el.value;
+      });
+
+      const radioSel = document.querySelector('input[name="tipo_ocorrencia"]:checked');
+      if (radioSel) obj['tipo_ocorrencia'] = radioSel.value;
+
+      return obj;
+    }
+
+    function restaurarEstadoFormularioClinico(obj) {
+      if (!obj) return;
+      Object.keys(obj).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = obj[id];
+      });
+
+      if (obj['tipo_ocorrencia']) {
+        const r = document.querySelector(`input[name="tipo_ocorrencia"][value="${obj['tipo_ocorrencia']}"]`);
+        if (r) { r.checked = true; tratarSelecaoTipoOcorrencia(r); }
+      }
+
+      alternarBiosseguranca(document.getElementById('bio_suspeita'));
+      toggleAlergiaInput();
+      toggleMedContinuaInput();
+      alternarExibicaoRecusa();
+      atualizarHospitaisPorMunicipio();
+    }
+
+    function alternarVitima(numVitima) {
+      if (vitimaAtual === numVitima) return;
+
+      rascunhoVitimas[vitimaAtual] = capturarEstadoFormularioClinico();
+      vitimaAtual = numVitima;
+
+      document.getElementById('tabVitima1').classList.toggle('active', numVitima === 1);
+      document.getElementById('tabVitima2').classList.toggle('active', numVitima === 2);
+
+      const btnImp = document.getElementById('btnImprimir');
+      btnImp.innerText = `Imprimir Ficha (Vítima ${numVitima})`;
+
+      if (Object.keys(rascunhoVitimas[numVitima]).length > 0) {
+        restaurarEstadoFormularioClinico(rascunhoVitimas[numVitima]);
+      } else {
+        const camposLimpar = ['cpf_paciente', 'cns_paciente', 'paciente', 'data_nascimento', 'idade', 'telefone', 'evolucao_texto', 'cpf_assinante', 'nome_assinante', 'tel_assinante'];
+        camposLimpar.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        document.getElementById('sv_body').innerHTML = '';
+        document.getElementById('meds_body').innerHTML = '';
+        addSvRow(true);
+        addMedRow();
+      }
+      checarEAtivarBotaoImpressao();
+    }
+
+    function tratarSelecaoTipoOcorrencia(radioEl) {
+      const val = radioEl.value;
+      const boxExpo = document.getElementById('box_exposicao_lesoes');
+      if (val === 'Sinistro de Trânsito' || val === 'APH - Trauma') {
+        boxExpo.style.display = 'block';
+      } else {
+        boxExpo.style.display = 'none';
+      }
+
+      document.getElementById('printTipoOcorrenciaBox').innerText = `TIPO OCORRÊNCIA: ${val.toUpperCase()}`;
+      salvarLocal();
+    }
+
     function alternarBiosseguranca(selectEl) {
       const box = document.getElementById('box_bio_detalhes');
       box.style.display = (selectEl.value === 'SIM') ? 'block' : 'none';
+      
+      const wrapper = document.getElementById('box_bio_wrapper');
+      if (selectEl.value === 'NAO') wrapper.classList.add('print-ocultar-vazio');
+      else wrapper.classList.remove('print-ocultar-vazio');
+      
       salvarLocal();
     }
 
     function alternarBioOutros(selectEl) {
       const inputOutros = document.getElementById('bio_agente_outros');
       inputOutros.style.display = (selectEl.value === 'OUTROS') ? 'block' : 'none';
-      salvarLocal();
-    }
-
-    function alternarExibicaoExposicaoTrauma() {
-      const chk = document.getElementById('chk_trauma');
-      const boxExpo = document.getElementById('box_exposicao_lesoes');
-      if (chk && chk.checked) {
-        boxExpo.style.display = 'block';
-      } else {
-        boxExpo.style.display = 'none';
-      }
       salvarLocal();
     }
 
@@ -976,10 +2115,7 @@
 
       const printBox = document.getElementById('printTriagemBox');
       const nomesTriagem = {
-        'VM': 'VERMELHO (VM)',
-        'AM': 'AMARELO (AM)',
-        'VD': 'VERDE (VD)',
-        'AZ': 'AZUL (AZ)'
+        'VM': 'VERMELHO (VM)', 'AM': 'AMARELO (AM)', 'VD': 'VERDE (VD)', 'AZ': 'AZUL (AZ)'
       };
       printBox.innerText = nomesTriagem[cor] || cor;
       atualizarTextoReclassificacaoImpressao();
@@ -988,11 +2124,15 @@
 
     function tratarSelecaoReclassificacao(selectEl) {
       const horaInput = document.getElementById('reclassificacao_hora');
+      const wrapper = document.getElementById('box_reclassificacao_wrapper');
+
       if (selectEl.value !== '') {
         const now = new Date();
         horaInput.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        wrapper.classList.remove('sem-reclassificacao');
       } else {
         horaInput.value = '';
+        wrapper.classList.add('sem-reclassificacao');
       }
       atualizarTextoReclassificacaoImpressao();
       salvarLocal();
@@ -1006,16 +2146,14 @@
 
       if (novoCod) {
         const nomesTriagem = {
-          'VM': 'VERMELHO (VM)',
-          'AM': 'AMARELO (AM)',
-          'VD': 'VERDE (VD)',
-          'AZ': 'AZUL (AZ)'
+          'VM': 'VERMELHO (VM)', 'AM': 'AMARELO (AM)', 'VD': 'VERDE (VD)', 'AZ': 'AZUL (AZ)'
         };
         const horaStr = hora ? ` ÀS ${hora}` : '';
         const medStr = med ? ` (AUTORIZADO DR(A). ${med})` : '';
         box.innerText = `🔄 RECLASSIFICADO PARA: ${nomesTriagem[novoCod]}${horaStr}${medStr}`;
         box.style.display = 'block';
       } else {
+        box.innerText = '';
         box.style.display = 'none';
       }
     }
@@ -1035,7 +2173,10 @@
           const res = await fetch(`https://viacep.com.br/ws/${cepSemMascara}/json/`);
           const data = await res.json();
           if (!data.erro) {
-            if (data.localidade) document.getElementById('municipio').value = data.localidade.toUpperCase();
+            if (data.localidade) {
+              document.getElementById('municipio').value = data.localidade.toUpperCase();
+              atualizarHospitaisPorMunicipio();
+            }
             if (data.uf) document.getElementById('estado').value = data.uf.toUpperCase();
             if (data.bairro) document.getElementById('bairro').value = data.bairro.toUpperCase();
             if (data.logradouro) document.getElementById('rua').value = data.logradouro.toUpperCase();
@@ -1052,8 +2193,144 @@
 
     function sincronizarTecnicoResp() {
       const selectTec = document.getElementById('tec_enfermeiro');
-      document.getElementById('tec_resp').value = selectTec.value;
+      const nomeSelecionado = selectTec ? selectTec.value : '';
+
+      if (!nomeSelecionado) {
+        document.getElementById('tec_resp').value = '';
+        atualizarCarimboImpressaoTecnico('', '');
+        salvarLocal();
+        return;
+      }
+
+      let corenStr = '';
+      let corenApenas = '';
+
+      if (typeof listaColaboradoresCache !== 'undefined' && Array.isArray(listaColaboradoresCache)) {
+        const colab = listaColaboradoresCache.find(c => c.nome === nomeSelecionado);
+        if (colab && colab.coren) {
+          corenApenas = colab.coren;
+          corenStr = ` - COREN ${colab.coren}`;
+        }
+      }
+
+      if (!corenStr && selectTec.selectedIndex >= 0) {
+        const textoOption = selectTec.options[selectTec.selectedIndex].text;
+        if (textoOption.includes('COREN')) {
+          const match = textoOption.match(/\(COREN\s+([^)]+)\)/i);
+          if (match) {
+            corenApenas = match[1];
+            corenStr = ` - COREN ${match[1]}`;
+          }
+        }
+      }
+
+      const textoFinal = `${nomeSelecionado}${corenStr}`.toUpperCase();
+      document.getElementById('tec_resp').value = textoFinal;
+
+      atualizarCarimboImpressaoTecnico(nomeSelecionado, corenApenas);
       salvarLocal();
+    }
+
+    function atualizarCarimboImpressaoTecnico(nome, coren) {
+      const boxTecnico = document.getElementById('sigBoxTecnico');
+      if (boxTecnico) {
+        const corenTexto = coren ? `COREN ${coren}` : 'COREN: ____________';
+        const nomeTexto = nome ? nome.toUpperCase() : 'TÉCNICO DE ENFERMAGEM';
+        
+        boxTecnico.innerHTML = `
+          <div class="sig-title">${nomeTexto}</div>
+          <div class="sig-line">ASSINATURA E CARIMBO / ${corenTexto}</div>
+        `;
+      }
+    }
+
+    async function atualizarHospitaisPorMunicipio() {
+      const selectHosp = document.getElementById('hospital_destino');
+      const municipioRaw = (document.getElementById('municipio').value || '').trim();
+      const municipioNorm = normalizarNomeCidade(municipioRaw);
+
+      if (!selectHosp) return;
+
+      const valorAnterior = selectHosp.value;
+      selectHosp.innerHTML = '<option value="">Buscando hospitais...</option>';
+
+      let hospitais = [];
+
+      try {
+        if (_supabase) {
+          const { data, error } = await _supabase
+            .from('operacional_hospitais')
+            .select('*')
+            .order('id', { ascending: true });
+
+          if (!error && data) {
+            hospitais = data;
+          }
+        }
+      } catch (err) {
+        console.warn("Falha ao buscar hospitais do Supabase.");
+      }
+
+      selectHosp.innerHTML = '<option value="">-- Selecione o Hospital --</option>';
+
+      if (!hospitais || hospitais.length === 0) {
+        selectHosp.innerHTML += '<option value="OUTROS">OUTRO / Unidade Não Listada</option>';
+        toggleHospitalOutros();
+        return;
+      }
+
+      const listaTratada = hospitais.map(h => {
+        const nomeFinal = (h.nome_fantasia || h.nome_hospital || h.nome_unidade || h.nome || h.razao_social || h.nome_posto || 'UNIDADE DE SAÚDE').toUpperCase();
+        const munRaw = h.municipio || h.cidade || h.cidade_uf || '';
+        const munNorm = normalizarNomeCidade(munRaw);
+        const statusFinal = (h.status || 'ATIVO').toUpperCase();
+        return { nome: nomeFinal, municipioNorm: munNorm, municipioOriginal: munRaw.split('/')[0].trim().toUpperCase(), status: statusFinal };
+      }).filter(h => h.status === 'ATIVO');
+
+      const hospitaisLocais = listaTratada.filter(h => h.municipioNorm === municipioNorm);
+      const hospitaisRegiao = listaTratada.filter(h => h.municipioNorm !== municipioNorm);
+
+      if (hospitaisLocais.length > 0) {
+        const optGroupLocal = document.createElement('optgroup');
+        optGroupLocal.label = `📍 HOSPITAIS DE ${municipioRaw.toUpperCase()}`;
+
+        hospitaisLocais.forEach(h => {
+          const opt = document.createElement('option');
+          opt.value = h.nome;
+          opt.innerText = h.nome;
+          optGroupLocal.appendChild(opt);
+        });
+
+        selectHosp.appendChild(optGroupLocal);
+      }
+
+      if (hospitaisRegiao.length > 0) {
+        const optGroupRegiao = document.createElement('optgroup');
+        optGroupRegiao.label = "🏥 OUTRAS REGIÕES / REFERÊNCIAS";
+
+        hospitaisRegiao.forEach(h => {
+          const opt = document.createElement('option');
+          opt.value = h.nome;
+          const munStr = h.municipioOriginal ? ` (${h.municipioOriginal})` : '';
+          opt.innerText = `${h.nome}${munStr}`;
+          optGroupRegiao.appendChild(opt);
+        });
+
+        selectHosp.appendChild(optGroupRegiao);
+      }
+
+      const optOutros = document.createElement('option');
+      optOutros.value = "OUTROS";
+      optOutros.innerText = "OUTRO / Unidade Não Listada";
+      selectHosp.appendChild(optOutros);
+
+      if (valorAnterior && Array.from(selectHosp.options).some(o => o.value === valorAnterior)) {
+        selectHosp.value = valorAnterior;
+      } else if (hospitaisLocais.length === 1) {
+        selectHosp.value = hospitaisLocais[0].nome;
+      }
+
+      toggleHospitalOutros();
     }
 
     function toggleHospitalOutros() {
@@ -1077,6 +2354,7 @@
         boxCom.style.display = 'none';
       }
       ajustarExibicaoAssinaturasImpressao();
+      checarEAtivarBotaoImpressao();
       salvarLocal();
     }
 
@@ -1096,13 +2374,20 @@
 
       const sigBlock = document.getElementById('printSigBlock');
       const sigDeclarante = document.getElementById('sigBoxDeclarante');
+      const sigMedico = document.getElementById('sigBoxMedico');
 
-      if (houveRecusa === 'SIM' || desfecho === 'RECUSA' || desfecho === 'PERMANECEU_LOCAL') {
-        sigDeclarante.style.display = 'flex';
-        sigBlock.classList.remove('duas-colunas');
-      } else {
+      if (desfecho === 'TRANSPORTADO') {
         sigDeclarante.style.display = 'none';
-        sigBlock.classList.add('duas-colunas');
+        sigMedico.style.display = 'flex';
+        sigBlock.classList.remove('tres-colunas');
+      } else if (desfecho === 'PERMANECEU_LOCAL' || desfecho === 'RECUSA' || houveRecusa === 'SIM') {
+        sigDeclarante.style.display = 'flex';
+        sigMedico.style.display = 'none';
+        sigBlock.classList.remove('tres-colunas');
+      } else if (desfecho === 'OBITO') {
+        sigDeclarante.style.display = 'flex';
+        sigMedico.style.display = 'flex';
+        sigBlock.classList.add('tres-colunas');
       }
     }
 
@@ -1140,8 +2425,9 @@
         const { data, error } = await _supabase
           .from('pacientes')
           .select('nome, telefone')
-          .eq('cpf', cpfRaw)
-          .single();
+          .ilike('cpf', `%${cpfRaw}%`)
+          .limit(1)
+          .maybeSingle();
 
         if (error || !data) {
           alert("Pessoa não encontrada no cadastro. Preencha o nome manualmente.");
@@ -1165,11 +2451,15 @@
     }
 
     function salvarLocal() {
+      if (!usuarioJ3Logado) return;
       const formData = {};
       document.querySelectorAll('#aphForm input, #aphForm select, #aphForm textarea').forEach(el => {
         if (el.id) {
-          if (el.type === 'checkbox') formData[el.id] = el.checked;
-          else formData[el.id] = el.value;
+          if (el.type === 'checkbox' || el.type === 'radio') {
+            if (el.checked) formData[el.name || el.id] = el.value;
+          } else {
+            formData[el.id] = el.value;
+          }
         }
       });
       localStorage.setItem('aph_draft_data', JSON.stringify(formData));
@@ -1248,9 +2538,13 @@
       };
 
       recognition.onresult = function(event) {
-        const transcriptBruto = event.results[event.results.length - 1][0].transcript;
-        textarea.value += processarTextoMedico(transcriptBruto);
-        autoExpandTextarea(textarea);
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            const transcriptBruto = event.results[i][0].transcript;
+            textarea.value += processarTextoMedico(transcriptBruto);
+            autoExpandTextarea(textarea);
+          }
+        }
       };
 
       recognition.onend = function() {
@@ -1263,7 +2557,8 @@
     }
 
     document.addEventListener('input', (e) => {
-      if (e.target.classList && e.target.classList.contains('uppercase-input')) {
+      if (!usuarioJ3Logado && e.target.id !== 'j3_user_input') return;
+      if (e.target.classList && e.target.classList.contains('uppercase-input') && e.target.id !== 'j3_user_input') {
         e.target.value = e.target.value.toUpperCase();
       }
     });
@@ -1278,12 +2573,15 @@
       document.getElementById('med_continua_box').style.display = (val === 'SIM') ? 'block' : 'none';
     }
 
-    function resetarFormularioParaNovaOcorrencia() {
+    function resetarFormularioAposJ12() {
       const tecVal = document.getElementById('tec_enfermeiro').value;
       const socVal = document.getElementById('socorrista').value;
 
       document.getElementById('aphForm').reset();
       localStorage.removeItem('aph_draft_data');
+      rascunhoVitimas = { 1: {}, 2: {} };
+
+      desbloquearInsumosECorpoFormulario();
 
       document.getElementById('tec_enfermeiro').value = tecVal;
       document.getElementById('socorrista').value = socVal;
@@ -1302,7 +2600,34 @@
 
       document.getElementById('meds_body').innerHTML = '';
       addMedRow();
-      alternarExibicaoExposicaoTrauma();
+      atualizarHospitaisPorMunicipio();
+    }
+
+    function checarEAtivarBotaoImpressao() {
+      const btnImp = document.getElementById('btnImprimir');
+      const j10Int = document.getElementById('horaJ10_INT').value;
+      const j10 = document.getElementById('horaJ10').value;
+      const desfecho = document.getElementById('desfecho_vitima').value;
+      const recusa = document.getElementById('houve_recusa').value;
+
+      if (j10Int || (j10 && (desfecho === 'RECUSA' || desfecho === 'PERMANECEU_LOCAL' || desfecho === 'OBITO' || recusa === 'SIM'))) {
+        btnImp.disabled = false;
+        btnImp.innerText = `Imprimir Ficha (Vítima ${vitimaAtual})`;
+      } else {
+        btnImp.disabled = true;
+        btnImp.innerText = "Imprimir / Gerar Via (Liberado após J10 / J10-INT)";
+      }
+    }
+
+    function congelarSecao1Operacional() {
+      const inputs = document.querySelectorAll('#sec1 input, #sec1 select, #sec1 button:not(#btnJ11):not(#btnJ12)');
+      inputs.forEach(el => el.disabled = true);
+    }
+
+    function desbloquearInsumosECorpoFormulario() {
+      const inputs = document.querySelectorAll('#aphForm input, #aphForm select, #aphForm button, #aphForm textarea');
+      inputs.forEach(el => el.disabled = false);
+      resetarFluxoJsParaProximoAcionamento();
     }
 
     function acionarJTime(jCode, targetInputId) {
@@ -1335,13 +2660,13 @@
       } else if (jCode === 'J10_INT') {
         liberarJ('btnJ11', 'horaJ11');
       } else if (jCode === 'J11') {
-        salvarFichaOcorrenciaAPH().then(() => {
-          resetarFormularioParaNovaOcorrencia();
-          bloquearTodosJsExcecaoJ12();
-        });
+        liberarJ('btnJ12', 'horaJ12');
       } else if (jCode === 'J12') {
-        resetarFluxoJsParaProximoAcionamento();
+        salvarFichaOcorrenciaAPH().then(() => {
+          resetarFormularioAposJ12();
+        });
       }
+      checarEAtivarBotaoImpressao();
       salvarLocal();
     }
 
@@ -1359,19 +2684,6 @@
       if (input) { input.disabled = true; input.value = ''; }
     }
 
-    function bloquearTodosJsExcecaoJ12() {
-      const listJs = [
-        { b: 'btnJ9', i: 'horaJ9' },
-        { b: 'btnJ10', i: 'horaJ10' },
-        { b: 'btnQTA', i: 'horaQTA' },
-        { b: 'btnJ9_INT', i: 'horaJ9_INT' },
-        { b: 'btnJ10_INT', i: 'horaJ10_INT' },
-        { b: 'btnJ11', i: 'horaJ11' }
-      ];
-      listJs.forEach(item => bloquearJ(item.b, item.i));
-      liberarJ('btnJ12', 'horaJ12');
-    }
-
     function resetarFluxoJsParaProximoAcionamento() {
       const listJs = [
         { b: 'btnJ10', i: 'horaJ10' },
@@ -1386,259 +2698,258 @@
     }
 
     async function carregarColaboradoresRobusto() {
-  const selectTec = document.getElementById('tec_enfermeiro');
-  const selectSoc = document.getElementById('socorrista');
+      const selectTec = document.getElementById('tec_enfermeiro');
+      const selectSoc = document.getElementById('socorrista');
 
-  selectTec.innerHTML = '<option value="">Buscando equipe...</option>';
-  selectSoc.innerHTML = '<option value="">Buscando equipe...</option>';
+      selectTec.innerHTML = '<option value="">Buscando equipe...</option>';
+      selectSoc.innerHTML = '<option value="">Buscando equipe...</option>';
 
-  let colabs = null;
+      let colabs = null;
 
-  try {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/colaboradores?select=*&order=nome.asc`, {
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-      }
-    });
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/colaboradores?select=*&order=nome.asc`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
 
-    if (response.ok) {
-      colabs = await response.json();
-    }
-  } catch (errRest) {}
+        if (response.ok) {
+          colabs = await response.json();
+        }
+      } catch (errRest) {}
 
-  if (!colabs && _supabase) {
-    try {
-      const { data, error } = await _supabase.from('colaboradores').select('*').order('nome');
-      if (!error && data) colabs = data;
-    } catch (errSdk) {}
-  }
-
-  if (!colabs || colabs.length === 0) {
-    const cacheLocal = localStorage.getItem('aph_colaboradores_cache');
-    if (cacheLocal) {
-      colabs = JSON.parse(cacheLocal);
-    } else {
-      colabs = COLABORADORES_FALLBACK;
-    }
-  } else {
-    localStorage.setItem('aph_colaboradores_cache', JSON.stringify(colabs));
-  }
-
-  selectTec.innerHTML = '<option value="">-- Selecione o Téc. --</option>';
-  selectSoc.innerHTML = '<option value="">-- Selecione o Condutor --</option>';
-
-  colabs.forEach(c => {
-    const corenVal = c.coren ? ` (COREN ${c.coren})` : '';
-    selectTec.innerHTML += `<option value="${c.nome}">${c.nome}${corenVal}</option>`;
-    selectSoc.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
-  });
-
-  // BUSCA E SELEÇÃO AUTOMÁTICA COMPATÍVEL
-  try {
-    let plantaoAtivo = null;
-
-    if (_supabase) {
-      // 1. Tenta buscar no plantoes_j3 por ATIVO ou ABERTO
-      const { data: dadosJ3 } = await _supabase
-        .from('plantoes_j3')
-        .select('*')
-        .or('status.eq.ATIVO,status.eq.ABERTO')
-        .order('id', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (dadosJ3) plantaoAtivo = dadosJ3;
-    }
-
-    // 2. Mapeamento dos nomes vindos do J3 (Flexível a variações da tabela)
-    let nomeTecnicoJ3 = plantaoAtivo ? (plantaoAtivo.enfermagem || plantaoAtivo.tecnico || plantaoAtivo.tec_enfermeiro || plantaoAtivo.usuario) : null;
-    let nomeCondutorJ3 = plantaoAtivo ? (plantaoAtivo.condutor || plantaoAtivo.socorrista || plantaoAtivo.motorista) : null;
-
-    // 3. Fallback para Sessão Ativa no LocalStorage (Se o J3 não retornar o técnico)
-    if (!nomeTecnicoJ3) {
-      const usuarioSessao = localStorage.getItem('usuario_logado') || localStorage.getItem('samu_user') || localStorage.getItem('user_nome');
-      if (usuarioSessao) {
+      if (!colabs && _supabase) {
         try {
-          const parsed = JSON.parse(usuarioSessao);
-          nomeTecnicoJ3 = parsed.nome || parsed.user || usuarioSessao;
-        } catch(e) {
-          nomeTecnicoJ3 = usuarioSessao;
+          const { data } = await _supabase.from('colaboradores').select('*').order('nome');
+          if (data) colabs = data;
+        } catch (errSdk) {}
+      }
+
+      if (!colabs || colabs.length === 0) {
+        const cacheLocal = localStorage.getItem('aph_colaboradores_cache');
+        if (cacheLocal) {
+          try { colabs = JSON.parse(cacheLocal); } catch(e){}
+        } else {
+          colabs = COLABORADORES_FALLBACK;
+        }
+      } else {
+        localStorage.setItem('aph_colaboradores_cache', JSON.stringify(colabs));
+      }
+
+      listaColaboradoresCache = colabs || [];
+
+      selectTec.innerHTML = '<option value="">-- Selecione o Téc. --</option>';
+      selectSoc.innerHTML = '<option value="">-- Selecione o Condutor --</option>';
+
+      (colabs || []).forEach(c => {
+        const corenVal = c.coren ? ` (COREN ${c.coren})` : '';
+        selectTec.innerHTML += `<option value="${c.nome}">${c.nome}${corenVal}</option>`;
+        selectSoc.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+      });
+
+      await vincularEquipeJ3Ativa();
+    }
+
+    async function vincularEquipeJ3Ativa() {
+      const selectTec = document.getElementById('tec_enfermeiro');
+      const selectSoc = document.getElementById('socorrista');
+      if (!selectTec || !selectSoc) return;
+
+      let plantaoAtivo = plantaoJ3Ativo;
+
+      if (!plantaoAtivo) {
+        plantaoAtivo = await buscarPlantaoAtivoJ3();
+      }
+
+      if (!plantaoAtivo) {
+        const cachePlantao = localStorage.getItem('j3_plantao_ativo_cache');
+        if (cachePlantao) {
+          try { plantaoAtivo = JSON.parse(cachePlantao); } catch(e){}
+        }
+      }
+
+      let nomeEnf = plantaoAtivo ? (plantaoAtivo.enfermagem || plantaoAtivo.tecnico || plantaoAtivo.tec_enfermeiro) : null;
+      let nomeCond = plantaoAtivo ? (plantaoAtivo.condutor || plantaoAtivo.socorrista || plantaoAtivo.motorista) : null;
+
+      if (!nomeEnf) {
+        const sessaoUser = localStorage.getItem('j3_usuario_ativo');
+        if (sessaoUser) {
+          try {
+            const userObj = JSON.parse(sessaoUser);
+            nomeEnf = userObj.nome;
+          } catch(e) {}
+        }
+      }
+
+      if (nomeEnf) {
+        const tecNorm = normalizarString(nomeEnf);
+        let optEnf = Array.from(selectTec.options).find(opt => {
+          const optNorm = normalizarString(opt.value);
+          return optNorm && (optNorm.includes(tecNorm) || tecNorm.includes(optNorm));
+        });
+
+        if (!optEnf) {
+          const newOpt = document.createElement('option');
+          newOpt.value = nomeEnf;
+          newOpt.innerText = nomeEnf.toUpperCase();
+          selectTec.appendChild(newOpt);
+          selectTec.value = nomeEnf;
+        } else {
+          selectTec.value = optEnf.value;
+        }
+        sincronizarTecnicoResp();
+      }
+
+      if (nomeCond) {
+        const condNorm = normalizarString(nomeCond);
+        let optCond = Array.from(selectSoc.options).find(opt => {
+          const optNorm = normalizarString(opt.value);
+          return optNorm && (optNorm.includes(condNorm) || condNorm.includes(optNorm));
+        });
+
+        if (!optCond) {
+          const newOpt = document.createElement('option');
+          newOpt.value = nomeCond;
+          newOpt.innerText = nomeCond.toUpperCase();
+          selectSoc.appendChild(newOpt);
+          selectSoc.value = nomeCond;
+        } else {
+          selectSoc.value = optCond.value;
         }
       }
     }
 
-    // 4. Seleciona o Técnico na lista
-    if (nomeTecnicoJ3) {
-      const tecNorm = normalizarString(nomeTecnicoJ3);
-      const optEnf = Array.from(selectTec.options).find(opt => {
-        const optNorm = normalizarString(opt.value);
-        return optNorm && (optNorm.includes(tecNorm) || tecNorm.includes(optNorm));
-      });
-      if (optEnf) {
-        selectTec.value = optEnf.value;
-        sincronizarTecnicoResp();
-      }
-    }
-
-    // 5. Seleciona o Condutor na lista
-    if (nomeCondutorJ3) {
-      const condNorm = normalizarString(nomeCondutorJ3);
-      const optCond = Array.from(selectSoc.options).find(opt => {
-        const optNorm = normalizarString(opt.value);
-        return optNorm && (optNorm.includes(condNorm) || condNorm.includes(optNorm));
-      });
-      if (optCond) {
-        selectSoc.value = optCond.value;
-      }
-    }
-
-  } catch (errJ3) {
-    console.warn("Aviso ao sincronizar equipe do J3:", errJ3);
-  }
-}
-
-    function normalizarString(str) {
-      if (!str) return '';
-      return str.toString()
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]/g, '');
-    }
-
     async function carregarInsumosELotesUnificados() {
-      const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
-      if (cacheLocal) {
-        try {
-          mapaLotesUnificados = JSON.parse(cacheLocal);
-        } catch(e) {}
-      }
-
       let mestreRes = [];
       let lotesRes = [];
 
       try {
-        const [resMestre, resLotes] = await Promise.all([
-          fetch(`${SUPABASE_URL}/rest/v1/estoque_mestre?select=codigo_insumo,descricao_insumo,categoria,is_psicotropico&exibir_no_aph=eq.true&order=descricao_insumo.asc`, {
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Cache-Control': 'no-cache' }
-          }),
-          fetch(`${SUPABASE_URL}/rest/v1/estoque_lotes?select=id,descricao_insumo,numero_lote,data_validade,quantidade_saldo&order=data_validade.asc`, {
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Cache-Control': 'no-cache' }
-          })
-        ]);
+        if (_supabase) {
+          const [dMestre, dLotes] = await Promise.all([
+            _supabase.from('estoque_mestre').select('*').order('descricao_insumo', { ascending: true }),
+            _supabase.from('estoque_lotes').select('*').order('data_validade', { ascending: true })
+          ]);
 
-        if (resMestre.ok) mestreRes = await resMestre.json();
-        if (resLotes.ok) lotesRes = await resLotes.json();
-      } catch (errRest) {}
-
-      if ((!mestreRes.length || !lotesRes.length) && _supabase) {
-        try {
-          const { data: dMestre } = await _supabase
-            .from('estoque_mestre')
-            .select('codigo_insumo, descricao_insumo, categoria, is_psicotropico')
-            .eq('exibir_no_aph', true)
-            .order('descricao_insumo', { ascending: true });
-
-          const { data: dLotes } = await _supabase
-            .from('estoque_lotes')
-            .select('id, descricao_insumo, numero_lote, data_validade, quantidade_saldo')
-            .order('data_validade', { ascending: true });
-
-          if (dMestre) mestreRes = dMestre;
-          if (dLotes) lotesRes = dLotes;
-        } catch (errSdk) {}
-      }
+          if (dMestre.data) mestreRes = dMestre.data;
+          if (dLotes.data) lotesRes = dLotes.data;
+        }
+      } catch (err) {}
 
       if (mestreRes.length > 0) {
         const listaTemporaria = [];
+        
         mestreRes.forEach(m => {
-          const descMestreNorm = normalizarString(m.descricao_insumo);
+          const descMestre = m.descricao_insumo || m.nome_insumo || m.descricao || '';
+          const descMestreNorm = normalizarString(descMestre);
 
           const lotesDoItem = lotesRes.filter(l => {
-            const descLoteNorm = normalizarString(l.descricao_insumo);
+            const descLote = l.descricao_insumo || l.nome_insumo || l.descricao || '';
+            const descLoteNorm = normalizarString(descLote);
             return descLoteNorm === descMestreNorm || descLoteNorm.includes(descMestreNorm) || descMestreNorm.includes(descLoteNorm);
           });
 
           if (lotesDoItem.length > 0) {
             lotesDoItem.forEach(l => {
               const dataValFmt = l.data_validade ? new Date(l.data_validade).toLocaleDateString('pt-BR') : 'N/A';
-              const labelExibicao = `${m.descricao_insumo} — Lote: ${l.numero_lote || 'S/L'} | Val: ${dataValFmt}`;
+              const labelExibicao = `${descMestre} — Lote: ${l.numero_lote || l.lote || 'S/L'} | Val: ${dataValFmt}`;
 
               listaTemporaria.push({
                 label: labelExibicao,
                 lote_id: l.id,
-                codigo: m.codigo_insumo || '',
-                descricao: m.descricao_insumo,
-                numero_lote: l.numero_lote || '',
+                codigo: m.codigo_insumo || m.codigo || '',
+                descricao: descMestre,
+                numero_lote: l.numero_lote || l.lote || 'SEM LOTE',
                 data_validade: l.data_validade || '',
-                saldo: l.quantidade_saldo || 0,
-                is_psicotropico: !!m.is_psicotropico
+                saldo: l.quantidade_saldo || l.saldo || 0,
+                is_psicotropico: !!(m.is_psicotropico || m.psicotropico),
+                categoria: m.categoria || ''
               });
             });
           } else {
-            const labelExibicao = `${m.descricao_insumo} — Lote: SEM LOTE | Val: N/A`;
+            const labelExibicao = `${descMestre} — Lote: SEM LOTE | Val: N/A`;
             listaTemporaria.push({
               label: labelExibicao,
               lote_id: null,
-              codigo: m.codigo_insumo || '',
-              descricao: m.descricao_insumo,
+              codigo: m.codigo_insumo || m.codigo || '',
+              descricao: descMestre,
               numero_lote: 'SEM LOTE',
               data_validade: '',
               saldo: 0,
-              is_psicotropico: !!m.is_psicotropico
+              is_psicotropico: !!(m.is_psicotropico || m.psicotropico),
+              categoria: m.categoria || ''
             });
           }
         });
 
         mapaLotesUnificados = listaTemporaria;
         localStorage.setItem('aph_insumos_unificados_cache', JSON.stringify(mapaLotesUnificados));
+      } else {
+        const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
+        if (cacheLocal) {
+          try { mapaLotesUnificados = JSON.parse(cacheLocal); } catch(e) {}
+        }
       }
     }
 
     async function inicializarDados() {
+      const sessaoSalva = localStorage.getItem('j3_usuario_ativo');
+      if (sessaoSalva) {
+        try { usuarioJ3Logado = JSON.parse(sessaoSalva); } catch(e) {}
+      }
+
+      atualizarInterfaceUsuarioJ3();
       addSvRow(true);
       await carregarInsumosELotesUnificados();
       await carregarColaboradoresRobusto();
-
-      try {
-        const { data: hospitais } = await _supabase.from('hospitais').select('*').order('nome');
-        const selectHosp = document.getElementById('hospital_destino');
-        selectHosp.innerHTML = '<option value="">-- Selecione o Hospital --</option>';
-        if (hospitais && hospitais.length > 0) {
-          hospitais.forEach(h => {
-            selectHosp.innerHTML += `<option value="${h.nome}">${h.nome}</option>`;
-          });
-        }
-        selectHosp.innerHTML += '<option value="OUTROS">OUTROS (Digitar Nome...)</option>';
-      } catch(e) {
-        document.getElementById('hospital_destino').innerHTML = '<option value="OUTROS">OUTROS (Digitar Nome...)</option>';
-      }
+      await atualizarHospitaisPorMunicipio();
 
       addMedRow();
       ajustarExibicaoAssinaturasImpressao();
-      alternarExibicaoExposicaoTrauma();
+
+      if (usuarioJ3Logado) {
+        desbloquearFormularioPorLogin();
+      } else {
+        bloquearFormularioSemLogin();
+        abrirLoginJ3();
+      }
+
+      await vincularEquipeJ3Ativa();
+
+      atualizarStatusVisualFila();
+      if (navigator.onLine) {
+        sincronizarFichasPendentesOffline();
+        baixarEAtualizarCachePacientes(false);
+      }
     }
 
-    function addSvRow(isFirst = false) {
+    function addSvRow(isFirst = false, dataObj = null) {
       const tbody = document.getElementById('sv_body');
       const tr = document.createElement('tr');
       const reqAttr = isFirst ? 'required' : '';
 
+      const horaVal = dataObj ? (dataObj.hora || '') : '';
+      const paVal = dataObj ? (dataObj.pa || '') : '';
+      const fcVal = dataObj ? (dataObj.fc || '') : '';
+      const frVal = dataObj ? (dataObj.fr || '') : '';
+      const spo2Val = dataObj ? (dataObj.spo2 || '') : '';
+      const tempVal = dataObj ? (dataObj.temp || '') : '';
+      const hgtVal = dataObj ? (dataObj.hgt || '') : '';
+
       tr.innerHTML = `
         <td>
           <div style="display: flex; gap: 2px; align-items: center; justify-content: center;">
-            <input type="time" class="sv-time-val" ${reqAttr}>
+            <input type="time" class="sv-time-val" value="${horaVal}" ${reqAttr}>
             <button type="button" class="btn-time-sv" onclick="setSvTime(this)">⏱️</button>
           </div>
         </td>
-        <td><input type="tel" inputmode="numeric" placeholder="120x80" onkeyup="mascaraPA(this)" ${reqAttr}></td>
-        <td><input type="number" inputmode="numeric" placeholder="80" ${reqAttr}></td>
-        <td><input type="number" inputmode="numeric" placeholder="16" ${reqAttr}></td>
-        <td><input type="number" inputmode="numeric" placeholder="98" onchange="checarSpo2(this)" ${reqAttr}></td>
-        <td><input type="tel" inputmode="decimal" placeholder="36.5" onkeyup="mascaraTemp(this)" ${reqAttr}></td>
-        <td><input type="number" inputmode="numeric" placeholder="90" ${reqAttr}></td>
-        <td>${isFirst ? '' : '<button type="button" class="btn-del-med" onclick="this.closest(\'tr\').remove()">×</button>'}</td>
+        <td><input type="tel" inputmode="numeric" placeholder="120x80" value="${paVal}" onkeyup="mascaraPA(this)" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" placeholder="80" value="${fcVal}" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" placeholder="16" value="${frVal}" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" placeholder="98" value="${spo2Val}" onchange="checarSpo2(this)" ${reqAttr}></td>
+        <td><input type="tel" inputmode="decimal" placeholder="36.5" value="${tempVal}" onkeyup="mascaraTemp(this)" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" placeholder="90" value="${hgtVal}" ${reqAttr}></td>
+        <td class="col-excluir-print">${isFirst ? '' : '<button type="button" class="btn-del-med" onclick="this.closest(\'tr\').remove()">×</button>'}</td>
       `;
       tbody.appendChild(tr);
     }
@@ -1651,56 +2962,74 @@
       salvarLocal();
     }
 
-    async function buscarPacienteCPF() {
-      const cpfRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
-      if (cpfRaw.length < 11) {
-        alert("Digite um CPF válido com 11 dígitos para buscar.");
-        return;
-      }
-
-      try {
-        const { data, error } = await _supabase
-          .from('pacientes')
-          .select('*')
-          .eq('cpf', cpfRaw)
-          .single();
-
-        if (error || !data) {
-          alert("Paciente não encontrado. Preencha os campos manualmente.");
-          return;
+    function obterSinaisVitaisPayload() {
+      const listaSinais = [];
+      document.querySelectorAll('#sv_body tr').forEach(tr => {
+        const inputs = tr.querySelectorAll('input');
+        if (inputs.length >= 7) {
+          listaSinais.push({
+            hora: inputs[0].value,
+            pa: inputs[1].value,
+            fc: inputs[2].value,
+            fr: inputs[3].value,
+            spo2: inputs[4].value,
+            temp: inputs[5].value,
+            hgt: inputs[6].value
+          });
         }
+      });
+      return listaSinais;
+    }
 
-        document.getElementById('paciente').value = (data.nome || '').toUpperCase();
-        document.getElementById('cns_paciente').value = data.cns || '';
-        document.getElementById('idade').value = data.idade || '';
-        if (data.sexo) document.getElementById('sexo').value = data.sexo;
-        if (data.telefone) {
-          const elTel = document.getElementById('telefone');
-          elTel.value = data.telefone;
-          aplicarMascaraTelefone(elTel);
+    function obterLesoesExposicaoPayload() {
+      const lesoes = {};
+      document.querySelectorAll('#tabela_lesoes_expo tbody tr').forEach(tr => {
+        const reg = tr.getAttribute('data-regiao');
+        const chks = tr.querySelectorAll('input[type="checkbox"]');
+        if (reg && chks.length === 5) {
+          lesoes[reg] = {
+            ferida: chks[0].checked,
+            fratura: chks[1].checked,
+            queimadura: chks[2].checked,
+            escoriacao: chks[3].checked,
+            edema: chks[4].checked
+          };
         }
-        document.getElementById('municipio').value = (data.municipio || 'ORLEANS').toUpperCase();
-        document.getElementById('estado').value = (data.estado || 'SC').toUpperCase();
-        document.getElementById('bairro').value = (data.bairro || '').toUpperCase();
-        document.getElementById('rua').value = (data.rua || '').toUpperCase();
-        document.getElementById('numero').value = (data.numero || '').toUpperCase();
-        if (data.cep) document.getElementById('cep_paciente').value = data.cep;
-        salvarLocal();
+      });
+      return lesoes;
+    }
 
-      } catch (err) { alert("Erro ao consultar CPF do paciente."); }
+    function restaurarLesoesExposicao(lesoesObj) {
+      if (!lesoesObj) return;
+      document.querySelectorAll('#tabela_lesoes_expo tbody tr').forEach(tr => {
+        const reg = tr.getAttribute('data-regiao');
+        if (reg && lesoesObj[reg]) {
+          const chks = tr.querySelectorAll('input[type="checkbox"]');
+          if (chks.length === 5) {
+            chks[0].checked = !!lesoesObj[reg].ferida;
+            chks[1].checked = !!lesoesObj[reg].fratura;
+            chks[2].checked = !!lesoesObj[reg].queimadura;
+            chks[3].checked = !!lesoesObj[reg].escoriacao;
+            chks[4].checked = !!lesoesObj[reg].edema;
+          }
+        }
+      });
     }
 
     function alternarNenhumInsumo(chk) {
       const boxTabela = document.getElementById('box_tabela_insumos');
+      const wrapperAviso = document.getElementById('box_nenhum_insumo_wrapper');
+
       if (chk.checked) {
         boxTabela.style.display = 'none';
+        wrapperAviso.classList.remove('ocultar-aviso-print');
       } else {
         boxTabela.style.display = 'block';
+        wrapperAviso.classList.add('ocultar-aviso-print');
       }
       salvarLocal();
     }
 
-    /* MÓDULO POPUP MODAL EXCLUSIVO PARA SMARTPHONES E TABLETS */
     function addMedRow() {
       const tbody = document.getElementById('meds_body');
       const tr = document.createElement('tr');
@@ -1734,7 +3063,7 @@
         <td class="td-center">
           <input type="number" inputmode="numeric" class="med-qtd" value="1" min="1" onchange="salvarLocal()">
         </td>
-        <td class="td-center">
+        <td class="td-center col-excluir-print">
           <button type="button" class="btn-del-med" onclick="this.closest('tr').remove(); reavaliarTodosPsicotropicos(); salvarLocal();">🗑️</button>
         </td>
       `;
@@ -1750,10 +3079,7 @@
       modalInput.value = '';
       
       if (!mapaLotesUnificados || mapaLotesUnificados.length === 0) {
-        const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
-        if (cacheLocal) {
-          try { mapaLotesUnificados = JSON.parse(cacheLocal); } catch(e){}
-        }
+        await carregarInsumosELotesUnificados();
       }
 
       filtrarListaModal('');
@@ -1768,13 +3094,6 @@
     function filtrarListaModal(termo) {
       const listContainer = document.getElementById('modalMedList');
       const termNorm = normalizarString(termo);
-
-      if (!mapaLotesUnificados || mapaLotesUnificados.length === 0) {
-        const cacheLocal = localStorage.getItem('aph_insumos_unificados_cache');
-        if (cacheLocal) {
-          try { mapaLotesUnificados = JSON.parse(cacheLocal); } catch(e){}
-        }
-      }
 
       const listaParaFiltrar = mapaLotesUnificados || [];
 
@@ -1801,6 +3120,14 @@
           if (e) e.preventDefault();
           if (inputMedAtualFocus) {
             inputMedAtualFocus.value = item.label;
+            
+            const tr = inputMedAtualFocus.closest('tr');
+            if (item.categoria && item.categoria.toLowerCase().includes('insumo')) {
+              tr.classList.add('med-row-insumo-comum');
+            } else {
+              tr.classList.remove('med-row-insumo-comum');
+            }
+
             verificarPsicotropico(inputMedAtualFocus);
             salvarLocal();
           }
@@ -1831,19 +3158,24 @@
         return labelNorm === valNorm || descNorm === valNorm || valNorm.includes(descNorm) || (descNorm && descNorm.includes(valNorm));
       });
 
-      const ehPsicotropicoGarantido = valNorm.includes("diazepam") || 
-                                      valNorm.includes("tramadol") || 
+      const ehPsicotropicoGarantido = valNorm.includes("tramal") ||
+                                      valNorm.includes("tramadol") ||
                                       valNorm.includes("morfina") || 
+                                      valNorm.includes("dimorf") ||
+                                      valNorm.includes("diazepam") || 
+                                      valNorm.includes("valium") ||
                                       valNorm.includes("fentanil") || 
                                       valNorm.includes("midazolam") ||
-                                      valNorm.includes("meperidina");
+                                      valNorm.includes("dormonid") ||
+                                      valNorm.includes("hipnovel") ||
+                                      valNorm.includes("meperidina") ||
+                                      valNorm.includes("dolantina");
 
       const ehPsico = (itemEncontrado && itemEncontrado.is_psicotropico) || ehPsicotropicoGarantido;
 
       if (ehPsico) {
         psicoBox.style.display = 'block';
 
-        // Lógica: se já existir outra linha de psicotrópico antes desta, oculta os campos de lacre
         const todasLinhasPsico = Array.from(document.querySelectorAll('#meds_body tr')).filter(r => {
           const b = r.querySelector('.psico-box');
           return b && b.style.display !== 'none';
@@ -1893,7 +3225,7 @@
         const inputQtd = tr.querySelector('.med-qtd');
         const psicoBox = tr.querySelector('.psico-box');
 
-        if (inputLabel && inputLabel.value.trim() !== '') {
+        if (inputLabel && inputLabel.value && inputLabel.value.trim() !== '') {
           const valDigitado = inputLabel.value.trim();
           const valNorm = normalizarString(valDigitado);
           
@@ -1903,53 +3235,53 @@
             return labelNorm === valNorm || descNorm === valNorm || valNorm.includes(descNorm) || (descNorm && descNorm.includes(valNorm));
           });
 
-          const isPsico = (psicoBox && psicoBox.style.display !== 'none');
+          const isPsico = !!(psicoBox && psicoBox.style.display !== 'none');
           let via = null;
           let lacreRompido = null;
           let lacreNovo = null;
 
           if (isPsico) {
-            via = tr.querySelector('.psico-via').value;
+            const viaEl = tr.querySelector('.psico-via');
+            if (viaEl) via = viaEl.value;
+
             const inputRompido = tr.querySelector('.psico-lacre-rompido');
             const inputNovo = tr.querySelector('.psico-lacre-novo');
-            if (inputRompido && inputRompido.offsetParent !== null) lacreRompido = inputRompido.value.toUpperCase();
-            if (inputNovo && inputNovo.offsetParent !== null) lacreNovo = inputNovo.value.toUpperCase();
+            if (inputRompido && inputRompido.value) lacreRompido = inputRompido.value.toUpperCase();
+            if (inputNovo && inputNovo.value) lacreNovo = inputNovo.value.toUpperCase();
           }
 
-          if (itemEncontrado) {
-            insumosArray.push({
-              lote_id: itemEncontrado.lote_id,
-              codigo: itemEncontrado.codigo,
-              descricao: itemEncontrado.descricao,
-              numero_lote: itemEncontrado.numero_lote,
-              data_validade: itemEncontrado.data_validade,
-              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
-              is_psicotropico: isPsico,
-              via_administrada: via,
-              lacre_rompido: lacreRompido,
-              lacre_novo: lacreNovo
-            });
-          } else {
-            insumosArray.push({
-              lote_id: null,
-              codigo: null,
-              descricao: valDigitado.toUpperCase(),
-              numero_lote: 'N/A',
-              data_validade: null,
-              quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
-              is_psicotropico: isPsico,
-              via_administrada: via,
-              lacre_rompido: lacreRompido,
-              lacre_novo: lacreNovo
-            });
+          let loteExtraido = 'SEM LOTE';
+          let valExtraida = null;
+
+          if (valDigitado.includes('— Lote:')) {
+            const partes = valDigitado.split('— Lote:');
+            if (partes[1]) {
+              const subPartes = partes[1].split('| Val:');
+              loteExtraido = subPartes[0].trim();
+              if (subPartes[1]) valExtraida = subPartes[1].trim();
+            }
           }
+
+          const nomeDescricao = itemEncontrado ? itemEncontrado.descricao : (valDigitado.split('— Lote:')[0] || valDigitado).trim();
+
+          insumosArray.push({
+            lote_id: itemEncontrado ? (itemEncontrado.lote_id || null) : null,
+            codigo: itemEncontrado ? (itemEncontrado.codigo || 'INS-DIV') : 'INS-DIV',
+            descricao: nomeDescricao,
+            numero_lote: itemEncontrado ? itemEncontrado.numero_lote : loteExtraido,
+            data_validade: itemEncontrado ? (itemEncontrado.data_validade || null) : valExtraida,
+            quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
+            is_psicotropico: isPsico,
+            via_administrada: via,
+            lacre_rompido: lacreRompido,
+            lacre_novo: lacreNovo
+          });
         }
       });
 
       return insumosArray;
     }
 
-    /* BAIXA AUTOMÁTICA DE ESTOQUE NOS LOTES */
     async function processarBaixaEstoqueELacres(insumosPayload, codigoOcorrencia) {
       if (!insumosPayload || !insumosPayload.length) return;
 
@@ -1994,8 +3326,12 @@
     }
 
     async function salvarFichaOcorrenciaAPH() {
+      let payloadOcorrencia = null;
+
       try {
         const insumosPayload = obterInsumosUtilizadosPayload();
+        const sinaisVitaisPayload = obterSinaisVitaisPayload();
+        const lesoesPayload = obterLesoesExposicaoPayload();
 
         const bioSuspeita = document.getElementById('bio_suspeita').value;
         const bioTipoAgente = (bioSuspeita === 'SIM') ? 
@@ -2003,19 +3339,60 @@
           : 'NÃO';
         const bioDesinfeccao = (bioSuspeita === 'SIM') ? document.getElementById('bio_desinfeccao').value : 'NÃO SE APLICA';
 
-        const payload = {
-          codigo_ocorrencia: document.getElementById('codigo').value,
+        const codBase = document.getElementById('codigo').value;
+        const codFinalOcorrencia = (vitimaAtual === 2) ? `${codBase}-V2` : codBase;
+
+        const radioTipoSel = document.querySelector('input[name="tipo_ocorrencia"]:checked');
+        const tipoOcorrenciaVal = radioTipoSel ? radioTipoSel.value : '';
+
+        const selHosp = document.getElementById('hospital_destino');
+        const hospitalFinal = (selHosp.value === 'OUTROS') ? document.getElementById('hospital_outros').value : selHosp.value;
+
+        const cpfPacienteRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
+        const dataNascimentoVal = document.getElementById('data_nascimento').value;
+
+        if (cpfPacienteRaw.length === 11 && navigator.onLine && _supabase) {
+          try {
+            const payloadPaciente = {
+              cpf: cpfPacienteRaw,
+              nome: document.getElementById('paciente').value.toUpperCase(),
+              cns: document.getElementById('cns_paciente').value.replace(/\D/g, ""),
+              data_nascimento: (dataNascimentoVal && dataNascimentoVal.trim() !== '') ? dataNascimentoVal : null,
+              idade: parseInt(document.getElementById('idade').value) || null,
+              sexo: document.getElementById('sexo').value,
+              telefone: document.getElementById('telefone').value,
+              cep: document.getElementById('cep_paciente').value,
+              rua: document.getElementById('rua').value.toUpperCase(),
+              numero: document.getElementById('numero').value.toUpperCase(),
+              bairro: document.getElementById('bairro').value.toUpperCase(),
+              municipio: document.getElementById('municipio').value.toUpperCase(),
+              estado: document.getElementById('estado').value.toUpperCase(),
+              alergia_select: document.getElementById('alergia_select').value,
+              alergia_desc: document.getElementById('alergia_desc').value,
+              updated_at: new Date().toISOString()
+            };
+            await _supabase.from('pacientes').upsert([payloadPaciente], { onConflict: 'cpf' });
+          } catch(e) {}
+        }
+
+        const canvasEl = document.getElementById('sig-canvas');
+        const assinaturaBase64 = canvasEl ? canvasEl.toDataURL() : null;
+        const dataAtendimentoVal = document.getElementById('data').value;
+
+        payloadOcorrencia = {
+          codigo_ocorrencia: codFinalOcorrencia,
           cor_ocorrencia: document.getElementById('cor_ocorrencia').value,
           reclassificacao_codigo: document.getElementById('reclassificacao_codigo').value,
           reclassificacao_hora: document.getElementById('reclassificacao_hora').value,
           reclassificacao_medico: document.getElementById('reclassificacao_medico').value,
-          data: document.getElementById('data').value,
+          data: (dataAtendimentoVal && dataAtendimentoVal.trim() !== '') ? dataAtendimentoVal : null,
           regulador: document.getElementById('regulador').value,
           motivo_acionamento: document.getElementById('motivo_acionamento').value,
           tec_enfermeiro: document.getElementById('tec_enfermeiro').value,
           socorrista: document.getElementById('socorrista').value,
           cpf_paciente: document.getElementById('cpf_paciente').value,
           paciente: document.getElementById('paciente').value,
+          data_nascimento: (dataNascimentoVal && dataNascimentoVal.trim() !== '') ? dataNascimentoVal : null,
           idade: document.getElementById('idade').value,
           sexo: document.getElementById('sexo').value,
           telefone: document.getElementById('telefone').value,
@@ -2023,14 +3400,40 @@
           bairro: document.getElementById('bairro').value,
           municipio: document.getElementById('municipio').value,
           estado: document.getElementById('estado').value,
+          tipo_ocorrencia: tipoOcorrenciaVal,
+          
+          vias_aereas: document.getElementById('vias_aereas').value,
+          respiracao: document.getElementById('respiracao').value,
+          circulacao: document.getElementById('circulacao').value,
+          pupilas: document.getElementById('pupilas').value,
+          glasgow_ocular: parseInt(document.getElementById('g_oc').value) || 0,
+          glasgow_verbal: parseInt(document.getElementById('g_verb').value) || 0,
+          glasgow_motor: parseInt(document.getElementById('g_mot').value) || 0,
           glasgow_total: (parseInt(document.getElementById('g_oc').value) || 0) + (parseInt(document.getElementById('g_verb').value) || 0) + (parseInt(document.getElementById('g_mot').value) || 0),
+          lesoes_exposicao: lesoesPayload,
+
           bio_suspeita: bioSuspeita,
           bio_tipo_agente: bioTipoAgente,
           bio_desinfeccao: bioDesinfeccao,
+
+          sinais_vitais: sinaisVitaisPayload,
+          insumos_utilizados: insumosPayload,
+
+          alergia_select: document.getElementById('alergia_select').value,
+          alergia_desc: document.getElementById('alergia_desc').value,
+          med_continua_select: document.getElementById('med_continua_select').value,
+          meds_continuas: document.getElementById('meds_continuas').value,
           evolucao_texto: document.getElementById('evolucao_texto').value,
+          hospital_destino: hospitalFinal,
+
           desfecho_vitima: document.getElementById('desfecho_vitima').value,
           houve_recusa: document.getElementById('houve_recusa').value,
-          insumos_utilizados: insumosPayload,
+          tipo_assinante: document.getElementById('tipo_assinante').value,
+          cpf_assinante: document.getElementById('cpf_assinante').value,
+          nome_assinante: document.getElementById('nome_assinante').value,
+          tel_assinante: document.getElementById('tel_assinante').value,
+          assinatura_base64: assinaturaBase64,
+
           hora_j9: document.getElementById('horaJ9').value,
           hora_j10: document.getElementById('horaJ10').value,
           hora_qta: document.getElementById('horaQTA').value,
@@ -2041,23 +3444,25 @@
           updated_at: new Date().toISOString()
         };
 
-        if (_supabase) {
-          const { data, error } = await _supabase
+        if (navigator.onLine && _supabase) {
+          const { error } = await _supabase
             .from('ocorrencias_aph')
-            .upsert([payload], { onConflict: 'codigo_ocorrencia' });
+            .upsert([payloadOcorrencia], { onConflict: 'codigo_ocorrencia' });
 
           if (error) {
-            alert("Erro ao gravar APH no Supabase: " + error.message);
+            alert("⚠️ Erro ao gravar no Supabase: " + error.message);
           } else {
-            await processarBaixaEstoqueELacres(insumosPayload, payload.codigo_ocorrencia);
+            await processarBaixaEstoqueELacres(insumosPayload, payloadOcorrencia.codigo_ocorrencia);
+            atualizarStatusVisualFila();
           }
         }
       } catch (err) {
-        alert("Falha no salvamento da ocorrência APH.");
+        console.error("Erro ao salvar ocorrência:", err);
       }
     }
 
     document.addEventListener('click', function(e) {
+      if (!usuarioJ3Logado) return;
       const badgeBtn = e.target.closest('.btn-j-badge');
       if (badgeBtn && !badgeBtn.disabled) {
         e.preventDefault();
@@ -2092,8 +3497,9 @@
     }
 
     document.addEventListener('keyup', (e) => {
+      if (!usuarioJ3Logado && e.target.id !== 'j3_user_input') return;
       if (e.target) {
-        if (e.target.id === 'cpf_paciente' || e.target.classList.contains('cpf-mask')) {
+        if ((e.target.id === 'cpf_paciente' || e.target.classList.contains('cpf-mask')) && e.target.id !== 'j3_user_input') {
           let v = e.target.value.replace(/\D/g, "");
           if (v.length > 11) v = v.slice(0, 11);
           v = v.replace(/(\d{3})(\d)/, "$1.$2");
@@ -2135,13 +3541,14 @@
     }
 
     canvas.addEventListener('touchstart', (e) => {
+      if (!usuarioJ3Logado) return;
       writing = true; ctx.beginPath();
       const pos = getTouchPos(e); ctx.moveTo(pos.x, pos.y);
     }, { passive: false });
 
     canvas.addEventListener('touchend', () => { writing = false; });
     canvas.addEventListener('touchmove', (e) => {
-      if (!writing) return; e.preventDefault();
+      if (!writing || !usuarioJ3Logado) return; e.preventDefault();
       const pos = getTouchPos(e); ctx.lineWidth = 2; ctx.strokeStyle = "#000";
       ctx.lineTo(pos.x, pos.y); ctx.stroke();
     }, { passive: false });
@@ -2149,30 +3556,31 @@
     document.getElementById('btnClearSig').addEventListener('click', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); });
     
     document.getElementById('btnImprimir').addEventListener('click', () => { 
-      const confirmacao = confirm(
-        "⚠️ ATENÇÃO: CONFIRMA A IMPRESSÃO DA FICHA?\n\n" +
-        "• Certifique-se de que todos os dados estão corretos.\n" +
-        "• Após a impressão, os dados serão salvos e o estoque será abatido no Supabase.\n" +
-        "• Os campos desta ficha serão LIMPOS e não será possível editar esta ocorrência localmente.\n\n" +
-        "Deseja realmente prosseguir com a impressão?"
-      );
-
-      if (!confirmacao) {
+      if (!usuarioJ3Logado) {
+        alert("Acesso negado: Faça o login antes de imprimir.");
         return;
       }
+      const confirmacao = confirm(
+        `⚠️ CONFIRMA A IMPRESSÃO DA FICHA DA VÍTIMA ${vitimaAtual}?\n\n` +
+        "• Os dados desta vítima e o cadastro do paciente serão salvos no Supabase.\n" +
+        "• Os campos do Item 1 serão congelados para edição.\n" +
+        "• As outras abas permanecerão salvas em rascunho sem perder dados."
+      );
+
+      if (!confirmacao) return;
 
       document.querySelectorAll('.card').forEach(c => c.classList.add('active'));
       ajustarExibicaoAssinaturasImpressao();
 
       salvarFichaOcorrenciaAPH().then(() => {
         window.print();
-        localStorage.removeItem('aph_draft_data');
-        resetarFormularioParaNovaOcorrencia();
+        congelarSecao1Operacional();
       });
     });
 
     document.getElementById('data').valueAsDate = new Date();
     document.getElementById('data_hora_recusa').value = new Date().toLocaleString('pt-BR');
+
     inicializarDados();
   </script>
 </body>
