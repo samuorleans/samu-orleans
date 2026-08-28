@@ -1329,21 +1329,26 @@
 
       let plantaoAtivo = plantaoJ3Ativo;
 
-      if (!plantaoAtivo) {
-        plantaoAtivo = await buscarPlantaoAtivoJ3();
+      // 1. Prioriza o cache local do J3 (Prevenção contra erros de CORS e requisições bloqueadas)
+      const cachePlantao = localStorage.getItem('j3_plantao_ativo_cache');
+      if (cachePlantao) {
+        try { plantaoAtivo = JSON.parse(cachePlantao); } catch(e){}
       }
 
-      if (!plantaoAtivo) {
-        const cachePlantao = localStorage.getItem('j3_plantao_ativo_cache');
-        if (cachePlantao) {
-          try { plantaoAtivo = JSON.parse(cachePlantao); } catch(e){}
-        }
+      // 2. Se estiver online e sem cache, consulta o Supabase
+      if (!plantaoAtivo && navigator.onLine && _supabase) {
+        try {
+          plantaoAtivo = await buscarPlantaoAtivoJ3();
+        } catch(e) {}
       }
 
       let nomeEnf = plantaoAtivo ? (plantaoAtivo.enfermagem || plantaoAtivo.tecnico || plantaoAtivo.tec_enfermeiro) : null;
       let nomeCond = plantaoAtivo ? (plantaoAtivo.condutor || plantaoAtivo.socorrista || plantaoAtivo.motorista) : null;
 
-      if (!nomeEnf) {
+      // 3. Garante o preenchimento pelo usuário ativo na sessão
+      if (!nomeEnf && usuarioJ3Logado) {
+        nomeEnf = usuarioJ3Logado.nome;
+      } else if (!nomeEnf) {
         const sessaoUser = localStorage.getItem('j3_usuario_ativo');
         if (sessaoUser) {
           try {
@@ -1353,6 +1358,7 @@
         }
       }
 
+      // 4. Injeta e seleciona o Técnico de Enfermagem
       if (nomeEnf) {
         const tecNorm = normalizarString(nomeEnf);
         let optEnf = Array.from(selectTec.options).find(opt => {
@@ -1372,6 +1378,7 @@
         sincronizarTecnicoResp();
       }
 
+      // 5. Injeta e seleciona o Condutor / Socorrista
       if (nomeCond) {
         const condNorm = normalizarString(nomeCond);
         let optCond = Array.from(selectSoc.options).find(opt => {
@@ -2749,75 +2756,6 @@
       });
 
       await vincularEquipeJ3Ativa();
-    }
-
-    async function vincularEquipeJ3Ativa() {
-      const selectTec = document.getElementById('tec_enfermeiro');
-      const selectSoc = document.getElementById('socorrista');
-      if (!selectTec || !selectSoc) return;
-
-      let plantaoAtivo = plantaoJ3Ativo;
-
-      if (!plantaoAtivo) {
-        plantaoAtivo = await buscarPlantaoAtivoJ3();
-      }
-
-      if (!plantaoAtivo) {
-        const cachePlantao = localStorage.getItem('j3_plantao_ativo_cache');
-        if (cachePlantao) {
-          try { plantaoAtivo = JSON.parse(cachePlantao); } catch(e){}
-        }
-      }
-
-      let nomeEnf = plantaoAtivo ? (plantaoAtivo.enfermagem || plantaoAtivo.tecnico || plantaoAtivo.tec_enfermeiro) : null;
-      let nomeCond = plantaoAtivo ? (plantaoAtivo.condutor || plantaoAtivo.socorrista || plantaoAtivo.motorista) : null;
-
-      if (!nomeEnf) {
-        const sessaoUser = localStorage.getItem('j3_usuario_ativo');
-        if (sessaoUser) {
-          try {
-            const userObj = JSON.parse(sessaoUser);
-            nomeEnf = userObj.nome;
-          } catch(e) {}
-        }
-      }
-
-      if (nomeEnf) {
-        const tecNorm = normalizarString(nomeEnf);
-        let optEnf = Array.from(selectTec.options).find(opt => {
-          const optNorm = normalizarString(opt.value);
-          return optNorm && (optNorm.includes(tecNorm) || tecNorm.includes(optNorm));
-        });
-
-        if (!optEnf) {
-          const newOpt = document.createElement('option');
-          newOpt.value = nomeEnf;
-          newOpt.innerText = nomeEnf.toUpperCase();
-          selectTec.appendChild(newOpt);
-          selectTec.value = nomeEnf;
-        } else {
-          selectTec.value = optEnf.value;
-        }
-        sincronizarTecnicoResp();
-      }
-
-      if (nomeCond) {
-        const condNorm = normalizarString(nomeCond);
-        let optCond = Array.from(selectSoc.options).find(opt => {
-          const optNorm = normalizarString(opt.value);
-          return optNorm && (optNorm.includes(condNorm) || condNorm.includes(optNorm));
-        });
-
-        if (!optCond) {
-          const newOpt = document.createElement('option');
-          newOpt.value = nomeCond;
-          newOpt.innerText = nomeCond.toUpperCase();
-          selectSoc.appendChild(newOpt);
-          selectSoc.value = nomeCond;
-        } else {
-          selectSoc.value = optCond.value;
-        }
-      }
     }
 
     async function carregarInsumosELotesUnificados() {
