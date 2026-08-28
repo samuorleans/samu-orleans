@@ -37,7 +37,7 @@
 
     .btn-print { background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
 
-    /* ESTILO DA FICHA APH OFICIAL COM ALTO CONTRASTE PARA IMPRESSÃO */
+    /* ESTILO EXATO DA FICHA APH OFICIAL DE ALTO CONTRASTE */
     .ficha-oficial { display: none; background: #fff; padding: 5px; color: #000; font-size: 10px; }
     .ficha-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 6px; }
 
@@ -69,7 +69,14 @@
       print-color-adjust: exact !important; 
     }
 
-    /* REGRAS DE IMPRESSÃO A4 */
+    .print-signatures-block { display: grid; gap: 8px; margin-top: 25px; text-align: center; }
+    .print-signatures-block.duas-colunas { grid-template-columns: 1fr 1fr; }
+    .print-signatures-block.tres-colunas { grid-template-columns: 1fr 1fr 1fr; }
+    .sig-box { border: 1px solid #000; padding: 6px; display: flex; flex-direction: column; justify-content: space-between; min-height: 55px; }
+    .sig-line { border-top: 1px solid #000; margin-top: 25px; font-size: 8.5px; font-weight: 900; text-transform: uppercase; }
+    .sig-title { font-size: 9px; font-weight: bold; }
+
+    /* IMPRESSÃO A4 */
     @media print {
       body { background: white; padding: 0; margin: 0; }
       .no-print { display: none !important; }
@@ -137,19 +144,34 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
 
     window.dbNuvem = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
     let listaFichasCache = [];
+    let mapaColaboradoresCache = {};
 
     function tratarTecla(e) { if (e.key === 'Enter') validarAcesso(); }
 
-    function validarAcesso() {
+    async function validarAcesso() {
       const senha = document.getElementById('inputSenhaAcesso').value.trim();
       if (senha === '192' || senha === 'samu192' || senha === '123456') {
         document.getElementById('boxAuth').style.display = 'none';
         document.getElementById('areaFichas').style.display = 'block';
+        await carregarColaboradores();
         carregarFichasAPH();
       } else {
         alert("❌ Senha incorreta.");
       }
+    }
+
+    async function carregarColaboradores() {
+      try {
+        const client = window.dbNuvem || window.supabaseClient;
+        const { data } = await client.from('colaboradores').select('nome, coren');
+        if (data) {
+          data.forEach(c => {
+            if (c.nome) mapaColaboradoresCache[c.nome.trim().toUpperCase()] = c.coren || '';
+          });
+        }
+      } catch (e) {}
     }
 
     function v(val, padrao = '—') {
@@ -230,7 +252,7 @@
       const f = listaFichasCache[index];
       if (!f) return;
 
-      // Sinais Vitais (JSON)
+      // Parse Sinais Vitais (JSON)
       let sv = [];
       try {
         if (f.sinais_vitais) {
@@ -239,7 +261,7 @@
       } catch(e){}
       let svRow = sv.length > 0 ? sv[0] : {};
 
-      // Insumos (JSON)
+      // Parse Insumos (JSON)
       let insumosHtml = '';
       try {
         let insList = typeof f.insumos_utilizados === 'string' ? JSON.parse(f.insumos_utilizados) : f.insumos_utilizados;
@@ -322,6 +344,28 @@
       const tipoOcorr = v(f.tipo_ocorrencia).toLowerCase();
       const exibeLesoes = tipoOcorr.includes('trauma') || tipoOcorr.includes('sinistro') || tipoOcorr.includes('trânsito') || temLesao;
 
+      // Biossegurança
+      let bioHtml = '';
+      if (v(f.bio_suspeita) === 'SIM') {
+        bioHtml = `
+          <div class="sec-title">☣️ BIOSSEGURANÇA</div>
+          <div class="grid-box" style="grid-template-columns: 2fr 1fr;">
+            <div class="cell"><span class="lbl">TIPO DE SUSPEITA / AGENTE BIOLÓGICO</span><span class="val">${v(f.bio_tipo_agente)}</span></div>
+            <div class="cell"><span class="lbl">DESINFECÇÃO DA VIATURA</span><span class="val">${v(f.bio_desinfeccao)}</span></div>
+          </div>
+        `;
+      }
+
+      // Reclassificação de Código
+      let reclassHtml = '';
+      if (v(f.reclassificacao_codigo) !== '—') {
+        reclassHtml = `
+          <div class="grid-box" style="grid-template-columns: 1fr;">
+            <div class="cell" style="background: #fffbeb;"><span class="lbl">🔄 RECLASSIFICAÇÃO DE CÓDIGO</span><span class="val" style="color: #b45309;">RECLASSIFICADO PARA ${v(f.reclassificacao_codigo)} ÀS ${v(f.reclassificacao_hora)} (AUTORIZADO DR(A). ${v(f.reclassificacao_medico)})</span></div>
+          </div>
+        `;
+      }
+
       // Glasgow
       const gTot = v(f.glasgow_total);
       const gOc = v(f.glasgow_ocular);
@@ -333,12 +377,68 @@
       if (corTriagem === 'AM') corTriagem = 'AMARELO (AM)';
       else if (corTriagem === 'VM') corTriagem = 'VERMELHO (VM)';
       else if (corTriagem === 'VD') corTriagem = 'VERDE (VD)';
-      else if (corTriagem === 'CZ') corTriagem = 'CINZA (CZ)';
+      else if (corTriagem === 'AZ') corTriagem = 'AZUL (AZ)';
 
       // Sexo
       let sexoFmt = v(f.sexo);
       if (sexoFmt === 'M') sexoFmt = 'Masculino (M)';
       else if (sexoFmt === 'F') sexoFmt = 'Feminino (F)';
+
+      // COREN do Técnico
+      const nomeTec = v(f.tec_enfermeiro).trim().toUpperCase();
+      let corenTec = mapaColaboradoresCache[nomeTec] || '';
+      const corenLabel = corenTec ? `COREN ${corenTec}` : 'COREN: ____________';
+
+      // Regras de Exibição do Bloco de Assinaturas
+      const desfecho = v(f.desfecho_vitima);
+      const recusa = v(f.houve_recusa);
+      const nomeAssinante = v(f.nome_assinante, v(f.paciente, 'DECLARANTE'));
+
+      let assinaturasBlock = '';
+      if (desfecho === 'OBITO') {
+        assinaturasBlock = `
+          <div class="print-signatures-block tres-colunas">
+            <div class="sig-box">
+              <div class="sig-title">${v(f.tec_enfermeiro, 'TÉCNICO DE ENFERMAGEM')}</div>
+              <div class="sig-line">ASSINATURA E CARIMBO / ${corenLabel}</div>
+            </div>
+            <div class="sig-box">
+              <div class="sig-title">DECLARANTE / TESTEMUNHA</div>
+              <div class="sig-line">ASSINATURA FÍSICA DO DECLARANTE</div>
+            </div>
+            <div class="sig-box">
+              <div class="sig-title">MÉDICO RECEPTOR / REGULADOR</div>
+              <div class="sig-line">ASSINATURA E CARIMBO / CRM</div>
+            </div>
+          </div>
+        `;
+      } else if (desfecho === 'PERMANECEU_LOCAL' || desfecho === 'RECUSA' || recusa === 'SIM') {
+        assinaturasBlock = `
+          <div class="print-signatures-block duas-colunas">
+            <div class="sig-box">
+              <div class="sig-title">${v(f.tec_enfermeiro, 'TÉCNICO DE ENFERMAGEM')}</div>
+              <div class="sig-line">ASSINATURA E CARIMBO / ${corenLabel}</div>
+            </div>
+            <div class="sig-box">
+              <div class="sig-title">${v(f.tipo_assinante, 'DECLARANTE')}: ${nomeAssinante}</div>
+              <div class="sig-line">ASSINATURA FÍSICA DO DECLARANTE</div>
+            </div>
+          </div>
+        `;
+      } else {
+        assinaturasBlock = `
+          <div class="print-signatures-block duas-colunas">
+            <div class="sig-box">
+              <div class="sig-title">${v(f.tec_enfermeiro, 'TÉCNICO DE ENFERMAGEM')}</div>
+              <div class="sig-line">ASSINATURA E CARIMBO / ${corenLabel}</div>
+            </div>
+            <div class="sig-box">
+              <div class="sig-title">MÉDICO RECEPTOR / REGULADOR</div>
+              <div class="sig-line">ASSINATURA E CARIMBO / CRM</div>
+            </div>
+          </div>
+        `;
+      }
 
       const htmlOficial = `
         <div class="ficha-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 6px;">
@@ -356,6 +456,7 @@
           <div class="cell"><span class="lbl">DATA</span><span class="val">${formatarDataBR(v(f.data))}</span></div>
           <div class="cell"><span class="lbl">MOTIVO ACIONAMENTO</span><span class="val">${v(f.motivo_acionamento)}</span></div>
         </div>
+        ${reclassHtml}
         <div class="grid-box" style="grid-template-columns: 1fr 1fr 1fr;">
           <div class="cell"><span class="lbl">MÉDICO REGULADOR INICIAL</span><span class="val">${v(f.regulador)}</span></div>
           <div class="cell"><span class="lbl">TÉC. DE ENFERMAGEM</span><span class="val">${v(f.tec_enfermeiro)}</span></div>
@@ -398,6 +499,7 @@
           <div class="cell"><span class="lbl">D - GLASGOW TOTAL</span><span class="val">${gTot !== '—' ? gTot + '/15' : '—'} (O:${gOc} V:${gVerb} M:${gMot})</span></div>
         </div>
         ${exibeLesoes ? tabelaLesoesHtml : ''}
+        ${bioHtml}
 
         <div class="sec-title">5. SINAIS VITAIS (MEDIÇÕES APH)</div>
         <table class="tbl-ficha">
@@ -451,18 +553,7 @@
           <div class="cell"><span class="lbl">HOUVE RECUSA?</span><span class="val">${v(f.houve_recusa)}</span></div>
         </div>
 
-        <div style="margin-top: 30px; display: flex; justify-content: space-around; text-align: center;">
-          <div>
-            _______________________________________<br>
-            <b>${v(f.socorrista, 'SOCORRISTA (CONDUTOR)')}</b><br>
-            <span style="font-size: 8.5px;">Assinatura e Carimbo</span>
-          </div>
-          <div>
-            _______________________________________<br>
-            <b>${v(f.tec_enfer做出, 'TÉCNICO DE ENFERMAGEM')}</b><br>
-            <span style="font-size: 8.5px;">Assinatura e Carimbo / COREN</span>
-          </div>
-        </div>
+        ${assinaturasBlock}
       `;
 
       document.getElementById('conteudoFichaDetalhada').innerHTML = htmlOficial;
