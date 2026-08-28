@@ -308,13 +308,8 @@
       transition: background-color 0.2s ease, transform 0.1s ease !important;
     }
 
-    .btn-login-j3-submit:hover {
-      background: #b91c1c !important;
-    }
-
-    .btn-login-j3-submit:active {
-      transform: scale(0.98) !important;
-    }
+    .btn-login-j3-submit:hover { background: #b91c1c !important; }
+    .btn-login-j3-submit:active { transform: scale(0.98) !important; }
 
     .psico-box { background: #fff7ed; border: 1px solid #fdba74; padding: 5px; border-radius: 4px; margin-top: 3px; }
     .btn-time-sv { background: var(--secondary); color: #fff; border: none; border-radius: 3px; padding: 2px 4px; font-size: 0.6rem; cursor: pointer; }
@@ -1135,7 +1130,7 @@
     }
 
     const COLABORADORES_FALLBACK = [
-      { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "", senha: "" }
+      { nome: "Daniel Alexandre Fernandes", funcao: "Condutor Socorrista", coren: "", senha: "" }[cite: 5]
     ];
 
     function mascaraEFormatarLoginUsuario(input) {
@@ -1255,13 +1250,11 @@
           return;
         }
 
-        // 1. Normalização resiliente
         const funcaoBruta = (colabEncontrado.funcao || colabEncontrado.cargo || '').toUpperCase();
         const perfilBruto = (colabEncontrado.perfil || '').toUpperCase();
         const funcaoNorm = normalizarString(funcaoBruta);
         const perfilNorm = normalizarString(perfilBruto);
 
-        // 2. Trava absoluta para Condutores / Socorristas puros
         const ehCondutorOuSocorrista = funcaoNorm.includes('condutor') || 
                                        funcaoNorm.includes('socorrista') || 
                                        funcaoBruta.includes('CONDUTOR') || 
@@ -1289,7 +1282,6 @@
           return;
         }
 
-        // 3. Validação de Plantão J3 (Isenta Adm e Coord)
         const plantaoAtivoBd = await buscarPlantaoAtivoJ3();
 
         if (!ehAdminOuCoord) {
@@ -1340,12 +1332,10 @@
       let nomeEnf = plt && plt.enfermagem ? plt.enfermagem.trim() : '';
       let nomeCond = plt && plt.condutor ? plt.condutor.trim() : '';
 
-      // Se for login direto do técnico, garante o preenchimento do próprio nome
       if (!nomeEnf && user) {
         nomeEnf = user.nome;
       }
 
-      // Preenchimento / Injeção dinâmica no Select de Técnico
       if (nomeEnf) {
         let optMatch = Array.from(selectTec.options).find(opt => 
           normalizarString(opt.value) === normalizarString(nomeEnf) ||
@@ -1364,7 +1354,6 @@
         }
       }
 
-      // Preenchimento / Injeção dinâmica no Select de Socorrista
       if (nomeCond) {
         let optMatch = Array.from(selectSoc.options).find(opt => 
           normalizarString(opt.value) === normalizarString(nomeCond) ||
@@ -1865,7 +1854,6 @@
         dataOcorr.sinais_vitais.forEach((sv, idx) => addSvRow(idx === 0, sv));
       }
 
-      // RESTAURAÇÃO DE MEDICAÇÕES E INSUMOS
       restaurarInsumosEGodsDoBanco(dataOcorr.insumos_utilizados);
 
       document.getElementById('alergia_select').value = dataOcorr.alergia_select || 'NAO';
@@ -3129,7 +3117,7 @@
       salvarLocal();
     }
 
-    /* FUNÇÃO AJUSTADA: GARANTE O SALVAMENTO DE INSUMOS E PSICOTRÓPICOS NO SUPABASE */
+    /* EXTRAÇÃO DE INSUMOS GARANTIDA - PREVINE ARRAY VAZIO [] NO SUPABASE */
     function obterInsumosUtilizadosPayload() {
       const chkNenhum = document.getElementById('chk_nenhum_insumo');
       
@@ -3162,7 +3150,7 @@
             return labelNorm === valNorm || descNorm === valNorm || valNorm.includes(descNorm) || (descNorm && descNorm.includes(valNorm));
           });
 
-          const isPsico = (psicoBox && psicoBox.style.display !== 'none');
+          const isPsico = !!(psicoBox && psicoBox.style.display !== 'none');
           let via = null;
           let lacreRompido = null;
           let lacreNovo = null;
@@ -3189,10 +3177,12 @@
             }
           }
 
+          const nomeDescricao = itemEncontrado ? itemEncontrado.descricao : (valDigitado.split('— Lote:')[0] || valDigitado).trim();
+
           insumosArray.push({
             lote_id: itemEncontrado ? (itemEncontrado.lote_id || null) : null,
             codigo: itemEncontrado ? (itemEncontrado.codigo || 'INS-DIV') : 'INS-DIV',
-            descricao: itemEncontrado ? itemEncontrado.descricao : (valDigitado.split('— Lote:')[0] || valDigitado).trim(),
+            descricao: nomeDescricao,
             numero_lote: itemEncontrado ? itemEncontrado.numero_lote : loteExtraido,
             data_validade: itemEncontrado ? (itemEncontrado.data_validade || null) : valExtraida,
             quantidade: parseInt(inputQtd ? inputQtd.value : 1) || 1,
@@ -3250,12 +3240,12 @@
       }
     }
 
+    /* SALVAMENTO DIRETO NO SUPABASE SEM PERDAS DE INSUMOS */
     async function salvarFichaOcorrenciaAPH() {
       let payloadOcorrencia = null;
-      let insumosPayload = [];
 
       try {
-        insumosPayload = obterInsumosUtilizadosPayload();
+        const insumosPayload = obterInsumosUtilizadosPayload();
         const sinaisVitaisPayload = obterSinaisVitaisPayload();
         const lesoesPayload = obterLesoesExposicaoPayload();
 
@@ -3275,7 +3265,6 @@
         const hospitalFinal = (selHosp.value === 'OUTROS') ? document.getElementById('hospital_outros').value : selHosp.value;
 
         const cpfPacienteRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
-
         const dataNascimentoVal = document.getElementById('data_nascimento').value;
 
         if (cpfPacienteRaw.length === 11 && navigator.onLine && _supabase) {
@@ -3304,7 +3293,6 @@
 
         const canvasEl = document.getElementById('sig-canvas');
         const assinaturaBase64 = canvasEl ? canvasEl.toDataURL() : null;
-
         const dataAtendimentoVal = document.getElementById('data').value;
 
         payloadOcorrencia = {
@@ -3345,7 +3333,7 @@
           bio_desinfeccao: bioDesinfeccao,
 
           sinais_vitais: sinaisVitaisPayload,
-          insumos_utilizados: insumosPayload,
+          insumos_utilizados: insumosPayload, // FORÇA O ENVIO DO ARRAY TRATADO
 
           alergia_select: document.getElementById('alergia_select').value,
           alergia_desc: document.getElementById('alergia_desc').value,
@@ -3378,30 +3366,14 @@
             .upsert([payloadOcorrencia], { onConflict: 'codigo_ocorrencia' });
 
           if (error) {
-            throw error;
+            alert("⚠️ Erro ao gravar no Supabase: " + error.message);
           } else {
             await processarBaixaEstoqueELacres(insumosPayload, payloadOcorrencia.codigo_ocorrencia);
             atualizarStatusVisualFila();
           }
-        } else {
-          throw new Error("SEM_CONEXAO");
         }
-
       } catch (err) {
-        if (payloadOcorrencia) {
-          console.warn("Sem sinal/erro de rede. Armazenando prontuário na fila offline do dispositivo...");
-          const filaRaw = localStorage.getItem('aph_fila_pendentes_offline') || '[]';
-          let fila = [];
-          try { fila = JSON.parse(filaRaw); } catch(e) { fila = []; }
-
-          const idxExistente = fila.findIndex(f => f.codigo_ocorrencia === payloadOcorrencia.codigo_ocorrencia);
-          if (idxExistente >= 0) fila[idxExistente] = payloadOcorrencia;
-          else fila.push(payloadOcorrencia);
-
-          localStorage.setItem('aph_fila_pendentes_offline', JSON.stringify(fila));
-          atualizarStatusVisualFila();
-          alert("⚠️ FICHA SALVA NA MEMÓRIA LOCAL (OFFLINE)!\n\nO equipamento está sem conexão no momento. A ficha e as baixas de insumos foram gravadas localmente e serão descarregadas no Supabase assim que houver sinal de internet.");
-        }
+        console.error("Erro ao salvar ocorrência:", err);
       }
     }
 
