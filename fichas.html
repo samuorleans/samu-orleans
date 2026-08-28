@@ -119,7 +119,7 @@
 
   <script>
     const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRreWV1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
 
     window.dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -132,7 +132,6 @@
     function validarAcesso() {
       const senha = document.getElementById('inputSenhaAcesso').value.trim();
       
-      // SENHA ÚNICA SIMPLES (Ex: 192 ou samu192)
       if (senha === '192' || senha === 'samu192' || senha === '123456') {
         document.getElementById('boxAuth').style.display = 'none';
         document.getElementById('areaFichas').style.display = 'block';
@@ -144,12 +143,12 @@
 
     async function carregarFichasAPH() {
       const tbody = document.getElementById('tbodyFichas');
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px;">Buscando registros no banco de dados...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px;">Buscando registros na tabela ocorrencias_aph...</td></tr>';
 
       try {
-        // Tenta buscar na tabela 'ficha_aph' ou 'operacional_checklists'
+        // Consulta configurada exatamente para a tabela 'ocorrencias_aph'
         const { data, error } = await window.dbNuvem
-          .from('ficha_aph')
+          .from('ocorrencias_aph')
           .select('*')
           .order('id', { ascending: false })
           .limit(30);
@@ -161,11 +160,11 @@
         if (listaFichasCache.length > 0) {
           renderizarTabela(listaFichasCache);
         } else {
-          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px;">Nenhuma ficha APH encontrada no sistema.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px;">Nenhuma ocorrência encontrada em ocorrencias_aph.</td></tr>';
         }
       } catch (err) {
         console.error("Erro Supabase:", err);
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px; color: var(--red);">Erro ao carregar fichas. Verifique a conexão.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px; color: var(--red);">Erro ao carregar fichas da tabela ocorrencias_aph.</td></tr>';
       }
     }
 
@@ -174,10 +173,10 @@
       tbody.innerHTML = '';
 
       dados.forEach((f, idx) => {
-        const dt = f.data_hora || f.created_at ? f.created_at.replace('T', ' ').substring(0, 16) : '—';
+        const dt = f.data_hora || f.data_atendimento || (f.created_at ? f.created_at.replace('T', ' ').substring(0, 16) : '—');
         const paciente = f.nome_paciente || f.paciente_nome || f.paciente || 'Paciente Não Identificado';
         const viatura = f.viatura || f.prefixo || 'USB 11';
-        const ocorr = f.numero_ocorrencia || f.ocorrencia || '—';
+        const ocorr = f.numero_ocorrencia || f.num_ocorrencia || f.ocorrencia || '—';
 
         tbody.innerHTML += `
           <tr>
@@ -196,9 +195,9 @@
     function filtrarTabela() {
       const termo = document.getElementById('inputBusca').value.toLowerCase();
       const filtrados = listaFichasCache.filter(f => {
-        const pac = (f.nome_paciente || f.paciente || '').toLowerCase();
-        const viat = (f.viatura || '').toLowerCase();
-        const ocorr = (f.numero_ocorrencia || '').toLowerCase();
+        const pac = (f.nome_paciente || f.paciente_nome || f.paciente || '').toLowerCase();
+        const viat = (f.viatura || f.prefixo || '').toLowerCase();
+        const ocorr = (f.numero_ocorrencia || f.num_ocorrencia || f.ocorrencia || '').toLowerCase();
         return pac.includes(termo) || viat.includes(termo) || ocorr.includes(termo);
       });
       renderizarTabela(filtrados);
@@ -210,25 +209,25 @@
 
       const htmlDetalhes = `
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid #cbd5e1; padding-bottom: 10px;">
-          <div><b>Data/Hora:</b> ${f.data_hora || f.created_at || '—'}</div>
-          <div><b>Viatura:</b> ${f.viatura || 'USB 11'}</div>
-          <div><b>Ocorrência Nº:</b> ${f.numero_ocorrencia || '—'}</div>
-          <div><b>Equipe/Socorrista:</b> ${f.profissional_nome || f.condutor_nome || '—'}</div>
+          <div><b>Data/Hora:</b> ${f.data_hora || f.data_atendimento || f.created_at || '—'}</div>
+          <div><b>Viatura:</b> ${f.viatura || f.prefixo || 'USB 11'}</div>
+          <div><b>Ocorrência Nº:</b> ${f.numero_ocorrencia || f.num_ocorrencia || '—'}</div>
+          <div><b>Equipe/Socorrista:</b> ${f.profissional_nome || f.condutor_nome || f.socorrista_nome || '—'}</div>
         </div>
 
         <div style="background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px;">
           <h3 style="font-size: 0.9rem; color: var(--navy); margin-bottom: 6px;">👤 DADOS DO PACIENTE</h3>
-          <div><b>Nome:</b> ${f.nome_paciente || f.paciente || 'Não informado'}</div>
+          <div><b>Nome:</b> ${f.nome_paciente || f.paciente_nome || f.paciente || 'Não informado'}</div>
           <div><b>Idade / Sexo:</b> ${f.idade || '—'} anos | ${f.sexo || '—'}</div>
-          <div><b>CPF / RG:</b> ${f.documento || '—'}</div>
+          <div><b>CPF / RG:</b> ${f.documento || f.cpf || '—'}</div>
         </div>
 
         <div style="background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px;">
           <h3 style="font-size: 0.9rem; color: var(--navy); margin-bottom: 6px;">🩺 SINAIS VITAIS E AVALIAÇÃO</h3>
           <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
-            <div><b>PA:</b> ${f.pa || '—'} mmHg</div>
-            <div><b>FC:</b> ${f.fc || '—'} bpm</div>
-            <div><b>SpO2:</b> ${f.spo2 || '—'} %</div>
+            <div><b>PA:</b> ${f.pa || f.pressao_arterial || '—'} mmHg</div>
+            <div><b>FC:</b> ${f.fc || f.frequencia_cardiaca || '—'} bpm</div>
+            <div><b>SpO2:</b> ${f.spo2 || f.saturacao || '—'} %</div>
             <div><b>Glicemia:</b> ${f.glicemia || '—'} mg/dL</div>
             <div><b>Glasgow:</b> ${f.glasgow || '—'}</div>
             <div><b>Temp:</b> ${f.temperatura || '—'} °C</div>
@@ -237,7 +236,7 @@
 
         <div style="background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px;">
           <h3 style="font-size: 0.9rem; color: var(--navy); margin-bottom: 6px;">📋 RELATO DA OCORRÊNCIA E PROCEDIMENTOS</h3>
-          <p>${f.relato_ocorrencia || f.observacoes || f.procedimentos || 'Nenhum detalhe adicional registrado.'}</p>
+          <p>${f.relato_ocorrencia || f.observacoes || f.procedimentos || f.relato || 'Nenhum detalhe adicional registrado.'}</p>
         </div>
 
         <div style="margin-top: 30px; display: flex; justify-content: space-around; text-align: center;">
@@ -264,4 +263,3 @@
   </script>
 </body>
 </html>
-
