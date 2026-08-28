@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SAMU 192 — Painel TV Kiosk Responsivo</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="escala-engine.js"></script>
+
   <style>
     :root {
       --red-primary: #b71c1c;
@@ -184,8 +186,6 @@
   <div class="tv-grid">
     <!-- ESQUERDA -->
     <div class="tv-col-esquerda">
-      
-      <!-- SUPERIOR -->
       <div class="tv-row-cards">
         <div class="tv-card">
           <h3>⏱️ Tempo Real</h3>
@@ -211,7 +211,7 @@
         <div class="tv-card">
           <h3>🔄 Trocas & Coberturas</h3>
           <div style="font-size:clamp(6.5px, 0.78vh, 10px); color:#334155; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:0.1vh 0;">
-            <p style="font-weight:600;">• Sincronização em tempo real via Supabase.</p>
+            <p style="font-weight:600;">• Sincronizado com Supabase.</p>
             <div id="tvConteudoTrocas" style="background:#f8fafc; border:1px solid #e2e8f0; padding:0.4vh 0.3vw; border-radius:4px; flex:1; margin-top:0.2vh; overflow:hidden;">
               <small style="color:#64748b;">Nenhuma alteração de plantão pendente para a data de hoje.</small>
             </div>
@@ -221,8 +221,8 @@
         <div class="tv-card">
           <h3>📢 Avisos USB 11</h3>
           <div style="font-size:clamp(6.5px, 0.78vh, 10px); color:#334155; height:100%; display:flex; flex-direction:column; justify-content:flex-start; gap:0.4vh; padding:0.1vh 0;">
-            <p style="background:#f8fafc; padding:0.3vh 0.3vw; border-left:3px solid #b71c1c; border-radius:2px;">• <b>Checklist Diário:</b> Realizar inspeção da viatura e materiais pontualmente às 07:00h.</p>
-            <p style="background:#f8fafc; padding:0.3vh 0.3vw; border-left:3px solid #0284c7; border-radius:2px;">• <b>Conexão:</b> Sistema integrado com nuvem institucional e gestão de escalas.</p>
+            <p style="background:#f8fafc; padding:0.3vh 0.3vw; border-left:3px solid #b71c1c; border-radius:2px;">• <b>Checklist Diário:</b> Inspeção da viatura pontualmente às 07:00h.</p>
+            <p style="background:#f8fafc; padding:0.3vh 0.3vw; border-left:3px solid #0284c7; border-radius:2px;">• <b>Conexão:</b> Sistema integrado com nuvem institucional.</p>
           </div>
         </div>
       </div>
@@ -240,7 +240,6 @@
           </table>
         </div>
       </div>
-
     </div>
 
     <!-- DIREITA -->
@@ -270,192 +269,20 @@
   </div>
 
   <script>
-    const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co"; 
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"; 
-    let dbNuvem = null;
-
-    try {
-      if (typeof supabase !== 'undefined') {
-        dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      }
-    } catch(e) {}
-
-    const feriadosOficiaisNacionais = [
-      "2026-01-01", "2026-02-16", "2026-02-17", "2026-04-03", "2026-04-21", 
-      "2026-05-01", "2026-06-04", "2026-09-07", "2026-10-12", "2026-11-02", 
-      "2026-11-15", "2026-12-25"
-    ];
-
-    const duplasPadrao = [
-      { cond: "Renato Cândido", tec: "Luis Eduardo Formanski Vitório" },
-      { cond: "Daniel Alexandre Fernandes", tec: "Gicerléia Trindade da Rosa" },
-      { cond: "Vanderlei José Tasca", tec: "Suandre Adão Machado" },
-      { cond: "Márcio Becker", tec: "Rinaldo Calegario" },
-      { cond: "Lucas Vieira Mendes", tec: "Clênio Borges" }
-    ];
-
-    const diasSemanaAbrev = ["dom.", "seg.", "ter.", "qua.", "qui.", "sex.", "sáb."];
-    const mesesNomes = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"];
-
-    let colaboradores = [];
-    let trocas = [];
-    let afastamentos = [];
-
-    async function carregarDadosCompletos() {
-      if (!dbNuvem) return;
-      try {
-        const { data: cData } = await dbNuvem.from('colaboradores').select('*');
-        colaboradores = cData || [];
-
-        const { data: tData } = await dbNuvem.from('trocas').select('*');
-        trocas = tData || [];
-
-        const { data: aData } = await dbNuvem.from('afastamentos').select('*');
-        afastamentos = (aData || []).map(a => ({
-          ...a,
-          substitutosDiarios: typeof a.substitutosDiarios === 'string' 
-            ? JSON.parse(a.substitutosDiarios) 
-            : a.substitutosDiarios
-        }));
-      } catch(e) {
-        console.error("Erro ao carregar dados do Supabase na TV:", e);
-      }
-    }
-
-    function formatarPeriodo(p) {
-      if (p === "12h_diurno") return "☀️ 12h Diurno";
-      if (p === "12h_noturno") return "🌙 12h Noturno";
-      return "🔄 24h Integral";
-    }
-
-    function calcularEscalaNoDia(dtIso, dataBaseStr) {
-      const dataBase = new Date(dataBaseStr + "T00:00:00");
-      const dtAtual = new Date(dtIso + "T00:00:00");
-      
-      const diffTime = dtAtual.getTime() - dataBase.getTime();
-      const diasCorridosBase = Math.floor(diffTime / (1000 * 3600 * 24));
-
-      if (diasCorridosBase < 0) {
-        return { cond: "FORA DA SEQUÊNCIA", tec: "FORA DA SEQUÊNCIA", obs: "-" };
-      }
-
-      const eqIndex2496 = ((diasCorridosBase % duplasPadrao.length) + duplasPadrao.length) % duplasPadrao.length;
-      let cond = duplasPadrao[eqIndex2496].cond;
-      let tec = duplasPadrao[eqIndex2496].tec;
-      let obs = "-";
-
-      // 1. APLICAR AFASTAMENTOS E RODÍZIO CATEGORIA (EX: LICENÇA DO LUCAS EM 24X72)
-      const afCond = afastamentos.find(a => a.funcao && a.funcao.includes("Condutor") && a.regime && a.regime.includes("Categoria") && dtIso >= a.inicio && dtIso <= a.fim);
-      const afTec = afastamentos.find(a => a.funcao && (a.funcao.includes("Técnic") || a.funcao.includes("Enfermeir")) && !a.funcao.includes("Coordenadora") && a.regime && a.regime.includes("Categoria") && dtIso >= a.inicio && dtIso <= a.fim);
-
-      if (afCond) {
-        const condutoresAtivos = ["Renato Cândido", "Daniel Alexandre Fernandes", "Vanderlei José Tasca", "Márcio Becker"];
-        const dtIniAf = new Date(afCond.inicio + "T00:00:00");
-        const diffAf = Math.floor((dtAtual.getTime() - dtIniAf.getTime()) / (1000 * 3600 * 24));
-        if (diffAf >= 0 && condutoresAtivos.length > 0) {
-          cond = condutoresAtivos[diffAf % condutoresAtivos.length];
-        }
-      }
-
-      if (afTec) {
-        const tecsAtivos = ["Luis Eduardo Formanski Vitório", "Gicerléia Trindade da Rosa", "Suandre Adão Machado", "Rinaldo Calegario"];
-        const dtIniAf = new Date(afTec.inicio + "T00:00:00");
-        const diffAf = Math.floor((dtAtual.getTime() - dtIniAf.getTime()) / (1000 * 3600 * 24));
-        if (diffAf >= 0 && tecsAtivos.length > 0) {
-          tec = tecsAtivos[diffAf % tecsAtivos.length];
-        }
-      }
-
-      // ATESTADOS DIÁRIOS COM SUBSTITUTOS
-      afastamentos.forEach(atestado => {
-        if (dtIso >= atestado.inicio && dtIso <= atestado.fim) {
-          const substDia = atestado.substitutosDiarios ? atestado.substitutosDiarios[dtIso] : null;
-          const labelMotivo = atestado.tipoMotivo || "Atestado";
-
-          if (cond === atestado.servidor) {
-            if (substDia && substDia !== "A DEFINIR") {
-              cond = `${substDia} (Subst.)`;
-              obs = `Cobertura: ${atestado.servidor}`;
-            } else if (atestado.regime && !atestado.regime.includes("Categoria")) {
-              cond = `<span style="color:#dc2626; font-weight:bold;">SUBSTITUTO A DEFINIR</span>`;
-              obs = `${labelMotivo}: ${atestado.servidor}`;
-            }
-          }
-
-          if (tec === atestado.servidor) {
-            if (substDia && substDia !== "A DEFINIR") {
-              tec = `${substDia} (Subst.)`;
-              obs = `Cobertura: ${atestado.servidor}`;
-            } else if (atestado.regime && !atestado.regime.includes("Categoria")) {
-              tec = `<span style="color:#dc2626; font-weight:bold;">SUBSTITUTO A DEFINIR</span>`;
-              obs = `${labelMotivo}: ${atestado.servidor}`;
-            }
-          }
-        }
-      });
-
-      // 2. APLICAR TROCAS DE PLANTÃO APROVADAS
-      const trocasAprovadas = trocas.filter(t => (t.dataMinha === dtIso || t.dataDevolucao === dtIso) && (t.status === "APROVADO" || t.status === "PAGO / QUITADO"));
-      
-      if (trocasAprovadas.length > 0) {
-        let condDiurno = null, condNoturno = null;
-        let tecDiurno = null, tecNoturno = null;
-
-        trocasAprovadas.forEach(t => {
-          const p = t.periodo || "24h";
-          const ehMinhaData = (t.dataMinha === dtIso);
-          const titular = ehMinhaData ? t.solicitante : t.substituto;
-          const cobridor = ehMinhaData ? t.substituto : t.solicitante;
-
-          if (cond.includes(titular) || cond.includes(cobridor)) {
-            if (p === "24h") {
-              cond = `${cobridor} (Subst. 24h)`;
-            } else if (p === "12h_diurno") {
-              condDiurno = `${cobridor} (Diurno)`;
-              condNoturno = `${titular} (Noturno)`;
-            } else if (p === "12h_noturno") {
-              condDiurno = `${titular} (Diurno)`;
-              condNoturno = `${cobridor} (Noturno)`;
-            }
-          }
-
-          if (tec.includes(titular) || tec.includes(cobridor)) {
-            if (p === "24h") {
-              tec = `${cobridor} (Subst. 24h)`;
-            } else if (p === "12h_diurno") {
-              tecDiurno = `${cobridor} (Diurno)`;
-              tecNoturno = `${titular} (Noturno)`;
-            } else if (p === "12h_noturno") {
-              tecDiurno = `${titular} (Diurno)`;
-              tecNoturno = `${cobridor} (Noturno)`;
-            }
-          }
-
-          obs = `Troca Aprovada #${t.id}`;
-        });
-
-        if (condDiurno && condNoturno) cond = `<b>${condDiurno}</b> / <b>${condNoturno}</b>`;
-        if (tecDiurno && tecNoturno) tec = `<b>${tecDiurno}</b> / <b>${tecNoturno}</b>`;
-      }
-
-      return { cond, tec, obs };
-    }
-
     async function renderizarTV() {
-      await carregarDadosCompletos();
+      await sincronizarBancoGeral();
 
       const hoje = new Date();
       const ano = hoje.getFullYear();
       const mes = hoje.getMonth() + 1;
       const diaAtual = hoje.getDate();
       const dtIsoHoje = `${ano}-${String(mes).padStart(2,'0')}-${String(diaAtual).padStart(2,'0')}`;
-      const dataBaseStr = "2026-06-01";
 
       const txtMes = `${mesesNomes[mes - 1]} / ${ano}`;
       document.getElementById("tvTituloMes").innerText = txtMes;
       document.getElementById("tvTituloMesCoren").innerText = txtMes;
 
-      // 1. ESCALA OPERACIONAL DIREITA (SINCRONIZADA PERFEITAMENTE COM A PÁGINA PÚBLICA)
+      // 1. ESCALA OPERACIONAL DIREITA
       const tbBody = document.getElementById("bodyEscala");
       tbBody.innerHTML = "";
       const diasNoMes = new Date(ano, mes, 0).getDate();
@@ -464,7 +291,7 @@
         const dtIso = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
         const dtObj = new Date(ano, mes - 1, d);
         const dtFmt = `${String(d).padStart(2,'0')}/${String(mes).padStart(2,'0')}/${ano}`;
-        const res = calcularEscalaNoDia(dtIso, dataBaseStr);
+        const res = calcularDiaOficial(dtIso);
         const ehHoje = (d === diaAtual);
         const ehFds = (dtObj.getDay() === 0 || dtObj.getDay() === 6);
 
@@ -480,7 +307,7 @@
         `;
       }
 
-      // 2. MATRIZ COREN (ORDEM ALFABÉTICA DE A A Z COM DADOS REAIS)
+      // 2. MATRIZ COREN (ORDEM ALFABÉTICA A-Z)
       const headCoren = document.getElementById("headCoren");
       const bodyCoren = document.getElementById("bodyCoren");
       let headHtml = `<tr><th style="text-align:left; width:25%;">COLABORADOR</th><th style="width:6%;">REG.</th>`;
@@ -488,8 +315,8 @@
       headHtml += `</tr>`;
       headCoren.innerHTML = headHtml;
 
-      const listaColaboradores = colaboradores.length > 0 
-        ? colaboradores.sort((a,b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+      const lista = colaboradoresGlobal.length > 0 
+        ? colaboradoresGlobal.sort((a,b) => a.nome.localeCompare(b.nome, 'pt-BR'))
         : [
             { nome: "Clênio Borges", coren: "682518", funcao: "Técnico de Enfermagem" },
             { nome: "Daniel Alexandre Fernandes", coren: "6001667738", funcao: "Condutor Socorrista" },
@@ -505,7 +332,7 @@
           ];
 
       bodyCoren.innerHTML = "";
-      listaColaboradores.forEach(c => {
+      lista.forEach(c => {
         let regExibido = (c.coren && c.coren !== "N/A") ? c.coren : (c.cnh || "N/A");
         let line = `<tr><td style="text-align:left; font-weight:bold; font-size:clamp(6px, 0.73vh, 9px); padding-left:2px;">${c.nome}</td><td style="font-size:clamp(5.5px, 0.65vh, 8px);">${regExibido}</td>`;
         const eh40h = c.funcao && c.funcao.includes("Coordenadora");
@@ -519,10 +346,10 @@
           if (eh40h) {
             line += `<td class="col-dia-coren ${ehFds || ehFeriado ? 'st-fol' : 'st-adm'}">${ehFds || ehFeriado ? 'F' : 'ADM'}</td>`;
           } else {
-            const resDia = calcularEscalaNoDia(dtIso, dataBaseStr);
+            const resDia = calcularDiaOficial(dtIso);
             const ehPlantaoCond = resDia.cond.includes(c.nome);
             const ehPlantaoTec = resDia.tec.includes(c.nome);
-            const atestado = afastamentos.find(a => a.servidor === c.nome && dtIso >= a.inicio && dtIso <= a.fim);
+            const atestado = afastamentosGlobal.find(a => a.servidor === c.nome && dtIso >= a.inicio && dtIso <= a.fim);
 
             if (atestado) {
               line += `<td class="col-dia-coren st-atest">A</td>`;
@@ -537,15 +364,15 @@
         bodyCoren.innerHTML += line;
       });
 
-      // 3. ATUALIZAÇÃO DO TEMPO REAL
-      const resHoje = calcularEscalaNoDia(dtIsoHoje, dataBaseStr);
+      // 3. TEMPO REAL
+      const resHoje = calcularDiaOficial(dtIsoHoje);
       document.getElementById("tvCondutorHoje").innerHTML = resHoje.cond;
       document.getElementById("tvTecnicoHoje").innerHTML = resHoje.tec;
     }
 
     document.addEventListener("DOMContentLoaded", () => {
       renderizarTV();
-      setInterval(renderizarTV, 30000); // Atualiza em tempo real a cada 30 segundos
+      setInterval(renderizarTV, 30000);
     });
   </script>
 </body>
