@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAMU Connect — Central de Fichas APH</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --navy: #002b49;
+      --blue: #1976d2;
+      --red: #d32f2f;
+      --bg: #f4f7fa;
+      --border: #000000;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
+    body { background-color: var(--bg); color: #000; padding: 15px 10px; }
+
+    .container { max-width: 950px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 15px; }
+    
+    .header-app { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #cbd5e1; padding-bottom: 12px; }
+    .header-app h1 { color: var(--navy); font-size: 1.2rem; font-weight: 800; text-transform: uppercase; }
+
+    #boxAuth { max-width: 350px; margin: 40px auto; text-align: center; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1.5px solid #cbd5e1; }
+    #boxAuth input { width: 100%; padding: 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; margin: 10px 0; text-align: center; font-size: 1.1rem; font-weight: 700; outline: none; }
+    #boxAuth button { width: 100%; padding: 10px; background: var(--navy); color: white; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; }
+
+    #areaFichas { display: none; }
+    
+    .busca-box { display: flex; gap: 10px; margin-bottom: 15px; }
+    .busca-box input { flex: 1; padding: 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; }
+
+    table.tbl-lista { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 10px; }
+    table.tbl-lista th { background: var(--navy); color: white; padding: 10px; text-align: left; }
+    table.tbl-lista td { padding: 10px; border-bottom: 1px solid #cbd5e1; }
+
+    .btn-print { background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
+
+    /* ESTILO EXATO DA FICHA APH OFICIAL DE ALTO CONTRASTE */
+    .ficha-oficial { display: none; background: #fff; padding: 5px; color: #000; font-size: 10px; }
+    .ficha-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 6px; }
+
+    .sec-title { 
+      background: #000000 !important; 
+      color: #ffffff !important; 
+      font-weight: 900 !important; 
+      padding: 3px 6px !important; 
+      font-size: 10.5px !important; 
+      margin-top: 6px !important; 
+      text-transform: uppercase !important; 
+      -webkit-print-color-adjust: exact !important; 
+      print-color-adjust: exact !important; 
+    }
+    
+    .grid-box { display: grid; border: 1px solid #000000; margin-top: -1px; }
+    .cell { padding: 3px 5px; border-right: 1px solid #000000; border-bottom: 1px solid #000000; word-break: break-word; }
+    .cell:last-child { border-right: none; }
+    .lbl { font-size: 8.5px !important; font-weight: 900 !important; color: #1a1a1a !important; display: block !important; text-transform: uppercase !important; }
+    .val { font-size: 10px !important; font-weight: 800 !important; color: #000000 !important; }
+
+    table.tbl-ficha { width: 100%; border-collapse: collapse; border: 1px solid #000000; margin-top: -1px; }
+    table.tbl-ficha th, table.tbl-ficha td { border: 1px solid #000000; padding: 3px 4px; text-align: center; font-size: 9.5px; }
+    table.tbl-ficha th { 
+      background: #e2e8f0 !important; 
+      color: #000000 !important; 
+      font-weight: 900 !important; 
+      -webkit-print-color-adjust: exact !important; 
+      print-color-adjust: exact !important; 
+    }
+
+    .print-signatures-block { display: grid; gap: 8px; margin-top: 25px; text-align: center; }
+    .print-signatures-block.duas-colunas { grid-template-columns: 1fr 1fr; }
+    .print-signatures-block.tres-colunas { grid-template-columns: 1fr 1fr 1fr; }
+    .sig-box { border: 1px solid #000; padding: 6px; display: flex; flex-direction: column; justify-content: space-between; min-height: 55px; }
+    .sig-line { border-top: 1px solid #000; margin-top: 25px; font-size: 8.5px; font-weight: 900; text-transform: uppercase; }
+    .sig-title { font-size: 9px; font-weight: bold; }
+
+    /* IMPRESSÃO A4 */
+    @media print {
+      body { background: white; padding: 0; margin: 0; }
+      .no-print { display: none !important; }
+      .container { box-shadow: none; border: none; padding: 0; max-width: 100%; }
+      .ficha-oficial { display: block !important; border: none; padding: 0; }
+      @page { size: A4; margin: 6mm; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <div id="boxAuth" class="no-print">
+      <h2 style="font-size: 1rem; color: var(--navy); margin-bottom: 8px;">🔑 Acesso Restrito Hospital</h2>
+      <p style="font-size: 0.75rem; color: #64748b;">Digite a senha única para visualizar e imprimir as fichas APH do plantão.</p>
+      <input type="password" id="inputSenhaAcesso" placeholder="Digite a Senha..." onkeypress="tratarTecla(event)">
+      <button type="button" onclick="validarAcesso()">Acessar Fichas</button>
+    </div>
+
+    <div id="areaFichas">
+      
+      <div class="header-app no-print">
+        <h1>🏥 SAMU CONNECT — CONSULTA & IMPRESSÃO DE FICHAS APH</h1>
+        <p style="font-size: 0.8rem; color: #555;">USB 11 ORLEANS — Emissão oficial de Ficha APH em formato padrão</p>
+      </div>
+
+      <div class="busca-box no-print">
+        <input type="text" id="inputBusca" placeholder="🔍 Buscar por Nome do Paciente, Ocorrência ou Viatura..." onkeyup="filtrarTabela()">
+        <button type="button" onclick="carregarFichasAPH()" style="padding: 10px 15px; background: var(--blue); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">🔄 Atualizar</button>
+      </div>
+
+      <div class="no-print" style="overflow-x: auto;">
+        <table class="tbl-lista">
+          <thead>
+            <tr>
+              <th>Data / Hora</th>
+              <th>Paciente</th>
+              <th>Viatura</th>
+              <th>Ocorrência</th>
+              <th style="text-align: center;">Ação</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyFichas">
+            <tr><td colspan="5" style="text-align: center; padding: 15px;">Carregando fichas...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="areaFichaImpressao" class="ficha-oficial">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;" class="no-print">
+          <button onclick="fecharFichaImpressao()" style="padding: 6px 12px; background: #64748b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">⬅️ Voltar à Lista</button>
+          <button onclick="window.print()" style="padding: 10px 20px; background: #16a34a; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; font-size: 0.9rem;">🖨️ Imprimir Ficha Oficial</button>
+        </div>
+
+        <div id="conteudoFichaDetalhada"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
+
+    window.dbNuvem = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+    let listaFichasCache = [];
+    let mapaColaboradoresCache = {};
+
+    function tratarTecla(e) { if (e.key === 'Enter') validarAcesso(); }
+
+    async function validarAcesso() {
+      const senha = document.getElementById('inputSenhaAcesso').value.trim();
+      if (senha === '192' || senha === 'samu192' || senha === '123456') {
+        document.getElementById('boxAuth').style.display = 'none';
+        document.getElementById('areaFichas').style.display = 'block';
+        await carregarColaboradores();
+        carregarFichasAPH();
+      } else {
+        alert("❌ Senha incorreta.");
+      }
+    }
+
+    async function carregarColaboradores() {
+      try {
+        const client = window.dbNuvem || window.supabaseClient;
+        const { data } = await client.from('colaboradores').select('nome, coren');
+        if (data) {
+          data.forEach(c => {
+            if (c.nome) mapaColaboradoresCache[c.nome.trim().toUpperCase()] = c.coren || '';
+          });
+        }
+      } catch (e) {}
+    }
+
+    function v(val, padrao = '—') {
+      if (val === undefined || val === null || String(val).trim() === '' || String(val).trim() === 'nan') {
+        return padrao;
+      }
+      return String(val).trim();
+    }
+
+    function formatarDataBR(strData) {
+      if (!strData || strData === '—') return '—';
+      const partes = strData.split('T')[0].split('-');
+      if (partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
+      return strData;
+    }
+
+    async function carregarFichasAPH() {
+      const tbody = document.getElementById('tbodyFichas');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px;">Buscando registros na tabela ocorrencias_aph...</td></tr>';
+
+      try {
+        const client = window.dbNuvem || window.supabaseClient;
+        const { data, error } = await client
+          .from('ocorrencias_aph')
+          .select('*')
+          .order('id', { ascending: false })
+          .limit(30);
+
+        if (error) throw error;
+        listaFichasCache = data || [];
+
+        if (listaFichasCache.length > 0) {
+          renderizarTabela(listaFichasCache);
+        } else {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px;">Nenhuma ocorrência encontrada em ocorrencias_aph.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 15px; color: var(--red);"><b>Erro:</b> ${err.message || 'Falha ao consultar Supabase.'}</td></tr>`;
+      }
+    }
+
+    function renderizarTabela(dados) {
+      const tbody = document.getElementById('tbodyFichas');
+      tbody.innerHTML = '';
+
+      dados.forEach((f, idx) => {
+        const dt = formatarDataBR(v(f.data)) !== '—' ? formatarDataBR(v(f.data)) : v(f.created_at).substring(0,10);
+        const hr = v(f.hora_j9) !== '—' ? f.hora_j9 : (v(f.created_at).includes('T') ? f.created_at.split('T')[1].substring(0,5) : '');
+        const paciente = v(f.paciente, 'Paciente Não Identificado');
+        const viatura = 'USB 11';
+        const ocorr = v(f.codigo_ocorrencia);
+
+        tbody.innerHTML += `
+          <tr>
+            <td><b>${dt} ${hr}</b></td>
+            <td>${paciente}</td>
+            <td>${viatura}</td>
+            <td>${ocorr}</td>
+            <td style="text-align: center;">
+              <button class="btn-print" onclick="abrirFichaParaImpressao(${idx})">🖨️ Imprimir</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function filtrarTabela() {
+      const termo = document.getElementById('inputBusca').value.toLowerCase();
+      const filtrados = listaFichasCache.filter(f => {
+        const pac = v(f.paciente).toLowerCase();
+        const ocorr = v(f.codigo_ocorrencia).toLowerCase();
+        return pac.includes(termo) || ocorr.includes(termo);
+      });
+      renderizarTabela(filtrados);
+    }
+
+    function obterCorenTecnico(nomeTecnico) {
+      if (!nomeTecnico || nomeTecnico === '—') return '';
+      const nomeNorm = nomeTecnico.trim().toUpperCase();
+      
+      if (mapaColaboradoresCache[nomeNorm]) {
+        return mapaColaboradoresCache[nomeNorm];
+      }
+
+      for (let key in mapaColaboradoresCache) {
+        if (key.includes(nomeNorm) || nomeNorm.includes(key)) {
+          return mapaColaboradoresCache[key];
+        }
+      }
+      return '';
+    }
+
+    function abrirFichaParaImpressao(index) {
+      const f = listaFichasCache[index];
+      if (!f) return;
+
+      // Parse Sinais Vitais (JSON)
+      let sv = [];
+      try {
+        if (f.sinais_vitais) {
+          sv = typeof f.sinais_vitais === 'string' ? JSON.parse(f.sinais_vitais) : f.sinais_vitais;
+        }
+      } catch(e){}
+      let svRow = sv.length > 0 ? sv[0] : {};
+
+      // Parse Insumos (JSON ou Texto)
+      let insumosHtml = '';
+      try {
+        if (f.insumos_utilizados) {
+          let rawInsumos = f.insumos_utilizados;
+          let insList = null;
+
+          if (typeof rawInsumos === 'string') {
+            try {
+              insList = JSON.parse(rawInsumos);
+            } catch (errJson) {
+              insumosHtml = `<div style="margin-bottom: 2px;">• <b>${rawInsumos}</b></div>`;
+            }
+          } else {
+            insList = rawInsumos;
+          }
+
+          if (Array.isArray(insList) && insList.length > 0) {
+            insList.forEach(i => {
+              const desc = v(i.desc, v(i.descricao, v(i.item, v(i.nome))));
+              const qtd = v(i.quantidade, v(i.qtd, '1'));
+              const lote = v(i.lote, v(i.numero_lote, v(i.lote_id, 'SEM LOTE')));
+              const valRaw = v(i.validade, v(i.data_validade));
+              const val = valRaw !== '—' ? formatarDataBR(valRaw) : 'N/A';
+
+              if (desc !== '—' && !desc.toUpperCase().includes('NENHUM INSUMO')) {
+                insumosHtml += `<div style="margin-bottom: 2px;">• <b>${desc}</b> — LOTE: ${lote} | VAL: ${val} (<b>QTD: ${qtd}</b>)</div>`;
+              }
+            });
+          }
+        }
+      } catch(e) {
+        console.error("Erro ao processar insumos:", e);
+      }
+
+      if (!insumosHtml || insumosHtml.trim() === '') {
+        insumosHtml = 'NENHUM INSUMO OU MEDICAÇÃO REGISTRADO';
+      }
+
+      // Lesões por Região (Exposição / Trauma)
+      let lesoesObj = null;
+      let temLesao = false;
+      try {
+        if (f.lesoes_exposicao) {
+          lesoesObj = typeof f.lesoes_exposicao === 'string' ? JSON.parse(f.lesoes_exposicao) : f.lesoes_exposicao;
+        }
+      } catch(e){}
+
+      const regioes = [
+        { key: 'Cabeca/Pescoco', label: 'Cabeça/Pescoço' },
+        { key: 'Tronco', label: 'Tronco' },
+        { key: 'Pelve', label: 'Pelve' },
+        { key: 'MSup', label: 'M. Superior (D/E)' },
+        { key: 'MInf', label: 'M. Inferior (D/E)' }
+      ];
+
+      let tabelaLesoesHtml = '';
+      if (lesoesObj) {
+        let linhasRegioes = '';
+        regioes.forEach(r => {
+          const item = lesoesObj[r.key] || {};
+          const ferida = item.ferida ? 'X' : '';
+          const fratura = item.fratura ? 'X' : '';
+          const queimadura = item.queimadura ? 'X' : '';
+          const escoriacao = item.escoriacao ? 'X' : '';
+          const edema = item.edema ? 'X' : '';
+
+          if (ferida || fratura || queimadura || escoriacao || edema) temLesao = true;
+
+          linhasRegioes += `
+            <tr>
+              <td style="text-align: left; font-weight: bold; background: #fafafa;">${r.label}</td>
+              <td>${ferida}</td>
+              <td>${fratura}</td>
+              <td>${queimadura}</td>
+              <td>${escoriacao}</td>
+              <td>${edema}</td>
+            </tr>
+          `;
+        });
+
+        tabelaLesoesHtml = `
+          <div class="sec-title" style="margin-top: 4px;">E - EXPOSIÇÃO / LESÕES POR REGIÃO (TRAUMA / SINISTRO)</div>
+          <table class="tbl-ficha">
+            <thead>
+              <tr>
+                <th style="width: 25%; text-align: left;">REGIÃO</th>
+                <th>FERIDA/CORTE</th>
+                <th>FRATURA/LUXAÇÃO</th>
+                <th>QUEIMADURA</th>
+                <th>ESCORIAÇÃO</th>
+                <th>EDEMA/HEMATOMA</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${linhasRegioes}
+            </tbody>
+          </table>
+        `;
+      }
+
+      const tipoOcorr = v(f.tipo_ocorrencia).toLowerCase();
+      const exibeLesoes = tipoOcorr.includes('trauma') || tipoOcorr.includes('sinistro') || tipoOcorr.includes('trânsito') || temLesao;
+
+      // Biossegurança
+      let bioHtml = '';
+      if (v(f.bio_suspeita) === 'SIM') {
+        bioHtml = `
+          <div class="sec-title">☣️ BIOSSEGURANÇA</div>
+          <div class="grid-box" style="grid-template-columns: 2fr 1fr;">
+            <div class="cell"><span class="lbl">TIPO DE SUSPEITA / AGENTE BIOLÓGICO</span><span class="val">${v(f.bio_tipo_agente)}</span></div>
+            <div class="cell"><span class="lbl">DESINFECÇÃO DA VIATURA</span><span class="val">${v(f.bio_desinfeccao)}</span></div>
+          </div>
+        `;
+      }
+
+      // Reclassificação de Código
+      let reclassHtml = '';
+      if (v(f.reclassificacao_codigo) !== '—') {
+        reclassHtml = `
+          <div class="grid-box" style="grid-template-columns: 1fr;">
+            <div class="cell" style="background: #fffbeb;"><span class="lbl">🔄 RECLASSIFICAÇÃO DE CÓDIGO</span><span class="val" style="color: #b45309;">RECLASSIFICADO PARA ${v(f.reclassificacao_codigo)} ÀS ${v(f.reclassificacao_hora)} (AUTORIZADO DR(A). ${v(f.reclassificacao_medico)})</span></div>
+          </div>
+        `;
+      }
+
+      // Glasgow
+      const gTot = v(f.glasgow_total);
+      const gOc = v(f.glasgow_ocular);
+      const gVerb = v(f.glasgow_verbal);
+      const gMot = v(f.glasgow_motor);
+
+      // Triagem
+      let corTriagem = v(f.cor_ocorrencia);
+      if (corTriagem === 'AM') corTriagem = 'AMARELO (AM)';
+      else if (corTriagem === 'VM') corTriagem = 'VERMELHO (VM)';
+      else if (corTriagem === 'VD') corTriagem = 'VERDE (VD)';
+      else if (corTriagem === 'AZ') corTriagem = 'AZUL (AZ)';
+
+      // Sexo
+      let sexoFmt = v(f.sexo);
+      if (sexoFmt === 'M') sexoFmt = 'Masculino (M)';
+      else if (sexoFmt === 'F') sexoFmt = 'Feminino (F)';
+
+      // COREN e Nome do Técnico de Enfermagem
+      const tecNomeBruto = v(f.tec_enfermeiro).trim().toUpperCase();
+      const corenEncontrado = obterCorenTecnico(tecNomeBruto);
+      const tecComCoren1 = corenEncontrado ? `${tecNomeBruto} (COREN ${corenEncontrado})` : tecNomeBruto;
+      
+      // Técnico Responsável no Campo 7
+      const tecRespCampo7 = v(f.tec_resp, tecComCoren1);
+      const corenLabelBox = corenEncontrado ? `COREN ${corenEncontrado}` : 'COREN: ____________';
+
+      // Regras de Exibição do Bloco de Assinaturas
+      const desfecho = v(f.desfecho_vitima);
+      const recusa = v(f.houve_recusa);
+      const nomeAssinante = v(f.nome_assinante, v(f.paciente, 'DECLARANTE'));
+
+      let assinaturasBlock = '';
+      if (desfecho === 'OBITO') {
+        assinaturasBlock = `
+          <div class="print-signatures-block tres-colunas">
+            <div class="sig-box">
+              <div class="sig-title">${tecNomeBruto !== '—' ? tecNomeBruto : 'TÉCNICO DE ENFERMAGEM'}</div>
+              <div class="sig-line">ASSINATURA E CARIMBO / ${corenLabelBox}</div>
+            </div>
+            <div class="sig-box">
+              <div class="sig-title">DECLARANTE / TESTEMUNHA</div>
+              <div class="sig-line">ASSINATURA FÍSICA DO DECLARANTE</div>
+            </div>
+            <div class="sig-box">
+              <div class="sig-title">MÉDICO RECEPTOR / REGULADOR</div>
+              <div class="sig-line">ASSINATURA E CARIMBO / CRM</div>
+            </div>
+          </div>
+        `;
+      } else if (desfecho === 'PERMANECEU_LOCAL' || desfecho === 'RECUSA' || recusa === 'SIM') {
+        assinaturasBlock = `
+          <div class="print-signatures-block duas-colunas">
+            <div class="sig-box">
+              <div class="sig-title">${tecNomeBruto !== '—' ? tecNomeBruto : 'TÉCNICO DE ENFERMAGEM'}</div>
+              <div class="sig-line">ASSINATURA E CARIMBO / ${corenLabelBox}</div>
+            </div>
+            <div class="sig-box">
+              <div class="sig-title">${v(f.tipo_assinante, 'DECLARANTE')}: ${nomeAssinante}</div>
+              <div class="sig-line">ASSINATURA FÍSICA DO DECLARANTE</div>
+            </div>
+          </div>
+        `;
+      } else {
+        assinaturasBlock = `
+          <div class="print-signatures-block duas-colunas">
+            <div class="sig-box">
+              <div class="sig-title">${tecNomeBruto !== '—' ? tecNomeBruto : 'TÉCNICO DE ENFERMAGEM'}</div>
+              <div class="sig-line">ASSINATURA E CARIMBO / ${corenLabelBox}</div>
+            </div>
+            <div class="sig-box">
+              <div class="sig-title">MÉDICO RECEPTOR / REGULADOR</div>
+              <div class="sig-line">ASSINATURA E CARIMBO / CRM</div>
+            </div>
+          </div>
+        `;
+      }
+
+      const htmlOficial = `
+        <div class="ficha-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 6px;">
+          <img src="logo.png" alt="Logo" style="max-height: 48px; width: auto; object-fit: contain;">
+          <div style="flex: 1; text-align: center;">
+            <h2 style="font-size: 15px; font-weight: 900; margin: 0; padding-right: 48px;">SAMU 192 - ORLEANS / SC</h2>
+            <h3 style="font-size: 12px; font-weight: 800; margin-top: 2px; padding-right: 48px;">FICHA DE ATENDIMENTO MÓVEL DE URGÊNCIA (USB 11)</h3>
+          </div>
+        </div>
+
+        <div class="sec-title">1. CONTROLE OPERACIONAL & EQUIPE</div>
+        <div class="grid-box" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+          <div class="cell"><span class="lbl">Nº OCORRÊNCIA</span><span class="val">${v(f.codigo_ocorrencia)}</span></div>
+          <div class="cell"><span class="lbl">CÓDIGO TRIAGEM</span><span class="val">${corTriagem}</span></div>
+          <div class="cell"><span class="lbl">DATA</span><span class="val">${formatarDataBR(v(f.data))}</span></div>
+          <div class="cell"><span class="lbl">MOTIVO ACIONAMENTO</span><span class="val">${v(f.motivo_acionamento)}</span></div>
+        </div>
+        ${reclassHtml}
+        <div class="grid-box" style="grid-template-columns: 1fr 1fr 1fr;">
+          <div class="cell"><span class="lbl">MÉDICO REGULADOR INICIAL</span><span class="val">${v(f.regulador)}</span></div>
+          <div class="cell"><span class="lbl">TÉC. DE ENFERMAGEM</span><span class="val">${tecComCoren1}</span></div>
+          <div class="cell"><span class="lbl">SOCORRISTA (CONDUTOR)</span><span class="val">${v(f.socorrista)}</span></div>
+        </div>
+        <div class="grid-box" style="grid-template-columns: repeat(7, 1fr);">
+          <div class="cell"><span class="lbl">SAÍDA BASE</span><span class="val">${v(f.hora_j9)}</span></div>
+          <div class="cell"><span class="lbl">CHEG. LOCAL</span><span class="val">${v(f.hora_j10)}</span></div>
+          <div class="cell"><span class="lbl">SAÍDA LOCAL</span><span class="val">${v(f.hora_j9_int)}</span></div>
+          <div class="cell"><span class="lbl">DESTINO</span><span class="val">${v(f.hora_j10_int)}</span></div>
+          <div class="cell"><span class="lbl">DISPONÍVEL</span><span class="val">${v(f.hora_j11)}</span></div>
+          <div class="cell"><span class="lbl">NA BASE</span><span class="val">${v(f.hora_j12)}</span></div>
+          <div class="cell"><span class="lbl">QTA</span><span class="val">${v(f.hora_qta)}</span></div>
+        </div>
+
+        <div class="sec-title">2. IDENTIFICAÇÃO DO PACIENTE & LOCAL</div>
+        <div class="grid-box" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
+          <div class="cell"><span class="lbl">NOME COMPLETO DO PACIENTE</span><span class="val">${v(f.paciente)}</span></div>
+          <div class="cell"><span class="lbl">CPF PACIENTE</span><span class="val">${v(f.cpf_paciente)}</span></div>
+          <div class="cell"><span class="lbl">DATA NASC.</span><span class="val">${formatarDataBR(v(f.data_nascimento))}</span></div>
+          <div class="cell"><span class="lbl">IDADE / SEXO</span><span class="val">${v(f.idade)} anos | ${sexoFmt}</span></div>
+        </div>
+        <div class="grid-box" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
+          <div class="cell"><span class="lbl">RUA / LOGRADOURO</span><span class="val">${v(f.rua)}</span></div>
+          <div class="cell"><span class="lbl">Nº / APTO</span><span class="val">${v(f.numero)}</span></div>
+          <div class="cell"><span class="lbl">BAIRRO</span><span class="val">${v(f.bairro)}</span></div>
+          <div class="cell"><span class="lbl">MUNICÍPIO / UF</span><span class="val">${v(f.municipio, 'ORLEANS')} / ${v(f.estado, 'SC')}</span></div>
+        </div>
+
+        <div class="sec-title">3. TIPO OCORRÊNCIA</div>
+        <div class="grid-box" style="grid-template-columns: 1fr;">
+          <div class="cell"><span class="lbl">NATUREZA DO ATENDIMENTO</span><span class="val">${v(f.tipo_ocorrencia)}</span></div>
+        </div>
+
+        <div class="sec-title">4. AVALIAÇÃO TÁTICA & EXAME FÍSICO (ABCDE)</div>
+        <div class="grid-box" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+          <div class="cell"><span class="lbl">A - VIAS AÉREAS</span><span class="val">${v(f.vias_aereas)}</span></div>
+          <div class="cell"><span class="lbl">B - RESPIRAÇÃO</span><span class="val">${v(f.respiracao)}</span></div>
+          <div class="cell"><span class="lbl">C - PULSO / PELE</span><span class="val">${v(f.circulacao)}</span></div>
+          <div class="cell"><span class="lbl">D - GLASGOW TOTAL</span><span class="val">${gTot !== '—' ? gTot + '/15' : '—'} (O:${gOc} V:${gVerb} M:${gMot})</span></div>
+        </div>
+        ${exibeLesoes ? tabelaLesoesHtml : ''}
+        ${bioHtml}
+
+        <div class="sec-title">5. SINAIS VITAIS (MEDIÇÕES APH)</div>
+        <table class="tbl-ficha">
+          <thead>
+            <tr>
+              <th>HORA</th>
+              <th>PA (MMHG)</th>
+              <th>FC (BPM)</th>
+              <th>FR (MPM)</th>
+              <th>SPO2 (%)</th>
+              <th>TEMP (°C)</th>
+              <th>HGT (MG/DL)</th>
+              <th>PUPILAS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>${v(svRow.hora, v(f.hora_j10))}</td>
+              <td>${v(svRow.pa)}</td>
+              <td>${v(svRow.fc)}</td>
+              <td>${v(svRow.fr)}</td>
+              <td>${v(svRow.spo2) !== '—' ? v(svRow.spo2) + '%' : '—'}</td>
+              <td>${v(svRow.temp)}</td>
+              <td>${v(svRow.hgt)}</td>
+              <td>${v(f.pupilas)}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="sec-title">6. MEDICAÇÕES & INSUMOS UTILIZADOS</div>
+        <div class="grid-box" style="grid-template-columns: 1fr;">
+          <div class="cell"><span class="val" style="font-weight: normal; font-size: 9.5px;">${insumosHtml}</span></div>
+        </div>
+
+        <div class="sec-title">7. ANAMNESE, EVOLUÇÃO E CONDUTA</div>
+        <div class="grid-box" style="grid-template-columns: 1fr 1fr;">
+          <div class="cell"><span class="lbl">ALERGIAS?</span><span class="val">${v(f.alergia_select)} ${v(f.alergia_desc) !== '—' ? '(' + f.alergia_desc + ')' : ''}</span></div>
+          <div class="cell"><span class="lbl">MEDICAÇÃO CONTÍNUA?</span><span class="val">${v(f.med_continua_select)} ${v(f.meds_continuas, f.med_continua_desc) !== '—' ? '(' + v(f.meds_continuas, f.med_continua_desc) + ')' : ''}</span></div>
+        </div>
+        <div class="grid-box" style="grid-template-columns: 1fr;">
+          <div class="cell" style="min-height: 45px;">
+            <span class="lbl">EVOLUÇÃO E CONDUTA</span>
+            <span class="val" style="font-weight: normal; font-size: 9.5px; white-space: pre-wrap;">${v(f.evolucao_texto)}</span>
+          </div>
+        </div>
+        <div class="grid-box" style="grid-template-columns: 1fr 1fr;">
+          <div class="cell"><span class="lbl">TÉCNICO RESP. (PREENCHIMENTO)</span><span class="val">${tecRespCampo7}</span></div>
+          <div class="cell"><span class="lbl">DESTINO / HOSPITAL RECEPTOR</span><span class="val">${v(f.hospital_destino)}</span></div>
+        </div>
+
+        <div class="sec-title">8. DESFECHO DO ATENDIMENTO & ASSINATURA</div>
+        <div class="grid-box" style="grid-template-columns: 1fr 1fr 1fr;">
+          <div class="cell"><span class="lbl">DESFECHO DA VÍTIMA</span><span class="val">${v(f.desfecho_vitima)}</span></div>
+          <div class="cell"><span class="lbl">HOSPITAL RECEPTOR</span><span class="val">${v(f.hospital_destino)}</span></div>
+          <div class="cell"><span class="lbl">HOUVE RECUSA?</span><span class="val">${v(f.houve_recusa)}</span></div>
+        </div>
+
+        ${assinaturasBlock}
+      `;
+
+      document.getElementById('conteudoFichaDetalhada').innerHTML = htmlOficial;
+      document.querySelector('.tbl-lista').style.display = 'none';
+      document.querySelector('.busca-box').style.display = 'none';
+      document.getElementById('areaFichaImpressao').style.display = 'block';
+    }
+
+    function fecharFichaImpressao() {
+      document.getElementById('areaFichaImpressao').style.display = 'none';
+      document.querySelector('.tbl-lista').style.display = 'table';
+      document.querySelector('.busca-box').style.display = 'flex';
+    }
+  </script>
+</body>
+</html>
