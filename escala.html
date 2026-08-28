@@ -104,7 +104,7 @@
     body.modo-tv-kiosk {
       background-color: #0f172a !important;
       color: #fff !important;
-      padding: 8px !important;
+      padding: 6px !important;
       margin: 0 !important;
       width: 100vw !important;
       height: 100vh !important;
@@ -122,18 +122,18 @@
 
     body.modo-tv-kiosk #painelTVGrid {
       display: grid !important;
-      grid-template-columns: 1.25fr 0.75fr;
-      grid-template-rows: 1.15fr 0.85fr;
-      gap: 8px;
+      grid-template-columns: 1.15fr 0.85fr;
+      grid-template-rows: 1.25fr 0.75fr;
+      gap: 6px;
       width: 100%;
-      height: calc(100vh - 16px);
+      height: calc(100vh - 12px);
     }
 
     .tv-card {
       background: #1e293b;
       border: 1px solid #334155;
       border-radius: 8px;
-      padding: 8px 10px;
+      padding: 6px 8px;
       display: flex;
       flex-direction: column;
       box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
@@ -145,11 +145,11 @@
     }
 
     .tv-card h3 {
-      margin: 0 0 6px 0;
-      font-size: 13px;
+      margin: 0 0 4px 0;
+      font-size: 12px;
       color: #f8fafc;
       border-bottom: 2px solid #b71c1c;
-      padding-bottom: 4px;
+      padding-bottom: 3px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       display: flex;
@@ -159,7 +159,7 @@
 
     .tv-scrollable-table {
       flex: 1;
-      overflow-y: hidden; /* Remove barra de rolagem para enquadrar 100% dos dias */
+      overflow: auto;
       background: #0f172a;
       border-radius: 6px;
       border: 1px solid #334155;
@@ -168,7 +168,7 @@
     .tv-scrollable-table table {
       width: 100%;
       color: #fff;
-      font-size: 9.5px; /* Proporção ideal para caber do dia 1 ao 31 */
+      font-size: 8.5px;
       border-collapse: collapse;
     }
 
@@ -177,13 +177,15 @@
       top: 0;
       background: #b71c1c;
       z-index: 2;
-      padding: 4px 2px;
-      font-size: 10px;
+      padding: 3px 2px;
+      font-size: 9px;
+      white-space: nowrap;
     }
 
     .tv-scrollable-table td {
-      padding: 2.5px 4px; /* Linhas compactas */
+      padding: 2px 3px;
       border-bottom: 1px solid #1e293b;
+      white-space: nowrap;
     }
 
     .tr-hoje-destaque {
@@ -195,13 +197,13 @@
     .tv-plantao-box {
       background: linear-gradient(135deg, #b71c1c 0%, #7f1d1d 100%);
       border-radius: 6px;
-      padding: 8px;
+      padding: 6px;
       margin-bottom: 4px;
       text-align: center;
     }
 
-    .tv-plantao-cargo { font-size: 9px; text-transform: uppercase; opacity: 0.9; letter-spacing: 0.5px; margin-bottom: 1px; }
-    .tv-plantao-nome { font-size: 13px; font-weight: 800; color: #fff; }
+    .tv-plantao-cargo { font-size: 8.5px; text-transform: uppercase; opacity: 0.9; letter-spacing: 0.5px; margin-bottom: 1px; }
+    .tv-plantao-nome { font-size: 12px; font-weight: 800; color: #fff; }
 
     @media print {
       .no-print, header, .nav-tabs, .card h3, .grid-form, .btn-arrow, #painelTVGrid { display: none !important; }
@@ -218,17 +220,19 @@
 
   <!-- PAINEL OPERACIONAL DA TV (SAMU CONNECT - MODO KIOSK) -->
   <div id="painelTVGrid">
-    <!-- QUADRANTE ESQUERDO (VERTICAL MAIOR): ESCALA MENSAL DO MÊS VIGENTE -->
+    <!-- QUADRANTE ESQUERDO (VERTICAL MAIOR): ESCALA MENSAL OPERACIONAL COMPLETA -->
     <div class="tv-card tv-card-esquerda-vertical">
       <h3>📅 Escala Mensal Operacional — <span id="tvTituloMesVigente">AGOSTO / 2026</span></h3>
       <div class="tv-scrollable-table" id="containerTVScrollEsquerda">
         <table>
           <thead>
             <tr>
-              <th style="width:12%;">DIA</th>
-              <th style="width:10%;">SEM</th>
-              <th style="width:39%;">CONDUTOR SOCORRISTA</th>
-              <th style="width:39%;">TÉCNICO DE ENFERMAGEM</th>
+              <th style="width:10%;">DIA</th>
+              <th style="width:8%;">SEM</th>
+              <th style="width:12%;">PERÍODO</th>
+              <th style="width:28%;">CONDUTOR SOCORRISTA</th>
+              <th style="width:28%;">TÉCNICO DE ENFERMAGEM</th>
+              <th style="width:14%;">OBSERVAÇÕES</th>
             </tr>
           </thead>
           <tbody id="bodyTVEscalaMensal"></tbody>
@@ -236,20 +240,13 @@
       </div>
     </div>
 
-    <!-- QUADRANTE SUPERIOR DIREITO: MATRIZ COREN DO MÊS -->
+    <!-- QUADRANTE SUPERIOR DIREITO: MATRIZ COREN COMPLETA (01 AO 31) -->
     <div class="tv-card">
       <h3>📋 Matriz Oficial COREN — Orleans</h3>
       <div class="tv-scrollable-table">
-        <table>
-          <thead>
-            <tr>
-              <th style="text-align:left;">COLABORADOR</th>
-              <th>FUNÇÃO</th>
-              <th>REGISTRO</th>
-              <th>SITUAÇÃO</th>
-            </tr>
-          </thead>
-          <tbody id="bodyTVCorenMes"></tbody>
+        <table id="tblTVCorenMatriz">
+          <thead id="headTVCorenMatriz"></thead>
+          <tbody id="bodyTVCorenMatriz"></tbody>
         </table>
       </div>
     </div>
@@ -269,12 +266,12 @@
           </div>
         </div>
 
-        <div style="background:#334155; padding:8px; border-radius:6px; text-align:center;">
-          <div style="font-size:9px; color:#94a3b8; text-transform:uppercase;">Status da Viatura USB 11</div>
-          <div style="font-size:14px; font-weight:bold; color:#22c65e; margin-top:2px;">🟢 EM OPERAÇÃO / DISPONÍVEL</div>
+        <div style="background:#334155; padding:6px; border-radius:6px; text-align:center;">
+          <div style="font-size:8.5px; color:#94a3b8; text-transform:uppercase;">Status da Viatura USB 11</div>
+          <div style="font-size:13px; font-weight:bold; color:#22c65e; margin-top:2px;">🟢 EM OPERAÇÃO / DISPONÍVEL</div>
         </div>
 
-        <div style="font-size:9px; color:#64748b; text-align:center;">
+        <div style="font-size:8.5px; color:#64748b; text-align:center;">
           Sincronização Nuvem Supabase • Atualizado em tempo real
         </div>
       </div>
@@ -946,7 +943,7 @@
       const elTit = document.getElementById("tvTituloMesVigente");
       if (elTit) elTit.innerText = `${mesesNomes[mesAtual - 1]} / ${anoAtual}`;
 
-      // 1. QUADRANTE ESQUERDO: ESCALA OPERACIONAL DO MÊS VIGENTE
+      // 1. QUADRANTE ESQUERDO: ESCALA OPERACIONAL COMPLETA (01 AO 31 + PERÍODO + OBSERVAÇÕES)
       const tbEscalaMensal = document.getElementById("bodyTVEscalaMensal");
       if (tbEscalaMensal) {
         tbEscalaMensal.innerHTML = "";
@@ -955,7 +952,7 @@
         for (let d = 1; d <= diasNoMes; d++) {
           const dtIso = `${anoAtual}-${String(mesAtual).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
           const dtObj = new Date(anoAtual, mesAtual - 1, d);
-          const dtFmt = `${String(d).padStart(2,'0')}/${String(mesAtual).padStart(2,'0')}`;
+          const dtFmt = `${String(d).padStart(2,'0')}/${String(mesAtual).padStart(2,'0')}/${anoAtual}`;
           const res = calcularEscalaNoDia(dtIso, dataBaseStr, "24x96");
           const ehHoje = (d === diaAtual);
 
@@ -963,34 +960,67 @@
             <tr id="tr-tv-dia-${d}" class="${ehHoje ? 'tr-hoje-destaque' : ''}">
               <td><b>${dtFmt}</b></td>
               <td>${diasSemanaAbrev[dtObj.getDay()]}</td>
+              <td>07h às 07h</td>
               <td style="text-align:left;">${res.cond}</td>
               <td style="text-align:left;">${res.tec}</td>
+              <td style="text-align:left; font-size:8px;">${res.obs}</td>
             </tr>
           `;
         }
       }
 
-      // 2. QUADRANTE SUPERIOR DIREITO: MATRIZ COREN DO MÊS
-      const tbCoren = document.getElementById("bodyTVCorenMes");
-      if (tbCoren) {
-        tbCoren.innerHTML = "";
+      // 2. QUADRANTE SUPERIOR DIREITO: MATRIZ COREN COMPLETA (01 AO 31 MATRIZ PAISAGEM)
+      const headCoren = document.getElementById("headTVCorenMatriz");
+      const bodyCoren = document.getElementById("bodyTVCorenMatriz");
+      
+      if (headCoren && bodyCoren) {
+        const diasNoMes = new Date(anoAtual, mesAtual, 0).getDate();
+
+        let headHtml = `<tr><th style="text-align:left; min-width:90px;">NOME</th><th style="min-width:40px;">REG</th>`;
+        for (let d = 1; d <= diasNoMes; d++) {
+          headHtml += `<th style="padding:1px 2px; font-size:8px;">${String(d).padStart(2,'0')}</th>`;
+        }
+        headHtml += `</tr>`;
+        headCoren.innerHTML = headHtml;
+
+        bodyCoren.innerHTML = "";
         ordenarAlfabeticamente();
 
         colaboradores.forEach(c => {
-          let regExibido = (c.coren && c.coren !== "N/A") ? c.coren : (c.cnh || "—");
-          let sit = "Escala Normal";
+          let regExibido = c.coren !== "N/A" ? c.coren : c.cnh;
+          let line = `<tr><td style="text-align:left; font-weight:bold;">${c.nome}</td><td style="font-size:7.5px;">${regExibido}</td>`;
+          const eh40h = c.funcao && c.funcao.includes("Coordenadora");
 
-          const atestado = afastamentos.find(a => a.servidor === c.nome && dtIsoHoje >= a.inicio && dtIsoHoje <= a.fim);
-          if (atestado) sit = `<span style="color:#ef4444; font-weight:bold;">Afastado (${atestado.tipoMotivo || 'Atestado'})</span>`;
+          for (let d = 1; d <= diasNoMes; d++) {
+            const dtAtual = new Date(anoAtual, mesAtual - 1, d);
+            const dtIso = `${anoAtual}-${String(mesAtual).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const ehFds = (dtAtual.getDay() === 0 || dtAtual.getDay() === 6);
+            const ehFeriado = feriadosOficiaisNacionais.includes(dtIso);
+            const fdsClass = ehFds ? "col-fds" : "";
 
-          tbCoren.innerHTML += `
-            <tr>
-              <td style="text-align:left;"><b>${c.nome}</b></td>
-              <td>${c.funcao}</td>
-              <td>${regExibido}</td>
-              <td>${sit}</td>
-            </tr>
-          `;
+            if (eh40h) {
+              if (ehFds || ehFeriado) {
+                line += `<td class="st-fol ${ehFeriado ? 'col-feriado' : fdsClass}" style="padding:1px; font-size:7.5px;">FOL</td>`;
+              } else {
+                line += `<td class="st-adm" style="padding:1px; font-size:7.5px;">ADM</td>`;
+              }
+            } else {
+              const resDia = calcularEscalaNoDia(dtIso, dataBaseStr, "24x96");
+              const ehPlantaoCond = resDia.cond.includes(c.nome);
+              const ehPlantaoTec = resDia.tec.includes(c.nome);
+              const atestado = afastamentos.find(a => a.servidor === c.nome && dtIso >= a.inicio && dtIso <= a.fim);
+
+              if (atestado) {
+                line += `<td style="background-color:#fee2e2; color:#b91c1c; font-weight:bold; padding:1px; font-size:7px;">ATEST</td>`;
+              } else if (ehPlantaoCond || ehPlantaoTec) {
+                line += `<td class="st-i ${fdsClass}" style="padding:1px; font-size:7.5px;">I</td>`;
+              } else {
+                line += `<td class="st-fol ${fdsClass}" style="padding:1px; font-size:7.5px;">FOL</td>`;
+              }
+            }
+          }
+          line += `</tr>`;
+          bodyCoren.innerHTML += line;
         });
       }
 
