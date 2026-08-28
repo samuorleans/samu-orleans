@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SAMU 192 - Portal do Servidor e Gestão Integrada</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -17,76 +17,78 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-    body { background-color: var(--bg-gray); color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
+    body { background-color: var(--bg-gray); color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
 
-    /* TELAS DE LOGIN */
+    /* TELAS DE LOGIN RESPONSIVAS */
     .login-wrapper { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 15px; }
     .login-container {
-      width: 100%; max-width: 400px; background: white; padding: 30px 25px; border-radius: 16px;
+      width: 100%; max-width: 400px; background: white; padding: 25px 20px; border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-top: 6px solid var(--primary-red); text-align: center;
     }
-    .login-logo { width: 85px; margin-bottom: 12px; }
-    .login-title { font-size: 1.2rem; color: var(--navy-blue); font-weight: 800; letter-spacing: -0.5px; }
-    .login-subtitle { font-size: 0.82rem; color: #64748b; margin-bottom: 20px; }
+    .login-logo { width: 80px; margin-bottom: 12px; }
+    .login-title { font-size: 1.15rem; color: var(--navy-blue); font-weight: 800; letter-spacing: -0.5px; }
+    .login-subtitle { font-size: 0.8rem; color: #64748b; margin-bottom: 20px; }
 
-    .form-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 12px; }
-    .form-group label { font-size: 0.78rem; font-weight: 700; color: var(--navy-blue); margin-bottom: 4px; text-transform: uppercase; }
-    .form-group input, .form-group select { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; transition: 0.2s; width: 100%; }
-    .form-group input:focus, .form-group select:focus { border-color: var(--navy-blue); box-shadow: 0 0 0 3px rgba(0, 43, 73, 0.1); }
+    .form-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 12px; width: 100%; }
+    .form-group label { font-size: 0.73rem; font-weight: 700; color: var(--navy-blue); margin-bottom: 4px; text-transform: uppercase; }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; transition: 0.2s; width: 100%; -webkit-appearance: none; background: white;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--navy-blue); box-shadow: 0 0 0 3px rgba(0, 43, 73, 0.1); }
 
-    .btn-login { width: 100%; padding: 11px; background: var(--primary-red); color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 0.92rem; cursor: pointer; transition: 0.2s; }
+    .btn-login { width: 100%; padding: 12px; background: var(--primary-red); color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
     .btn-login:hover { background: var(--dark-red); }
 
-    .link-forgot { font-size: 0.78rem; color: var(--navy-blue); font-weight: 600; text-decoration: none; cursor: pointer; display: inline-block; margin-top: 10px; }
-    .link-forgot:hover { text-decoration: underline; }
+    .link-forgot { font-size: 0.78rem; color: var(--navy-blue); font-weight: 600; text-decoration: none; cursor: pointer; display: inline-block; margin-top: 12px; }
 
-    /* LAYOUT PAINEL PROFISSIONAL RESPONSIVO */
+    /* LAYOUT BASE RESPONSIVO */
     .app-layout { display: none; min-height: 100vh; flex-direction: row; width: 100%; }
 
+    /* HEADER MOBILE */
+    .mobile-header { display: none; background: var(--navy-blue); color: white; padding: 12px 15px; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 99; }
+    .mobile-header img { height: 30px; }
+    .mobile-menu-btn { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+
     /* SIDEBAR */
-    .sidebar { width: 260px; background: var(--navy-blue); color: white; padding: 20px 15px; display: flex; flex-direction: column; flex-shrink: 0; }
+    .sidebar { width: 260px; background: var(--navy-blue); color: white; padding: 20px 15px; display: flex; flex-direction: column; flex-shrink: 0; transition: 0.3s; z-index: 100; }
     .brand-header { display: flex; align-items: center; gap: 10px; margin-bottom: 25px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .brand-header img { width: 38px; height: auto; }
     .brand-title { font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
     .brand-subtitle { font-size: 0.7rem; opacity: 0.7; }
 
     .nav-menu { display: flex; flex-direction: column; gap: 6px; flex-grow: 1; }
-    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: #cbd5e1; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; color: #cbd5e1; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: 0.2s; }
     .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.12); color: white; }
 
     .user-card-sidebar { background: var(--navy-dark); padding: 12px; border-radius: 10px; margin-top: auto; display: flex; align-items: center; gap: 10px; }
-    .avatar-circle { width: 34px; height: 34px; background: var(--primary-red); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; }
-    .btn-logout-icon { background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 1rem; margin-left: auto; }
-    .btn-logout-icon:hover { color: white; }
+    .avatar-circle { width: 34px; height: 34px; background: var(--primary-red); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; }
+    .btn-logout-icon { background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 1.1rem; margin-left: auto; }
 
     /* CONTEÚDO PRINCIPAL */
     .main-content { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; width: 100%; }
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
-    .page-title { font-size: 1.25rem; color: var(--navy-blue); font-weight: 800; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
+    .page-title { font-size: 1.2rem; color: var(--navy-blue); font-weight: 800; }
 
-    /* CARDS E TABELAS RESPONSIVAS */
     .card-panel { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border: 1px solid var(--border-color); margin-bottom: 18px; width: 100%; }
-    .action-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 15px; flex-wrap: wrap; }
-    .search-input { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; width: 100%; max-width: 300px; font-size: 0.85rem; outline: none; }
     
+    .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
     .grid-filter { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; align-items: flex-end; margin-bottom: 15px; }
 
-    .btn-primary { background: var(--navy-blue); color: white; border: none; padding: 9px 15px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: var(--navy-blue); color: white; border: none; padding: 11px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.88rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: auto; }
     .btn-primary:hover { background: var(--navy-dark); }
-    .btn-action-sm { background: #f1f5f9; color: var(--navy-blue); border: 1px solid #cbd5e1; padding: 4px 8px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
-    .btn-action-sm:hover { background: var(--navy-blue); color: white; }
-    .btn-danger-sm { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; padding: 4px 8px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
-    .btn-danger-sm:hover { background: #dc2626; color: white; }
+    .btn-action-sm { background: #f1f5f9; color: var(--navy-blue); border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.78rem; }
+    .btn-danger-sm { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; padding: 6px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.78rem; }
+
+    .search-input { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; width: 100%; max-width: 300px; font-size: 0.85rem; outline: none; }
 
     .table-wrapper { overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; }
-    .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-    .data-table th, .data-table td { border-bottom: 1px solid var(--border-color); padding: 10px 12px; text-align: left; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 500px; }
+    .data-table th, .data-table td { border-bottom: 1px solid var(--border-color); padding: 10px; text-align: left; }
     .data-table th { background: #f8fafc; color: var(--navy-blue); font-weight: 700; }
 
-    /* TABELA DE RESUMO PORTARIA 2048 */
-    .table-resumo { width: 100%; max-width: 600px; border-collapse: collapse; margin-bottom: 15px; font-size: 0.82rem; }
-    .table-resumo td { padding: 8px 12px; border: 1px solid var(--border-color); }
-    .table-resumo td.label { font-weight: 700; color: #334155; background: #f8fafc; width: 55%; }
+    .table-resumo { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 0.82rem; }
+    .table-resumo td { padding: 8px 10px; border: 1px solid var(--border-color); }
+    .table-resumo td.label { font-weight: 700; color: #334155; background: #f8fafc; width: 50%; }
     .status-atingido { background-color: #c8e6c9 !important; color: #1b5e20; font-weight: 800; text-align: center; }
     .status-andamento { background-color: #fff9c4 !important; color: #f57f17; font-weight: 800; text-align: center; }
 
@@ -96,49 +98,77 @@
     .role-fuel { background: #fef3c7; color: #92400e; }
     .badge-ch { background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 12px; font-weight: bold; }
 
-    /* CABEÇALHO IMPRESSÃO OFICIAL (SÓ PARA RELATÓRIOS) */
+    /* ESTILOS FIÉIS AO FORMULÁRIO DE PREENCHIMENTO */
+    .form-original-container {
+      background: #ffffff; border-radius: 20px; border: 1px solid #d1d5db; padding: 20px; width: 100%; max-width: 580px; margin: 0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.06); text-align: left;
+    }
+    .form-original-header { text-align: center; margin-bottom: 15px; }
+    .form-original-header img { width: 62px; height: auto; margin-bottom: 6px; }
+    .form-original-header h2 { font-size: 1.15rem; font-weight: 900; color: #002b49; letter-spacing: -0.3px; margin: 0; }
+    .form-original-header p { font-size: 0.72rem; color: #64748b; font-weight: 600; margin-top: 2px; }
+
+    .form-banner-prof {
+      background: #e2e8f0; border-radius: 10px; padding: 10px 14px; font-size: 0.78rem; color: #002b49; margin-bottom: 16px; font-weight: 600;
+    }
+    .form-banner-prof span { color: #0284c7; font-weight: 800; }
+
+    .form-section-head {
+      font-size: 0.78rem; font-weight: 800; color: #002b49; text-transform: uppercase; margin: 18px 0 10px 0; display: flex; align-items: center; gap: 6px;
+    }
+
+    .form-input-styled {
+      width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; color: #1e293b; background: #ffffff;
+    }
+
+    .form-table-check { width: 100%; border-collapse: collapse; font-size: 0.74rem; margin-bottom: 15px; border: 1px solid #002b49; border-radius: 6px; overflow: hidden; }
+    .form-table-check th { background: #002b49; color: white; padding: 8px 6px; text-transform: uppercase; font-size: 0.68rem; font-weight: 800; text-align: center; }
+    .form-table-check th:first-child { text-align: left; padding-left: 10px; }
+    .form-table-check td { border-bottom: 1px solid #e2e8f0; padding: 8px 6px; text-align: center; color: #334155; }
+    .form-table-check td:first-child { text-align: left; padding-left: 10px; font-weight: 700; color: #1e293b; }
+
+    .radio-circle { width: 14px; height: 14px; border-radius: 50%; border: 1px solid #94a3b8; display: inline-block; vertical-align: middle; }
+    .radio-circle.selected { border: 5px solid #002b49; background: white; }
+
+    .textarea-obs {
+      width: 100%; min-height: 70px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; font-size: 0.85rem; color: #334155; background: #ffffff; resize: none;
+    }
+
+    /* IMPRESSÃO OFICIAL */
     .relatorio-header-print { display: none; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 8px; text-align: center; }
     .relatorio-header-print h2 { font-size: 11pt; text-transform: uppercase; margin: 0; color: #000; font-weight: 800; }
     .relatorio-header-print h3 { font-size: 9.5pt; text-transform: uppercase; margin: 2px 0; color: #000; }
 
-    /* MODAL */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
-    .modal-card { background: white; padding: 22px; border-radius: 14px; width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
-    .modal-title { font-size: 1rem; color: var(--navy-blue); font-weight: 800; }
+    /* MODAIS RESPONSIVOS */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; padding: 10px; }
+    .modal-card { background: white; padding: 20px; border-radius: 16px; width: 100%; max-width: 650px; max-height: 92vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
 
-    /* REGRAS DE IMPRESSÃO A4 ISOLADAS */
+    @media (max-width: 768px) {
+      .app-layout { flex-direction: column; }
+      .mobile-header { display: flex; }
+      .sidebar {
+        display: none; width: 100%; position: fixed; top: 54px; left: 0; height: calc(100vh - 54px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      }
+      .sidebar.open { display: flex; }
+      .main-content { padding: 12px; }
+      .card-panel { padding: 14px; }
+      .btn-primary { width: 100%; margin-top: 8px; }
+      .grid-form { grid-template-columns: 1fr; }
+    }
+
     @media print {
       @page { size: A4 portrait; margin: 8mm; }
       body { background: white !important; color: #000 !important; font-size: 8.5pt !important; width: 100% !important; }
-      
-      .sidebar, .no-print, .search-input, .grid-filter, .login-wrapper, .modal-header button, .page-header { display: none !important; }
+      .sidebar, .no-print, .search-input, .grid-filter, .login-wrapper, .modal-header button, .page-header, .mobile-header, .btn-action-sm { display: none !important; }
       .app-layout { display: block !important; }
       .main-content { padding: 0 !important; overflow: visible !important; }
       .card-panel { border: none !important; box-shadow: none !important; padding: 0 !important; margin-bottom: 12pt !important; }
-      
       .relatorio-header-print { display: block !important; }
-
-      .data-table, table { width: 100% !important; border-collapse: collapse !important; font-size: 8pt !important; }
-      .data-table th, .data-table td, table th, table td { border: 1px solid #000 !important; padding: 4px 6px !important; color: #000 !important; }
-      .data-table th, table th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-
-      /* MODO ESPELHO CHECKLIST (OCULTA O CONTEÚDO DO PORTAL TOTALMENTE) */
       body.modal-open-print #dashboardScreen { display: none !important; }
-      body.modal-open-print #modalChecklistEspelho { 
-        display: block !important; 
-        position: static !important; 
-        background: transparent !important; 
-        padding: 0 !important; 
-        width: 100% !important;
-      }
-      body.modal-open-print #modalChecklistEspelho .modal-card { 
-        max-width: 100% !important; 
-        width: 100% !important; 
-        box-shadow: none !important; 
-        border: none !important; 
-        padding: 0 !important; 
-      }
+      body.modal-open-print #modalChecklistEspelho { display: block !important; position: static !important; background: transparent !important; padding: 0 !important; width: 100% !important; }
+      body.modal-open-print #modalChecklistEspelho .modal-card { max-width: 100% !important; width: 100% !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
+      .form-original-container { border: none !important; box-shadow: none !important; width: 100% !important; max-width: 100% !important; padding: 0 !important; }
     }
   </style>
 </head>
@@ -163,7 +193,7 @@
         <button type="submit" class="btn-login">Acessar Sistema</button>
       </form>
 
-      <a class="link-forgot" onclick="alert('Entre em contato com a Coordenação para redefinir sua senha.')">Esqueceu sua senha?</a>
+      <a class="link-forgot" onclick="alert('Solicite a redefinição de senha junto à Coordenação.')">Esqueceu sua senha?</a>
       <div id="loginError" style="color:#dc2626; font-size:0.8rem; margin-top:12px; font-weight:600; display:none;">Usuário ou Senha incorretos!</div>
     </div>
   </div>
@@ -171,7 +201,15 @@
   <!-- PAINEL PRINCIPAL -->
   <div id="dashboardScreen" class="app-layout">
     
-    <aside class="sidebar no-print">
+    <header class="mobile-header">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <img src="logo.png" alt="SAMU" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
+        <span style="font-weight:800; font-size:0.9rem;">SAMU 192 ORLEANS</span>
+      </div>
+      <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+    </header>
+
+    <aside class="sidebar" id="mainSidebar">
       <div class="brand-header">
         <img src="logo.png" alt="Logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
         <div>
@@ -183,6 +221,7 @@
       <nav class="nav-menu">
         <div class="nav-item active" onclick="switchTab('tabMeuPerfil', this)">👤 Meus Dados & Uniformes</div>
         <div class="nav-item" onclick="switchTab('tabMeusCursos', this)">🎓 Minhas Capacitações</div>
+        <div class="nav-item" onclick="switchTab('tabSegurancaSenha', this)">🔒 Segurança & Senha</div>
         <div class="nav-item" id="btnAdminServidores" style="display:none;" onclick="switchTab('tabAdminServidores', this)">⚙️ Gestão de Servidores</div>
         <div class="nav-item" id="btnAdminCursos" style="display:none;" onclick="switchTab('tabAdminCursos', this)">📊 Relatório Cursos (Admin)</div>
         <div class="nav-item" id="btnAdminChecklists" style="display:none;" onclick="switchTab('tabAdminChecklists', this)">🛠️ Frotas & Checklists</div>
@@ -201,15 +240,15 @@
 
     <main class="main-content">
 
-      <!-- ABA 1: PERFIL DO SERVIDOR -->
+      <!-- ABA 1: DADOS E UNIFORMES -->
       <div id="tabMeuPerfil" class="tab-pane">
-        <div class="page-header no-print">
-          <div class="page-title">Meu Perfil e Cadastro de Insumos</div>
+        <div class="page-header">
+          <div class="page-title">Meus Dados e Uniformes</div>
         </div>
 
         <div class="card-panel">
           <h3 style="color:var(--navy-blue); margin-bottom:12px; font-size:0.9rem;">📋 Dados Pessoais & Contato</h3>
-          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
+          <div class="grid-form">
             <div class="form-group"><label>Nome Completo:</label><input type="text" id="perfilNome" disabled></div>
             <div class="form-group"><label>CPF:</label><input type="text" id="perfilCPF" disabled></div>
             <div class="form-group"><label>Função:</label><input type="text" id="perfilFuncao" disabled></div>
@@ -221,7 +260,7 @@
 
         <div class="card-panel">
           <h3 style="color:var(--navy-blue); margin-bottom:12px; font-size:0.9rem;">👕 Tamanhos de Uniformes e Equipamentos</h3>
-          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
+          <div class="grid-form">
             <div class="form-group"><label>Tipo Sanguíneo:</label><input type="text" id="uTipoSangue"></div>
             <div class="form-group"><label>Nome de Guerra:</label><input type="text" id="uNomeGuerra"></div>
             <div class="form-group"><label>Macacão:</label><input type="text" id="uMacacao"></div>
@@ -230,11 +269,28 @@
             <div class="form-group"><label>Coturno (Número):</label><input type="text" id="uCoturno"></div>
             <div class="form-group"><label>Capa de Chuva:</label><input type="text" id="uCapaChuva"></div>
           </div>
-          <button class="btn-primary no-print" style="margin-top:12px; background:#166534;" onclick="salvarTudoPerfil()">💾 Salvar Alterações</button>
+          <button class="btn-primary" style="margin-top:12px; background:#166534;" onclick="salvarTudoPerfil()">💾 Salvar Informações</button>
         </div>
       </div>
 
-      <!-- ABA 2: MINHAS CAPACITAÇÕES -->
+      <!-- ABA 2: SEGURANÇA E SENHA -->
+      <div id="tabSegurancaSenha" class="tab-pane" style="display:none;">
+        <div class="page-header">
+          <div class="page-title">Segurança e Troca de Senha</div>
+        </div>
+
+        <div class="card-panel">
+          <h3 style="color:var(--navy-blue); margin-bottom:12px; font-size:0.9rem;">🔒 Alterar Senha do Sistema</h3>
+          <p style="font-size:0.8rem; color:#64748b; margin-bottom:15px;">Defina uma nova senha para acessar o Portal do Servidor e a Central Operacional.</p>
+          <div class="grid-form">
+            <div class="form-group"><label>Nova Senha:</label><input type="password" id="perfilNovaSenha" placeholder="Digite a nova senha"></div>
+            <div class="form-group"><label>Confirmar Senha:</label><input type="password" id="perfilConfirmaSenha" placeholder="Repita a nova senha"></div>
+          </div>
+          <button class="btn-primary" style="margin-top:12px; background:var(--navy-blue);" onclick="alterarSenhaPropria()">🔑 Atualizar Minha Senha</button>
+        </div>
+      </div>
+
+      <!-- ABA 3: MINHAS CAPACITAÇÕES -->
       <div id="tabMeusCursos" class="tab-pane" style="display:none;">
         <div class="relatorio-header-print">
           <h2>ESTADO DE SANTA CATARINA — MUNICÍPIO DE ORLEANS</h2>
@@ -252,9 +308,7 @@
 
         <div class="card-panel">
           <h3 style="color:var(--navy-blue); margin-bottom:10px; font-size:0.9rem;">📊 RESUMO DE CARGA HORÁRIA (PORTARIA 2048/2002)</h3>
-          <table class="table-resumo">
-            <tbody></tbody>
-          </table>
+          <table class="table-resumo"><tbody></tbody></table>
         </div>
 
         <div class="card-panel">
@@ -275,7 +329,7 @@
         </div>
       </div>
 
-      <!-- ABA 3: GESTÃO DE SERVIDORES (ADMIN) -->
+      <!-- ABA 4: GESTÃO DE SERVIDORES (ADMIN) -->
       <div id="tabAdminServidores" class="tab-pane" style="display:none;">
         <div class="page-header no-print">
           <div class="page-title">Painel do Quadro de Servidores</div>
@@ -283,8 +337,8 @@
         </div>
 
         <div class="card-panel">
-          <div class="action-bar no-print">
-            <input type="text" class="search-input" id="searchServidores" placeholder="🔍 Buscar por Nome ou CPF..." onkeyup="filtrarTabelaServidores()">
+          <div class="action-bar no-print" style="margin-bottom:12px;">
+            <input type="text" class="search-input" id="searchServidores" placeholder="🔍 Buscar por Nome ou CPF..." onkeyup="filtrarTabelaServidores()" style="max-width:100%;">
           </div>
 
           <div class="table-wrapper">
@@ -310,7 +364,7 @@
         </div>
       </div>
 
-      <!-- ABA 4: RELATÓRIO CURSOS (ADMIN) -->
+      <!-- ABA 5: RELATÓRIO CURSOS (ADMIN) -->
       <div id="tabAdminCursos" class="tab-pane" style="display:none;">
         <div class="relatorio-header-print">
           <h2>ESTADO DE SANTA CATARINA — MUNICÍPIO DE ORLEANS</h2>
@@ -350,9 +404,7 @@
 
         <div class="card-panel">
           <h3 style="color:var(--navy-blue); margin-bottom:10px; font-size:0.9rem;">📊 RESUMO DE AUDITORIA DE CARGA HORÁRIA</h3>
-          <table class="table-resumo">
-            <tbody></tbody>
-          </table>
+          <table class="table-resumo"><tbody></tbody></table>
         </div>
 
         <div class="card-panel">
@@ -374,7 +426,7 @@
         </div>
       </div>
 
-      <!-- ABA 5: FROTAS & CHECKLISTS OPERACIONAIS -->
+      <!-- ABA 6: FROTAS & CHECKLISTS OPERACIONAIS -->
       <div id="tabAdminChecklists" class="tab-pane" style="display:none;">
         <div class="page-header no-print">
           <div class="page-title">Histórico de Checklists Operacionais e Viatura</div>
@@ -402,7 +454,7 @@
         </div>
       </div>
 
-      <!-- ABA 6: LOGS DE ALTERAÇÕES E AUDITORIA -->
+      <!-- ABA 7: LOGS DE ALTERAÇÕES E AUDITORIA -->
       <div id="tabAdminLogs" class="tab-pane" style="display:none;">
         <div class="page-header no-print">
           <div class="page-title">Histórico de Alterações e Auditoria</div>
@@ -454,24 +506,18 @@
     </main>
   </div>
 
-  <!-- MODAL DE ESPELHO GRÁFICO DO CHECKLIST -->
+  <!-- MODAL ESPELHO COM O MESMO LAYOUT FIEL À TELA DE PREENCHIMENTO -->
   <div id="modalChecklistEspelho" class="modal-overlay">
     <div class="modal-card">
-      <div class="modal-header no-print">
-        <div class="modal-title">📄 ESPELHO DO CHECKLIST OPERACIONAL</div>
-        <button style="background:none; border:none; font-size:1.2rem; cursor:pointer;" onclick="fecharModalChecklist()">✕</button>
-      </div>
-      
       <div id="conteudoChecklistEspelho"></div>
-      
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:15px;" class="no-print">
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:15px; border-top:1px solid #cbd5e1; padding-top:12px;" class="no-print">
         <button class="btn-action-sm" onclick="fecharModalChecklist()">Fechar</button>
         <button class="btn-primary" onclick="window.print()">🖨️ Imprimir Ficha A4</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL EDIÇÃO E CADASTRO COMPLETO DE SERVIDORES -->
+  <!-- MODAL EDITAR SERVIDOR -->
   <div id="editModal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
@@ -482,12 +528,9 @@
       <input type="hidden" id="modalServidorId">
       
       <h4 style="color:var(--navy-blue); margin-bottom:8px; font-size:0.85rem; text-transform:uppercase;">📌 Dados Cadastrais</h4>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div class="grid-form">
         <div class="form-group"><label>Nome Completo:</label><input type="text" id="modalNome" required></div>
         <div class="form-group"><label>CPF:</label><input type="text" id="modalCPF" required></div>
-      </div>
-
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
         <div class="form-group">
           <label>Função:</label>
           <select id="modalFuncao">
@@ -497,9 +540,6 @@
           </select>
         </div>
         <div class="form-group"><label>Registro (COREN/CNH):</label><input type="text" id="modalRegistro"></div>
-      </div>
-
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
         <div class="form-group">
           <label>Perfil de Acesso:</label>
           <select id="modalPerfil">
@@ -511,7 +551,7 @@
       </div>
 
       <h4 style="color:var(--navy-blue); margin:12px 0 8px 0; font-size:0.85rem; text-transform:uppercase; border-top:1px solid var(--border-color); padding-top:10px;">👕 Tamanhos de Uniformes e Equipamentos</h4>
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+      <div class="grid-form">
         <div class="form-group"><label>Coturno:</label><input type="text" id="modalCoturno" placeholder="Ex: 39"></div>
         <div class="form-group"><label>Macacão:</label><input type="text" id="modalMacacao" placeholder="Ex: P/M/G"></div>
         <div class="form-group"><label>Camiseta:</label><input type="text" id="modalCamiseta" placeholder="Ex: M"></div>
@@ -531,11 +571,17 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
     const dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    const SENHA_MESTRA_EMERGENCIA = "Admin@192Orleans";
+
     let usuarioLogado = null;
     let listaColaboradores = [];
     let listaUniformes = [];
     let todosCursos = [];
     let todosLogs = [];
+
+    function toggleMobileMenu() {
+      document.getElementById('mainSidebar').classList.toggle('open');
+    }
 
     async function registrarLog(acao, detalhes) {
       if (!usuarioLogado) return;
@@ -547,9 +593,24 @@
           detalhes: detalhes,
           data_hora: new Date().toISOString()
         }]);
-      } catch (err) {
-        console.error("Erro ao registrar log:", err);
+      } catch (err) { console.error("Erro log:", err); }
+    }
+
+    async function carregarTodosColaboradores() {
+      const { data } = await dbNuvem.from('colaboradores').select('*').order('nome');
+      if (data) {
+        listaColaboradores = data;
+        preencherSelectColaboradores();
       }
+    }
+
+    function preencherSelectColaboradores() {
+      const selProf = document.getElementById("admFiltroProfissional");
+      if (!selProf) return;
+      selProf.innerHTML = `<option value="TODOS">-- Todos os Servidores --</option>`;
+      listaColaboradores.forEach(c => {
+        selProf.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+      });
     }
 
     async function realizarLogin(e) {
@@ -560,42 +621,31 @@
       const cpfClean = rawInput.replace(/\D/g, '');
       const senhaInput = document.getElementById('loginSenha').value.trim();
 
-      // ACESSO MESTRE ADMIN
-      if ((rawInput.toLowerCase() === 'admin' || cpfClean === '00000000000') && (senhaInput === 'Admin@192Orleans' || senhaInput === 'samu192' || senhaInput === '123456')) {
-        usuarioLogado = {
-          id: 999999,
-          nome: "Administrador do Sistema",
-          cpf: "000.000.000-00",
-          funcao: "Coordenador Geral / Admin",
-          perfil: "admin",
-          coren: "N/A",
-          cnh: "N/A"
-        };
-        await registrarLog("Acesso ao Sistema", "Realizou login Mestre de Administrador.");
+      if ((rawInput.toLowerCase() === 'admin' || cpfClean === '00000000000') && (senhaInput === SENHA_MESTRA_EMERGENCIA || senhaInput === 'samu192')) {
+        usuarioLogado = { id: 999999, nome: "Administrador do Sistema", cpf: "000.000.000-00", funcao: "Coordenador Geral / Admin", perfil: "admin" };
+        await registrarLog("Acesso ao Sistema", "Login Mestre Admin.");
         carregarDashboard();
         return;
       }
 
-      const { data, error } = await dbNuvem.from('colaboradores').select('*');
-      if (error || !data) {
-        document.getElementById('loginError').style.display = 'block';
-        return;
-      }
+      await carregarTodosColaboradores();
 
-      listaColaboradores = data;
       const user = listaColaboradores.find(u => {
         const userCpfClean = u.cpf ? u.cpf.replace(/\D/g, '') : '';
         return u.cpf === rawInput || (cpfClean !== '' && userCpfClean === cpfClean) || u.nome.toLowerCase() === rawInput.toLowerCase();
       });
 
-      if (!user || (user.senha && user.senha !== senhaInput && senhaInput !== 'Admin@192Orleans' && senhaInput !== 'samu192')) {
-        document.getElementById('loginError').style.display = 'block';
-        return;
+      if (user) {
+        const senhaIndividual = user.senha;
+        if ((senhaIndividual && senhaInput === senhaIndividual) || senhaInput === SENHA_MESTRA_EMERGENCIA || senhaInput === 'samu192') {
+          usuarioLogado = user;
+          await registrarLog("Acesso ao Sistema", `Login Portal (${user.nome}).`);
+          carregarDashboard();
+          return;
+        }
       }
 
-      usuarioLogado = user;
-      await registrarLog("Acesso ao Sistema", "Realizou login no Portal do Servidor.");
-      carregarDashboard();
+      document.getElementById('loginError').style.display = 'block';
     }
 
     async function carregarDashboard() {
@@ -612,6 +662,8 @@
       document.getElementById('perfilRegistro').value = usuarioLogado.coren !== 'N/A' ? usuarioLogado.coren : usuarioLogado.cnh;
       document.getElementById('perfilTelefone').value = usuarioLogado.telefone || '';
       document.getElementById('perfilEmail').value = usuarioLogado.email || '';
+
+      await carregarTodosColaboradores();
 
       const { data: uni } = await dbNuvem.from('uniformes').select('*').eq('colaborador_id', usuarioLogado.id).maybeSingle();
       if (uni) {
@@ -640,6 +692,25 @@
       await carregarMeusCursos();
     }
 
+    async function alterarSenhaPropria() {
+      const nova = document.getElementById('perfilNovaSenha').value.trim();
+      const confirma = document.getElementById('perfilConfirmaSenha').value.trim();
+
+      if (!nova || !confirma) return alert("Preencha e confirme a nova senha.");
+      if (nova !== confirma) return alert("As senhas não coincidem.");
+      if (usuarioLogado.id === 999999) return alert("Conta Mestre não pode alterar a senha por esta tela.");
+
+      const { error } = await dbNuvem.from('colaboradores').update({ senha: nova }).eq('id', usuarioLogado.id);
+      if (error) alert("Erro ao alterar senha.");
+      else {
+        usuarioLogado.senha = nova;
+        document.getElementById('perfilNovaSenha').value = '';
+        document.getElementById('perfilConfirmaSenha').value = '';
+        await registrarLog("Alteração de Senha", "Servidor alterou a própria senha.");
+        alert("Senha atualizada com sucesso!");
+      }
+    }
+
     async function carregarMeusCursos() {
       const { data } = await dbNuvem.from('cursos_certificados').select('*');
       todosCursos = data || [];
@@ -653,11 +724,7 @@
         return idBate || cpfBate || nomeBate;
       });
 
-      meus.sort((a, b) => {
-        const dtA = new Date(a.data_certificado || a.certificado_de_dados || '1970-01-01');
-        const dtB = new Date(b.data_certificado || b.certificado_de_dados || '1970-01-01');
-        return dtA - dtB;
-      });
+      meus.sort((a, b) => new Date(a.data_certificado || a.certificado_de_dados || '1970-01-01') - new Date(b.data_certificado || b.certificado_de_dados || '1970-01-01'));
 
       const tbMeus = document.getElementById("tbMeusCursos");
       tbMeus.innerHTML = "";
@@ -676,15 +743,13 @@
         }
 
         const dataFmt = dtObj ? `${String(dtObj.getDate()).padStart(2,'0')}/${String(dtObj.getMonth()+1).padStart(2,'0')}/${dtObj.getFullYear()}` : '-';
-        const modExibida = c.disciplina || c.modalidade || 'Presencial/EAD';
-        const descCurso = (c.nome_curso || '-') + (c.instituicao ? ` (${c.instituicao})` : '');
 
         tbMeus.innerHTML += `
           <tr>
             <td style="text-align:center;"><b>${dataFmt}</b></td>
             <td style="text-align:center;"><span class="badge-ch">${c.carga_horaria || 0}h</span></td>
-            <td>${descCurso}</td>
-            <td style="text-align:center;">${modExibida}</td>
+            <td>${(c.nome_curso || '-') + (c.instituicao ? ` (${c.instituicao})` : '')}</td>
+            <td style="text-align:center;">${c.disciplina || c.modalidade || 'Presencial/EAD'}</td>
           </tr>
         `;
       });
@@ -700,24 +765,13 @@
         <tr><td class="label">Meta Anual Exigida:</td><td><b>${metaAnual} horas/ano</b></td></tr>
       `;
 
-      const anosOrdenados = Object.keys(horasPorAno).map(Number).sort((a, b) => a - b);
-      anosOrdenados.forEach(anoKey => {
+      Object.keys(horasPorAno).map(Number).sort((a, b) => a - b).forEach(anoKey => {
         htmlResumo += `<tr><td class="label">Carga Horária Cumprida em ${anoKey}:</td><td><b>${horasPorAno[anoKey]} hrs</b></td></tr>`;
       });
 
-      const horasAnoAtual = horasPorAno[anoAtual] || 0;
-      let saldoFaltante = metaAnual - horasAnoAtual;
-      let statusTexto = "";
-      let classStatus = "";
-
-      if (saldoFaltante <= 0) {
-        saldoFaltante = 0;
-        statusTexto = "COMPLETO (Meta Atingida)";
-        classStatus = "status-atingido";
-      } else {
-        statusTexto = "EM ANDAMENTO";
-        classStatus = "status-andamento";
-      }
+      const saldoFaltante = Math.max(0, metaAnual - (horasPorAno[anoAtual] || 0));
+      const statusTexto = saldoFaltante === 0 ? "COMPLETO (Meta Atingida)" : "EM ANDAMENTO";
+      const classStatus = saldoFaltante === 0 ? "status-atingido" : "status-andamento";
 
       htmlResumo += `
         <tr><td class="label">Saldo Faltante para Meta ${anoAtual}:</td><td><b>${saldoFaltante} hrs</b></td></tr>
@@ -727,19 +781,13 @@
       const tabelaResumoBody = document.querySelector("#tabMeusCursos .table-resumo tbody");
       if (tabelaResumoBody) tabelaResumoBody.innerHTML = htmlResumo;
 
-      preencherFiltrosAdmin();
+      preencherFiltrosAnosAdmin();
+      processarPainelAdmin();
     }
 
-    function preencherFiltrosAdmin() {
-      const selProf = document.getElementById("admFiltroProfissional");
+    function preencherFiltrosAnosAdmin() {
       const selAno = document.getElementById("admFiltroAno");
-      
-      if (!selProf || !selAno) return;
-
-      selProf.innerHTML = `<option value="TODOS">-- Todos os Servidores --</option>`;
-      listaColaboradores.forEach(c => {
-        selProf.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
-      });
+      if (!selAno) return;
 
       const anosSet = new Set();
       todosCursos.forEach(c => {
@@ -751,11 +799,7 @@
       });
 
       selAno.innerHTML = `<option value="TODOS">Todos os Anos</option>`;
-      Array.from(anosSet).sort().forEach(ano => {
-        selAno.innerHTML += `<option value="${ano}">${ano}</option>`;
-      });
-
-      processarPainelAdmin();
+      Array.from(anosSet).sort().forEach(ano => { selAno.innerHTML += `<option value="${ano}">${ano}</option>`; });
     }
 
     function processarPainelAdmin() {
@@ -764,18 +808,22 @@
 
       const profSel = document.getElementById("admFiltroProfissional").value;
       const anoSel = document.getElementById("admFiltroAno").value;
-      const dtIniStr = document.getElementById("admDataInicio").value;
-      const dtFimStr = document.getElementById("admDataFim").value;
-
-      const dtIniFilter = dtIniStr ? new Date(dtIniStr + 'T00:00:00') : null;
-      const dtFimFilter = dtFimStr ? new Date(dtFimStr + 'T23:59:59') : null;
+      const dtIniFilter = document.getElementById("admDataInicio").value ? new Date(document.getElementById("admDataInicio").value + 'T00:00:00') : null;
+      const dtFimFilter = document.getElementById("admDataFim").value ? new Date(document.getElementById("admDataFim").value + 'T23:59:59') : null;
 
       const anoAtual = new Date().getFullYear();
       const horasPorAno = {};
 
       let cursosFiltrados = todosCursos.filter(c => {
-        if (profSel !== "TODOS" && (!c.servidor_nome || !c.servidor_nome.toLowerCase().includes(profSel.toLowerCase()))) {
-          return false;
+        if (profSel !== "TODOS") {
+          const colabMatch = listaColaboradores.find(col => col.nome === profSel);
+          const pPrimeiroNome = profSel.trim().split(' ')[0].toLowerCase();
+
+          const matchId = colabMatch && c.colaborador_id && Number(c.colaborador_id) === Number(colabMatch.id);
+          const matchCpf = colabMatch && colabMatch.cpf && c.cpf && c.cpf.replace(/\D/g, '') === colabMatch.cpf.replace(/\D/g, '');
+          const matchNome = c.servidor_nome && c.servidor_nome.toLowerCase().includes(pPrimeiroNome);
+
+          if (!matchId && !matchCpf && !matchNome) return false;
         }
 
         const dataBruta = c.data_certificado || c.certificado_de_dados;
@@ -788,14 +836,9 @@
         return true;
       });
 
-      cursosFiltrados.sort((a, b) => {
-        const dtA = new Date(a.data_certificado || a.certificado_de_dados || '1970-01-01');
-        const dtB = new Date(b.data_certificado || b.certificado_de_dados || '1970-01-01');
-        return dtA - dtB;
-      });
+      cursosFiltrados.sort((a, b) => new Date(a.data_certificado || a.certificado_de_dados || '1970-01-01') - new Date(b.data_certificado || b.certificado_de_dados || '1970-01-01'));
 
       tbAdmin.innerHTML = "";
-      let cargoIdentificado = "Profissional da Unidade";
 
       cursosFiltrados.forEach(c => {
         const dataBruta = c.data_certificado || c.certificado_de_dados || '';
@@ -807,63 +850,57 @@
           horasPorAno[ano] += Number(c.carga_horaria) || 0;
         }
 
-        if (c.servidor_nome) {
-          if (c.servidor_nome.toLowerCase().includes("condutor")) cargoIdentificado = "Condutor Socorrista";
-          else if (c.servidor_nome.toLowerCase().includes("técnico") || c.servidor_nome.toLowerCase().includes("enferm")) cargoIdentificado = "Técnico de Enfermagem Socorrista";
+        let nomeExibicao = c.servidor_nome || '-';
+        if (c.colaborador_id) {
+          const colabFound = listaColaboradores.find(col => Number(col.id) === Number(c.colaborador_id));
+          if (colabFound) {
+            nomeExibicao = `${colabFound.nome} - ${colabFound.funcao}`;
+          }
         }
 
         const dataFmt = dtObj ? `${String(dtObj.getDate()).padStart(2,'0')}/${String(dtObj.getMonth()+1).padStart(2,'0')}/${dtObj.getFullYear()}` : '-';
-        const descCurso = (c.nome_curso || '-') + (c.instituicao ? ` (${c.instituicao})` : '');
-        const modExibida = c.disciplina || c.modalidade || 'Presencial/EAD';
 
         tbAdmin.innerHTML += `
           <tr>
             <td style="text-align:center;"><b>${dataFmt}</b></td>
-            <td><b>${c.servidor_nome || '-'}</b></td>
+            <td><b>${nomeExibicao}</b></td>
             <td style="text-align:center;"><span class="badge-ch">${c.carga_horaria || 0}h</span></td>
-            <td>${descCurso}</td>
-            <td style="text-align:center;">${modExibida}</td>
+            <td>${(c.nome_curso || '-') + (c.instituicao ? ` (${c.instituicao})` : '')}</td>
+            <td style="text-align:center;">${c.disciplina || c.modalidade || 'Presencial/EAD'}</td>
             <td class="no-print"><button class="btn-danger-sm" onclick="excluirCurso(${c.id})">Remover</button></td>
           </tr>
         `;
       });
 
-      if (!horasPorAno[anoAtual]) horasPorAno[anoAtual] = 0;
-
-      const metaAnual = (cargoIdentificado === "Condutor Socorrista") ? 200 : 154;
-
       let htmlResumoAdmin = `
-        <tr><td class="label">Profissional / Função:</td><td><b>${profSel !== "TODOS" ? profSel : "Todos os Servidores"}</b> (${cargoIdentificado})</td></tr>
-        <tr><td class="label">Meta Anual Exigida:</td><td><b>${metaAnual} horas/ano</b></td></tr>
+        <tr><td class="label">Profissional / Modo:</td><td><b>${profSel !== "TODOS" ? profSel : "Visão Consolidada (Todos os Servidores)"}</b></td></tr>
       `;
 
-      if (anoSel === "TODOS") {
-        const anosOrdenados = Object.keys(horasPorAno).map(Number).sort((a, b) => a - b);
-        anosOrdenados.forEach(anoKey => {
-          htmlResumoAdmin += `<tr><td class="label">Carga Horária Cumprida em ${anoKey}:</td><td><b>${horasPorAno[anoKey]} hrs</b></td></tr>`;
+      if (profSel !== "TODOS") {
+        const colabSelObj = listaColaboradores.find(col => col.nome === profSel);
+        const ehCond = colabSelObj && colabSelObj.funcao ? colabSelObj.funcao.toLowerCase().includes("condutor") : false;
+        const metaAnoSel = ehCond ? 200 : 154;
+
+        htmlResumoAdmin += `<tr><td class="label">Meta Anual Exigida:</td><td><b>${metaAnoSel} horas/ano</b></td></tr>`;
+
+        if (anoSel === "TODOS") {
+          Object.keys(horasPorAno).map(Number).sort((a, b) => a - b).forEach(anoKey => {
+            htmlResumoAdmin += `<tr><td class="label">Carga Horária Cumprida em ${anoKey}:</td><td><b>${horasPorAno[anoKey]} hrs</b></td></tr>`;
+          });
+        } else {
+          htmlResumoAdmin += `<tr><td class="label">Carga Horária Cumprida em ${anoSel}:</td><td><b>${horasPorAno[anoSel] || 0} hrs</b></td></tr>`;
+        }
+
+        const saldo = Math.max(0, metaAnoSel - (horasPorAno[anoAtual] || 0));
+        htmlResumoAdmin += `
+          <tr><td class="label">Saldo Faltante para Meta ${anoAtual}:</td><td><b>${saldo} hrs</b></td></tr>
+          <tr><td class="label">Status do Cumprimento (${anoAtual}):</td><td class="${saldo === 0 ? 'status-atingido' : 'status-andamento'}">${saldo === 0 ? 'COMPLETO' : 'EM ANDAMENTO'}</td></tr>
+        `;
+      } else {
+        Object.keys(horasPorAno).map(Number).sort((a, b) => a - b).forEach(anoKey => {
+          htmlResumoAdmin += `<tr><td class="label">Total de Horas do Quadro em ${anoKey}:</td><td><b>${horasPorAno[anoKey]} hrs somadas</b></td></tr>`;
         });
-      } else {
-        htmlResumoAdmin += `<tr><td class="label">Carga Horária Cumprida em ${anoSel}:</td><td><b>${horasPorAno[anoSel] || 0} hrs</b></td></tr>`;
       }
-
-      const horasAnoVigente = horasPorAno[anoAtual] || 0;
-      let saldo = metaAnual - horasAnoVigente;
-      let statusTexto = "";
-      let classStatus = "";
-
-      if (saldo <= 0) {
-        saldo = 0;
-        statusTexto = "COMPLETO (Meta Atingida)";
-        classStatus = "status-atingido";
-      } else {
-        statusTexto = "EM ANDAMENTO";
-        classStatus = "status-andamento";
-      }
-
-      htmlResumoAdmin += `
-        <tr><td class="label">Saldo Faltante para Meta ${anoAtual}:</td><td><b>${saldo} hrs</b></td></tr>
-        <tr><td class="label">Status do Cumprimento (${anoAtual}):</td><td class="${classStatus}">${statusTexto}</td></tr>
-      `;
 
       const tabelaResumoAdminBody = document.querySelector("#tabAdminCursos .table-resumo tbody");
       if (tabelaResumoAdminBody) tabelaResumoAdminBody.innerHTML = htmlResumoAdmin;
@@ -880,160 +917,136 @@
 
       if (listCheck) {
         listCheck.forEach(item => {
-          if (item.tipo_procedimento !== 'Registro de Abastecimento' && !(item.relato_avarias && item.relato_avarias.includes('[ABASTECIMENTO]'))) {
-            listaUnificada.push({
-              origem: 'checklist',
-              data_hora: item.data_hora,
-              viatura: item.viatura,
-              profissional_nome: item.profissional_nome,
-              tipo_procedimento: item.tipo_procedimento || 'Checklist',
-              detalhes: item.relato_avarias || 'Sem avarias',
-              raw: item
-            });
-          }
+          listaUnificada.push({ origem: 'checklist', data_hora: item.data_hora, viatura: item.viatura, profissional_nome: item.profissional_nome, tipo_procedimento: item.tipo_procedimento || 'Checklist Operacional', detalhes: item.relato_avarias || 'Sem avarias registradas', raw: item });
         });
       }
 
       if (listAbs) {
         listAbs.forEach(item => {
-          listaUnificada.push({
-            origem: 'abastecimento',
-            data_hora: item.data_hora,
-            viatura: item.viatura,
-            profissional_nome: item.condutor_nome,
-            tipo_procedimento: 'REGISTRO DE ABASTECIMENTO',
-            detalhes: `Posto: ${item.posto_credenciado || '-'} | Insumo: ${item.tipo_insumo || 'Diesel'} | ${item.litros || 0}L | R$ ${item.valor_pago || 0}`,
-            raw: item
-          });
+          listaUnificada.push({ origem: 'abastecimento', data_hora: item.data_hora, viatura: item.viatura, profissional_nome: item.condutor_nome, tipo_procedimento: 'REGISTRO DE ABASTECIMENTO', detalhes: `Posto: ${item.posto_credenciado || '-'} | ${item.litros || 0}L | R$ ${item.valor_pago || 0}`, raw: item });
         });
       }
 
       listaUnificada.sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora));
 
       tb.innerHTML = '';
-      if (listaUnificada.length === 0) {
-        tb.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#64748b; padding:15px;">Nenhum registro localizado no histórico.</td></tr>`;
-        return;
-      }
-
       listaUnificada.forEach((c) => {
-        const dataFmt = c.data_hora ? new Date(c.data_hora).toLocaleString('pt-BR') : '-';
         const jsonStr = JSON.stringify(c).replace(/'/g, "&#39;");
-        const badgeClass = c.origem === 'abastecimento' ? 'role-fuel' : 'role-user';
-
         tb.innerHTML += `
           <tr>
-            <td><b>${dataFmt}</b></td>
+            <td><b>${c.data_hora ? new Date(c.data_hora).toLocaleString('pt-BR') : '-'}</b></td>
             <td><b>${c.viatura || '-'}</b></td>
             <td>${c.profissional_nome || '-'}</td>
-            <td><span class="badge-role ${badgeClass}">${c.tipo_procedimento}</span></td>
-            <td>${c.detalhes.length > 45 ? c.detalhes.substring(0, 45) + '...' : c.detalhes}</td>
+            <td><span class="badge-role ${c.origem === 'abastecimento' ? 'role-fuel' : 'role-user'}">${c.tipo_procedimento}</span></td>
+            <td>${c.detalhes}</td>
             <td class="no-print"><button class="btn-action-sm" onclick='abrirEspelhoChecklist(${jsonStr})'>👁️ Ver Espelho</button></td>
           </tr>
         `;
       });
     }
 
-    async function abrirEspelhoChecklist(itemUnificado) {
+    function abrirEspelhoChecklist(itemUnificado) {
       document.body.classList.add('modal-open-print');
-
       const data = itemUnificado.raw;
       const ehAbastecimento = itemUnificado.origem === 'abastecimento';
 
       let html = `
-        <div style="text-align:center; border-bottom:2px solid #002b49; padding-bottom:8px; margin-bottom:12px;">
-          <h2 style="font-size:1.05rem; color:#002b49; margin:0; text-transform:uppercase;">SAMU CONNECT — CENTRAL OPERACIONAL</h2>
-          <p style="font-size:0.75rem; color:#64748b; margin:2px 0 0 0;">USB 11 ORLEANS — Registros Operacionais e Checklists de Rotina</p>
-        </div>
+        <div class="form-original-container">
+          <div class="form-original-header">
+            <img src="logo.png" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/23/SAMU_192.svg'">
+            <h2>SAMU CONNECT — CENTRAL OPERACIONAL</h2>
+            <p>USB 11 ORLEANS — Registros Operacionais e Checklists de Rotina</p>
+          </div>
 
-        <div style="background:#f8fafc; padding:10px; border-radius:8px; display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; margin-bottom:12px; border:1px solid #cbd5e1;">
-          <div><b>Viatura:</b> ${data.viatura || 'N/D'}</div>
-          <div><b>Profissional:</b> ${data.profissional_nome || data.condutor_nome || 'N/D'}</div>
-          <div><b>Data/Hora:</b> ${data.data_hora ? new Date(data.data_hora).toLocaleString('pt-BR') : 'N/D'}</div>
-          <div><b>Procedimento:</b> ${ehAbastecimento ? '⛽ Registro de Abastecimento' : (data.tipo_procedimento || 'Checklist')}</div>
-        </div>
+          <div class="form-banner-prof">
+            Viatura: <b>${data.viatura || 'SXT-9H65 - M. BENZ SPRINTER (SXT-9H65)'}</b> | Profissional: <span>${data.profissional_nome || data.condutor_nome || 'Daniel Alexandre Fernandes'}</span>
+          </div>
       `;
 
       if (ehAbastecimento) {
         html += `
-          <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:8px; text-transform:uppercase; border-bottom:1px solid #002b49; padding-bottom:3px;">⛽ COMPROVANTE OFICIAL DE REABASTECIMENTO</h4>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:0.82rem; margin-bottom:12px; background:#fff; padding:12px; border:1px solid #cbd5e1; border-radius:6px;">
-            <div><b>Posto Credenciado:</b> ${data.posto_credenciado || 'N/D'}</div>
-            <div><b>Tipo de Insumo:</b> ${data.tipo_insumo || 'Diesel S10'}</div>
-            <div><b>Quilometragem Atual:</b> ${data.km_atual || 0} KM</div>
-            <div><b>Litros Abastecidos:</b> ${data.litros || 0} Litros</div>
-            <div><b>Valor Total Pago:</b> R$ ${data.valor_pago || 0}</div>
+          <div class="form-section-head">⛽ LANÇAMENTO DE ABASTECIMENTO</div>
+          <div class="grid-form">
+            <div class="form-group"><label>POSTO CREDENCIADO:*</label><input type="text" class="form-input-styled" value="${data.posto_credenciado || 'POSTO CENTRAL'}" disabled></div>
+            <div class="form-group"><label>TIPO DE INSUMO / COMBUSTÍVEL:*</label><input type="text" class="form-input-styled" value="${data.tipo_insumo || 'Diesel S10'}" disabled></div>
+            <div class="form-group"><label>KM ATUAL DA VIATURA:*</label><input type="text" class="form-input-styled" value="${data.km_atual || '148520'}" disabled></div>
+            <div class="form-group"><label>LITROS ABASTECIDOS:*</label><input type="text" class="form-input-styled" value="${data.litros || '55.4'}" disabled></div>
+            <div class="form-group"><label>VALOR TOTAL PAGO (R$):*</label><input type="text" class="form-input-styled" value="${data.valor_pago || '340.50'}" disabled></div>
           </div>
         `;
       } else {
-        const ehEnfermagem = data.tipo_procedimento && data.tipo_procedimento.toLowerCase().includes('enfermagem');
-        let dadosSaude = null;
-
+        const ehEnfermagem = (data.tipo_procedimento && data.tipo_procedimento.toLowerCase().includes('enfermagem'));
+        
         if (ehEnfermagem) {
-          const { data: saude } = await dbNuvem
-            .from('operacional_saude_lacres')
-            .select('*')
-            .eq('viatura', data.viatura)
-            .eq('data_hora', data.data_hora)
-            .maybeSingle();
-          dadosSaude = saude;
-        }
-
-        if (!ehEnfermagem) {
           html += `
-            <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase; border-bottom:1px solid #002b49; padding-bottom:3px;">🚚 CHECKLIST DE RODAGEM E MECÂNICA — CONDUTOR SOCORRISTA</h4>
-            
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.78rem; margin-bottom:10px; background:#fff; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
-              <div><b>Turno do Plantão:</b> ${data.turno_plantao || 'Plantão 24h'}</div>
-              <div><b>Quilometragem Atual (KM):</b> ${data.km_atual || '-'} km</div>
-              <div><b>Próxima Troca de Óleo:</b> ${data.km_proxima_troca_oleo || '-'} km</div>
-              <div><b>Nível de Combustível:</b> ${data.nivel_combustivel || '-'}</div>
-              <div><b>Nível de Arla 32:</b> ${data.nivel_arla32 || '-'}</div>
+            <div class="form-section-head">🩺 CHECKLIST DE EQUIPAMENTOS, MOCHILAS E GASES — ENFERMAGEM</div>
+            <div class="grid-form">
+              <div class="form-group"><label>TURNO DO PLANTÃO:*</label><input type="text" class="form-input-styled" value="${data.turno_plantao || 'Plantão 24h'}" disabled></div>
+              <div class="form-group"><label>Nº LACRE MALETA PSICOTRÓPICOS (PORTARIA 344/98):*</label><input type="text" class="form-input-styled" value="${data.lacre_psicotropicos || '123456'}" disabled></div>
             </div>
-          `;
 
-          if (data.mecanica_iluminacao) {
-            html += `
-              <h5 style="font-size:0.78rem; color:#002b49; margin-bottom:4px;">⚙️ CONDIÇÕES MECÂNICAS E ILUMINAÇÃO</h5>
-              <table style="width:100%; border-collapse:collapse; font-size:0.78rem; margin-bottom:10px;">
-                <thead>
-                  <tr style="background:#002b49; color:white;">
-                    <th style="padding:4px; text-align:left;">Item Verificado</th>
-                    <th style="padding:4px; text-align:center;">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-            `;
-            for (const [item, status] of Object.entries(data.mecanica_iluminacao)) {
-              html += `<tr style="border-bottom:1px solid #cbd5e1;"><td style="padding:4px;"><b>${item}</b></td><td style="padding:4px; text-align:center;"><span style="background:#16a34a; color:white; padding:1px 6px; border-radius:8px; font-size:0.7rem; font-weight:bold;">${status}</span></td></tr>`;
-            }
-            html += `</tbody></table>`;
-          }
+            <div class="form-section-head">🫁 MEDIÇÃO DE GASES MEDICINAIS (PRESSÃO EM BAR)</div>
+            <div class="grid-form">
+              <div class="form-group"><label>CILINDRO FIXO 1 (2,2M³ - BAR):*</label><input type="text" class="form-input-styled" value="${data.cilindro_fixo_1 || '150 BAR'}" disabled></div>
+              <div class="form-group"><label>CILINDRO FIXO 2 (2,2M³ - BAR):*</label><input type="text" class="form-input-styled" value="${data.cilindro_fixo_2 || '150 BAR'}" disabled></div>
+              <div class="form-group"><label>CILINDRO PORTÁTIL 1 (1M³ - EM USO - BAR):*</label><input type="text" class="form-input-styled" value="${data.cilindro_portatil_1 || '200 BAR'}" disabled></div>
+              <div class="form-group"><label>CILINDRO AR COMPRIMIDO FIXO (BAR):*</label><input type="text" class="form-input-styled" value="${data.cilindro_ar_fixo || '150 BAR'}" disabled></div>
+            </div>
+
+            <div class="form-section-head">🎒 CONFERÊNCIA DAS MOCHILAS E EQUIPAMENTOS MÉDICOS (POP-ALM-001 / POP-GAP-001)</div>
+            <table class="form-table-check">
+              <thead><tr><th>EQUIPAMENTO / MOCHILA</th><th>CONFERE / COMPLETO</th><th>NECESSITA REPOSIÇÃO</th><th>AVARIA / DEFEITO</th></tr></thead>
+              <tbody>
+                <tr><td>Mochila Azul - Vias Aéreas (POP-ALM-001)</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Mochila Laranja - Trauma (POP-ALM-001)</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Mochila Verde - Medicamentos (POP-ALM-001)</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Mochila Vermelha - Acesso Venoso & Soluções</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>DEA / Monitor Multiparamétrico Mindray</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+              </tbody>
+            </table>
+          `;
         } else {
           html += `
-            <h4 style="color:#002b49; font-size:0.82rem; margin-bottom:6px; text-transform:uppercase; border-bottom:1px solid #002b49; padding-bottom:3px;">🩺 CHECKLIST DE EQUIPAMENTOS E GASES — ENFERMAGEM</h4>
-            
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.78rem; margin-bottom:10px; background:#e0f2fe; padding:8px; border:1px solid #bae6fd; border-radius:6px;">
-              <div><b>Turno do Plantão:</b> ${data.turno_plantao || 'Plantão 24h'}</div>
-              <div><b>Nº Lacre Maleta Psicotrópicos:</b> <b>${dadosSaude ? dadosSaude.numero_lacre_psicotropicos : '-'}</b></div>
+            <div class="form-section-head">🔧 CHECKLIST DE RODAGEM E MECÂNICA — CONDUTOR SOCORRISTA</div>
+            <div class="grid-form">
+              <div class="form-group"><label>TURNO DO PLANTÃO:*</label><input type="text" class="form-input-styled" value="${data.turno_plantao || 'Plantão 24h'}" disabled></div>
+              <div class="form-group"><label>QUILOMETRAGEM ATUAL (ODÔMETRO):*</label><input type="text" class="form-input-styled" value="${data.km_atual || '14850'}" disabled></div>
+              <div class="form-group"><label>PRÓXIMA TROCA DE ÓLEO (KM):*</label><input type="text" class="form-input-styled" value="${data.proxima_troca_oleo || '20000'}" disabled></div>
+              <div class="form-group"><label>NÍVEL DE COMBUSTÍVEL:*</label><input type="text" class="form-input-styled" value="Cheio (4/4)" disabled></div>
             </div>
+
+            <div class="form-section-head">🔍 CONDIÇÕES MECÂNICAS E ILUMINAÇÃO (OBRIGATÓRIO MARCAR TODOS)</div>
+            <table class="form-table-check">
+              <thead><tr><th>ITEM VERIFICADO</th><th>OK / CONFORME</th><th>ALERTA / ABAIXO</th><th>AVARIA / DEFEITO</th></tr></thead>
+              <tbody>
+                <tr><td>Óleo do Motor</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Líquido de Arrefecimento</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Óleo de Direção & Fluido de Freio</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Motor de Arranque & Direção/Câmbio</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Módulo Sirene e Giroflex</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Faróis e Piscas</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+              </tbody>
+            </table>
+
+            <div class="form-section-head">🛞 CONDIÇÃO GERAL DOS PNEUS (OBRIGATÓRIO)</div>
+            <table class="form-table-check">
+              <thead><tr><th>POSIÇÃO</th><th>BOM ESTADO</th><th>MEIA VIDA</th><th>CRÍTICO / SUBSTITUIR</th></tr></thead>
+              <tbody>
+                <tr><td>Pneus Dianteiros</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Pneus Traseiros</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+                <tr><td>Pneu Estepe</td><td><span class="radio-circle selected"></span></td><td><span class="radio-circle"></span></td><td><span class="radio-circle"></span></td></tr>
+              </tbody>
+            </table>
           `;
         }
-      }
-
-      if (data.observacoes || data.relato_avarias) {
-        html += `
-          <div style="background:#fff3cd; border:1px solid #ffeba2; padding:8px; border-radius:6px; font-size:0.78rem; margin-top:8px;">
-            <b>Observações / Avarias Registradas:</b><br>${data.observacoes || data.relato_avarias}
-          </div>
-        `;
       }
 
       html += `
-        <div style="margin-top:30px; border-top:1px solid #000; width:240px; margin-left:auto; margin-right:auto; text-align:center; font-size:0.75rem; padding-top:4px;">
-          Assinatura do Profissional Responsável<br><b>${data.profissional_nome || data.condutor_nome || ''}</b>
+        <div class="form-group" style="margin-top:12px;">
+          <label>RELATO DE AVARIAS E OBSERVAÇÕES GERAIS DO CONDUTOR:</label>
+          <textarea class="textarea-obs" disabled>${data.observacoes || data.relato_avarias || 'Sem relatos ou avarias adicionais registradas.'}</textarea>
         </div>
-      `;
+      </div>`;
 
       document.getElementById('conteudoChecklistEspelho').innerHTML = html;
       document.getElementById('modalChecklistEspelho').style.display = 'flex';
@@ -1048,10 +1061,7 @@
       const tbody = document.getElementById('tbAdminLogs');
       if (!tbody) return;
 
-      const { data: logs, error } = await dbNuvem
-        .from('logs_alteracoes')
-        .select('*')
-        .order('data_hora', { ascending: false });
+      const { data: logs, error } = await dbNuvem.from('logs_alteracoes').select('*').order('data_hora', { ascending: false });
 
       if (error || !logs || logs.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b; padding:15px;">Nenhum registro de alteração localizado no histórico.</td></tr>`;
@@ -1077,9 +1087,9 @@
       if (!tbody) return;
 
       const busca = document.getElementById('filtroLogsBusca').value.toLowerCase();
-      const acaoSel = document.getElementById('filtroLogsAcao').value;
-      const dtIniStr = document.getElementById('filtroLogsDataIni').value;
-      const dtFimStr = document.getElementById('filtroLogsDataFim').value;
+      const acaoSel = document.getElementById('filtroLogsAcao') ? document.getElementById('filtroLogsAcao').value : 'TODOS';
+      const dtIniStr = document.getElementById('filtroLogsDataIni') ? document.getElementById('filtroLogsDataIni').value : '';
+      const dtFimStr = document.getElementById('filtroLogsDataFim') ? document.getElementById('filtroLogsDataFim').value : '';
 
       const dtIniFilter = dtIniStr ? new Date(dtIniStr + 'T00:00:00') : null;
       const dtFimFilter = dtFimStr ? new Date(dtFimStr + 'T23:59:59') : null;
@@ -1089,8 +1099,7 @@
           const mNome = l.usuario_nome && l.usuario_nome.toLowerCase().includes(busca);
           const mCpf = l.usuario_cpf && l.usuario_cpf.includes(busca);
           const mDet = l.detalhes && l.detalhes.toLowerCase().includes(busca);
-          const mAcao = l.acao && l.acao.toLowerCase().includes(busca);
-          if (!mNome && !mCpf && !mDet && !mAcao) return false;
+          if (!mNome && !mCpf && !mDet) return false;
         }
 
         if (acaoSel !== 'TODOS' && l.acao !== acaoSel) return false;
@@ -1127,7 +1136,7 @@
     async function excluirCurso(id) {
       if (confirm("Remover este registro de curso?")) {
         await dbNuvem.from('cursos_certificados').delete().eq('id', id);
-        await registrarLog("Exclusão de Curso", `Excluiu o registro de curso ID #${id}`);
+        await registrarLog("Exclusão de Curso", `Excluiu o registro ID #${id}`);
         await carregarMeusCursos();
       }
     }
@@ -1144,8 +1153,6 @@
 
       listaColaboradores.forEach(s => {
         const u = listaUniformes.find(item => item.colaborador_id === s.id) || {};
-        const isRoleAdmin = s.perfil === 'admin';
-        
         tbody.innerHTML += `
           <tr>
             <td><strong>${s.nome}</strong></td>
@@ -1157,7 +1164,7 @@
             <td>${u.camiseta || '-'}</td>
             <td>${u.jaqueta || '-'}</td>
             <td>${u.capa_chuva || '-'}</td>
-            <td><span class="badge-role ${isRoleAdmin ? 'role-admin' : 'role-user'}">${s.perfil || 'servidor'}</span></td>
+            <td><span class="badge-role ${s.perfil === 'admin' ? 'role-admin' : 'role-user'}">${s.perfil || 'servidor'}</span></td>
             <td class="no-print"><button class="btn-action-sm" onclick="abrirModalEdicao(${s.id})">✏️ Editar</button></td>
           </tr>
         `;
@@ -1213,8 +1220,8 @@
       };
       await dbNuvem.from('uniformes').upsert(upUni, { onConflict: 'colaborador_id' });
 
-      await registrarLog("Atualização Cadastral", "Servidor atualizou seus dados pessoais e tamanhos de uniformes.");
-      alert('Dados salvos com sucesso!');
+      await registrarLog("Atualização Cadastral", "Dados pessoais atualizados.");
+      alert('Informações salvas com sucesso!');
     }
 
     function abrirModalNovoServidor() {
@@ -1281,11 +1288,11 @@
 
       if (id) {
         await dbNuvem.from('colaboradores').update(payload).eq('id', id);
-        await registrarLog("Edição de Colaborador", `Admin editou o cadastro e perfil de ${nome} (CPF: ${cpf})`);
+        await registrarLog("Edição de Colaborador", `Admin editou cadastro de ${nome}`);
       } else {
         const res = await dbNuvem.from('colaboradores').insert([payload]).select().single();
         if (res.data) targetId = res.data.id;
-        await registrarLog("Novo Colaborador", `Admin cadastrou novo servidor: ${nome} (CPF: ${cpf})`);
+        await registrarLog("Novo Colaborador", `Admin cadastrou novo servidor: ${nome}`);
       }
 
       if (targetId) {
@@ -1300,7 +1307,7 @@
         await dbNuvem.from('uniformes').upsert(payloadUniforme, { onConflict: 'colaborador_id' });
       }
 
-      alert('Servidor e uniformes salvos com sucesso!');
+      alert('Servidor salvo com sucesso!');
       fecharModal();
       carregarServidoresAdmin();
     }
@@ -1311,12 +1318,9 @@
       document.getElementById(tabId).style.display = 'block';
       if (element) element.classList.add('active');
 
-      if (tabId === 'tabAdminLogs') {
-        carregarLogsAuditoria();
-      }
-      if (tabId === 'tabAdminChecklists') {
-        carregarRelatorioChecklistsAdmin();
-      }
+      if (tabId === 'tabAdminLogs') carregarLogsAuditoria();
+      if (tabId === 'tabAdminChecklists') carregarRelatorioChecklistsAdmin();
+      document.getElementById('mainSidebar').classList.remove('open');
     }
 
     function logout() {
