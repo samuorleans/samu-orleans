@@ -124,11 +124,11 @@
     }
 
     .card-header {
-      background: #f1f5f9;
-      padding: 8px 10px;
-      font-size: 0.78rem;
-      font-weight: 800;
-      color: var(--secondary);
+      background: #000000;
+      color: #ffffff;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      font-weight: 900;
       text-transform: uppercase;
       display: flex;
       justify-content: space-between;
@@ -139,9 +139,8 @@
 
     .card-header .icon-toggle { font-size: 0.85rem; transition: transform 0.2s ease; }
     .card.active .card-header .icon-toggle { transform: rotate(180deg); }
-    .card.active .card-header { background: #e2e8f0; color: var(--primary-dark); }
 
-    .card-body { display: none; padding: 8px; }
+    .card-body { display: none; padding: 8px; border: 1px solid #000000; margin-top: -1px; }
     .card.active .card-body { display: block; }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
@@ -152,7 +151,8 @@
     .grid-endereco { display: grid; grid-template-columns: 3fr 1fr; gap: 4px; }
     .grid-assinante-proporcional { display: grid; grid-template-columns: 1.2fr 2.5fr 1.1fr; gap: 4px; }
 
-    label { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 1px; text-transform: uppercase; }
+    label, .lbl { font-size: 8.5px; font-weight: 900; color: #1a1a1a; display: block; margin-bottom: 1px; text-transform: uppercase; }
+    .val { font-size: 10px; font-weight: 800; color: #000000; }
     .uppercase-input { text-transform: uppercase; }
 
     input[type="text"], input[type="password"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea {
@@ -193,7 +193,7 @@
     }
 
     .j-block-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 4px; }
-    .j-row-tactical { display: flex; align-items: center; gap: 3px; background: #f1f5f9; padding: 2px 4px; border-radius: 4px; border: 1px solid #e2e8f0; }
+    .j-row-tactical { display: flex; align-items: center; gap: 3px; background: #f1f5f9; padding: 2px 4px; border-radius: 4px; border: 1px solid #000000; }
 
     .btn-j-badge {
       background: #1e293b; color: #ffffff; border: none; padding: 4px 10px; font-size: 0.72rem; font-weight: 800;
@@ -222,12 +222,12 @@
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
     }
 
-    .sv-table, .med-table, .table-expo { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.72rem; }
-    .sv-table th, .med-table th, .table-expo th { background: #f1f5f9; padding: 3px; border: 1px solid #cbd5e1; font-size: 0.62rem; text-transform: uppercase; text-align: center; }
+    .sv-table, .med-table, .table-expo, .tbl-ficha { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 0.72rem; }
+    .sv-table th, .med-table th, .table-expo th, .tbl-ficha th { background: #e2e8f0; color: #000000; padding: 3px 5px; border: 1px solid #000000; font-size: 9.5px; font-weight: 900; text-transform: uppercase; text-align: center; }
     .med-table th:first-child { text-align: left; padding-left: 5px; }
     
-    .sv-table td, .table-expo td { padding: 2px; border: 1px solid #cbd5e1; text-align: center; }
-    .med-table td { padding: 2px; border: 1px solid #cbd5e1; text-align: left; }
+    .sv-table td, .table-expo td, .tbl-ficha td { padding: 3px 5px; border: 1px solid #000000; text-align: center; }
+    .med-table td { padding: 3px 5px; border: 1px solid #000000; text-align: left; }
     .med-table td.td-center { text-align: center; }
 
     .sv-table input { margin-bottom: 0; font-size: 0.78rem; padding: 3px; text-align: center; }
@@ -371,22 +371,139 @@
       text-transform: uppercase;
     }
 
+    /* REGRAS DE ESTILO E GRID DE ALTO CONTRASTE (MESMO PADRÃO DO FICHAS.HTML) */
+    .sec-title {
+      background-color: #000000 !important;
+      color: #ffffff !important;
+      font-weight: 900;
+      text-transform: uppercase;
+      font-size: 10.5px;
+      padding: 3px 6px;
+      border: 1px solid #000000;
+    }
+
+    .grid-box {
+      border: 1px solid #000000;
+      margin-top: -1px;
+      background: #ffffff;
+    }
+
+    .cell {
+      border: 1px solid #000000;
+      padding: 3px 5px;
+      word-wrap: break-word;
+    }
+
+    /* ESTILOS DE IMPRESSÃO - MANTÉM CABEÇALHOS PRETO/BRANCO E QUADROS EM BORDAS SOLIDAS DE 1PX */
     @media print {
-      @page { size: A4 portrait; margin: 3mm; }
-      html, body { width: 100%; height: 100%; background: #fff !important; padding: 0 !important; margin: 0 !important; color: #000000 !important; font-size: 6pt !important; line-height: 1.1; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; text-rendering: optimizeLegibility !important; }
-      .btn-submit, .btn-search, .btn-reabrir-historico, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .modal-med-overlay, .modal-auth-overlay, .modal-alergia-overlay, .vitima-selector-bar, .status-sync-bar, .form-locked-overlay, button, script { display: none !important; }
-      select, input[type="time"], input[type="date"] { -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background: transparent !important; background-image: none !important; }
-      input[type="time"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-inner-spin-button, input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; -webkit-appearance: none !important; }
-      header { background: #fff !important; color: #000000 !important; border-bottom: 1.5pt solid #000000; padding: 1px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-content: space-between !important; align-items: center !important; }
+      @page { 
+        size: A4; 
+        margin: 6mm; 
+      }
+
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      html, body {
+        width: 100%;
+        height: 100%;
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        color: #000000 !important;
+        font-size: 6pt !important;
+        line-height: 1.15;
+      }
+
+      .no-print, button, script, .btn-submit, .btn-search, .btn-reabrir-historico, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .modal-med-overlay, .modal-auth-overlay, .modal-alergia-overlay, .vitima-selector-bar, .status-sync-bar, .form-locked-overlay {
+        display: none !important;
+      }
+
+      select, input[type="time"], input[type="date"] {
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+        background: transparent !important;
+        background-image: none !important;
+      }
+
+      input[type="time"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-inner-spin-button, input[type="date"]::-webkit-calendar-picker-indicator {
+        display: none !important;
+        -webkit-appearance: none !important;
+      }
+
+      header {
+        background: #ffffff !important;
+        color: #000000 !important;
+        border-bottom: 1.5pt solid #000000;
+        padding: 1px 0 !important;
+        margin-bottom: 2px !important;
+        border-left: none !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+      }
+
       header img { height: 28px !important; }
       header .header-info { text-align: right !important; }
       header h1 { font-size: 8.5pt !important; margin: 0; color: #000000 !important; font-weight: 900 !important; letter-spacing: 0.5px; }
       header p { font-size: 5pt !important; margin: 0; font-weight: 900; color: #000000 !important; }
-      .card { box-shadow: none !important; border: 0.6pt solid #000000 !important; margin-bottom: 2px !important; padding: 0 !important; border-radius: 0 !important; page-break-inside: avoid !important; }
-      .card-header { background: #f1f5f9 !important; color: #000000 !important; border-bottom: 0.6pt solid #000000 !important; padding: 1px 3px !important; font-size: 5.5pt !important; font-weight: 900 !important; text-transform: uppercase; }
-      .card-body { display: block !important; padding: 2px 3px !important; }
-      label { font-size: 4.5pt !important; color: #000000 !important; margin-bottom: 0px !important; font-weight: 900 !important; }
-      input[type="text"], input[type="password"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.4pt solid #000000 !important; background: transparent !important; padding: 0px !important; font-weight: 900 !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; color: #000000 !important; }
+
+      .card {
+        box-shadow: none !important;
+        border: none !important;
+        margin-bottom: 2px !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        page-break-inside: avoid !important;
+      }
+
+      .card-header, .sec-title {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 1px solid #000000 !important;
+        padding: 2px 4px !important;
+        font-size: 10.5px !important;
+        font-weight: 900 !important;
+        text-transform: uppercase;
+      }
+
+      .card-body, .grid-box {
+        display: block !important;
+        padding: 0 !important;
+        border: 1px solid #000000 !important;
+        margin-top: -1px !important;
+        background: #ffffff !important;
+      }
+
+      label, .lbl {
+        font-size: 8.5px !important;
+        color: #1a1a1a !important;
+        margin-bottom: 0px !important;
+        font-weight: 900 !important;
+        text-transform: uppercase;
+      }
+
+      .val {
+        font-size: 10px !important;
+        color: #000000 !important;
+        font-weight: 800 !important;
+      }
+
+      input[type="text"], input[type="password"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea {
+        border: none !important;
+        border-bottom: 0.4pt solid #000000 !important;
+        background: transparent !important;
+        padding: 0px !important;
+        font-weight: 900 !important;
+        font-size: 5.8pt !important;
+        margin-bottom: 0px !important;
+        height: auto !important;
+        color: #000000 !important;
+      }
+
       textarea { height: auto !important; resize: none; }
       .codigo-group { display: none !important; }
       .print-triagem-text { display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.6pt solid #000000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; color: #000000 !important; }
@@ -394,12 +511,26 @@
       .radio-grid-ocorrencia { display: none !important; }
       .print-tipo-ocorrencia-text { display: block !important; font-size: 6.5pt !important; font-weight: 900 !important; color: #000000 !important; padding: 2px 0 !important; text-transform: uppercase; }
       #printReclassificacaoBox:empty, .print-ocultar-vazio { display: none !important; }
+
       .j-block-container { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 2px !important; }
       .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; text-align: center !important; border: 0.4pt solid #000000 !important; background: transparent !important; padding: 1px !important; }
       .btn-j-badge { display: none !important; }
       .j-print-label { display: block !important; font-size: 4.2pt !important; font-weight: 900 !important; text-transform: uppercase; text-align: center !important; color: #000000 !important; width: 100% !important; }
       .j-time-input { height: 11px !important; font-size: 5.5pt !important; font-weight: 900 !important; border: none !important; text-align: center !important; width: 100% !important; color: #000000 !important; }
-      .sv-table th, .sv-table td, .table-expo th, .table-expo td, .med-table th, .med-table td { font-size: 5.2pt !important; padding: 1px !important; border: 0.4pt solid #000000 !important; color: #000000 !important; font-weight: 900 !important; }
+
+      .sv-table th, .sv-table td, .table-expo th, .table-expo td, .med-table th, .med-table td, .tbl-ficha th, .tbl-ficha td {
+        font-size: 9.5px !important;
+        padding: 2px 4px !important;
+        border: 1px solid #000000 !important;
+        color: #000000 !important;
+        font-weight: 800 !important;
+      }
+
+      .sv-table th, .table-expo th, .med-table th, .tbl-ficha th {
+        background-color: #e2e8f0 !important;
+        font-weight: 900 !important;
+      }
+
       .sv-table td, .table-expo td { text-align: center !important; }
       .med-table td { text-align: left !important; }
       .med-table td.td-center { text-align: center !important; }
@@ -410,19 +541,60 @@
       #box_nenhum_insumo_wrapper.ocultar-aviso-print { display: none !important; }
       .med-row-insumo-comum { display: none !important; }
       canvas { height: 26px !important; border: 0.4pt solid #000000 !important; }
-      .print-signatures-block { display: grid !important; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 3px; padding-top: 1px; page-break-inside: avoid; }
+
+      .print-signatures-block {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        margin-top: 4px;
+        padding-top: 1px;
+        page-break-inside: avoid;
+      }
+
       .print-signatures-block.tres-colunas { grid-template-columns: 1fr 1fr 1fr !important; }
-      .sig-box { border: 0.4pt solid #000000; padding: 2px; text-align: center; min-height: 40px; display: flex; flex-direction: column; justify-content: space-between; }
-      .sig-line { border-top: 0.4pt solid #000000; margin-top: 18px; font-size: 4.5pt; font-weight: 900; text-transform: uppercase; color: #000000; }
-      .sig-title { font-size: 4.5pt; font-weight: bold; color: #000000; text-align: center; }
-      .glasgow-total-box { font-size: 7pt !important; padding: 1px !important; border: 0.4pt solid #000000 !important; background: transparent !important; box-shadow: none !important; color: #000000 !important; }
+
+      .sig-box {
+        border: 1px solid #000000;
+        padding: 3px;
+        text-align: center;
+        min-height: 42px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: #ffffff;
+      }
+
+      .sig-line {
+        border-top: 1px solid #000000;
+        margin-top: 20px;
+        font-size: 8.5px;
+        font-weight: 900;
+        text-transform: uppercase;
+        color: #000000;
+      }
+
+      .sig-title {
+        font-size: 8.5px;
+        font-weight: 900;
+        color: #000000;
+        text-align: center;
+      }
+
+      .glasgow-total-box {
+        font-size: 8.5pt !important;
+        padding: 1px !important;
+        border: 1px solid #000000 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        color: #000000 !important;
+      }
     }
   </style>
 </head>
 <body class="locked">
 
   <!-- OVERLAY DE BLOQUEIO TOTAL PRÉ-LOGIN -->
-  <div id="formLockedOverlay" class="form-locked-overlay">
+  <div id="formLockedOverlay" class="form-locked-overlay no-print">
     <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
     <h2 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 6px;">SISTEMA BLOQUEADO</h2>
     <p style="font-size: 0.85rem; max-width: 300px; margin-bottom: 15px; opacity: 0.9;">
@@ -434,7 +606,7 @@
   </div>
 
   <header>
-    <div class="status-sync-bar">
+    <div class="status-sync-bar no-print">
       <img src="logo.png" alt="SAMU Logo" onerror="this.style.display='none'">
       <div id="badgeSyncStatus" class="badge-sync-status online">🟢 ONLINE</div>
       <button type="button" id="btnManualSync" class="btn-manual-sync" onclick="sincronizarFichasPendentesOffline()">📲 Sincronizar</button>
@@ -460,40 +632,40 @@
 
     <!-- SEÇÃO 1: CONTROLE OPERACIONAL -->
     <div class="card active" id="sec1">
-      <div class="card-header">
-        <span>1. Controle Operacional & Equipe</span>
+      <div class="card-header sec-title">
+        <span>1. CONTROLE OPERACIONAL & EQUIPE</span>
       </div>
-      <div class="card-body">
+      <div class="card-body grid-box">
         <div class="grid-3">
           <div>
-            <label>Nº Ocorrência</label>
+            <label class="lbl">Nº Ocorrência</label>
             <div class="search-group">
-              <input type="tel" inputmode="numeric" id="codigo" class="uppercase-input" required placeholder="Nº OCORRÊNCIA">
-              <button type="button" class="btn-reabrir-historico" onclick="iniciarFluxoReaberturaOcorrencia()" title="Reabrir Ocorrência Antiga">📂 Reabrir</button>
+              <input type="tel" inputmode="numeric" id="codigo" class="uppercase-input val" required placeholder="Nº OCORRÊNCIA">
+              <button type="button" class="btn-reabrir-historico no-print" onclick="iniciarFluxoReaberturaOcorrencia()" title="Reabrir Ocorrência Antiga">📂 Reabrir</button>
             </div>
           </div>
           <div>
-            <label>CÓDIGO TRIAGEM</label>
+            <label class="lbl">CÓDIGO TRIAGEM</label>
             <input type="hidden" id="cor_ocorrencia" value="VM">
             
-            <div class="codigo-group">
+            <div class="codigo-group no-print">
               <button type="button" class="btn-cor cor-vm active" onclick="selecionarCodigo('VM', this)">VM</button>
               <button type="button" class="btn-cor cor-am" onclick="selecionarCodigo('AM', this)">AM</button>
               <button type="button" class="btn-cor cor-vd" onclick="selecionarCodigo('VD', this)">VD</button>
               <button type="button" class="btn-cor cor-az" onclick="selecionarCodigo('AZ', this)">AZ</button>
             </div>
 
-            <div id="printTriagemBox" class="print-triagem-text">VERMELHO (VM)</div>
+            <div id="printTriagemBox" class="print-triagem-text val">VERMELHO (VM)</div>
           </div>
-          <div><label>Data</label><input type="date" id="data"></div>
+          <div><label class="lbl">Data</label><input type="date" id="data" class="val"></div>
         </div>
 
         <div id="box_reclassificacao_wrapper" class="sem-reclassificacao" style="margin-top: 4px; padding: 5px; background: #f8fafc; border: 1px dashed var(--border); border-radius: 4px;">
-          <label style="color: #0f172a; font-weight: 800;">RECLASSIFICAÇÃO DE CÓDIGO (REGULAÇÃO MÉDICA)</label>
+          <label class="lbl" style="color: #0f172a;">RECLASSIFICAÇÃO DE CÓDIGO (REGULAÇÃO MÉDICA)</label>
           <div class="grid-reclassificacao-otimizado">
             <div>
-              <label>Novo Código</label>
-              <select id="reclassificacao_codigo" onchange="tratarSelecaoReclassificacao(this)">
+              <label class="lbl">Novo Código</label>
+              <select id="reclassificacao_codigo" class="val" onchange="tratarSelecaoReclassificacao(this)">
                 <option value="">SEM ALTERAÇÃO</option>
                 <option value="VM">VERMELHO (VM)</option>
                 <option value="AM">AMARELO (AM)</option>
@@ -502,207 +674,207 @@
               </select>
             </div>
             <div>
-              <label>Médico Autorizador</label>
-              <input type="text" id="reclassificacao_medico" class="uppercase-input" placeholder="NOME DO REGULADOR" onchange="atualizarTextoReclassificacaoImpressao()">
+              <label class="lbl">Médico Autorizador</label>
+              <input type="text" id="reclassificacao_medico" class="uppercase-input val" placeholder="NOME DO REGULADOR" onchange="atualizarTextoReclassificacaoImpressao()">
             </div>
             <div>
-              <label>Horário Mudança</label>
-              <input type="time" id="reclassificacao_hora" readonly style="background: #e2e8f0; font-weight: bold;">
+              <label class="lbl">Horário Mudança</label>
+              <input type="time" id="reclassificacao_hora" class="val" readonly style="background: #e2e8f0;">
             </div>
           </div>
-          <div id="printReclassificacaoBox" class="print-triagem-text" style="display: none; margin-top: 2px;"></div>
+          <div id="printReclassificacaoBox" class="print-triagem-text val" style="display: none; margin-top: 2px;"></div>
         </div>
 
         <div class="grid-2" style="margin-top: 4px;">
-          <div><label>Médico Regulador Inicial</label><input type="text" id="regulador" class="uppercase-input" placeholder="MÉDICO REGULADOR"></div>
-          <div><label>Motivo do Acionamento</label><input type="text" id="motivo_acionamento" class="uppercase-input" placeholder="EX: ACIDENTE DE TRÂNSITO, DOR TORÁCICA..."></div>
+          <div><label class="lbl">Médico Regulador Inicial</label><input type="text" id="regulador" class="uppercase-input val" placeholder="MÉDICO REGULADOR"></div>
+          <div><label class="lbl">Motivo do Acionamento</label><input type="text" id="motivo_acionamento" class="uppercase-input val" placeholder="EX: ACIDENTE DE TRÂNSITO, DOR TORÁCICA..."></div>
         </div>
 
         <div class="grid-2">
           <div>
-            <label>Téc. de Enfermagem</label>
-            <select id="tec_enfermeiro" onchange="sincronizarTecnicoResp()"><option value="">Buscando equipe...</option></select>
+            <label class="lbl">Téc. de Enfermagem</label>
+            <select id="tec_enfermeiro" class="val" onchange="sincronizarTecnicoResp()"><option value="">Buscando equipe...</option></select>
           </div>
           <div>
-            <label>Socorrista (Condutor)</label>
-            <select id="socorrista"><option value="">Buscando equipe...</option></select>
+            <label class="lbl">Socorrista (Condutor)</label>
+            <select id="socorrista" class="val"><option value="">Buscando equipe...</option></select>
           </div>
         </div>
 
         <div class="j-block-container">
-          <div class="j-row-tactical">
-            <span class="j-print-label">J9 (Saída Base)</span>
-            <button type="button" class="btn-j-badge" id="btnJ9" data-target="horaJ9">J9</button>
-            <input type="time" id="horaJ9" class="j-time-input">
-            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge">Saída Base</span>
+          <div class="j-row-tactical cell">
+            <span class="j-print-label lbl">J9 (Saída Base)</span>
+            <button type="button" class="btn-j-badge no-print" id="btnJ9" data-target="horaJ9">J9</button>
+            <input type="time" id="horaJ9" class="j-time-input val">
+            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge no-print">Saída Base</span>
           </div>
 
-          <div class="j-row-tactical">
-            <span class="j-print-label">J10 (Cheg. Local)</span>
-            <button type="button" class="btn-j-badge" id="btnJ10" data-target="horaJ10" disabled>J10</button>
-            <input type="time" id="horaJ10" class="j-time-input" disabled>
-            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge">Cheg. Local</span>
+          <div class="j-row-tactical cell">
+            <span class="j-print-label lbl">J10 (Cheg. Local)</span>
+            <button type="button" class="btn-j-badge no-print" id="btnJ10" data-target="horaJ10" disabled>J10</button>
+            <input type="time" id="horaJ10" class="j-time-input val" disabled>
+            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge no-print">Cheg. Local</span>
           </div>
 
-          <div class="j-row-tactical">
-            <span class="j-print-label">QTA (Cancelado)</span>
-            <button type="button" class="btn-j-badge btn-qta" id="btnQTA" data-target="horaQTA" disabled>QTA 🛑</button>
-            <input type="time" id="horaQTA" class="j-time-input" disabled>
-            <span style="font-size: 0.58rem; color: #991b1b; font-weight: 700;" class="btn-j-badge">Cancelado</span>
+          <div class="j-row-tactical cell">
+            <span class="j-print-label lbl">QTA (Cancelado)</span>
+            <button type="button" class="btn-j-badge btn-qta no-print" id="btnQTA" data-target="horaQTA" disabled>QTA 🛑</button>
+            <input type="time" id="horaQTA" class="j-time-input val" disabled>
+            <span style="font-size: 0.58rem; color: #991b1b; font-weight: 700;" class="btn-j-badge no-print">Cancelado</span>
           </div>
 
-          <div class="j-row-tactical">
-            <span class="j-print-label">J9-INT (Saída Local)</span>
-            <button type="button" class="btn-j-badge" id="btnJ9_INT" data-target="horaJ9_INT" disabled>J9-INT</button>
-            <input type="time" id="horaJ9_INT" class="j-time-input" disabled>
-            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge">Saída Local</span>
+          <div class="j-row-tactical cell">
+            <span class="j-print-label lbl">J9-INT (Saída Local)</span>
+            <button type="button" class="btn-j-badge no-print" id="btnJ9_INT" data-target="horaJ9_INT" disabled>J9-INT</button>
+            <input type="time" id="horaJ9_INT" class="j-time-input val" disabled>
+            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge no-print">Saída Local</span>
           </div>
 
-          <div class="j-row-tactical">
-            <span class="j-print-label">J10-INT (Destino)</span>
-            <button type="button" class="btn-j-badge" id="btnJ10_INT" data-target="horaJ10_INT" disabled>J10-INT</button>
-            <input type="time" id="horaJ10_INT" class="j-time-input" disabled>
-            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge">Destino</span>
+          <div class="j-row-tactical cell">
+            <span class="j-print-label lbl">J10-INT (Destino)</span>
+            <button type="button" class="btn-j-badge no-print" id="btnJ10_INT" data-target="horaJ10_INT" disabled>J10-INT</button>
+            <input type="time" id="horaJ10_INT" class="j-time-input val" disabled>
+            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge no-print">Destino</span>
           </div>
 
-          <div class="j-row-tactical">
-            <span class="j-print-label">J11 (Disponível)</span>
-            <button type="button" class="btn-j-badge" id="btnJ11" data-target="horaJ11" disabled>J11</button>
-            <input type="time" id="horaJ11" class="j-time-input" disabled>
-            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge">Disponível</span>
+          <div class="j-row-tactical cell">
+            <span class="j-print-label lbl">J11 (Disponível)</span>
+            <button type="button" class="btn-j-badge no-print" id="btnJ11" data-target="horaJ11" disabled>J11</button>
+            <input type="time" id="horaJ11" class="j-time-input val" disabled>
+            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge no-print">Disponível</span>
           </div>
 
-          <div class="j-row-tactical">
-            <span class="j-print-label">J12 (Na Base)</span>
-            <button type="button" class="btn-j-badge" id="btnJ12" data-target="horaJ12" disabled>J12</button>
-            <input type="time" id="horaJ12" class="j-time-input" disabled>
-            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge">Na Base</span>
+          <div class="j-row-tactical cell">
+            <span class="j-print-label lbl">J12 (Na Base)</span>
+            <button type="button" class="btn-j-badge no-print" id="btnJ12" data-target="horaJ12" disabled>J12</button>
+            <input type="time" id="horaJ12" class="j-time-input val" disabled>
+            <span style="font-size: 0.58rem; color: #64748b; font-weight: 700;" class="btn-j-badge no-print">Na Base</span>
           </div>
         </div>
 
         <div id="qta_box" style="display: none; margin-top: 6px; background: #fef2f2; padding: 6px; border: 1px solid #fca5a5; border-radius: 4px;">
-          <label style="color: #991b1b;">Justificativa do QTA (Cancelamento do Atendimento)*</label>
-          <input type="text" id="qta_motivo" class="uppercase-input" placeholder="INFORME O MOTIVO DA DISPENSA/CANCELAMENTO PELA REGULAÇÃO...">
+          <label class="lbl" style="color: #991b1b;">Justificativa do QTA (Cancelamento do Atendimento)*</label>
+          <input type="text" id="qta_motivo" class="uppercase-input val" placeholder="INFORME O MOTIVO DA DISPENSA/CANCELAMENTO PELA REGULAÇÃO...">
         </div>
       </div>
     </div>
 
     <!-- SEÇÃO 2: IDENTIFICAÇÃO DO PACIENTE & MULTI-VÍTIMAS -->
     <div class="card" id="sec2">
-      <div class="card-header" onclick="toggleCard('sec2')">
-        <span>2. Identificação do Paciente & Local</span>
-        <span class="icon-toggle">▼</span>
+      <div class="card-header sec-title" onclick="toggleCard('sec2')">
+        <span>2. IDENTIFICAÇÃO DO PACIENTE & LOCAL</span>
+        <span class="icon-toggle no-print">▼</span>
       </div>
-      <div class="card-body">
+      <div class="card-body grid-box">
         
-        <div class="vitima-selector-bar">
+        <div class="vitima-selector-bar no-print">
           <button type="button" class="btn-vitima-tab active" id="tabVitima1" onclick="alternarVitima(1)">Vítima 1 (Principal)</button>
           <button type="button" class="btn-vitima-tab" id="tabVitima2" onclick="alternarVitima(2)">+ Vítima 2 (Secundária)</button>
         </div>
 
         <div class="grid-3">
           <div>
-            <label>CPF Paciente / Busca Cadastro</label>
+            <label class="lbl">CPF Paciente / Busca Cadastro</label>
             <div class="search-group">
-              <input type="tel" inputmode="numeric" id="cpf_paciente" placeholder="000.000.000-00" maxlength="14" oninput="aoModificarCPF(this)">
-              <button type="button" class="btn-search" onclick="puxarCadastroPacienteSemSenha()">🔍 Puxar Dados</button>
+              <input type="tel" inputmode="numeric" id="cpf_paciente" class="val" placeholder="000.000.000-00" maxlength="14" oninput="aoModificarCPF(this)">
+              <button type="button" class="btn-search no-print" onclick="puxarCadastroPacienteSemSenha()">🔍 Puxar Dados</button>
             </div>
           </div>
-          <div><label>CNS (Cartão SUS)</label><input type="tel" inputmode="numeric" id="cns_paciente" placeholder="000 0000 0000 0000" maxlength="15"></div>
+          <div><label class="lbl">CNS (Cartão SUS)</label><input type="tel" inputmode="numeric" id="cns_paciente" class="val" placeholder="000 0000 0000 0000" maxlength="15"></div>
           <div>
-            <label>CEP</label>
-            <input type="tel" inputmode="numeric" id="cep_paciente" placeholder="00000-000" maxlength="9" onkeyup="mascaraEBuscarCEP(this)">
+            <label class="lbl">CEP</label>
+            <input type="tel" inputmode="numeric" id="cep_paciente" class="val" placeholder="00000-000" maxlength="9" onkeyup="mascaraEBuscarCEP(this)">
           </div>
         </div>
 
         <div style="margin-top: 2px;">
-          <label>Nome Completo do Paciente</label>
-          <input type="text" id="paciente" class="uppercase-input" style="font-weight: 700;" placeholder="NOME DO PACIENTE">
+          <label class="lbl">Nome Completo do Paciente</label>
+          <input type="text" id="paciente" class="uppercase-input val" placeholder="NOME DO PACIENTE">
         </div>
 
         <div class="grid-4" style="margin-top: 2px;">
           <div>
-            <label>Data Nasc.</label>
-            <input type="date" id="data_nascimento" onchange="calcularIdadeAutomatico(this)">
+            <label class="lbl">Data Nasc.</label>
+            <input type="date" id="data_nascimento" class="val" onchange="calcularIdadeAutomatico(this)">
           </div>
           <div>
-            <label>Idade (Anos)</label>
-            <input type="number" inputmode="numeric" id="idade" placeholder="EX: 45">
+            <label class="lbl">Idade (Anos)</label>
+            <input type="number" inputmode="numeric" id="idade" class="val" placeholder="EX: 45">
           </div>
           <div>
-            <label>Sexo</label>
-            <select id="sexo">
+            <label class="lbl">Sexo</label>
+            <select id="sexo" class="val">
               <option value="M">Masculino (M)</option>
               <option value="F">Feminino (F)</option>
               <option value="Indeterminado">Indeterminado</option>
             </select>
           </div>
-          <div><label>Telefone</label><input type="tel" inputmode="numeric" id="telefone" class="tel-mask" placeholder="(00) 00000-0000" maxlength="15"></div>
+          <div><label class="lbl">Telefone</label><input type="tel" inputmode="numeric" id="telefone" class="tel-mask val" placeholder="(00) 00000-0000" maxlength="15"></div>
         </div>
 
         <div class="grid-endereco" style="margin-top: 2px;">
-          <div><label>Rua / Logradouro</label><input type="text" id="rua" class="uppercase-input" placeholder="NOME DA RUA OU RODOVIA..."></div>
-          <div><label>Nº Casa / Apto</label><input type="tel" inputmode="numeric" id="numero" class="uppercase-input" placeholder="Nº"></div>
+          <div><label class="lbl">Rua / Logradouro</label><input type="text" id="rua" class="uppercase-input val" placeholder="NOME DA RUA OU RODOVIA..."></div>
+          <div><label class="lbl">Nº Casa / Apto</label><input type="tel" inputmode="numeric" id="numero" class="uppercase-input val" placeholder="Nº"></div>
         </div>
 
         <div class="grid-4">
-          <div><label>Bairro</label><input type="text" id="bairro" class="uppercase-input"></div>
-          <div><label>Ponto de Referência</label><input type="text" id="ponto_ref" class="uppercase-input"></div>
+          <div><label class="lbl">Bairro</label><input type="text" id="bairro" class="uppercase-input val"></div>
+          <div><label class="lbl">Ponto de Referência</label><input type="text" id="ponto_ref" class="uppercase-input val"></div>
           <div>
-            <label>Município</label>
-            <input type="text" id="municipio" class="uppercase-input" value="ORLEANS" onchange="atualizarHospitaisPorMunicipio()">
+            <label class="lbl">Município</label>
+            <input type="text" id="municipio" class="uppercase-input val" value="ORLEANS" onchange="atualizarHospitaisPorMunicipio()">
           </div>
-          <div><label>Estado (UF)</label><input type="text" id="estado" class="uppercase-input" value="SC" maxlength="2"></div>
+          <div><label class="lbl">Estado (UF)</label><input type="text" id="estado" class="uppercase-input val" value="SC" maxlength="2"></div>
         </div>
       </div>
     </div>
 
     <!-- SEÇÃO 3: TIPO DE OCORRÊNCIA -->
     <div class="card" id="sec3">
-      <div class="card-header" onclick="toggleCard('sec3')">
-        <span>3. Tipo Ocorrência *</span>
-        <span class="icon-toggle">▼</span>
+      <div class="card-header sec-title" onclick="toggleCard('sec3')">
+        <span>3. TIPO OCORRÊNCIA *</span>
+        <span class="icon-toggle no-print">▼</span>
       </div>
-      <div class="card-body">
-        <div class="radio-grid-ocorrencia">
+      <div class="card-body grid-box">
+        <div class="radio-grid-ocorrencia no-print">
           <label><input type="radio" name="tipo_ocorrencia" value="Sinistro de Trânsito" onchange="tratarSelecaoTipoOcorrencia(this)"> Sinistro de Trânsito</label>
           <label><input type="radio" name="tipo_ocorrencia" value="Clínico" onchange="tratarSelecaoTipoOcorrencia(this)"> Clínico</label>
           <label><input type="radio" name="tipo_ocorrencia" value="Clínico - Psiquiátrico" onchange="tratarSelecaoTipoOcorrencia(this)"> Clínico - Psiquiátrico</label>
           <label><input type="radio" name="tipo_ocorrencia" value="APH - Trauma" onchange="tratarSelecaoTipoOcorrencia(this)"> APH - Trauma</label>
         </div>
         
-        <div id="printTipoOcorrenciaBox" class="print-tipo-ocorrencia-text">TIPO OCORRÊNCIA: NÃO INFORMADO</div>
+        <div id="printTipoOcorrenciaBox" class="print-tipo-ocorrencia-text val">TIPO OCORRÊNCIA: NÃO INFORMADO</div>
       </div>
     </div>
 
     <!-- SEÇÃO 4: AVALIAÇÃO TÁTICA ABCDE E BIOSSEGURANÇA -->
     <div class="card" id="sec4">
-      <div class="card-header" onclick="toggleCard('sec4')">
-        <span>4. Avaliação Tática & Exame Físico (ABCDE)</span>
-        <span class="icon-toggle">▼</span>
+      <div class="card-header sec-title" onclick="toggleCard('sec4')">
+        <span>4. AVALIAÇÃO TÁTICA & EXAME FÍSICO (ABCDE)</span>
+        <span class="icon-toggle no-print">▼</span>
       </div>
-      <div class="card-body">
+      <div class="card-body grid-box">
         <div class="grid-3" style="margin-bottom: 4px;">
           <div>
-            <label>A - Vias Aéreas</label>
-            <select id="vias_aereas"><option>Pérvea (Livre)</option><option>Obstrução Parcial</option><option>Obstrução Total</option></select>
+            <label class="lbl">A - Vias Aéreas</label>
+            <select id="vias_aereas" class="val"><option>Pérvea (Livre)</option><option>Obstrução Parcial</option><option>Obstrução Total</option></select>
           </div>
           <div>
-            <label>B - Respiração</label>
-            <select id="respiracao"><option>Eupneico</option><option>Dispneico</option><option>Apneia</option><option>Parada Respiratória</option></select>
+            <label class="lbl">B - Respiração</label>
+            <select id="respiracao" class="val"><option>Eupneico</option><option>Dispneico</option><option>Apneia</option><option>Parada Respiratória</option></select>
           </div>
           <div>
-            <label>C - Pulso / Pele</label>
-            <select id="circulacao"><option>Regular</option><option>Irregular</option><option>Filiforme</option><option>Parada Circulatória</option></select>
+            <label class="lbl">C - Pulso / Pele</label>
+            <select id="circulacao" class="val"><option>Regular</option><option>Irregular</option><option>Filiforme</option><option>Parada Circulatória</option></select>
           </div>
         </div>
 
-        <div style="margin-bottom: 4px; border: 1px solid #e2e8f0; padding: 6px; border-radius: 4px; background: #fafafa;">
-          <label style="font-weight: 800; color: #1e293b; margin-bottom: 3px;">D - ESCALA DE COMA DE GLASGOW (AVALIAÇÃO NEUROLÓGICA)</label>
+        <div style="margin-bottom: 4px; border: 1px solid #000000; padding: 6px; background: #fafafa;">
+          <label class="lbl" style="margin-bottom: 3px;">D - ESCALA DE COMA DE GLASGOW (AVALIAÇÃO NEUROLÓGICA)</label>
           <div class="grid-glasgow">
             <div>
-              <label>Abertura Ocular (O)</label>
-              <select id="g_oc" class="g-calc">
+              <label class="lbl">Abertura Ocular (O)</label>
+              <select id="g_oc" class="g-calc val">
                 <option value="4">4 - Espontânea</option>
                 <option value="3">3 - À voz / Estímulo sonoro</option>
                 <option value="2">2 - À dor / Estímulo de pressão</option>
@@ -710,8 +882,8 @@
               </select>
             </div>
             <div>
-              <label>Resposta Verbal (V)</label>
-              <select id="g_verb" class="g-calc">
+              <label class="lbl">Resposta Verbal (V)</label>
+              <select id="g_verb" class="g-calc val">
                 <option value="5">5 - Orientado</option>
                 <option value="4">4 - Confuso</option>
                 <option value="3">3 - Palavras inapropriadas</option>
@@ -720,8 +892,8 @@
               </select>
             </div>
             <div>
-              <label>Resposta Motora (M)</label>
-              <select id="g_mot" class="g-calc">
+              <label class="lbl">Resposta Motora (M)</label>
+              <select id="g_mot" class="g-calc val">
                 <option value="6">6 - Odedece a comandos</option>
                 <option value="5">5 - Localiza a dor</option>
                 <option value="4">4 - Flexão normal (retirada)</option>
@@ -731,8 +903,8 @@
               </select>
             </div>
             <div>
-              <label>Pupilas</label>
-              <select id="pupilas" style="font-size: 0.72rem;">
+              <label class="lbl">Pupilas</label>
+              <select id="pupilas" class="val">
                 <option>Isocóricas</option>
                 <option>Anisocóricas</option>
                 <option>Miose</option>
@@ -743,14 +915,14 @@
             </div>
           </div>
           
-          <div id="glasgow_total_val" class="glasgow-total-box">
+          <div id="glasgow_total_val" class="glasgow-total-box val">
             TOTAL GLASGOW: 15 / 15
           </div>
         </div>
 
         <div id="box_exposicao_lesoes" style="display: none; margin-top: 4px;">
-          <label style="color: var(--primary-dark); font-weight: 800;">E - Exposição / Lesões por Região (Trauma / Sinistro)</label>
-          <table class="table-expo" id="tabela_lesoes_expo">
+          <label class="lbl" style="color: #991b1b;">E - Exposição / Lesões por Região (Trauma / Sinistro)</label>
+          <table class="table-expo tbl-ficha" id="tabela_lesoes_expo">
             <thead>
               <tr>
                 <th>REGIÃO</th><th>Ferida/Corte</th><th>Fratura/Luxação</th><th>Queimadura</th><th>Escoriação</th><th>Edema/Hematoma</th>
@@ -766,11 +938,11 @@
           </table>
         </div>
 
-        <div id="box_bio_wrapper" style="margin-top: 6px; padding: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;">
-          <label style="color: var(--secondary); font-weight: 800; font-size: 0.68rem;">
+        <div id="box_bio_wrapper" style="margin-top: 6px; padding: 6px; background: #f1f5f9; border: 1px solid #000000; border-radius: 4px;">
+          <label class="lbl">
             ☣️ BIOSSEGURANÇA: PACIENTE COM SUSPEITA OU CONFIRMAÇÃO DE DOENÇA INFECTOCONTAGIOSA / MATERIAL BIOLÓGICO?
           </label>
-          <select id="bio_suspeita" onchange="alternarBiosseguranca(this)">
+          <select id="bio_suspeita" class="val" onchange="alternarBiosseguranca(this)">
             <option value="NAO">NÃO</option>
             <option value="SIM">SIM</option>
           </select>
@@ -778,19 +950,19 @@
           <div id="box_bio_detalhes" style="display: none; margin-top: 4px;">
             <div class="grid-2">
               <div>
-                <label style="color: var(--primary-dark);">TIPO DE SUSPEITA / AGENTE BIOLÓGICO OU EXPOSIÇÃO</label>
-                <select id="bio_tipo_agente" onchange="alternarBioOutros(this)">
+                <label class="lbl">TIPO DE SUSPEITA / AGENTE BIOLÓGICO OU EXPOSIÇÃO</label>
+                <select id="bio_tipo_agente" class="val" onchange="alternarBioOutros(this)">
                   <option value="Síndrome Respiratória/Gripal">Síndrome Respiratória / Gripal</option>
                   <option value="Contato com Fluidos/Sangue/Secreções">Contato com Fluidos / Sangue / Secreções</option>
                   <option value="Arboviroses/Doenças Transmissíveis">Arboviroses / Doenças Transmissíveis</option>
                   <option value="Escabiose/Parasitoses">Escabiose / Parasitoses</option>
                   <option value="OUTROS">OUTROS (ESPECIFICAR)</option>
                 </select>
-                <input type="text" id="bio_agente_outros" class="uppercase-input" placeholder="DESCREVA A SUSPEITA OU AGENTE..." style="display: none; margin-top: 2px;">
+                <input type="text" id="bio_agente_outros" class="uppercase-input val" placeholder="DESCREVA A SUSPEITA OU AGENTE..." style="display: none; margin-top: 2px;">
               </div>
               <div>
-                <label style="color: var(--primary-dark);">DESINFECÇÃO DA VIATURA APÓS ATENDIMENTO</label>
-                <select id="bio_desinfeccao">
+                <label class="lbl">DESINFECÇÃO DA VIATURA APÓS ATENDIMENTO</label>
+                <select id="bio_desinfeccao" class="val">
                   <option value="Sim - Desinfecção Concorrente">SIM — DESINFECÇÃO CONCORRENTE</option>
                   <option value="Sim - Desinfecção Terminal">SIM — DESINFECÇÃO TERMINAL</option>
                   <option value="Não se aplica">NÃO SE APLICA</option>
@@ -805,12 +977,12 @@
 
     <!-- SEÇÃO 5: SINAIS VITAIS DINÂMICOS -->
     <div class="card" id="sec5">
-      <div class="card-header" onclick="toggleCard('sec5')">
-        <span>5. Sinais Vitais (Medições APH)</span>
-        <span class="icon-toggle">▼</span>
+      <div class="card-header sec-title" onclick="toggleCard('sec5')">
+        <span>5. SINAIS VITAIS (MEDIÇÕES APH)</span>
+        <span class="icon-toggle no-print">▼</span>
       </div>
-      <div class="card-body">
-        <table class="sv-table">
+      <div class="card-body grid-box">
+        <table class="sv-table tbl-ficha">
           <thead>
             <tr>
               <th style="width: 75px; text-align: center;">Hora</th>
@@ -820,103 +992,103 @@
               <th>SpO₂ (%)</th>
               <th>Temp (ºC)</th>
               <th>HGT (mg/dL)</th>
-              <th style="width: 25px;" class="col-excluir-print">#</th>
+              <th style="width: 25px;" class="col-excluir-print no-print">#</th>
             </tr>
           </thead>
           <tbody id="sv_body">
             <!-- Linhas dinâmicas -->
           </tbody>
         </table>
-        <button type="button" class="btn-add-sv" onclick="addSvRow(false)">+ Adicionar Reavaliação de Sinais</button>
+        <button type="button" class="btn-add-sv no-print" onclick="addSvRow(false)">+ Adicionar Reavaliação de Sinais</button>
       </div>
     </div>
 
     <!-- SEÇÃO 6: MEDICAÇÕES E INSUMOS UTILIZADOS -->
     <div class="card" id="sec6">
-      <div class="card-header" onclick="toggleCard('sec6')">
-        <span>6. Medicações & Insumos Utilizados</span>
-        <span class="icon-toggle">▼</span>
+      <div class="card-header sec-title" onclick="toggleCard('sec6')">
+        <span>6. MEDICAÇÕES & INSUMOS UTILIZADOS</span>
+        <span class="icon-toggle no-print">▼</span>
       </div>
-      <div class="card-body">
+      <div class="card-body grid-box">
 
-        <div id="box_nenhum_insumo_wrapper" class="ocultar-aviso-print" style="margin-bottom: 6px; background: #f8fafc; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
-          <label style="display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 800; color: #1e293b; cursor: pointer;">
+        <div id="box_nenhum_insumo_wrapper" class="ocultar-aviso-print" style="margin-bottom: 6px; background: #f8fafc; padding: 6px; border: 1px solid #000000; border-radius: 4px;">
+          <label class="lbl" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
             <input type="checkbox" id="chk_nenhum_insumo" onchange="alternarNenhumInsumo(this)" style="width: 16px; height: 16px;">
             🚫 NENHUM INSUMO OU MEDICAÇÃO FOI UTILIZADO NESTE ATENDIMENTO
           </label>
         </div>
 
         <div id="box_tabela_insumos">
-          <table class="med-table">
+          <table class="med-table tbl-ficha">
             <thead>
               <tr>
                 <th>Insumo Selecionado (Com Lote e Validade)</th>
                 <th style="width: 80px; text-align: center;">Qtd</th>
-                <th style="width: 35px; text-align: center;" class="col-excluir-print">#</th>
+                <th style="width: 35px; text-align: center;" class="col-excluir-print no-print">#</th>
               </tr>
             </thead>
             <tbody id="meds_body">
               <!-- Linhas de medicação inseridas dinamicamente -->
             </tbody>
           </table>
-          <button type="button" class="btn-add-med" id="btnAddMed" onclick="addMedRow()">➕ Adicionar Outro Insumo</button>
+          <button type="button" class="btn-add-med no-print" id="btnAddMed" onclick="addMedRow()">➕ Adicionar Outro Insumo</button>
         </div>
       </div>
     </div>
 
     <!-- SEÇÃO 7: ANAMNESE E EVOLUÇÃO -->
     <div class="card" id="sec7">
-      <div class="card-header" onclick="toggleCard('sec7')">
-        <span>7. Anamnese, Evolução e Conduta</span>
-        <span class="icon-toggle">▼</span>
+      <div class="card-header sec-title" onclick="toggleCard('sec7')">
+        <span>7. ANAMNESE, EVOLUÇÃO E CONDUTA</span>
+        <span class="icon-toggle no-print">▼</span>
       </div>
-      <div class="card-body">
+      <div class="card-body grid-box">
         <div class="grid-2">
           <div>
-            <label>Possui Alergias?</label>
-            <select id="alergia_select" onchange="toggleAlergiaInput()">
+            <label class="lbl">Possui Alergias?</label>
+            <select id="alergia_select" class="val" onchange="toggleAlergiaInput()">
               <option value="NAO">NÃO</option>
               <option value="SIM">SIM</option>
             </select>
           </div>
           
           <div id="alergia_desc_box" style="display: none;">
-            <label style="color: var(--primary-dark);">Relatar Medicamentos / Alergias</label>
-            <textarea id="alergia_desc" class="auto-expand uppercase-input" placeholder="EX: DIPIRONA, PENICILINA..." oninput="autoExpandTextarea(this)"></textarea>
+            <label class="lbl" style="color: #991b1b;">Relatar Medicamentos / Alergias</label>
+            <textarea id="alergia_desc" class="auto-expand uppercase-input val" placeholder="EX: DIPIRONA, PENICILINA..." oninput="autoExpandTextarea(this)"></textarea>
           </div>
         </div>
 
         <div class="grid-2" style="margin-top: 4px;">
           <div>
-            <label>Uso de Medicação Contínua?</label>
-            <select id="med_continua_select" onchange="toggleMedContinuaInput()">
+            <label class="lbl">Uso de Medicação Contínua?</label>
+            <select id="med_continua_select" class="val" onchange="toggleMedContinuaInput()">
               <option value="NAO">NÃO</option>
               <option value="SIM">SIM</option>
             </select>
           </div>
 
           <div id="med_continua_box" style="display: none;">
-            <label style="color: var(--primary-dark);">Descrever Medicamentos Contíduos</label>
-            <textarea id="meds_continuas" class="auto-expand uppercase-input" placeholder="EX: LOSARTANA 50MG, METFORMINA 850MG..." oninput="autoExpandTextarea(this)"></textarea>
+            <label class="lbl" style="color: #991b1b;">Descrever Medicamentos Contínuos</label>
+            <textarea id="meds_continuas" class="auto-expand uppercase-input val" placeholder="EX: LOSARTANA 50MG, METFORMINA 850MG..." oninput="autoExpandTextarea(this)"></textarea>
           </div>
         </div>
 
         <div style="margin-top: 6px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <label>Evolução e Conduta (Com IA Tática de Transcrição)</label>
-            <button type="button" class="btn-mic" id="btnMic" onclick="toggleDitadoVoz()">🎙️ Ditar c/ Parser Médico</button>
+            <label class="lbl">Evolução e Conduta (Com IA Tática de Transcrição)</label>
+            <button type="button" class="btn-mic no-print" id="btnMic" onclick="toggleDitadoVoz()">🎙️ Ditar c/ Parser Médico</button>
           </div>
-          <textarea id="evolucao_texto" class="auto-expand uppercase-input" rows="5" placeholder="RELATO COMPLETO DO ATENDIMENTO, CONDUTAS REALIZADAS E SUPORTE PRESTADO..." oninput="autoExpandTextarea(this)"></textarea>
+          <textarea id="evolucao_texto" class="auto-expand uppercase-input val" rows="5" placeholder="RELATO COMPLETO DO ATENDIMENTO, CONDUTAS REALIZADAS E SUPORTE PRESTADO..." oninput="autoExpandTextarea(this)"></textarea>
         </div>
 
         <div class="grid-2" style="margin-top: 4px;">
-          <div><label>Técnico Resp. (Automático)</label><input type="text" id="tec_resp" readonly style="background: #e2e8f0; font-weight: bold;"></div>
+          <div><label class="lbl">Técnico Resp. (Preenchimento)</label><input type="text" id="tec_resp" class="val" readonly style="background: #e2e8f0;"></div>
           <div>
-            <label>Destino / Hospital Receptor</label>
-            <select id="hospital_destino" onchange="toggleHospitalOutros()">
+            <label class="lbl">Destino / Hospital Receptor</label>
+            <select id="hospital_destino" class="val" onchange="toggleHospitalOutros()">
               <option value="">Carregando hospitais...</option>
             </select>
-            <input type="text" id="hospital_outros" class="uppercase-input" placeholder="DIGITE O NOME DO HOSPITAL..." style="display: none; margin-top: 3px;">
+            <input type="text" id="hospital_outros" class="uppercase-input val" placeholder="DIGITE O NOME DO HOSPITAL..." style="display: none; margin-top: 3px;">
           </div>
         </div>
       </div>
@@ -924,16 +1096,16 @@
 
     <!-- SEÇÃO 8: DESFECHO DA VÍTIMA, TERMO DE RECUSA E ASSINATURAS -->
     <div class="card" id="sec8">
-      <div class="card-header" onclick="toggleCard('sec8')">
-        <span>8. Desfecho do Atendimento & Recusa / Assinatura</span>
-        <span class="icon-toggle">▼</span>
+      <div class="card-header sec-title" onclick="toggleCard('sec8')">
+        <span>8. DESFECHO DO ATENDIMENTO & RECUSA / ASSINATURA</span>
+        <span class="icon-toggle no-print">▼</span>
       </div>
-      <div class="card-body">
+      <div class="card-body grid-box">
         
         <div class="grid-2">
           <div>
-            <label>Desfecho / Destino da Vítima</label>
-            <select id="desfecho_vitima" onchange="alternarDesfechoVitima()">
+            <label class="lbl">Desfecho / Destino da Vítima</label>
+            <select id="desfecho_vitima" class="val" onchange="alternarDesfechoVitima()">
               <option value="TRANSPORTADO">TRANSPORTADO AO HOSPITAL RECEPTOR</option>
               <option value="PERMANECEU_LOCAL">PERMANECEU NO LOCAL (ORIENTADO / LIBERADO PELA REGULAÇÃO)</option>
               <option value="RECUSA">RECUSA DE ATENDIMENTO / TRANSPORTE</option>
@@ -941,8 +1113,8 @@
             </select>
           </div>
           <div>
-            <label>Houve Recusa de Atendimento ou Transporte?</label>
-            <select id="houve_recusa" onchange="alternarExibicaoRecusa()">
+            <label class="lbl">Houve Recusa de Atendimento ou Transporte?</label>
+            <select id="houve_recusa" class="val" onchange="alternarExibicaoRecusa()">
               <option value="NAO">NÃO HOUVE RECUSA</option>
               <option value="SIM">SIM (EXIGIR TERMO E ASSINATURA)</option>
             </select>
@@ -960,39 +1132,39 @@
 
           <div class="grid-2">
             <div>
-              <label>Assinante / Declarante</label>
-              <select id="tipo_assinante" onchange="atualizarCamposAssinante()">
+              <label class="lbl">Assinante / Declarante</label>
+              <select id="tipo_assinante" class="val" onchange="atualizarCamposAssinante()">
                 <option value="Vítima">Vítima</option>
                 <option value="Responsável">Responsável</option>
                 <option value="Testemunha">Testemunha</option>
               </select>
             </div>
-            <div><label>Data / Hora Registro</label><input type="text" id="data_hora_recusa" readonly></div>
+            <div><label class="lbl">Data / Hora Registro</label><input type="text" id="data_hora_recusa" class="val" readonly></div>
           </div>
 
-          <div id="box_dados_assinante" style="display: none; margin-top: 4px; padding: 4px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px;">
+          <div id="box_dados_assinante" style="display: none; margin-top: 4px; padding: 4px; background: #ffffff; border: 1px solid #000000; border-radius: 4px;">
             <div class="grid-assinante-proporcional">
               <div>
-                <label id="lbl_cpf_assinante">CPF</label>
+                <label class="lbl" id="lbl_cpf_assinante">CPF</label>
                 <div class="search-group">
-                  <input type="tel" inputmode="numeric" id="cpf_assinante" class="cpf-mask" placeholder="000.000.000-00" maxlength="14">
-                  <button type="button" class="btn-search" onclick="buscarPessoaAssinanteCPF()">🔍</button>
+                  <input type="tel" inputmode="numeric" id="cpf_assinante" class="cpf-mask val" placeholder="000.000.000-00" maxlength="14">
+                  <button type="button" class="btn-search no-print" onclick="buscarPessoaAssinanteCPF()">🔍</button>
                 </div>
               </div>
               <div>
-                <label id="lbl_nome_assinante">Nome Completo</label>
-                <input type="text" id="nome_assinante" class="uppercase-input" style="font-weight: 700;" placeholder="NOME COMPLETO DO DECLARANTE">
+                <label class="lbl" id="lbl_nome_assinante">Nome Completo</label>
+                <input type="text" id="nome_assinante" class="uppercase-input val" placeholder="NOME COMPLETO DO DECLARANTE">
               </div>
               <div id="box_tel_assinante">
-                <label>Telefone Contato</label>
-                <input type="tel" inputmode="numeric" id="tel_assinante" class="tel-mask" placeholder="(00) 00000-0000" maxlength="15">
+                <label class="lbl">Telefone Contato</label>
+                <input type="tel" inputmode="numeric" id="tel_assinante" class="tel-mask val" placeholder="(00) 00000-0000" maxlength="15">
               </div>
             </div>
           </div>
 
-          <label style="margin-top: 4px; color: #991b1b;">Assinatura Digital do Declarante (Pressione e assine abaixo)</label>
+          <label class="lbl" style="margin-top: 4px; color: #991b1b;">Assinatura Digital do Declarante (Pressione e assine abaixo)</label>
           <canvas id="sig-canvas"></canvas>
-          <button type="button" id="btnClearSig" style="margin-top: 2px; padding: 3px 6px; font-size: 0.65rem; background: #64748b; color: #fff; border: none; border-radius: 4px; font-weight: bold;">Limpar Assinatura</button>
+          <button type="button" id="btnClearSig" class="no-print" style="margin-top: 2px; padding: 3px 6px; font-size: 0.65rem; background: #64748b; color: #fff; border: none; border-radius: 4px; font-weight: bold;">Limpar Assinatura</button>
         </div>
 
       </div>
@@ -1014,12 +1186,12 @@
       </div>
     </div>
 
-    <button type="button" class="btn-submit" id="btnImprimir" disabled>Imprimir Ficha (Vítima 1)</button>
+    <button type="button" class="btn-submit no-print" id="btnImprimir" disabled>Imprimir Ficha (Vítima 1)</button>
   </form>
 
   <!-- MODAIS ISOLADOS FORA DO FORMULARIO -->
 
-  <div class="modal-med-overlay" id="modalMedOverlay">
+  <div class="modal-med-overlay no-print" id="modalMedOverlay">
     <div class="modal-med-container">
       <div class="modal-med-header">
         <span>🔍 SELEÇÃO DE INSUMO / MEDICAÇÃO</span>
@@ -1032,7 +1204,7 @@
     </div>
   </div>
 
-  <div class="modal-auth-overlay" id="modalAuthOverlay">
+  <div class="modal-auth-overlay no-print" id="modalAuthOverlay">
     <div class="modal-auth-container">
       <div class="modal-auth-header">
         <span>🔒 AUTENTICAÇÃO ADMINISTRATIVA / TERCEIROS</span>
@@ -1042,7 +1214,7 @@
         <p style="font-size: 0.75rem; color: #475569; font-weight: 600; margin-bottom: 10px;">
           Esta ocorrência foi registrada por outro profissional. Para reabrir este prontuário, informe a senha de um usuário com perfil <strong>ADMIN</strong>:
         </p>
-        <label>SENHA DE ADMINISTRADOR</label>
+        <label class="lbl">SENHA DE ADMINISTRADOR</label>
         <input type="password" id="auth_pass_input" placeholder="DIGITE SUA SENHA CADASTRADA..." style="padding: 8px; font-size: 0.9rem; margin-bottom: 10px;">
         <button type="button" onclick="confirmarAutenticacaoEBuscar()" style="width: 100%; background: var(--secondary); color: white; border: none; padding: 10px; border-radius: 4px; font-weight: 800; cursor: pointer;">
           🔓 CONFIRMAR ACESSO ADMIN
@@ -1051,7 +1223,7 @@
     </div>
   </div>
 
-  <div class="modal-alergia-overlay" id="modalAlergiaOverlay">
+  <div class="modal-alergia-overlay no-print" id="modalAlergiaOverlay">
     <div class="modal-alergia-container">
       <div class="modal-alergia-header">
         <span>⚠️ ALERTA CRÍTICO DE SEGURANÇA: PACIENTE ALÉRGICO</span>
@@ -1077,7 +1249,7 @@
     </div>
   </div>
 
-  <div class="modal-auth-overlay" id="modalLoginJ3" style="display: flex;">
+  <div class="modal-auth-overlay no-print" id="modalLoginJ3" style="display: flex;">
     <div class="modal-auth-container" style="max-width: 380px;">
       <div class="modal-auth-header" style="background: #1e293b;">
         <span>🚑 LOGIN DE PLANTÃO J3</span>
@@ -1089,12 +1261,12 @@
         </p>
 
         <div style="margin-bottom: 10px;">
-          <label>USUÁRIO / MATRÍCULA / CPF</label>
+          <label class="lbl">USUÁRIO / MATRÍCULA / CPF</label>
           <input type="text" id="j3_user_input" class="uppercase-input" placeholder="DIGITE SEU USUÁRIO OU CPF" maxlength="18" style="padding: 8px; font-size: 0.85rem;" oninput="mascaraEFormatarLoginUsuario(this)">
         </div>
 
         <div style="margin-bottom: 14px;">
-          <label>SENHA J3</label>
+          <label class="lbl">SENHA J3</label>
           <input type="password" id="j3_pass_input" placeholder="DIGITE SUA SENHA" style="padding: 8px; font-size: 0.85rem;">
         </div>
 
@@ -1340,12 +1512,10 @@
       let nomeEnf = plt && plt.enfermagem ? plt.enfermagem.trim() : '';
       let nomeCond = plt && plt.condutor ? plt.condutor.trim() : '';
 
-      // Se for login direto do técnico, garante o preenchimento do próprio nome
       if (!nomeEnf && user) {
         nomeEnf = user.nome;
       }
 
-      // Preenchimento / Injeção dinâmica no Select de Técnico
       if (nomeEnf) {
         let optMatch = Array.from(selectTec.options).find(opt => 
           normalizarString(opt.value) === normalizarString(nomeEnf) ||
@@ -1364,7 +1534,6 @@
         }
       }
 
-      // Preenchimento / Injeção dinâmica no Select de Socorrista
       if (nomeCond) {
         let optMatch = Array.from(selectSoc.options).find(opt => 
           normalizarString(opt.value) === normalizarString(nomeCond) ||
@@ -2800,17 +2969,17 @@
       tr.innerHTML = `
         <td>
           <div style="display: flex; gap: 2px; align-items: center; justify-content: center;">
-            <input type="time" class="sv-time-val" value="${horaVal}" ${reqAttr}>
-            <button type="button" class="btn-time-sv" onclick="setSvTime(this)">⏱️</button>
+            <input type="time" class="sv-time-val val" value="${horaVal}" ${reqAttr}>
+            <button type="button" class="btn-time-sv no-print" onclick="setSvTime(this)">⏱️</button>
           </div>
         </td>
-        <td><input type="tel" inputmode="numeric" placeholder="120x80" value="${paVal}" onkeyup="mascaraPA(this)" ${reqAttr}></td>
-        <td><input type="number" inputmode="numeric" placeholder="80" value="${fcVal}" ${reqAttr}></td>
-        <td><input type="number" inputmode="numeric" placeholder="16" value="${frVal}" ${reqAttr}></td>
-        <td><input type="number" inputmode="numeric" placeholder="98" value="${spo2Val}" onchange="checarSpo2(this)" ${reqAttr}></td>
-        <td><input type="tel" inputmode="decimal" placeholder="36.5" value="${tempVal}" onkeyup="mascaraTemp(this)" ${reqAttr}></td>
-        <td><input type="number" inputmode="numeric" placeholder="90" value="${hgtVal}" ${reqAttr}></td>
-        <td class="col-excluir-print">${isFirst ? '' : '<button type="button" class="btn-del-med" onclick="this.closest(\'tr\').remove()">×</button>'}</td>
+        <td><input type="tel" inputmode="numeric" class="val" placeholder="120x80" value="${paVal}" onkeyup="mascaraPA(this)" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" class="val" placeholder="80" value="${fcVal}" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" class="val" placeholder="16" value="${frVal}" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" class="val" placeholder="98" value="${spo2Val}" onchange="checarSpo2(this)" ${reqAttr}></td>
+        <td><input type="tel" inputmode="decimal" class="val" placeholder="36.5" value="${tempVal}" onkeyup="mascaraTemp(this)" ${reqAttr}></td>
+        <td><input type="number" inputmode="numeric" class="val" placeholder="90" value="${hgtVal}" ${reqAttr}></td>
+        <td class="col-excluir-print no-print">${isFirst ? '' : '<button type="button" class="btn-del-med" onclick="this.closest(\'tr\').remove()">×</button>'}</td>
       `;
       tbody.appendChild(tr);
     }
@@ -2897,34 +3066,34 @@
 
       tr.innerHTML = `
         <td>
-          <input type="text" class="med-search-input uppercase-input" placeholder="CLIQUE AQUI PARA BUSCAR INSUMO..." readonly onclick="abrirModalBuscaMed(this)">
+          <input type="text" class="med-search-input uppercase-input val" placeholder="CLIQUE AQUI PARA BUSCAR INSUMO..." readonly onclick="abrirModalBuscaMed(this)">
           
           <div class="psico-box" style="display: none;">
-            <label style="color: #c2410c; font-weight: 800;">🔒 CONTROLE DE PSICOTRÓPICO</label>
+            <label class="lbl" style="color: #c2410c;">🔒 CONTROLE DE PSICOTRÓPICO</label>
             <div class="grid-3 box-lacres-wrapper" style="margin-top: 2px;">
               <div>
-                <label>VIA ADMINISTRADA</label>
-                <select class="psico-via">
+                <label class="lbl">VIA ADMINISTRADA</label>
+                <select class="psico-via val">
                   <option value="EV">EV (Endovenosa)</option>
                   <option value="IM">IM (Intramuscular)</option>
                   <option value="SC">SC (Subcutânea)</option>
                 </select>
               </div>
               <div class="col-lacre-rompido">
-                <label>Nº LACRE ROMPIDO</label>
-                <input type="text" class="psico-lacre-rompido uppercase-input" placeholder="Nº ROMPIDO" onchange="salvarLocal()">
+                <label class="lbl">Nº LACRE ROMPIDO</label>
+                <input type="text" class="psico-lacre-rompido uppercase-input val" placeholder="Nº ROMPIDO" onchange="salvarLocal()">
               </div>
               <div class="col-lacre-novo">
-                <label>Nº NOVO LACRE</label>
-                <input type="text" class="psico-lacre-novo uppercase-input" placeholder="Nº NOVO" onchange="salvarLocal()">
+                <label class="lbl">Nº NOVO LACRE</label>
+                <input type="text" class="psico-lacre-novo uppercase-input val" placeholder="Nº NOVO" onchange="salvarLocal()">
               </div>
             </div>
           </div>
         </td>
         <td class="td-center">
-          <input type="number" inputmode="numeric" class="med-qtd" value="1" min="1" onchange="salvarLocal()">
+          <input type="number" inputmode="numeric" class="med-qtd val" value="1" min="1" onchange="salvarLocal()">
         </td>
-        <td class="td-center col-excluir-print">
+        <td class="td-center col-excluir-print no-print">
           <button type="button" class="btn-del-med" onclick="this.closest('tr').remove(); reavaliarTodosPsicotropicos(); salvarLocal();">🗑️</button>
         </td>
       `;
