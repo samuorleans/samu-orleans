@@ -3283,8 +3283,12 @@
         const bioDesinfeccao = (bioSuspeita === 'SIM') ? document.getElementById('bio_desinfeccao').value : 'NÃO SE APLICA';
 
         const codBase = document.getElementById('codigo').value;
-        const codFinalOcorrencia = (vitimaAtual === 2) ? `${codBase}-V2` : codBase;
+        if (!codBase) {
+          alert("⚠️ Digite o Nº da Ocorrência antes de salvar.");
+          return;
+        }
 
+        const codFinalOcorrencia = (vitimaAtual === 2) ? `${codBase}-V2` : codBase;
         const radioTipoSel = document.querySelector('input[name="tipo_ocorrencia"]:checked');
         const tipoOcorrenciaVal = radioTipoSel ? radioTipoSel.value : '';
 
@@ -3294,6 +3298,7 @@
         const cpfPacienteRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
         const dataNascimentoVal = document.getElementById('data_nascimento').value;
 
+        // Tenta atualizar cadastro do paciente se houver conexão
         if (cpfPacienteRaw.length === 11 && navigator.onLine && _supabase) {
           try {
             const payloadPaciente = {
@@ -3387,18 +3392,35 @@
           updated_at: new Date().toISOString()
         };
 
+        // SE ESTIVER ONLINE, TENTA ENVIAR DIRETO
+        let enviadoComSucesso = false;
         if (navigator.onLine && _supabase) {
           const { error } = await _supabase
             .from('ocorrencias_aph')
             .upsert([payloadOcorrencia], { onConflict: 'codigo_ocorrencia' });
 
-          if (error) {
-            alert("⚠️ Erro ao gravar no Supabase: " + error.message);
-          } else {
+          if (!error) {
+            enviadoComSucesso = true;
             await processarBaixaEstoqueELacres(insumosPayload, payloadOcorrencia.codigo_ocorrencia);
-            atualizarStatusVisualFila();
           }
         }
+
+        // SE ESTIVER OFFLINE OU SE O ENVIO FALHAR, ADICIONA À FILA LOCAL
+        if (!enviadoComSucesso) {
+          const filaRaw = localStorage.getItem('aph_fila_pendentes_offline') || '[]';
+          let fila = [];
+          try { fila = JSON.parse(filaRaw); } catch(e) { fila = []; }
+
+          // Remove duplicata do mesmo código se já existir na fila para atualizar
+          fila = fila.filter(item => item.codigo_ocorrencia !== payloadOcorrencia.codigo_ocorrencia);
+          fila.push(payloadOcorrencia);
+
+          localStorage.setItem('aph_fila_pendentes_offline', JSON.stringify(fila));
+          alert(`📲 FICHA SALVA LOCALMENTE (OFFLINE)!\nA ocorrência ${codFinalOcorrencia} foi mantida no tablet e será enviada à nuvem assim que houver conexão.`);
+        }
+
+        atualizarStatusVisualFila();
+
       } catch (err) {
         console.error("Erro ao salvar ocorrência:", err);
       }
