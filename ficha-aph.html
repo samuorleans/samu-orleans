@@ -891,7 +891,7 @@
           </div>
 
           <div id="med_continua_box" style="display: none;">
-            <label style="color: var(--primary-dark);">Descrever Medicamentos Contínuos</label>
+            <label style="color: var(--primary-dark);">Descrever Medicamentos Contíduos</label>
             <textarea id="meds_continuas" class="auto-expand uppercase-input" placeholder="EX: LOSARTANA 50MG, METFORMINA 850MG..." oninput="autoExpandTextarea(this)"></textarea>
           </div>
         </div>
@@ -1844,7 +1844,7 @@
       document.getElementById('cpf_paciente').value = dataOcorr.cpf_paciente || '';
       document.getElementById('paciente').value = (dataOcorr.paciente || '').toUpperCase();
       document.getElementById('data_nascimento').value = dataOcorr.data_nascimento || '';
-      document.getElementById('idade').value = dataOcorr.idade || '';
+      document.getElementById('idade').value = dataOcorr.idade !== null ? dataOcorr.idade : '';
       document.getElementById('sexo').value = dataOcorr.sexo || 'M';
       document.getElementById('telefone').value = dataOcorr.telefone || '';
       document.getElementById('rua').value = (dataOcorr.rua || '').toUpperCase();
@@ -3298,6 +3298,10 @@
         const cpfPacienteRaw = document.getElementById('cpf_paciente').value.replace(/\D/g, "");
         const dataNascimentoVal = document.getElementById('data_nascimento').value;
 
+        // Trata idade para não enviar string vazia ""
+        const idadeVal = document.getElementById('idade').value;
+        const idadeInt = (idadeVal && idadeVal.trim() !== '') ? parseInt(idadeVal, 10) : null;
+
         // Tenta atualizar cadastro do paciente se houver conexão
         if (cpfPacienteRaw.length === 11 && navigator.onLine && _supabase) {
           try {
@@ -3306,7 +3310,7 @@
               nome: document.getElementById('paciente').value.toUpperCase(),
               cns: document.getElementById('cns_paciente').value.replace(/\D/g, ""),
               data_nascimento: (dataNascimentoVal && dataNascimentoVal.trim() !== '') ? dataNascimentoVal : null,
-              idade: parseInt(document.getElementById('idade').value) || null,
+              idade: idadeInt,
               sexo: document.getElementById('sexo').value,
               telefone: document.getElementById('telefone').value,
               cep: document.getElementById('cep_paciente').value,
@@ -3327,6 +3331,11 @@
         const assinaturaBase64 = canvasEl ? canvasEl.toDataURL() : null;
         const dataAtendimentoVal = document.getElementById('data').value;
 
+        // Trata valores da escala de Glasgow
+        const gOc = parseInt(document.getElementById('g_oc').value, 10) || 4;
+        const gVerb = parseInt(document.getElementById('g_verb').value, 10) || 5;
+        const gMot = parseInt(document.getElementById('g_mot').value, 10) || 6;
+
         payloadOcorrencia = {
           codigo_ocorrencia: codFinalOcorrencia,
           cor_ocorrencia: document.getElementById('cor_ocorrencia').value,
@@ -3341,7 +3350,7 @@
           cpf_paciente: document.getElementById('cpf_paciente').value,
           paciente: document.getElementById('paciente').value,
           data_nascimento: (dataNascimentoVal && dataNascimentoVal.trim() !== '') ? dataNascimentoVal : null,
-          idade: document.getElementById('idade').value,
+          idade: idadeInt,
           sexo: document.getElementById('sexo').value,
           telefone: document.getElementById('telefone').value,
           rua: document.getElementById('rua').value,
@@ -3354,10 +3363,10 @@
           respiracao: document.getElementById('respiracao').value,
           circulacao: document.getElementById('circulacao').value,
           pupilas: document.getElementById('pupilas').value,
-          glasgow_ocular: parseInt(document.getElementById('g_oc').value) || 0,
-          glasgow_verbal: parseInt(document.getElementById('g_verb').value) || 0,
-          glasgow_motor: parseInt(document.getElementById('g_mot').value) || 0,
-          glasgow_total: (parseInt(document.getElementById('g_oc').value) || 0) + (parseInt(document.getElementById('g_verb').value) || 0) + (parseInt(document.getElementById('g_mot').value) || 0),
+          glasgow_ocular: gOc,
+          glasgow_verbal: gVerb,
+          glasgow_motor: gMot,
+          glasgow_total: gOc + gVerb + gMot,
           lesoes_exposicao: lesoesPayload,
 
           bio_suspeita: bioSuspeita,
@@ -3402,6 +3411,8 @@
           if (!error) {
             enviadoComSucesso = true;
             await processarBaixaEstoqueELacres(insumosPayload, payloadOcorrencia.codigo_ocorrencia);
+          } else {
+            alert("⚠️ Erro ao gravar no Supabase: " + error.message);
           }
         }
 
@@ -3411,7 +3422,6 @@
           let fila = [];
           try { fila = JSON.parse(filaRaw); } catch(e) { fila = []; }
 
-          // Remove duplicata do mesmo código se já existir na fila para atualizar
           fila = fila.filter(item => item.codigo_ocorrencia !== payloadOcorrencia.codigo_ocorrencia);
           fila.push(payloadOcorrencia);
 
