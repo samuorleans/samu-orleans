@@ -1,6 +1,6 @@
 /**
  * SAMU CONNECT - Central Configuration & Supabase Initializer
- * Version: 1.0.1 (URL Fix)
+ * Version: 1.0.2
  */
 
 export const CONFIG = {
@@ -16,8 +16,7 @@ export const CONFIG = {
     URL_LOGO: "./assets/logo.png"
   },
   SUPABASE: {
-    // URL e Anon Key sincronizadas
-    URL: "https://meqkgjjaidptaljbybr.supabase.co",
+    URL: "https://meqkgjjaidjptaljbybr.supabase.co",
     ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lcWtnamphaWRqcHRhbGpieWJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MzMxOTcsImV4cCI6MjEwMzUwOTE5N30.af78fsdsBzC0-bgozbJ3Orgr_Xh5BzhmYNJkXgp1Ki0"
   },
   THEME: {
@@ -30,7 +29,7 @@ export const CONFIG = {
   }
 };
 
-// Inicialização resiliente do cliente Supabase
+// Inicialização segura do cliente Supabase
 export const supabase = window.supabase
   ? window.supabase.createClient(CONFIG.SUPABASE.URL, CONFIG.SUPABASE.ANON_KEY)
   : null;
