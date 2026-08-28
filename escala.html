@@ -2,8 +2,10 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
+  <!-- CONFIGURAÇÃO PARA FORÇAR VISÃO DESKTOP AUTOMÁTICA EM CELULARES -->
+  <meta name="viewport" content="width=1200, initial-scale=0.38, maximum-scale=3.0, user-scalable=yes">
   <title>Sistema Integrado de Escalas e Trocas — SAMU 192 USB 11 Orleans</title>
+  <!-- BIBLIOTECAS SUPABASE E EMAILJS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
@@ -14,15 +16,15 @@
       --slate-dark: #1e293b;
       --slate-muted: #64748b;
       --bg-light: #f8fafc;
-      --border-color: #cbd5e1;
+      --border-color: #e2e8f0;
     }
 
     * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', Arial, sans-serif; }
-    body { margin: 0; padding: 12px; background-color: #e2e8f0; color: #0f172a; min-width: 1200px; }
+    body { margin: 0; padding: 12px; background-color: #f1f5f9; color: var(--dark-blue); min-width: 1200px; }
 
-    .container { width: 100%; max-width: 1400px; margin: 0 auto; }
+    .container { width: 1200px; max-width: 1200px; margin: 0 auto; }
 
-    /* OVERLAY E MODAIS */
+    /* OVERLAY E MODAIS CLEAN */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(5px); }
     .box-modal { background: #fff; padding: 30px; border-radius: 12px; width: 90%; max-width: 420px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); text-align: center; position: relative; }
     .box-modal img.logo-modal { max-height: 65px; margin-bottom: 12px; object-fit: contain; }
@@ -31,25 +33,26 @@
     .box-modal input:focus { border-color: var(--primary-red); outline: none; }
     .btn-fechar-modal { position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--slate-muted); font-weight: bold; }
 
-    header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff; padding: 16px 20px; border-radius: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 6px solid var(--primary-red); }
+    header { background: linear-gradient(135deg, #b71c1c 0%, #880e4f 100%); color: #fff; padding: 16px 20px; border-radius: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
     .header-brand { display: flex; align-items: center; gap: 12px; }
     .header-brand img { max-height: 48px; border-radius: 6px; background: #fff; padding: 2px; }
     header h1 { margin: 0; font-size: 18px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
     header small { font-size: 12px; opacity: 0.9; }
-    .user-info { font-size: 12px; background: rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .user-info { font-size: 12px; background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
     .nav-tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; flex-wrap: wrap; }
-    .tab-btn { padding: 10px 16px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; background: #cbd5e1; color: #334155; font-size: 13px; transition: all 0.2s; }
-    .tab-btn.active { background: #0f172a; color: #fff; box-shadow: 0 2px 4px rgba(15, 23, 42, 0.3); }
+    .tab-btn { padding: 10px 16px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; background: #e2e8f0; color: #334155; font-size: 13px; transition: all 0.2s; }
+    .tab-btn.active { background: var(--primary-red); color: #fff; box-shadow: 0 2px 4px rgba(183, 28, 28, 0.3); }
 
     .card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 20px; }
-    .card h3 { margin-top: 0; color: var(--slate-dark); border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
+    .card h3 { margin-top: 0; color: var(--slate-dark); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
 
     .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: flex-end; }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
     label { font-size: 11px; font-weight: 700; color: var(--slate-muted); text-transform: uppercase; letter-spacing: 0.5px; }
     input, select { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none; }
 
+    /* SELETOR DE MÊS COM LARGURA ADEQUADA PARA EXIBIR MÊS/ANO POR EXTENSO */
     .mes-selector { display: flex; align-items: center; gap: 6px; }
     .mes-selector input[type="month"] { min-width: 175px; width: 175px; text-align: center; font-weight: 600; }
     .btn-arrow { background: #e2e8f0; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; cursor: pointer; font-weight: bold; color: #334155; font-size: 14px; transition: background 0.2s; }
@@ -66,9 +69,9 @@
 
     .table-responsive { overflow-x: auto; background: #fff; border-radius: 8px; border: 1px solid var(--border-color); }
     table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; }
-    th { background: #0f172a; color: #fff; padding: 10px 8px; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+    th { background: var(--slate-dark); color: #fff; padding: 10px 8px; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
     td { padding: 8px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
-    tr:nth-child(even) { background-color: #f1f5f9; }
+    tr:nth-child(even) { background-color: var(--bg-light); }
 
     .badge { padding: 4px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
     .badge-pendente { background: #fef3c7; color: #b45309; }
@@ -98,285 +101,39 @@
 
     .rodape-assinaturas { display: none; }
 
-    /* LAYOUT TV KIOSK REESTRUTURADO: ESQUERDA (ESCALA + COREN) / DIREITA (STATUS + 2 CARDS MENORES) */
-    #painelTVGrid { display: none; }
-
-    body.modo-tv-kiosk {
-      background-color: #cbd5e1 !important;
-      padding: 4px !important;
-      margin: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      overflow: hidden !important;
-    }
-
-    body.modo-tv-kiosk header,
-    body.modo-tv-kiosk .nav-tabs,
-    body.modo-tv-kiosk #abaEscalas,
-    body.modo-tv-kiosk #abaTrocas,
-    body.modo-tv-kiosk #abaAfastamentos,
-    body.modo-tv-kiosk #abaAdmin { display: none !important; }
-
-    body.modo-tv-kiosk #painelTVGrid {
-      display: grid !important;
-      grid-template-columns: 1.35fr 0.65fr;
-      gap: 6px;
-      width: 100%;
-      height: calc(100vh - 8px);
-    }
-
-    .tv-col-esquerda {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      height: 100%;
-    }
-
-    .tv-col-direita {
-      display: grid;
-      grid-template-rows: auto 1fr 1fr;
-      gap: 6px;
-      height: 100%;
-    }
-
-    .tv-card {
-      background: #ffffff;
-      border: 1px solid #94a3b8;
-      border-radius: 6px;
-      padding: 6px;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-      overflow: hidden;
-    }
-
-    .tv-card h3 {
-      margin: 0 0 4px 0;
-      font-size: 11px;
-      color: #0f172a;
-      border-bottom: 2px solid #b71c1c;
-      padding-bottom: 2px;
-      text-transform: uppercase;
-      font-weight: 800;
-    }
-
-    .tv-scrollable-table {
-      flex: 1;
-      overflow: hidden;
-      background: #ffffff;
-      border-radius: 4px;
-      border: 1px solid #cbd5e1;
-    }
-
-    .tv-scrollable-table table {
-      width: 100%;
-      font-size: 8px;
-      border-collapse: collapse;
-      table-layout: fixed;
-    }
-
-    .tv-scrollable-table th {
-      background: #0f172a;
-      color: #ffffff;
-      padding: 3px 1px;
-      font-size: 8px;
-      text-transform: uppercase;
-      text-align: center;
-    }
-
-    .tv-scrollable-table td {
-      padding: 1px 2px;
-      border-bottom: 1px solid #e2e8f0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      text-align: center;
-      font-size: 7.8px;
-    }
-
-    .txt-fds-vermelho { color: #dc2626 !important; font-weight: 800 !important; }
-
-    .tr-hoje-destaque { background-color: #dc2626 !important; color: #ffffff !important; font-weight: bold !important; }
-    .tr-hoje-destaque td { color: #ffffff !important; font-weight: 800 !important; }
-
-    /* COLUNAS COMPACTADAS DA ESCALA OPERACIONAL NA ESQUERDA */
-    .col-tv-dia { width: 10%; }
-    .col-tv-sem { width: 6%; }
-    .col-tv-per { width: 10%; }
-    .col-tv-cond { width: 34%; text-align: left !important; }
-    .col-tv-tec { width: 34%; text-align: left !important; }
-    .col-tv-obs { width: 6%; }
-
-    /* MATRIZ COREN COMPACTA NA HORIZONTAL */
-    #tblTVCorenMatriz th.col-dia-coren,
-    #tblTVCorenMatriz td.col-dia-coren {
-      width: 2.3%;
-      padding: 1px 0 !important;
-      font-size: 7px !important;
-      font-weight: bold;
-      text-align: center;
-    }
-
-    #tblTVCorenMatriz td.st-i { background-color: #fef08a !important; color: #854d0e !important; }
-    #tblTVCorenMatriz td.st-fol { background-color: #dcfce7 !important; color: #166534 !important; }
-    #tblTVCorenMatriz td.st-adm { background-color: #e0f2fe !important; color: #0369a1 !important; }
-    #tblTVCorenMatriz td.st-atest { background-color: #fee2e2 !important; color: #991b1b !important; }
-
-    /* CARD CONDIÇÕES EM TEMPO REAL COMPACTO */
-    .tv-plantao-box {
-      background: linear-gradient(135deg, #b71c1c 0%, #880e4f 100%);
-      border-radius: 4px;
-      padding: 3px 5px;
-      text-align: center;
-      color: #ffffff;
-    }
-    .tv-plantao-cargo { font-size: 7.5px; text-transform: uppercase; opacity: 0.9; }
-    .tv-plantao-nome { font-size: 10px; font-weight: 800; }
-
-    /* ESTILOS EXCLUSIVOS PARA IMPRESSÃO EM PDF INSTITUCIONAL PADRÃO */
     @media print {
-      @page { size: A4 portrait; margin: 8mm; }
-      
-      body {
-        background: #fff !important;
-        color: #000 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        min-width: 100% !important;
-      }
+      .no-print, header, .nav-tabs, .card h3, .grid-form, .btn-arrow { display: none !important; }
+      body { background: #fff; padding: 0; margin: 0; color: #000; min-width: 100% !important; }
+      .container { width: 100% !important; max-width: 100% !important; }
+      .card { box-shadow: none; border: none; padding: 0; margin: 0; }
+      .header-relatorio-impressao { display: block !important; }
+      .table-responsive { border: none; overflow: visible !important; }
 
-      .no-print, header, .nav-tabs, .card h3, .grid-form, #painelTVGrid, .btn, .modal-overlay {
-        display: none !important;
-      }
+      body.modo-retrato { font-size: 7.5pt; }
+      body.modo-retrato table { width: 100% !important; font-size: 7.5pt !important; }
+      body.modo-retrato th { background-color: #e2e8f0 !important; color: #000 !important; padding: 3px 2px !important; border: 1px solid #000 !important; }
+      body.modo-retrato td { padding: 3px 2px !important; border: 1px solid #000 !important; }
 
-      .container { width: 100% !important; max-width: 100% !important; margin: 0 !important; }
-      .card { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
+      body.modo-paisagem { font-size: 6.5pt; }
+      body.modo-paisagem table { width: 100% !important; font-size: 6.5pt !important; table-layout: fixed !important; }
+      body.modo-paisagem th, body.modo-paisagem td { border: 1px solid #000 !important; padding: 2px 0 !important; }
 
-      .header-relatorio-impressao {
-        display: block !important;
-        margin-bottom: 12px;
-        border-bottom: 2px solid #000;
-        padding-bottom: 6px;
-      }
+      .st-i { background-color: #fef08a !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+      .st-fol { background-color: #ffffff !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+      .st-adm { background-color: #e0f2fe !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+      .col-fds { background-color: #e2e8f0 !important; font-weight: bold !important; -webkit-print-color-adjust: exact; }
+      .col-feriado { background-color: #fecaca !important; color: #000 !important; -webkit-print-color-adjust: exact; }
 
-      .header-relatorio-impressao .rel-container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-      }
+      .box-notas-rodape { background: #fff !important; border: 1px solid #000 !important; color: #000 !important; margin-top: 10px !important; padding: 6px !important; font-size: 7.5pt !important; }
+      .box-notas-rodape h4 { color: #000 !important; font-size: 7.5pt !important; }
 
-      .header-relatorio-impressao img.logo-relatorio { max-height: 55px; object-fit: contain; }
-      .header-relatorio-impressao .rel-texto { flex: 1; text-align: center; }
-      .header-relatorio-impressao h2 { margin: 0; font-size: 10pt; font-weight: 800; text-transform: uppercase; color: #000; }
-      .header-relatorio-impressao h3 { margin: 2px 0; font-size: 8.5pt; font-weight: 700; color: #000; }
-      .header-relatorio-impressao p { margin: 0; font-size: 8pt; font-weight: 600; color: #000; }
-
-      .table-responsive { border: none !important; overflow: visible !important; }
-      table { width: 100% !important; border-collapse: collapse !important; font-size: 8.5pt !important; }
-      th { background: #1e293b !important; color: #fff !important; padding: 4px 2px !important; font-size: 8pt !important; }
-      td { padding: 3px 2px !important; border-bottom: 1px solid #94a3b8 !important; font-size: 8pt !important; }
-
-      .rodape-assinaturas {
-        display: flex !important;
-        justify-content: space-around;
-        margin-top: 25px;
-        padding-top: 15px;
-      }
-
-      .campo-assinatura {
-        border-top: 1px solid #000;
-        width: 40%;
-        text-align: center;
-        font-size: 8pt;
-        font-weight: bold;
-      }
+      .rodape-assinaturas { display: flex !important; justify-content: space-between; align-items: flex-end; margin-top: 25px; font-size: 8pt; }
+      .campo-assinatura { text-align: center; width: 45%; border-top: 1px solid #000; padding-top: 4px; }
     }
   </style>
 </head>
 <body class="modo-retrato">
 <div class="container">
-
-  <!-- PAINEL OPERACIONAL DA TV (MODO KIOSK 2 COLUNAS) -->
-  <div id="painelTVGrid">
-    <!-- COLUNA DA ESQUERDA (ESCALA MENSAL + MATRIZ COREN HORIZONTAL) -->
-    <div class="tv-col-esquerda">
-      <!-- ESCALA OPERACIONAL COMPACTADA -->
-      <div class="tv-card" style="flex: 1.4;">
-        <h3>📅 Escala Mensal Operacional — <span id="tvTituloMesVigente">AGOSTO / 2026</span></h3>
-        <div class="tv-scrollable-table">
-          <table>
-            <thead>
-              <tr>
-                <th class="col-tv-dia">DIA</th>
-                <th class="col-tv-sem">SEM</th>
-                <th class="col-tv-per">PERÍODO</th>
-                <th class="col-tv-cond">CONDUTOR SOCORRISTA</th>
-                <th class="col-tv-tec">TÉCNICO DE ENFERMAGEM</th>
-                <th class="col-tv-obs">OBS.</th>
-              </tr>
-            </thead>
-            <tbody id="bodyTVEscalaMensal"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- MATRIZ COREN NA HORIZONTAL -->
-      <div class="tv-card" style="flex: 0.8;">
-        <h3>📋 Matriz Oficial COREN — Orleans</h3>
-        <div class="tv-scrollable-table">
-          <table id="tblTVCorenMatriz">
-            <thead id="headTVCorenMatriz"></thead>
-            <tbody id="bodyTVCorenMatriz"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- COLUNA DA DIREITA (CONDIÇÕES EM TEMPO REAL + 2 QUADRADOS MENORES) -->
-    <div class="tv-col-direita">
-      <!-- 1. QUADRADO SUPERIOR: CONDIÇÕES EM TEMPO REAL -->
-      <div class="tv-card">
-        <h3>⏱️ Condições em Tempo Real</h3>
-        <div style="display:flex; flex-direction:column; gap:4px; margin-top:2px;">
-          <div style="display:flex; gap:4px;">
-            <div class="tv-plantao-box" style="flex:1;">
-              <div class="tv-plantao-cargo">🚘 Condutor Hoje</div>
-              <div class="tv-plantao-nome" id="tvCondutorHoje">—</div>
-            </div>
-            <div class="tv-plantao-box" style="flex:1; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
-              <div class="tv-plantao-cargo">🩺 Técnico Hoje</div>
-              <div class="tv-plantao-nome" id="tvTecnicoHoje">—</div>
-            </div>
-          </div>
-          <div style="background:#f1f5f9; border:1px solid #cbd5e1; padding:3px; border-radius:4px; text-align:center;">
-            <div style="font-size:7.5px; color:#64748b; font-weight:bold; text-transform:uppercase;">Status Viatura USB 11</div>
-            <div style="font-size:9.5px; font-weight:800; color:#16a34a;">🟢 EM OPERAÇÃO / DISPONÍVEL</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. QUADRADO MEIO: PAINEL DE TROCAS E COBERTURAS -->
-      <div class="tv-card">
-        <h3>🔄 Trocas & Coberturas Ativas</h3>
-        <div id="tvCardTrocasResumo" style="font-size:8px; color:#334155; padding:2px;">
-          <div style="margin-bottom:4px;"><b>Trocas no Mês:</b> Sincronizadas com Supabase.</div>
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:4px; border-radius:4px;">
-            <small style="color:#64748b;">Nenhuma alteração de plantão pendente para hoje.</small>
-          </div>
-        </div>
-      </div>
-
-      <!-- 3. QUADRADO INFERIOR: AVISOS OPERACIONAIS E INFOS -->
-      <div class="tv-card">
-        <h3>📢 Avisos Operacionais USB 11</h3>
-        <div style="font-size:8px; color:#334155; padding:2px;">
-          <p style="margin:0 0 4px 0;">• Checklist diário da viatura deve ser feito às 07h.</p>
-          <p style="margin:0;">• Conexão ativa com o banco de dados institucional.</p>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- MODAL DE LOGIN DE ACESSO RESTRITO -->
   <div id="modalLogin" class="modal-overlay">
@@ -502,7 +259,7 @@
       <div class="area-gestor-filtro" style="display:none; gap:6px; flex-wrap:wrap;">
         <button class="btn btn-primary" onclick="simularOuGerarEscala(true)">🔍 Simular Escala</button>
         <button class="btn btn-warning" onclick="resetarSimulacao()">🔄 Resetar para 24x96</button>
-        <button class="btn btn-success" onclick="imprimirAjustado()">🖨️ Imprimir PDF Oficial</button>
+        <button class="btn btn-success" onclick="imprimirAjustado()">🖨️ Imprimir / PDF</button>
       </div>
     </div>
 
@@ -745,6 +502,7 @@
       "2026-11-15", "2026-12-25"
     ];
 
+    // MATRIZ OFICIAL SINCRONIZADA A PARTIR DE 01/06/2026 (Dupla 1: Renato & Luis)
     const duplasPadrao = [
       { cond: "Renato Cândido", tec: "Luis Eduardo Formanski Vitório" },
       { cond: "Daniel Alexandre Fernandes", tec: "Gicerléia Trindade da Rosa" },
@@ -961,12 +719,9 @@
 
     async function carregarDados() {
       if (!dbNuvem) {
-        const st = document.getElementById("stNuvem");
-        if (st) {
-          st.innerText = "❌ Nuvem Desconectada";
-          st.style.background = "#fee2e2";
-          st.style.color = "#b91c1c";
-        }
+        document.getElementById("stNuvem").innerText = "❌ Nuvem Desconectada";
+        document.getElementById("stNuvem").style.background = "#fee2e2";
+        document.getElementById("stNuvem").style.color = "#b91c1c";
         return;
       }
 
@@ -992,20 +747,14 @@
             : a.substitutosDiarios
         }));
 
-        const st = document.getElementById("stNuvem");
-        if (st) {
-          st.innerText = "☁️ Nuvem Supabase Ativa";
-          st.style.background = "#dcfce7";
-          st.style.color = "#15803d";
-        }
+        document.getElementById("stNuvem").innerText = "☁️ Nuvem Supabase Ativa";
+        document.getElementById("stNuvem").style.background = "#dcfce7";
+        document.getElementById("stNuvem").style.color = "#15803d";
       } catch(e) {
         console.error("Erro ao carregar do Supabase:", e);
-        const st = document.getElementById("stNuvem");
-        if (st) {
-          st.innerText = "⚠️ Falha ao Sincronizar";
-          st.style.background = "#fef3c7";
-          st.style.color = "#b45309";
-        }
+        document.getElementById("stNuvem").innerText = "⚠️ Falha ao Sincronizar";
+        document.getElementById("stNuvem").style.background = "#fef3c7";
+        document.getElementById("stNuvem").style.color = "#b45309";
       }
 
       ordenarAlfabeticamente();
@@ -1021,122 +770,10 @@
       renderizarAdminTrocas();
       renderizarEscalas();
       preencherDatasTrocasForm();
-
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('modo') === 'tv') {
-        document.body.classList.add('modo-tv-kiosk');
-        renderizarPainelTV();
-      }
-    }
-
-    function renderizarPainelTV() {
-      const hoje = new Date();
-      const anoAtual = hoje.getFullYear();
-      const mesAtual = hoje.getMonth() + 1;
-      const diaAtual = hoje.getDate();
-      const dtIsoHoje = `${anoAtual}-${String(mesAtual).padStart(2,'0')}-${String(diaAtual).padStart(2,'0')}`;
-      const dataBaseStr = document.getElementById("escalaDataBase") ? document.getElementById("escalaDataBase").value : "2026-06-01";
-
-      const mesesNomes = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"];
-
-      const elTit = document.getElementById("tvTituloMesVigente");
-      if (elTit) elTit.innerText = `${mesesNomes[mesAtual - 1]} / ${anoAtual}`;
-
-      // 1. ESCALA OPERACIONAL COMPACTA NA ESQUERDA
-      const tbEscalaMensal = document.getElementById("bodyTVEscalaMensal");
-      if (tbEscalaMensal) {
-        tbEscalaMensal.innerHTML = "";
-        const diasNoMes = new Date(anoAtual, mesAtual, 0).getDate();
-
-        for (let d = 1; d <= diasNoMes; d++) {
-          const dtIso = `${anoAtual}-${String(mesAtual).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-          const dtObj = new Date(anoAtual, mesAtual - 1, d);
-          const dtFmt = `${String(d).padStart(2,'0')}/${String(mesAtual).padStart(2,'0')}/${anoAtual}`;
-          const res = calcularEscalaNoDia(dtIso, dataBaseStr, "24x96");
-          const ehHoje = (d === diaAtual);
-          const ehFds = (dtObj.getDay() === 0 || dtObj.getDay() === 6);
-
-          tbEscalaMensal.innerHTML += `
-            <tr id="tr-tv-dia-${d}" class="${ehHoje ? 'tr-hoje-destaque' : ''}">
-              <td class="col-tv-dia"><b>${dtFmt}</b></td>
-              <td class="col-tv-sem ${ehFds ? 'txt-fds-vermelho' : ''}">${diasSemanaAbrev[dtObj.getDay()]}</td>
-              <td class="col-tv-per">07h-07h</td>
-              <td class="col-tv-cond">${res.cond}</td>
-              <td class="col-tv-tec">${res.tec}</td>
-              <td class="col-tv-obs">${res.obs}</td>
-            </tr>
-          `;
-        }
-      }
-
-      // 2. MATRIZ COREN NA HORIZONTAL
-      const headCoren = document.getElementById("headTVCorenMatriz");
-      const bodyCoren = document.getElementById("bodyTVCorenMatriz");
-      
-      if (headCoren && bodyCoren) {
-        const diasNoMes = new Date(anoAtual, mesAtual, 0).getDate();
-
-        let headHtml = `<tr><th style="text-align:left; width:22%;">COLABORADOR</th><th style="width:8%;">REG.</th>`;
-        for (let d = 1; d <= diasNoMes; d++) {
-          headHtml += `<th class="col-dia-coren">${String(d).padStart(2,'0')}</th>`;
-        }
-        headHtml += `</tr>`;
-        headCoren.innerHTML = headHtml;
-
-        bodyCoren.innerHTML = "";
-        ordenarAlfabeticamente();
-
-        colaboradores.forEach(c => {
-          let regExibido = c.coren !== "N/A" ? c.coren : c.cnh;
-          let line = `<tr><td style="text-align:left; font-weight:bold; font-size:7.5px;">${c.nome}</td><td style="font-size:6.5px;">${regExibido}</td>`;
-          const eh40h = c.funcao && c.funcao.includes("Coordenadora");
-
-          for (let d = 1; d <= diasNoMes; d++) {
-            const dtAtual = new Date(anoAtual, mesAtual - 1, d);
-            const dtIso = `${anoAtual}-${String(mesAtual).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-            const ehFds = (dtAtual.getDay() === 0 || dtAtual.getDay() === 6);
-            const ehFeriado = feriadosOficiaisNacionais.includes(dtIso);
-
-            if (eh40h) {
-              if (ehFds || ehFeriado) {
-                line += `<td class="col-dia-coren st-fol">F</td>`;
-              } else {
-                line += `<td class="col-dia-coren st-adm">ADM</td>`;
-              }
-            } else {
-              const resDia = calcularEscalaNoDia(dtIso, dataBaseStr, "24x96");
-              const ehPlantaoCond = resDia.cond.includes(c.nome);
-              const ehPlantaoTec = resDia.tec.includes(c.nome);
-              const atestado = afastamentos.find(a => a.servidor === c.nome && dtIso >= a.inicio && dtIso <= a.fim);
-
-              if (atestado) {
-                line += `<td class="col-dia-coren st-atest">A</td>`;
-              } else if (ehPlantaoCond || ehPlantaoTec) {
-                line += `<td class="col-dia-coren st-i">I</td>`;
-              } else {
-                line += `<td class="col-dia-coren st-fol">F</td>`;
-              }
-            }
-          }
-          line += `</tr>`;
-          bodyCoren.innerHTML += line;
-        });
-      }
-
-      // 3. CONDIÇÕES EM TEMPO REAL
-      const resHoje = calcularEscalaNoDia(dtIsoHoje, dataBaseStr, "24x96");
-      const elCond = document.getElementById("tvCondutorHoje");
-      const elTec = document.getElementById("tvTecnicoHoje");
-      if (elCond) elCond.innerHTML = resHoje.cond;
-      if (elTec) elTec.innerHTML = resHoje.tec;
     }
 
     function init() {
       carregarDados();
-
-      setInterval(async () => {
-        await carregarDados();
-      }, 60000);
     }
 
     function trocarAba(aba) {
@@ -1170,10 +807,25 @@
     }
 
     function alterarRegimeVisual(val) {
+      document.body.className = (val === 'coren') ? 'modo-paisagem' : 'modo-retrato';
       renderizarEscalas();
     }
 
     function imprimirAjustado() {
+      const regime = document.getElementById("escalaRegime").value;
+      let stylePage = document.getElementById("dynamicPageStyle");
+      if (!stylePage) {
+        stylePage = document.createElement("style");
+        stylePage.id = "dynamicPageStyle";
+        document.head.appendChild(stylePage);
+      }
+
+      if (regime === "coren") {
+        stylePage.innerHTML = "@page { size: A4 landscape; margin: 3mm; }";
+      } else {
+        stylePage.innerHTML = "@page { size: A4 portrait; margin: 4mm; }";
+      }
+
       window.print();
     }
 
@@ -1995,11 +1647,13 @@
       const afTec = afastamentos.find(a => a.funcao && (a.funcao.includes("Técnic") || a.funcao.includes("Enfermeir")) && !a.funcao.includes("Coordenadora") && a.regime && a.regime.includes("Categoria") && dtIso >= a.inicio && dtIso <= a.fim);
 
       if (afCond) {
+        // Sequência exata da rotação em 24x72 iniciando por quem cobriu no dia 20/06 (Renato Cândido)
         const condutoresAtivos = ["Renato Cândido", "Daniel Alexandre Fernandes", "Vanderlei José Tasca", "Márcio Becker"];
         const dtIniAf = new Date(afCond.inicio + "T00:00:00");
         const diffAf = Math.floor((dtAtual.getTime() - dtIniAf.getTime()) / (1000 * 3600 * 24));
         if (diffAf >= 0 && condutoresAtivos.length > 0) {
           cond = condutoresAtivos[diffAf % condutoresAtivos.length];
+          // Mantém a observação da linha limpa, pois a explicação estará na nota do rodapé
           obs = "-";
         }
       }
@@ -2010,6 +1664,7 @@
         const diffAf = Math.floor((dtAtual.getTime() - dtIniAf.getTime()) / (1000 * 3600 * 24));
         if (diffAf >= 0 && tecsAtivos.length > 0) {
           tec = tecsAtivos[diffAf % tecsAtivos.length];
+          // Mantém a observação da linha limpa, pois a explicação estará na nota do rodapé
           obs = "-";
         }
       }
@@ -2111,9 +1766,11 @@
       const primeiroDiaMesStr = `${ano}-${String(mes).padStart(2,'0')}-01`;
       const ultimoDiaMesStr = `${ano}-${String(mes).padStart(2,'0')}-${String(diasNoMes).padStart(2,'0')}`;
 
+      // VERIFICAÇÃO DE NOTAS EXPLICATIVAS DE CATEGORIA NO RODAPÉ DO MÊS
       const notasMes = [];
       afastamentos.forEach(a => {
         if (a.regime && a.regime.includes("Categoria")) {
+          // Verifica se o afastamento intercepta o mês atual
           if (a.inicio <= ultimoDiaMesStr && a.fim >= primeiroDiaMesStr) {
             const dtIniFmt = a.inicio.split('-').reverse().join('/');
             const dtFimFmt = a.fim.split('-').reverse().join('/');
