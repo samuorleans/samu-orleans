@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sistema Integrado de Escalas e Trocas — SAMU 192 USB 11 Orleans</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --red-primary: #b71c1c;
+      --red-dark: #880e4f;
+      --slate-dark: #0f172a;
+      --bg-main: #cbd5e1;
+      --border-color: #94a3b8;
+    }
+
+    * { box-sizing: border-box; font-family: 'Inter', Arial, sans-serif; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden !important;
+      background-color: var(--bg-main);
+      padding: 0.3vh 0.3vw;
+    }
+
+    /* GRID PRINCIPAL MODELO TELA TV */
+    .tv-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 0.4vw;
+      width: 100%;
+      height: calc(100vh - 0.6vh);
+    }
+
+    /* COLUNA DA ESQUERDA: ESCALA EM CIMA + MATRIZ COREN EM BAIXO */
+    .tv-col-esquerda {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4vh;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* COLUNA DA DIREITA: TEMPO REAL / TROCAS / AVISOS */
+    .tv-col-direita {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4vh;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .tv-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 0.3vh 0.4vw;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+
+    .tv-card h3 {
+      font-size: clamp(8.5px, 0.85vh, 12px);
+      color: var(--slate-dark);
+      border-bottom: 2px solid var(--red-primary);
+      padding-bottom: 0.2vh;
+      margin-bottom: 0.3vh;
+      text-transform: uppercase;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tv-table-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+      border-radius: 3px;
+    }
+
+    table {
+      width: 100%;
+      height: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th {
+      background: var(--slate-dark);
+      color: #ffffff;
+      font-size: clamp(6.5px, 0.75vh, 10px);
+      text-transform: uppercase;
+      padding: 0.15vh 1px;
+      text-align: center;
+    }
+
+    td {
+      padding: 0 2px;
+      border-bottom: 1px solid #e2e8f0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+      font-size: clamp(6px, 0.72vh, 9.5px);
+      line-height: 1;
+    }
+
+    /* ESCALA OPERACIONAL COMPACTA NA ESQUERDA SUPERIOR */
+    #tblEscalaOperacional tbody tr {
+      height: calc((66vh - 4vh) / 31);
+    }
+
+    .col-dia { width: 10%; font-weight: bold; }
+    .col-sem { width: 6%; }
+    .col-per { width: 8%; }
+    .col-cond { width: 28%; text-align: left !important; font-weight: 600; padding-left: 2px; }
+    .col-tec { width: 28%; text-align: left !important; font-weight: 600; padding-left: 2px; }
+    .col-obs { width: 20%; text-align: left !important; font-size: clamp(5.5px, 0.65vh, 8.5px); color: #0284c7; padding-left: 2px; }
+
+    .txt-fds-vermelho { color: #dc2626 !important; font-weight: 800 !important; }
+    
+    .tr-hoje-destaque {
+      background-color: #dc2626 !important;
+      color: #ffffff !important;
+    }
+    .tr-hoje-destaque td { color: #ffffff !important; font-weight: 800 !important; }
+
+    /* MATRIZ COREN ACHATADA NO RODAPÉ ESQUERDO */
+    #tblCorenMatriz tbody tr {
+      height: calc((34vh - 4vh) / 12);
+    }
+
+    #tblCorenMatriz th.col-dia-coren,
+    #tblCorenMatriz td.col-dia-coren {
+      width: 2.1%;
+      padding: 0 !important;
+      font-size: clamp(5px, 0.6vh, 7.5px) !important;
+      font-weight: bold;
+    }
+
+    .st-i { background-color: #fef08a !important; color: #854d0e !important; }
+    .st-fol { background-color: #dcfce7 !important; color: #166534 !important; }
+    .st-adm { background-color: #e0f2fe !important; color: #0369a1 !important; }
+    .st-atest { background-color: #fee2e2 !important; color: #991b1b !important; }
+
+    /* ESTILOS DA COLUNA DIREITA */
+    .tv-plantao-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.3vw;
+    }
+
+    .tv-plantao-box {
+      background: linear-gradient(135deg, var(--red-primary) 0%, var(--red-dark) 100%);
+      border-radius: 3px;
+      padding: 0.4vh 0.3vw;
+      text-align: center;
+      color: #ffffff;
+    }
+    .tv-plantao-cargo { font-size: clamp(6px, 0.7vh, 8.5px); text-transform: uppercase; opacity: 0.9; }
+    .tv-plantao-nome { font-size: clamp(8px, 1vh, 12px); font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .box-status-viatura {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 0.3vh 0.4vw;
+      border-radius: 3px;
+      margin-top: 0.4vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4vw;
+    }
+
+    .logo-viatura-tv {
+      max-height: 2.2vh;
+      max-width: 2.2vw;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="tv-grid">
+    <!-- COLUNA DA ESQUERDA (ESCALA OPERACIONAL EM CIMA + COREN EM BAIXO) -->
+    <div class="tv-col-esquerda">
+      <!-- ESCALA OPERACIONAL SUPERIOR -->
+      <div class="tv-card" style="height: 66vh;">
+        <h3>
+          <span>📅 ESCALA MENSUAL OPERACIONAL</span>
+          <span id="tvTituloMes" style="color:#b71c1c;">AGOSTO / 2026</span>
+        </h3>
+        <div class="tv-table-container">
+          <table id="tblEscalaOperacional">
+            <thead>
+              <tr>
+                <th class="col-dia">DIA</th>
+                <th class="col-sem">SEM</th>
+                <th class="col-per">PERÍODO</th>
+                <th class="col-cond">CONDUTOR SOCORRISTA</th>
+                <th class="col-tec">TÉCNICO DE ENFERMAGEM</th>
+                <th class="col-obs">OBS.</th>
+              </tr>
+            </thead>
+            <tbody id="bodyEscala"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MATRIZ COREN INFERIOR -->
+      <div class="tv-card" style="height: 34vh;">
+        <h3>
+          <span>📋 MATRIZ OFICIAL COREN — ORLEANS</span>
+          <span id="tvTituloMesCoren" style="color:#b71c1c;">AGOSTO / 2026</span>
+        </h3>
+        <div class="tv-table-container">
+          <table id="tblCorenMatriz">
+            <thead id="headCoren"></thead>
+            <tbody id="bodyCoren"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUNA DA DIREITA (TEMPO REAL / TROCAS / AVISOS) -->
+    <div class="tv-col-direita">
+      <!-- CARD 1: CONDIÇÕES EM TEMPO REAL -->
+      <div class="tv-card" style="height: 18vh;">
+        <h3>⏱️ CONDIÇÕES EM TEMPO REAL</h3>
+        <div style="display:flex; flex-direction:column; justify-content:center; height:100%;">
+          <div class="tv-plantao-container">
+            <div class="tv-plantao-box">
+              <div class="tv-plantao-cargo">🚘 CONDUTOR HOJE</div>
+              <div class="tv-plantao-nome" id="tvCondutorHoje">—</div>
+            </div>
+            <div class="tv-plantao-box" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+              <div class="tv-plantao-cargo">🩺 TÉCNICO HOJE</div>
+              <div class="tv-plantao-nome" id="tvTecnicoHoje">—</div>
+            </div>
+          </div>
+          <div class="box-status-viatura">
+            <img src="logo.png" alt="Logo SAMU" class="logo-viatura-tv" onerror="this.style.display='none'">
+            <div style="font-size:clamp(7px, 0.85vh, 10.5px); font-weight:800; color:#16a34a;">
+              🟢 STATUS VIATURA USB 11: EM OPERAÇÃO / DISPONÍVEL
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2: TROCAS & COBERTURAS ATIVAS -->
+      <div class="tv-card" style="flex: 1;">
+        <h3>🔄 TROCAS & COBERTURAS ATIVAS</h3>
+        <div style="font-size:clamp(7px, 0.82vh, 10px); color:#334155; height:100%; display:flex; flex-direction:column; padding:0.2vh 0;">
+          <p style="color:#64748b; font-size:clamp(6.5px, 0.75vh, 9px);">• Sincronização em tempo real com Supabase.</p>
+          <div id="tvConteudoTrocas" style="background:#f8fafc; border:1px solid #e2e8f0; padding:0.6vh 0.4vw; border-radius:3px; flex:1; margin-top:0.3vh; overflow:hidden;">
+            <small style="color:#64748b;">Nenhuma alteração pendente para a data de hoje.</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: AVISOS OPERACIONAIS USB 11 -->
+      <div class="tv-card" style="height: 22vh;">
+        <h3>📢 AVISOS OPERACIONAIS USB 11</h3>
+        <div style="font-size:clamp(7px, 0.82vh, 10px); color:#334155; height:100%; display:flex; flex-direction:column; justify-content:flex-start; gap:0.4vh; padding:0.2vh 0;">
+          <p style="background:#f8fafc; padding:0.4vh 0.4vw; border-left:3px solid #b71c1c; border-radius:2px;">• Checklist diário da viatura deve ser realizado impreterivelmente às 07h.</p>
+          <p style="background:#f8fafc; padding:0.4vh 0.4vw; border-left:3px solid #0284c7; border-radius:2px;">• Unidade operacional conectada ao Supabase - rede nacional.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co"; 
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A"; 
+    let dbNuvem = null;
+
+    try {
+      if (typeof supabase !== 'undefined') {
+        dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+    } catch(e) {}
+
+    const feriadosOficiaisNacionais = [
+      "2026-01-01", "2026-02-16", "2026-02-17", "2026-04-03", "2026-04-21", 
+      "2026-05-01", "2026-06-04", "2026-09-07", "2026-10-12", "2026-11-02", 
+      "2026-11-15", "2026-12-25"
+    ];
+
+    const duplasPadrao = [
+      { cond: "Renato Cândido", tec: "Luis Eduardo Formanski Vitório" },
+      { cond: "Daniel Alexandre Fernandes", tec: "Gicerléia Trindade da Rosa" },
+      { cond: "Vanderlei José Tasca", tec: "Suandre Adão Machado" },
+      { cond: "Márcio Becker", tec: "Rinaldo Calegario" },
+      { cond: "Lucas Vieira Mendes", tec: "Clênio Borges" }
+    ];
+
+    const diasSemanaAbrev = ["dom.", "seg.", "ter.", "qua.", "qui.", "sex.", "sáb."];
+    const mesesNomes = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"];
+
+    let colaboradoresGlobal = [];
+    let trocasGlobal = [];
+    let afastamentosGlobal = [];
+
+    async function sincronizarBancoGeral() {
+      if (!dbNuvem) return;
+      try {
+        const { data: cData } = await dbNuvem.from('colaboradores').select('*');
+        colaboradoresGlobal = cData || [];
+
+        const { data: tData } = await dbNuvem.from('trocas').select('*');
+        trocasGlobal = tData || [];
+
+        const { data: aData } = await dbNuvem.from('afastamentos').select('*');
+        afastamentosGlobal = (aData || []).map(a => ({
+          ...a,
+          substitutosDiarios: typeof a.substitutosDiarios === 'string' 
+            ? JSON.parse(a.substitutosDiarios) 
+            : a.substitutosDiarios
+        }));
+      } catch(e) {
+        console.error("Erro ao sincronizar banco na TV:", e);
+      }
+    }
+
+    function calcularDiaOficial(dtIso, dataBaseStr = "2026-06-01") {
+      const dataBase = new Date(dataBaseStr + "T00:00:00");
+      const dtAtual = new Date(dtIso + "T00:00:00");
+      
+      const diffTime = dtAtual.getTime() - dataBase.getTime();
+      const diasCorridosBase = Math.floor(diffTime / (1000 * 3600 * 24));
+
+      if (diasCorridosBase < 0) {
+        return { cond: "FORA DA SEQUÊNCIA", tec: "FORA DA SEQUÊNCIA", obs: "-" };
+      }
+
+      const eqIndex2496 = ((diasCorridosBase % duplasPadrao.length) + duplasPadrao.length) % duplasPadrao.length;
+      let cond = duplasPadrao[eqIndex2496].cond;
+      let tec = duplasPadrao[eqIndex2496].tec;
+      let obs = "-";
+
+      const afCond = afastamentosGlobal.find(a => a.funcao && a.funcao.includes("Condutor") && a.regime && a.regime.includes("Categoria") && dtIso >= a.inicio && dtIso <= a.fim);
+      const afTec = afastamentosGlobal.find(a => a.funcao && (a.funcao.includes("Técnic") || a.funcao.includes("Enfermeir")) && !a.funcao.includes("Coordenadora") && a.regime && a.regime.includes("Categoria") && dtIso >= a.inicio && dtIso <= a.fim);
+
+      if (afCond) {
+        const condutoresAtivos = ["Renato Cândido", "Daniel Alexandre Fernandes", "Vanderlei José Tasca", "Márcio Becker"];
+        const dtIniAf = new Date(afCond.inicio + "T00:00:00");
+        const diffAf = Math.floor((dtAtual.getTime() - dtIniAf.getTime()) / (1000 * 3600 * 24));
+        if (diffAf >= 0 && condutoresAtivos.length > 0) {
+          cond = condutoresAtivos[diffAf % condutoresAtivos.length];
+        }
+      }
+
+      if (afTec) {
+        const tecsAtivos = ["Luis Eduardo Formanski Vitório", "Gicerléia Trindade da Rosa", "Suandre Adão Machado", "Rinaldo Calegario"];
+        const dtIniAf = new Date(afTec.inicio + "T00:00:00");
+        const diffAf = Math.floor((dtAtual.getTime() - dtIniAf.getTime()) / (1000 * 3600 * 24));
+        if (diffAf >= 0 && tecsAtivos.length > 0) {
+          tec = tecsAtivos[diffAf % tecsAtivos.length];
+        }
+      }
+
+      afastamentosGlobal.forEach(atestado => {
+        if (dtIso >= atestado.inicio && dtIso <= atestado.fim) {
+          const substDia = atestado.substitutosDiarios ? atestado.substitutosDiarios[dtIso] : null;
+          const labelMotivo = atestado.tipoMotivo || "Atestado";
+
+          if (cond === atestado.servidor) {
+            if (substDia && substDia !== "A DEFINIR") {
+              cond = `${substDia} (Subst.)`;
+              obs = `Cobertura: ${atestado.servidor}`;
+            } else if (atestado.regime && !atestado.regime.includes("Categoria")) {
+              cond = `<span style="color:#dc2626; font-weight:bold;">SUBSTITUTO A DEFINIR</span>`;
+              obs = `${labelMotivo}: ${atestado.servidor}`;
+            }
+          }
+
+          if (tec === atestado.servidor) {
+            if (substDia && substDia !== "A DEFINIR") {
+              tec = `${substDia} (Subst.)`;
+              obs = `Cobertura: ${atestado.servidor}`;
+            } else if (atestado.regime && !atestado.regime.includes("Categoria")) {
+              tec = `<span style="color:#dc2626; font-weight:bold;">SUBSTITUTO A DEFINIR</span>`;
+              obs = `${labelMotivo}: ${atestado.servidor}`;
+            }
+          }
+        }
+      });
+
+      const trocasAprovadas = trocasGlobal.filter(t => (t.dataMinha === dtIso || t.dataDevolucao === dtIso) && (t.status === "APROVADO" || t.status === "PAGO / QUITADO"));
+      
+      if (trocasAprovadas.length > 0) {
+        let condDiurno = null, condNoturno = null;
+        let tecDiurno = null, tecNoturno = null;
+
+        trocasAprovadas.forEach(t => {
+          const p = t.periodo || "24h";
+          const ehMinhaData = (t.dataMinha === dtIso);
+          const titular = ehMinhaData ? t.solicitante : t.substituto;
+          const cobridor = ehMinhaData ? t.substituto : t.solicitante;
+
+          if (cond.includes(titular) || cond.includes(cobridor)) {
+            if (p === "24h") {
+              cond = `${cobridor} (Subst. 24h)`;
+            } else if (p === "12h_diurno") {
+              condDiurno = `${cobridor} (Diurno)`;
+              condNoturno = `${titular} (Noturno)`;
+            } else if (p === "12h_noturno") {
+              condDiurno = `${titular} (Diurno)`;
+              condNoturno = `${cobridor} (Noturno)`;
+            }
+          }
+
+          if (tec.includes(titular) || tec.includes(cobridor)) {
+            if (p === "24h") {
+              tec = `${cobridor} (Subst. 24h)`;
+            } else if (p === "12h_diurno") {
+              tecDiurno = `${cobridor} (Diurno)`;
+              tecNoturno = `${titular} (Noturno)`;
+            } else if (p === "12h_noturno") {
+              tecDiurno = `${titular} (Diurno)`;
+              tecNoturno = `${cobridor} (Noturno)`;
+            }
+          }
+
+          obs = `Troca Aprovada #${t.id}`;
+        });
+
+        if (condDiurno && condNoturno) cond = `<b>${condDiurno}</b> / <b>${condNoturno}</b>`;
+        if (tecDiurno && tecNoturno) tec = `<b>${tecDiurno}</b> / <b>${tecNoturno}</b>`;
+      }
+
+      return { cond, tec, obs };
+    }
+
+    async function renderizarTV() {
+      await sincronizarBancoGeral();
+
+      const hoje = new Date();
+      const ano = hoje.getFullYear();
+      const mes = hoje.getMonth() + 1;
+      const diaAtual = hoje.getDate();
+      const dtIsoHoje = `${ano}-${String(mes).padStart(2,'0')}-${String(diaAtual).padStart(2,'0')}`;
+
+      const txtMes = `${mesesNomes[mes - 1]} / ${ano}`;
+      document.getElementById("tvTituloMes").innerText = txtMes;
+      document.getElementById("tvTituloMesCoren").innerText = txtMes;
+
+      const tbBody = document.getElementById("bodyEscala");
+      tbBody.innerHTML = "";
+      const diasNoMes = new Date(ano, mes, 0).getDate();
+
+      for (let d = 1; d <= diasNoMes; d++) {
+        const dtIso = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dtObj = new Date(ano, mes - 1, d);
+        const dtFmt = `${String(d).padStart(2,'0')}/${String(mes).padStart(2,'0')}/${ano}`;
+        const res = calcularDiaOficial(dtIso);
+        const ehHoje = (d === diaAtual);
+        const ehFds = (dtObj.getDay() === 0 || dtObj.getDay() === 6);
+
+        tbBody.innerHTML += `
+          <tr class="${ehHoje ? 'tr-hoje-destaque' : ''}">
+            <td class="col-dia"><b>${dtFmt}</b></td>
+            <td class="col-sem ${ehFds ? 'txt-fds-vermelho' : ''}">${diasSemanaAbrev[dtObj.getDay()]}</td>
+            <td class="col-per">07h-07h</td>
+            <td class="col-cond">${res.cond}</td>
+            <td class="col-tec">${res.tec}</td>
+            <td class="col-obs">${res.obs}</td>
+          </tr>
+        `;
+      }
+
+      const headCoren = document.getElementById("headCoren");
+      const bodyCoren = document.getElementById("bodyCoren");
+      let headHtml = `<tr><th style="text-align:left; width:26%;">COLABORADOR</th><th style="width:7%;">REG.</th>`;
+      for (let d = 1; d <= diasNoMes; d++) headHtml += `<th class="col-dia-coren">${String(d).padStart(2,'0')}</th>`;
+      headHtml += `</tr>`;
+      headCoren.innerHTML = headHtml;
+
+      const lista = colaboradoresGlobal.length > 0 
+        ? colaboradoresGlobal.sort((a,b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+        : [
+            { nome: "Edimara Tochetto Suaya Netto", coren: "110151", funcao: "Enfermeira Coordenadora" },
+            { nome: "Administrador do Sistema", coren: "N/A", funcao: "Administrador" },
+            { nome: "Clênio Borges", coren: "682518", funcao: "Técnico de Enfermagem" },
+            { nome: "Daniel Alexandre Fernandes", coren: "6001667738", funcao: "Condutor Socorrista" },
+            { nome: "Gicerléia Trindade da Rosa", coren: "870998", funcao: "Técnica de Enfermagem" },
+            { nome: "Lucas Vieira Mendes", coren: "3419217070", funcao: "Condutor Socorrista" },
+            { nome: "Luis Eduardo Formanski Vitório", coren: "1551746", funcao: "Técnico de Enfermagem" },
+            { nome: "Márcio Becker", coren: "17223945", funcao: "Condutor Socorrista" },
+            { nome: "Renato Cândido", coren: "2157610821", funcao: "Condutor Socorrista" },
+            { nome: "Rinaldo Calegario", coren: "593971", funcao: "Técnico de Enfermagem" },
+            { nome: "Suandre Adão Machado", coren: "59894", funcao: "Técnico de Enfermagem" },
+            { nome: "Vanderlei José Tasca", coren: "840076430", funcao: "Condutor Socorrista" }
+          ];
+
+      bodyCoren.innerHTML = "";
+      lista.forEach(c => {
+        let regExibido = (c.coren && c.coren !== "N/A") ? c.coren : (c.cnh || "N/A");
+        let line = `<tr><td style="text-align:left; font-weight:bold; font-size:clamp(5.5px, 0.65vh, 8.5px); padding-left:2px;">${c.nome}</td><td style="font-size:clamp(5px, 0.6vh, 7.5px);">${regExibido}</td>`;
+        const eh40h = c.funcao && (c.funcao.includes("Coordenadora") || c.funcao.includes("Administrador"));
+
+        for (let d = 1; d <= diasNoMes; d++) {
+          const dtObj = new Date(ano, mes - 1, d);
+          const dtIso = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+          const ehFds = (dtObj.getDay() === 0 || dtObj.getDay() === 6);
+          const ehFeriado = feriadosOficiaisNacionais.includes(dtIso);
+
+          if (eh40h) {
+            line += `<td class="col-dia-coren ${ehFds || ehFeriado ? 'st-fol' : 'st-adm'}">${ehFds || ehFeriado ? 'F' : 'ADM'}</td>`;
+          } else {
+            const resDia = calcularDiaOficial(dtIso);
+            const ehPlantaoCond = resDia.cond.includes(c.nome);
+            const ehPlantaoTec = resDia.tec.includes(c.nome);
+            const atestado = afastamentosGlobal.find(a => a.servidor === c.nome && dtIso >= a.inicio && dtIso <= a.fim);
+
+            if (atestado) {
+              line += `<td class="col-dia-coren st-atest">A</td>`;
+            } else if (ehPlantaoCond || ehPlantaoTec) {
+              line += `<td class="col-dia-coren st-i">I</td>`;
+            } else {
+              line += `<td class="col-dia-coren st-fol">F</td>`;
+            }
+          }
+        }
+        line += `</tr>`;
+        bodyCoren.innerHTML += line;
+      });
+
+      const resHoje = calcularDiaOficial(dtIsoHoje);
+      document.getElementById("tvCondutorHoje").innerHTML = resHoje.cond;
+      document.getElementById("tvTecnicoHoje").innerHTML = resHoje.tec;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderizarTV();
+      setInterval(renderizarTV, 30000);
+    });
+  </script>
+</body>
+</html>
