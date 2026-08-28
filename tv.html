@@ -40,13 +40,13 @@
       overflow: hidden;
     }
 
-    /* CARDS SUPERIORES BEM MAIORES */
+    /* CARDS SUPERIORES AINDA MAIORES (EXPANDIDOS PARA EMPURRAR A MATRIZ COREN) */
     .tv-row-cards {
       display: grid;
       grid-template-columns: 0.85fr 1.05fr 1.1fr;
       gap: 0.4vw;
-      height: 32vh; /* Aumentado para dar destaque */
-      min-height: 32vh;
+      height: 42vh; 
+      min-height: 42vh;
     }
 
     .tv-col-direita {
@@ -136,16 +136,16 @@
     }
     .tr-hoje-destaque td { color: #ffffff !important; font-weight: 800 !important; }
 
-    /* MATRIZ COREN ACHATADA E DATEDA COMPACTA (IGUAL À FOTO) */
+    /* MATRIZ COREN ACHATADA NO RODAPÉ */
     #tblCorenMatriz tbody tr {
-      height: calc((65vh - 4vh) / 12); /* Linhas super compactas */
+      height: calc((55vh - 4vh) / 12);
     }
 
     #tblCorenMatriz th.col-dia-coren,
     #tblCorenMatriz td.col-dia-coren {
       width: 2.1%;
       padding: 0 !important;
-      font-size: clamp(5.5px, 0.65vh, 8px) !important;
+      font-size: clamp(5px, 0.6vh, 7.5px) !important;
       font-weight: bold;
     }
 
@@ -154,21 +154,21 @@
     .st-adm { background-color: #e0f2fe !important; color: #0369a1 !important; }
     .st-atest { background-color: #fee2e2 !important; color: #991b1b !important; }
 
-    /* CARDS DE TEMPO REAL E AVISOS */
+    /* CARDS SUPERIORES */
     .tv-plantao-box {
       background: linear-gradient(135deg, var(--red-primary) 0%, var(--red-dark) 100%);
       border-radius: 4px;
-      padding: 0.5vh 0.4vw;
+      padding: 0.8vh 0.4vw;
       text-align: center;
       color: #ffffff;
     }
-    .tv-plantao-cargo { font-size: clamp(6.5px, 0.75vh, 9px); text-transform: uppercase; opacity: 0.9; }
-    .tv-plantao-nome { font-size: clamp(9px, 1.1vh, 13px); font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tv-plantao-cargo { font-size: clamp(7px, 0.85vh, 10px); text-transform: uppercase; opacity: 0.9; }
+    .tv-plantao-nome { font-size: clamp(10px, 1.3vh, 15px); font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     .box-status-viatura {
       background: #f1f5f9;
       border: 1px solid #cbd5e1;
-      padding: 0.4vh 0.4vw;
+      padding: 0.6vh 0.5vw;
       border-radius: 4px;
       display: flex;
       align-items: center;
@@ -177,8 +177,8 @@
     }
 
     .logo-viatura-tv {
-      max-height: 3.5vh;
-      max-width: 3.5vw;
+      max-height: 4.5vh;
+      max-width: 4.5vw;
       object-fit: contain;
     }
   </style>
@@ -188,11 +188,11 @@
   <div class="tv-grid">
     <!-- ESQUERDA -->
     <div class="tv-col-esquerda">
-      <!-- 3 CARDS SUPERIORES EXPANDIDOS -->
+      <!-- 3 CARDS SUPERIORES AMPLIADOS -->
       <div class="tv-row-cards">
         <div class="tv-card">
           <h3>⏱️ Tempo Real</h3>
-          <div style="display:flex; flex-direction:column; gap:0.5vh; height:100%; justify-content:space-around;">
+          <div style="display:flex; flex-direction:column; gap:0.6vh; height:100%; justify-content:space-around;">
             <div class="tv-plantao-box">
               <div class="tv-plantao-cargo">🚘 Condutor Hoje</div>
               <div class="tv-plantao-nome" id="tvCondutorHoje">—</div>
@@ -204,8 +204,8 @@
             <div class="box-status-viatura">
               <img src="logo.png" alt="Logo SAMU" class="logo-viatura-tv" onerror="this.style.display='none'">
               <div style="text-align:right;">
-                <div style="font-size:clamp(6px, 0.7vh, 8.5px); color:#64748b; font-weight:bold;">USB 11 ORLEANS</div>
-                <div style="font-size:clamp(8px, 1vh, 11px); font-weight:800; color:#16a34a;">🟢 OPERACIONAL</div>
+                <div style="font-size:clamp(6.5px, 0.75vh, 9px); color:#64748b; font-weight:bold;">USB 11 ORLEANS</div>
+                <div style="font-size:clamp(8.5px, 1.1vh, 12px); font-weight:800; color:#16a34a;">🟢 OPERACIONAL</div>
               </div>
             </div>
           </div>
@@ -213,9 +213,9 @@
 
         <div class="tv-card">
           <h3>🔄 Trocas & Coberturas</h3>
-          <div style="font-size:clamp(7px, 0.82vh, 10.5px); color:#334155; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:0.2vh 0;">
+          <div style="font-size:clamp(7.5px, 0.9vh, 11px); color:#334155; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:0.2vh 0;">
             <p style="font-weight:600;">• Sincronizado via Supabase.</p>
-            <div id="tvConteudoTrocas" style="background:#f8fafc; border:1px solid #e2e8f0; padding:0.6vh 0.4vw; border-radius:4px; flex:1; margin-top:0.3vh; overflow:hidden;">
+            <div id="tvConteudoTrocas" style="background:#f8fafc; border:1px solid #e2e8f0; padding:0.8vh 0.5vw; border-radius:4px; flex:1; margin-top:0.4vh; overflow:hidden;">
               <small style="color:#64748b;">Nenhuma alteração de plantão pendente para a data de hoje.</small>
             </div>
           </div>
@@ -223,14 +223,14 @@
 
         <div class="tv-card">
           <h3>📢 Avisos USB 11</h3>
-          <div style="font-size:clamp(7px, 0.82vh, 10.5px); color:#334155; height:100%; display:flex; flex-direction:column; justify-content:flex-start; gap:0.5vh; padding:0.2vh 0;">
-            <p style="background:#f8fafc; padding:0.4vh 0.4vw; border-left:3px solid #b71c1c; border-radius:2px;">• <b>Checklist Diário:</b> Realizar inspeção da viatura pontualmente às 07:00h.</p>
-            <p style="background:#f8fafc; padding:0.4vh 0.4vw; border-left:3px solid #0284c7; border-radius:2px;">• <b>Conexão:</b> Sistema integrado com a nuvem institucional.</p>
+          <div style="font-size:clamp(7.5px, 0.9vh, 11px); color:#334155; height:100%; display:flex; flex-direction:column; justify-content:flex-start; gap:0.6vh; padding:0.2vh 0;">
+            <p style="background:#f8fafc; padding:0.5vh 0.5vw; border-left:3px solid #b71c1c; border-radius:2px;">• <b>Checklist Diário:</b> Realizar inspeção da viatura pontualmente às 07:00h.</p>
+            <p style="background:#f8fafc; padding:0.5vh 0.5vw; border-left:3px solid #0284c7; border-radius:2px;">• <b>Conexão:</b> Sistema integrado com a nuvem institucional.</p>
           </div>
         </div>
       </div>
 
-      <!-- MATRIZ COREN (FORMATO DA FOTO DA TV) -->
+      <!-- MATRIZ COREN ACHATADA NO RODAPÉ -->
       <div class="tv-card" style="flex: 1;">
         <h3>
           <span>📋 MATRIZ OFICIAL COREN — ORLEANS</span>
@@ -478,7 +478,6 @@
       headHtml += `</tr>`;
       headCoren.innerHTML = headHtml;
 
-      // Lista com os nomes idênticos à foto enviada
       const lista = colaboradoresGlobal.length > 0 
         ? colaboradoresGlobal.sort((a,b) => a.nome.localeCompare(b.nome, 'pt-BR'))
         : [
