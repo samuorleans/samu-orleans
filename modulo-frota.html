@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMU Connect - Gestão de Frota & Operações</title>
+    
+    <!-- Bootstrap 5 CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Supabase JS Client (v2) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --primary-navy: #0B192C;
+            --secondary-blue: #1E3E62;
+            --accent-red: #D91656;
+            --bg-light: #F4F6F9;
+            --surface: #FFFFFF;
+            --text-main: #212529;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .navbar-custom {
+            background-color: var(--primary-navy);
+            border-bottom: 4px solid var(--accent-red);
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: var(--secondary-blue);
+            color: #ffffff;
+            border-color: var(--secondary-blue);
+            font-weight: 600;
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--secondary-blue);
+            font-weight: 500;
+        }
+
+        .card-custom {
+            background-color: var(--surface);
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .btn-samu-primary {
+            background-color: var(--secondary-blue);
+            color: white;
+        }
+        .btn-samu-primary:hover {
+            background-color: var(--primary-navy);
+            color: white;
+        }
+
+        .section-header {
+            border-left: 4px solid var(--accent-red);
+            padding-left: 10px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            color: var(--primary-navy);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Centralizado e Padronizado com Logo Oficial -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-4 mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center gap-3" href="#">
+                <img id="app-logo" src="./logo.png" alt="Logo SAMU Connect" style="max-height: 45px; width: auto; object-fit: contain;" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=SAMU+Connect&background=D91656&color=fff&bold=true';">
+                <div>
+                    <span class="fw-bold fs-4 d-block" id="app-title">SAMU Connect</span>
+                    <small class="text-white-50 fs-6" id="app-tenant">USB 11 - ORLEANS / SC</small>
+                </div>
+            </a>
+            <span class="navbar-text text-white bg-dark px-3 py-1 rounded-pill border border-secondary">
+                <i class="bi bi-truck text-warning me-1"></i> Gestão de Frota & Operações (Fase 2)
+            </span>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container-fluid px-4 mb-5">
+
+        <!-- ABAS DE NAVEGAÇÃO DOS FORMULÁRIOS DA FOTA -->
+        <ul class="nav nav-tabs mb-4" id="frotaTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fs-6 px-3 py-2" id="condutor-tab" data-bs-toggle="tab" data-bs-target="#condutor-pane" type="button" role="tab">
+                    <i class="bi bi-person-gear me-1"></i> Check Condutor
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fs-6 px-3 py-2" id="tecnico-tab" data-bs-toggle="tab" data-bs-target="#tecnico-pane" type="button" role="tab">
+                    <i class="bi bi-heart-pulse me-1"></i> Check Enfermagem
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fs-6 px-3 py-2" id="abastecimento-tab" data-bs-toggle="tab" data-bs-target="#abastecimento-pane" type="button" role="tab">
+                    <i class="bi bi-fuel-pump me-1"></i> Abastecimento
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fs-6 px-3 py-2" id="lacre-tab" data-bs-toggle="tab" data-bs-target="#lacre-pane" type="button" role="tab">
+                    <i class="bi bi-shield-lock me-1"></i> Troca de Lacres
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fs-6 px-3 py-2" id="manutencao-tab" data-bs-toggle="tab" data-bs-target="#manutencao-pane" type="button" role="tab">
+                    <i class="bi bi-tools me-1"></i> Livro de Manutenção
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="frotaTabsContent">
+
+            <!-- ============================================================================== -->
+            <!-- 1. FORMULÁRIO CHECKLIST DO CONDUTOR -->
+            <!-- ============================================================================== -->
+            <div class="tab-pane fade show active" id="condutor-pane" role="tabpanel">
+                <div class="card card-custom p-4">
+                    <h5 class="section-header">Vistoria de Passagem de Turno - Socorrista Condutor</h5>
+                    <form id="form-checklist-condutor">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Viatura *</label>
+                                <select class="form-select select-viatura" id="cond-viatura-id" required>
+                                    <option value="">Carregando viaturas...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Socorrista Condutor *</label>
+                                <select class="form-select select-condutor" id="cond-condutor-id" required>
+                                    <option value="">Carregando condutores...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Turno do Plantão *</label>
+                                <select class="form-select" id="cond-turno" required>
+                                    <option value="PLANTAO_DIA_12H" selected>Diurno (12h)</option>
+                                    <option value="PLANTAO_NOITE_12H">Noturno (12h)</option>
+                                    <option value="EXPEDIENTE_24H">Plantão 24h</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">KM Atual da Viatura *</label>
+                                <input type="number" class="form-control" id="cond-km-atual" placeholder="Ex: 145230" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">KM Próxima Troca de Óleo *</label>
+                                <input type="number" class="form-control" id="cond-km-troca-oleo" placeholder="Ex: 150000" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Nível de Combustível *</label>
+                                <select class="form-select" id="cond-combustivel" required>
+                                    <option value="TANQUE_CHEIO" selected>Tanque Cheio (1/1)</option>
+                                    <option value="TRES_QUARTOS">3/4 Tanque</option>
+                                    <option value="MEIO_TANQUE">Meio Tanque (1/2)</option>
+                                    <option value="UM_QUARTO">1/4 Tanque</option>
+                                    <option value="RESERVA">Reserva (Atenção)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Nível ARLA 32 *</label>
+                                <select class="form-select" id="cond-arla32" required>
+                                    <option value="OK_CHEIO" selected>Ok / Cheio</option>
+                                    <option value="MEIO">Meio Tanque</option>
+                                    <option value="BAIXO_NECCESSITA_RESERVA">Baixo / Recompletar</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Pneus Dianteiros *</label>
+                                <select class="form-select" id="cond-pneus-dianteiros" required>
+                                    <option value="BOM_ESTADO" selected>Bom Estado / Calibrados</option>
+                                    <option value="GASTO_ATENCAO">Desgaste Moderado</option>
+                                    <option value="CRITICO_SUBSTITUIR">Crítico / Substituir</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Pneus Traseiros *</label>
+                                <select class="form-select" id="cond-pneus-traseiros" required>
+                                    <option value="BOM_ESTADO" selected>Bom Estado / Calibrados</option>
+                                    <option value="GASTO_ATENCAO">Desgaste Moderado</option>
+                                    <option value="CRITICO_SUBSTITUIR">Crítico / Substituir</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Pneu Estepe *</label>
+                                <select class="form-select" id="cond-pneu-estepe" required>
+                                    <option value="PRONTO_USO" selected>Pronto p/ Uso</option>
+                                    <option value="DESCALIBRADO">Descalibrado</option>
+                                    <option value="AUSENTE_FURADO">Ausente / Avariado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Manômetro Cilindro Portátil 2 *</label>
+                                <input type="text" class="form-control" id="cond-o2-portatil-2" placeholder="Ex: 150 BAR / 2000 PSI" required>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">EPIs Conforme NR-32 (Conferidos) *</label>
+                                <input type="text" class="form-control" id="cond-epis-nr32" value="Óculos, Capa Chuva, Luvas Vaqueta, Colete Refletivo OK" required>
+                            </div>
+                        </div>
+
+                        <!-- Checkbox Mecânica -->
+                        <div class="row g-2 mb-4 bg-light p-3 rounded border">
+                            <div class="col-md-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="chk-farois" checked>
+                                    <label class="form-check-label" for="chk-farois">Faróis / Luzes</label>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="chk-sirene" checked>
+                                    <label class="form-check-label" for="chk-sirene">Sirene Sonora</label>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="chk-giroflex" checked>
+                                    <label class="form-check-label" for="chk-giroflex">Giroflex / LEDs</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="chk-limpeza" checked>
+                                    <label class="form-check-label" for="chk-limpeza">Limpeza Externa/Interna</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="chk-maca" checked>
+                                    <label class="form-check-label" for="chk-maca">Maca Retrátil Trava OK</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Ferramentas de Salvamento Presentes na Viatura</label>
+                            <div class="d-flex gap-3 flex-wrap">
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="ferramentas" value="PÉ_DE_CABRA" checked><label class="form-check-label">Pé de Cabra</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="ferramentas" value="TESOURA_FUNILEIRO" checked><label class="form-check-label">Tesoura Funileiro</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="ferramentas" value="LANTERNA_TATICA" checked><label class="form-check-label">Lanterna Tática</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="ferramentas" value="MACHADO_ALVAPAI" checked><label class="form-check-label">Machado Alvapai</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="ferramentas" value="CONES_SINALIZACAO" checked><label class="form-check-label">Cones de Sinalização</label></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Avarias / Observações da Lataria ou Mecânica</label>
+                            <textarea class="form-control" id="cond-observacoes" rows="2" placeholder="Registre pequenos arranhões, barulhos ou pendências..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-samu-primary btn-lg w-100" id="btn-salvar-condutor">
+                            <i class="bi bi-check-circle-fill me-1"></i> Salvar Checklist do Condutor
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ============================================================================== -->
+            <!-- 2. FORMULÁRIO CHECKLIST DO TÉCNICO DE ENFERMAGEM -->
+            <!-- ============================================================================== -->
+            <div class="tab-pane fade" id="tecnico-pane" role="tabpanel">
+                <div class="card card-custom p-4">
+                    <h5 class="section-header">Vistoria do Salão de Atendimento - Técnico / Enfermeiro</h5>
+                    <form id="form-checklist-tecnico">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Viatura *</label>
+                                <select class="form-select select-viatura" id="tec-viatura-id" required>
+                                    <option value="">Carregando viaturas...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Técnico/Enfermeiro Responsável *</label>
+                                <select class="form-select select-tecnico" id="tec-tecnico-id" required>
+                                    <option value="">Carregando profissionais...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Turno do Plantão *</label>
+                                <select class="form-select" id="tec-turno" required>
+                                    <option value="PLANTAO_DIA_12H" selected>Diurno (12h)</option>
+                                    <option value="PLANTAO_NOITE_12H">Noturno (12h)</option>
+                                    <option value="EXPEDIENTE_24H">Plantão 24h</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Nº Lacre Maleta Psicotrópicos *</label>
+                                <input type="text" class="form-control" id="tec-lacre-psicotropicos" placeholder="Ex: PSI-88741" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Alerta de Status do Salão *</label>
+                                <select class="form-select" id="tec-alerta-critico" required>
+                                    <option value="SEM_ALERTAS" selected>100% Completo & Operacional</option>
+                                    <option value="INSUMO_FALTANTE">Atenção: Insumo Faltante</option>
+                                    <option value="VALIDADE_PROXIMA">Alerta: Item Próximo ao Vencimento</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- MANÔMETROS DE OXIGÊNIO E AR COMPRIMIDO (BAR) -->
+                        <div class="section-header">Pressão dos Cilindros de Oxigênio & Ar (BAR)</div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Cilindro Fixo 1 (BAR) *</label>
+                                <input type="number" class="form-control" id="tec-o2-fixo-1" placeholder="Ex: 150" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Cilindro Fixo 2 (BAR) *</label>
+                                <input type="number" class="form-control" id="tec-o2-fixo-2" placeholder="Ex: 150" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Cilindro Portátil 1 (BAR) *</label>
+                                <input type="number" class="form-control" id="tec-o2-portatil-1" placeholder="Ex: 120" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Ar Comprimido (BAR) *</label>
+                                <input type="number" class="form-control" id="tec-ar-comprimido" placeholder="Ex: 100" required>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-4 bg-light p-3 rounded border">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="chk-mochila-vermelha" checked>
+                                    <label class="form-check-label" for="chk-mochila-vermelha">Mochila Vermelha (Trauma) OK</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="chk-mochila-azul" checked>
+                                    <label class="form-check-label" for="chk-mochila-azul">Mochila Azul (Vias Aéreas) OK</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="chk-maleta-parto" checked>
+                                    <label class="form-check-label" for="chk-maleta-parto">Kit Parto / Obstétrico Selado</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Observações / Insumos Repostos na Passagem</label>
+                            <textarea class="form-control" id="tec-observacoes" rows="2" placeholder="Ex: Repostas 3 ampolas de Dipirona e 2 soros fisiológicos 500ml..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-samu-primary btn-lg w-100" id="btn-salvar-tecnico">
+                            <i class="bi bi-check-circle-fill me-1"></i> Salvar Checklist da Enfermagem
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ============================================================================== -->
+            <!-- 3. FORMULÁRIO DE ABASTECIMENTO DE COMBUSTÍVEL -->
+            <!-- ============================================================================== -->
+            <div class="tab-pane fade" id="abastecimento-pane" role="tabpanel">
+                <div class="card card-custom p-4">
+                    <h5 class="section-header">Lançamento de Abastecimento de Viatura</h5>
+                    <form id="form-abastecimento">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Viatura *</label>
+                                <select class="form-select select-viatura" id="abs-viatura-id" required>
+                                    <option value="">Carregando viaturas...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Condutor Responsável *</label>
+                                <select class="form-select select-condutor" id="abs-condutor-id" required>
+                                    <option value="">Carregando condutores...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Posto Credenciado *</label>
+                                <select class="form-select" id="abs-posto-id" required>
+                                    <option value="">Carregando postos...</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Tipo de Combustível *</label>
+                                <select class="form-select" id="abs-combustivel" required>
+                                    <option value="DIESEL_S10" selected>Diesel S10</option>
+                                    <option value="GASOLINA_COMUM">Gasolina Comum</option>
+                                    <option value="ARLA_32">ARLA 32</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">KM Atual do Abastecimento *</label>
+                                <input type="number" class="form-control" id="abs-km-atual" placeholder="Ex: 145320" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Litros Abastecidos *</label>
+                                <input type="number" step="0.01" class="form-control" id="abs-litros" placeholder="Ex: 55.40" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Valor Total (R$) *</label>
+                                <input type="number" step="0.01" class="form-control" id="abs-valor-total" placeholder="Ex: 340.00" required>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Número da Nota Fiscal / Cupom Fiscal</label>
+                                <input type="text" class="form-control" id="abs-observacoes-nf" placeholder="Ex: NF-e 000.124.551">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-samu-primary btn-lg w-100" id="btn-salvar-abastecimento">
+                            <i class="bi bi-fuel-pump-fill me-1"></i> Registrar Abastecimento
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ============================================================================== -->
+            <!-- 4. FORMULÁRIO DE SUBSTITUIÇÃO DE LACRES DE SEGURANÇA -->
+            <!-- ============================================================================== -->
+            <div class="tab-pane fade" id="lacre-pane" role="tabpanel">
+                <div class="card card-custom p-4">
+                    <h5 class="section-header">Registro de Rompimento / Troca de Lacres Operacionais</h5>
+                    <form id="form-lacre">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Viatura *</label>
+                                <select class="form-select select-viatura" id="lacre-viatura-id" required>
+                                    <option value="">Carregando viaturas...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Responsável pela Substituição *</label>
+                                <select class="form-select select-todos-colab" id="lacre-responsavel-id" required>
+                                    <option value="">Carregando colaboradores...</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Nº do Lacre Rompido *</label>
+                                <input type="text" class="form-control" id="lacre-rompido" placeholder="Ex: LAC-44102" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Nº do Lacre Novo Aplicado *</label>
+                                <input type="text" class="form-control" id="lacre-novo" placeholder="Ex: LAC-44103" required>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Motivo da Substituição *</label>
+                                <select class="form-select" id="lacre-motivo" required>
+                                    <option value="ROMPIDO_EM_ATENDIMENTO" selected>Rompido durante Atendimento APH</option>
+                                    <option value="CONFERENCIA_DE_INVENTARIO">Conferência / Inventário Semanal</option>
+                                    <option value="SUBSTITUICAO_ITEM_VENCIDO">Troca por Item Vencido</option>
+                                    <option value="LACRE_DANIFICADO">Lacre Danificado / Defeito</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Observações Complementares</label>
+                                <textarea class="form-control" id="lacre-observacoes" rows="2" placeholder="Ex: Rompido para acesso ao kit de parto na ocorrência nº 4521..."></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-samu-primary btn-lg w-100" id="btn-salvar-lacre">
+                            <i class="bi bi-shield-check me-1"></i> Confirmar Troca de Lacre
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ============================================================================== -->
+            <!-- 5. FORMULÁRIO LIVRO DIGITAL DE MANUTENÇÃO -->
+            <!-- ============================================================================== -->
+            <div class="tab-pane fade" id="manutencao-pane" role="tabpanel">
+                <div class="card card-custom p-4">
+                    <h5 class="section-header">Registro no Livro Digital de Manutenção da Viatura</h5>
+                    <form id="form-manutencao">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Viatura *</label>
+                                <select class="form-select select-viatura" id="manut-viatura-id" required>
+                                    <option value="">Carregando viaturas...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Responsável pela Abertura *</label>
+                                <select class="form-select select-todos-colab" id="manut-colaborador-id" required>
+                                    <option value="">Carregando colaboradores...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Oficina / Prestador Credenciado</label>
+                                <select class="form-select" id="manut-oficina-id">
+                                    <option value="">Carregando oficinas...</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Modo de Registro *</label>
+                                <select class="form-select" id="manut-modo-registro" required>
+                                    <option value="EXECUTADO" selected>Serviço Executado</option>
+                                    <option value="AGENDADO">Manutenção Agendada</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Tipo de Manutenção *</label>
+                                <select class="form-select" id="manut-tipo" required>
+                                    <option value="TROCA_OLEO_FILTROS" selected>Troca de Óleo e Filtros</option>
+                                    <option value="PREVENTIVA_GERAL">Preventiva Geral</option>
+                                    <option value="CORRETIVA_MECANICA">Corretiva Mecânica</option>
+                                    <option value="CORRETIVA_ELETRICA">Corretiva Elétrica</option>
+                                    <option value="FRENOS_E_SUSPENSAO">Freios e Suspensão</option>
+                                    <option value="REVISAO_AR_CONDICIONADO">Ar Condicionado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Data da Manutenção</label>
+                                <input type="date" class="form-control" id="manut-data-execucao">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">KM no Serviço *</label>
+                                <input type="number" class="form-control" id="manut-km-servico" placeholder="Ex: 145000" required>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Nº Nota Fiscal</label>
+                                <input type="text" class="form-control" id="manut-nf" placeholder="Ex: NF 45812">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Valor Total (R$)</label>
+                                <input type="number" step="0.01" class="form-control" id="manut-valor" placeholder="Ex: 850.00">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Status *</label>
+                                <select class="form-select" id="manut-status" required>
+                                    <option value="EXECUTADO" selected>Concluído / Executado</option>
+                                    <option value="EM_ANDAMENTO">Em Andamento na Oficina</option>
+                                    <option value="AGENDADO">Agendado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">E-mail para Lembrete</label>
+                                <input type="email" class="form-control" id="manut-email-lembrete" placeholder="Ex: gestao@samu.sc.gov.br">
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Descrição Detalhada dos Serviços Executados *</label>
+                                <textarea class="form-control" id="manut-servicos" rows="3" placeholder="Descreva as peças trocadas e reparos efetuados..." required></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-samu-primary btn-lg w-100" id="btn-salvar-manutencao">
+                            <i class="bi bi-tools me-1"></i> Registrar no Livro de Manutenção
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JS Scripts & Lógica Principal -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module">
+        import { CONFIG, supabase } from './config.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!supabase) {
+                alert('Erro crítico: Falha ao carregar o cliente Supabase. Verifique o arquivo config.js.');
+                return;
+            }
+
+            // Injeção Dinâmica dos Metadados e da Logo Oficial
+            const logoElem = document.getElementById('app-logo');
+            if (logoElem) {
+                logoElem.src = CONFIG.TENANT?.URL_LOGO || CONFIG.LOGO_SISTEMA || './logo.png';
+            }
+
+            document.getElementById('app-title').textContent = CONFIG.SISTEMA?.NOME || "SAMU Connect";
+            document.getElementById('app-tenant').textContent = `${CONFIG.TENANT?.NOME_UNIDADE || "USB 11"} - ${CONFIG.TENANT?.MUNICIPIO_UF || "ORLEANS / SC"}`;
+
+            carregarSeleetoresFormularios();
+        });
+
+        // ==============================================================================
+        // CARREGAMENTO DOS SELECTS EM TEMPO REAL DO SUPABASE
+        // ==============================================================================
+        async function carregarSeleetoresFormularios() {
+            // 1. Carrega Viaturas
+            const { data: viaturas } = await supabase.from('operacional_viaturas').select('*').order('prefixo');
+            const selectViaturas = document.querySelectorAll('.select-viatura');
+            
+            if (viaturas && viaturas.length > 0) {
+                const optionsHtml = viaturas.map(v => `<option value="${v.id}" data-km="${v.km_atual}">${v.prefixo} (${v.placa || 'Sem Placa'}) - KM: ${v.km_atual}</option>`).join('');
+                selectViaturas.forEach(s => s.innerHTML = optionsHtml);
+            } else {
+                selectViaturas.forEach(s => s.innerHTML = `<option value="">Nenhuma viatura cadastrada</option>`);
+            }
+
+            // 2. Carrega Colaboradores por Cargo
+            const { data: colaboradores } = await supabase.from('colaboradores').select('*').eq('status', 'ATIVO').order('nome_guerra');
+            
+            if (colaboradores && colaboradores.length > 0) {
+                const condutores = colaboradores.filter(c => c.cargo === 'CONDUTOR');
+                const tecnicos = colaboradores.filter(c => c.cargo === 'TECNICO_ENF' || c.cargo === 'ENFERMEIRO');
+
+                const condHtml = (condutores.length > 0 ? condutores : colaboradores).map(c => `<option value="${c.id}">${c.nome_guerra} - ${c.nome_completo}</option>`).join('');
+                const tecHtml = (tecnicos.length > 0 ? tecnicos : colaboradores).map(c => `<option value="${c.id}">${c.nome_guerra} - ${c.nome_completo}</option>`).join('');
+                const todosHtml = colaboradores.map(c => `<option value="${c.id}">${c.nome_guerra} - ${c.nome_completo}</option>`).join('');
+
+                document.querySelectorAll('.select-condutor').forEach(s => s.innerHTML = condHtml);
+                document.querySelectorAll('.select-tecnico').forEach(s => s.innerHTML = tecHtml);
+                document.querySelectorAll('.select-todos-colab').forEach(s => s.innerHTML = todosHtml);
+            }
+
+            // 3. Carrega Postos e Oficinas Credenciados
+            const { data: postos } = await supabase.from('operacional_postos').select('*').eq('status', 'ATIVO').order('nome_fantasia');
+            if (postos && postos.length > 0) {
+                const postosCombustivel = postos.filter(p => p.tipo === 'POSTO_COMBUSTIVEL');
+                const oficinas = postos.filter(p => p.tipo === 'OFICINA_MECANICA');
+
+                const postoSelect = document.getElementById('abs-posto-id');
+                if (postoSelect) {
+                    postoSelect.innerHTML = (postosCombustivel.length > 0 ? postosCombustivel : postos).map(p => `<option value="${p.id}">${p.nome_fantasia}</option>`).join('');
+                }
+
+                const oficinaSelect = document.getElementById('manut-oficina-id');
+                if (oficinaSelect) {
+                    oficinaSelect.innerHTML = `<option value="">Nenhuma / Oficina Externa</option>` + (oficinas.length > 0 ? oficinas : postos).map(p => `<option value="${p.id}">${p.nome_fantasia}</option>`).join('');
+                }
+            }
+        }
+
+        // ==============================================================================
+        // SUBMISSÕES DOS FORMULÁRIOS
+        // ==============================================================================
+
+        // 1. Checklist do Condutor
+        document.getElementById('form-checklist-condutor').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-salvar-condutor');
+            btn.disabled = true;
+
+            try {
+                const viaturaId = document.getElementById('cond-viatura-id').value;
+                const kmAtual = parseInt(document.getElementById('cond-km-atual').value);
+
+                const itensMecanicaJson = {
+                    farois: document.getElementById('chk-farois').checked,
+                    sirene: document.getElementById('chk-sirene').checked,
+                    giroflex: document.getElementById('chk-giroflex').checked,
+                    limpeza: document.getElementById('chk-limpeza').checked,
+                    maca_retratil: document.getElementById('chk-maca').checked
+                };
+
+                const ferramentasArray = Array.from(document.querySelectorAll('input[name="ferramentas"]:checked')).map(el => el.value);
+
+                const payload = {
+                    viatura_id: viaturaId,
+                    condutor_id: document.getElementById('cond-condutor-id').value || null,
+                    turno: document.getElementById('cond-turno').value,
+                    km_atual: kmAtual,
+                    km_proxima_troca_oleo: parseInt(document.getElementById('cond-km-troca-oleo').value),
+                    nivel_combustivel: document.getElementById('cond-combustivel').value,
+                    nivel_arla32: document.getElementById('cond-arla32').value,
+                    pneus_dianteiros: document.getElementById('cond-pneus-dianteiros').value,
+                    pneus_traseiros: document.getElementById('cond-pneus-traseiros').value,
+                    pneu_estepe: document.getElementById('cond-pneu-estepe').value,
+                    epis_nr32: document.getElementById('cond-epis-nr32').value,
+                    cilindro_portatil_2: document.getElementById('cond-o2-portatil-2').value,
+                    itens_mecanica: itensMecanicaJson,
+                    ferramentas_salvamento: ferramentasArray,
+                    avarias_observacoes: document.getElementById('cond-observacoes').value || null
+                };
+
+                const { error } = await supabase.from('operacional_checklists_condutor').insert([payload]);
+                if (error) throw error;
+
+                await supabase.from('operacional_viaturas').update({ km_atual: kmAtual }).eq('id', viaturaId);
+
+                alert('Checklist do Socorrista Condutor registrado com sucesso!');
+                document.getElementById('form-checklist-condutor').reset();
+                carregarSeleetoresFormularios();
+            } catch (err) {
+                alert('Erro ao salvar checklist: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // 2. Checklist do Técnico / Enfermagem
+        document.getElementById('form-checklist-tecnico').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-salvar-tecnico');
+            btn.disabled = true;
+
+            try {
+                const itensMochilasJson = {
+                    mochila_vermelha: document.getElementById('chk-mochila-vermelha').checked,
+                    mochila_azul: document.getElementById('chk-mochila-azul').checked,
+                    maleta_parto: document.getElementById('chk-maleta-parto').checked
+                };
+
+                const payload = {
+                    viatura_id: document.getElementById('tec-viatura-id').value,
+                    tecnico_id: document.getElementById('tec-tecnico-id').value || null,
+                    turno: document.getElementById('tec-turno').value,
+                    lacre_psicotropicos: document.getElementById('tec-lacre-psicotropicos').value,
+                    cilindro_fixo_1_bar: parseInt(document.getElementById('tec-o2-fixo-1').value),
+                    cilindro_fixo_2_bar: parseInt(document.getElementById('tec-o2-fixo-2').value),
+                    cilindro_portatil_1_bar: parseInt(document.getElementById('tec-o2-portatil-1').value),
+                    cilindro_ar_comprimido_bar: parseInt(document.getElementById('tec-ar-comprimido').value),
+                    itens_mochilas: itensMochilasJson,
+                    alerta_critico: document.getElementById('tec-alerta-critico').value,
+                    materiais_faltantes_obs: document.getElementById('tec-observacoes').value || null
+                };
+
+                const { error } = await supabase.from('operacional_checklists_tecnico').insert([payload]);
+                if (error) throw error;
+
+                alert('Checklist da Enfermagem registrado com sucesso!');
+                document.getElementById('form-checklist-tecnico').reset();
+            } catch (err) {
+                alert('Erro ao salvar checklist técnico: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // 3. Abastecimento
+        document.getElementById('form-abastecimento').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-salvar-abastecimento');
+            btn.disabled = true;
+
+            try {
+                const viaturaId = document.getElementById('abs-viatura-id').value;
+                const kmAtual = parseInt(document.getElementById('abs-km-atual').value);
+
+                const payload = {
+                    viatura_id: viaturaId,
+                    condutor_id: document.getElementById('abs-condutor-id').value || null,
+                    posto_id: document.getElementById('abs-posto-id').value || null,
+                    insumo_combustivel: document.getElementById('abs-combustivel').value,
+                    km_atual: kmAtual,
+                    litros_abastecidos: parseFloat(document.getElementById('abs-litros').value),
+                    valor_total: parseFloat(document.getElementById('abs-valor-total').value),
+                    observacoes_nf: document.getElementById('abs-observacoes-nf').value || null
+                };
+
+                const { error } = await supabase.from('operacional_abastecimentos').insert([payload]);
+                if (error) throw error;
+
+                await supabase.from('operacional_viaturas').update({ km_atual: kmAtual }).eq('id', viaturaId);
+
+                alert('Abastecimento registrado com sucesso!');
+                document.getElementById('form-abastecimento').reset();
+                carregarSeleetoresFormularios();
+            } catch (err) {
+                alert('Erro ao salvar abastecimento: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // 4. Troca de Lacres
+        document.getElementById('form-lacre').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-salvar-lacre');
+            btn.disabled = true;
+
+            try {
+                const payload = {
+                    viatura_id: document.getElementById('lacre-viatura-id').value,
+                    responsavel_id: document.getElementById('lacre-responsavel-id').value || null,
+                    numero_lacre_rompido: document.getElementById('lacre-rompido').value,
+                    numero_lacre_novo: document.getElementById('lacre-novo').value,
+                    motivo_substituicao: document.getElementById('lacre-motivo').value,
+                    observacoes: document.getElementById('lacre-observacoes').value || null
+                };
+
+                const { error } = await supabase.from('operacional_lacres').insert([payload]);
+                if (error) throw error;
+
+                alert('Troca de lacre registrada com sucesso!');
+                document.getElementById('form-lacre').reset();
+            } catch (err) {
+                alert('Erro ao salvar lacre: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // 5. Livro de Manutenção
+        document.getElementById('form-manutencao').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-salvar-manutencao');
+            btn.disabled = true;
+
+            try {
+                const viaturaId = document.getElementById('manut-viatura-id').value;
+                const modoRegistro = document.getElementById('manut-modo-registro').value;
+
+                const payload = {
+                    viatura_id: viaturaId,
+                    colaborador_id: document.getElementById('manut-colaborador-id').value || null,
+                    oficina_id: document.getElementById('manut-oficina-id').value || null,
+                    modo_registro: modoRegistro,
+                    data_manutencao: document.getElementById('manut-data-execucao').value || null,
+                    km_no_servico: parseInt(document.getElementById('manut-km-servico').value),
+                    tipo_manutencao: document.getElementById('manut-tipo').value,
+                    numero_nota_fiscal: document.getElementById('manut-nf').value || null,
+                    valor_total: parseFloat(document.getElementById('manut-valor').value) || null,
+                    email_lembrete: document.getElementById('manut-email-lembrete').value || null,
+                    servicos_executados: document.getElementById('manut-servicos').value,
+                    status: document.getElementById('manut-status').value
+                };
+
+                const { error } = await supabase.from('operacional_manutencoes_livro').insert([payload]);
+                if (error) throw error;
+
+                if (modoRegistro === 'AGENDADO') {
+                    await supabase.from('operacional_viaturas').update({ status: 'MANUTENCAO' }).eq('id', viaturaId);
+                }
+
+                alert('Registro inserido no Livro Digital de Manutenção!');
+                document.getElementById('form-manutencao').reset();
+            } catch (err) {
+                alert('Erro ao salvar manutenção: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
