@@ -15,9 +15,9 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
-    body { background-color: var(--bg); color: #000; padding: 20px 12px; }
+    body { background-color: var(--bg); color: #000; padding: 15px 10px; }
 
-    .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 20px; }
+    .container { max-width: 950px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 15px; }
     
     .header-app { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #cbd5e1; padding-bottom: 12px; }
     .header-app h1 { color: var(--navy); font-size: 1.2rem; font-weight: 800; text-transform: uppercase; }
@@ -38,21 +38,21 @@
     .btn-print { background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
 
     /* ESTILO EXATO DA FICHA APH OFICIAL */
-    .ficha-oficial { display: none; background: #fff; padding: 10px; border: 2px solid #000; font-size: 11px; color: #000; }
-    .ficha-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 8px; }
-    .ficha-header h2 { font-size: 15px; font-weight: 900; margin: 0; }
-    .ficha-header h3 { font-size: 13px; font-weight: 800; margin-top: 2px; }
+    .ficha-oficial { display: none; background: #fff; padding: 5px; color: #000; font-size: 10px; }
+    .ficha-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 6px; }
+    .ficha-header h2 { font-size: 14px; font-weight: 900; margin: 0; }
+    .ficha-header h3 { font-size: 12px; font-weight: 800; margin-top: 2px; }
 
-    .sec-title { background: #000; color: #fff; font-weight: 800; padding: 3px 6px; font-size: 11px; margin-top: 8px; text-transform: uppercase; }
+    .sec-title { background: #000; color: #fff; font-weight: 800; padding: 2px 5px; font-size: 10px; margin-top: 6px; text-transform: uppercase; }
     
     .grid-box { display: grid; border: 1px solid #000; margin-top: -1px; }
-    .cell { padding: 4px 6px; border-right: 1px solid #000; border-bottom: 1px solid #000; word-break: break-word; }
+    .cell { padding: 3px 5px; border-right: 1px solid #000; border-bottom: 1px solid #000; word-break: break-word; }
     .cell:last-child { border-right: none; }
-    .lbl { font-size: 9px; font-weight: 800; color: #333; display: block; text-transform: uppercase; }
-    .val { font-size: 11px; font-weight: 700; color: #000; }
+    .lbl { font-size: 8.5px; font-weight: 800; color: #333; display: block; text-transform: uppercase; }
+    .val { font-size: 10px; font-weight: 700; color: #000; }
 
     table.tbl-ficha { width: 100%; border-collapse: collapse; border: 1px solid #000; margin-top: -1px; }
-    table.tbl-ficha th, table.tbl-ficha td { border: 1px solid #000; padding: 4px; text-align: center; font-size: 10px; }
+    table.tbl-ficha th, table.tbl-ficha td { border: 1px solid #000; padding: 3px 4px; text-align: center; font-size: 9.5px; }
     table.tbl-ficha th { background: #f0f0f0; font-weight: 800; }
 
     /* IMPRESSÃO A4 */
@@ -61,7 +61,7 @@
       .no-print { display: none !important; }
       .container { box-shadow: none; border: none; padding: 0; max-width: 100%; }
       .ficha-oficial { display: block !important; border: none; padding: 0; }
-      @page { size: A4; margin: 8mm; }
+      @page { size: A4; margin: 6mm; }
     }
   </style>
 </head>
@@ -106,14 +106,12 @@
       </div>
 
       <div id="areaFichaImpressao" class="ficha-oficial">
-        
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;" class="no-print">
           <button onclick="fecharFichaImpressao()" style="padding: 6px 12px; background: #64748b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">⬅️ Voltar à Lista</button>
           <button onclick="window.print()" style="padding: 10px 20px; background: #16a34a; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; font-size: 0.9rem;">🖨️ Imprimir Ficha Oficial</button>
         </div>
 
         <div id="conteudoFichaDetalhada"></div>
-
       </div>
 
     </div>
@@ -124,7 +122,8 @@
     const SUPABASE_URL = "https://rcpgukslnlfptreiusff.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcGd1a3NsbmxmcHRyZWl1c2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDQ2MTYsImV4cCI6MjEwMjU4MDYxNn0.LgadTI7PwlLMBT5TbNkMncI0OfL22wjGAU_xanR4J6A";
 
-    window.dbNuvem = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    window.dbNuvem = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
     let listaFichasCache = [];
 
     function tratarTecla(e) { if (e.key === 'Enter') validarAcesso(); }
@@ -140,13 +139,18 @@
       }
     }
 
-    function g(obj, ...chaves) {
-      for (let c of chaves) {
-        if (obj && obj[c] !== undefined && obj[c] !== null && String(obj[c]).trim() !== "") {
-          return obj[c];
-        }
+    function v(val, padrao = '—') {
+      if (val === undefined || val === null || String(val).trim() === '' || String(val).trim() === 'nan') {
+        return padrao;
       }
-      return '—';
+      return String(val).trim();
+    }
+
+    function formatarDataBR(strData) {
+      if (!strData || strData === '—') return '—';
+      const partes = strData.split('T')[0].split('-');
+      if (partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
+      return strData;
     }
 
     async function carregarFichasAPH() {
@@ -154,7 +158,8 @@
       tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px;">Buscando registros na tabela ocorrencias_aph...</td></tr>';
 
       try {
-        const { data, error } = await window.dbNuvem
+        const client = window.dbNuvem || window.supabaseClient;
+        const { data, error } = await client
           .from('ocorrencias_aph')
           .select('*')
           .order('id', { ascending: false })
@@ -178,15 +183,15 @@
       tbody.innerHTML = '';
 
       dados.forEach((f, idx) => {
-        const dt = g(f, 'data_hora', 'data_atendimento', 'created_at');
-        const dtFmt = dt !== '—' ? dt.replace('T', ' ').substring(0, 16) : '—';
-        const paciente = g(f, 'nome_paciente', 'paciente_nome', 'paciente', 'nome_completo');
-        const viatura = g(f, 'viatura', 'prefixo', 'viatura_prefixo');
-        const ocorr = g(f, 'numero_ocorrencia', 'num_ocorrencia', 'ocorrencia', 'numero');
+        const dt = formatarDataBR(v(f.data)) !== '—' ? formatarDataBR(v(f.data)) : v(f.created_at).substring(0,10);
+        const hr = v(f.hora_j9) !== '—' ? f.hora_j9 : (v(f.created_at).includes('T') ? f.created_at.split('T')[1].substring(0,5) : '');
+        const paciente = v(f.paciente, 'Paciente Não Identificado');
+        const viatura = 'USB 11';
+        const ocorr = v(f.codigo_ocorrencia);
 
         tbody.innerHTML += `
           <tr>
-            <td><b>${dtFmt}</b></td>
+            <td><b>${dt} ${hr}</b></td>
             <td>${paciente}</td>
             <td>${viatura}</td>
             <td>${ocorr}</td>
@@ -201,10 +206,9 @@
     function filtrarTabela() {
       const termo = document.getElementById('inputBusca').value.toLowerCase();
       const filtrados = listaFichasCache.filter(f => {
-        const pac = g(f, 'nome_paciente', 'paciente_nome', 'paciente', 'nome_completo').toLowerCase();
-        const viat = g(f, 'viatura', 'prefixo').toLowerCase();
-        const ocorr = g(f, 'numero_ocorrencia', 'num_ocorrencia', 'ocorrencia').toLowerCase();
-        return pac.includes(termo) || viat.includes(termo) || ocorr.includes(termo);
+        const pac = v(f.paciente).toLowerCase();
+        const ocorr = v(f.codigo_ocorrencia).toLowerCase();
+        return pac.includes(termo) || ocorr.includes(termo);
       });
       renderizarTabela(filtrados);
     }
@@ -213,61 +217,100 @@
       const f = listaFichasCache[index];
       if (!f) return;
 
-      const dtFull = g(f, 'data_hora', 'data_atendimento', 'created_at');
-      const dtData = dtFull !== '—' ? dtFull.split('T')[0].split('-').reverse().join('/') : '—';
-      const dtHora = dtFull !== '—' && dtFull.includes('T') ? dtFull.split('T')[1].substring(0,5) : '—';
+      let sv = [];
+      try {
+        if (f.sinais_vitais) {
+          sv = typeof f.sinais_vitais === 'string' ? JSON.parse(f.sinais_vitais) : f.sinais_vitais;
+        }
+      } catch(e){}
+
+      let svRow = sv.length > 0 ? sv[0] : {};
+
+      let insumosHtml = '';
+      try {
+        let insList = typeof f.insumos_utilizados === 'string' ? JSON.parse(f.insumos_utilizados) : f.insumos_utilizados;
+        if (Array.isArray(insList) && insList.length > 0) {
+          insList.forEach(i => {
+            const desc = v(i.descricao, v(i.nome));
+            const qtd = v(i.quantidade, '1');
+            const lote = v(i.numero_lote, 'SEM LOTE');
+            const val = i.data_validade ? formatarDataBR(i.data_validade) : 'N/A';
+            if (desc !== '—' && desc !== 'NENHUM INSUMO OU MEDICAÇÃO UTILIZADO') {
+              insumosHtml += `<div style="margin-bottom: 2px;">• <b>${desc}</b> — LOTE: ${lote} | VAL: ${val} (<b>QTD: ${qtd}</b>)</div>`;
+            }
+          });
+        }
+      } catch(e){}
+      if (!insumosHtml) insumosHtml = 'NENHUM INSUMO OU MEDICAÇÃO REGISTRADO';
+
+      const gTot = v(f.glasgow_total);
+      const gOc = v(f.glasgow_ocular);
+      const gVerb = v(f.glasgow_verbal);
+      const gMot = v(f.glasgow_motor);
+
+      let corTriagem = v(f.cor_ocorrencia);
+      if (corTriagem === 'AM') corTriagem = 'AMARELO (AM)';
+      else if (corTriagem === 'VM') corTriagem = 'VERMELHO (VM)';
+      else if (corTriagem === 'VD') corTriagem = 'VERDE (VD)';
+      else if (corTriagem === 'CZ') corTriagem = 'CINZA (CZ)';
+
+      let sexoFmt = v(f.sexo);
+      if (sexoFmt === 'M') sexoFmt = 'Masculino (M)';
+      else if (sexoFmt === 'F') sexoFmt = 'Feminino (F)';
 
       const htmlOficial = `
         <div class="ficha-header">
           <h2>SAMU 192 - ORLEANS / SC</h2>
-          <h3>FICHA DE ATENDIMENTO MÓVEL DE URGÊNCIA (${g(f, 'viatura', 'prefixo') !== '—' ? g(f, 'viatura', 'prefixo') : 'USB 11'})</h3>
+          <h3>FICHA DE ATENDIMENTO MÓVEL DE URGÊNCIA (USB 11)</h3>
         </div>
 
         <div class="sec-title">1. CONTROLE OPERACIONAL & EQUIPE</div>
         <div class="grid-box" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
-          <div class="cell"><span class="lbl">Nº OCORRÊNCIA</span><span class="val">${g(f, 'numero_ocorrencia', 'num_ocorrencia', 'ocorrencia')}</span></div>
-          <div class="cell"><span class="lbl">CÓDIGO TRIAGEM</span><span class="val">${g(f, 'codigo_triagem', 'triagem', 'cor_triagem')}</span></div>
-          <div class="cell"><span class="lbl">DATA</span><span class="val">${dtData}</span></div>
-          <div class="cell"><span class="lbl">MOTIVO ACIONAMENTO</span><span class="val">${g(f, 'motivo_acionamento', 'motivo', 'queixa_principal')}</span></div>
+          <div class="cell"><span class="lbl">Nº OCORRÊNCIA</span><span class="val">${v(f.codigo_ocorrencia)}</span></div>
+          <div class="cell"><span class="lbl">CÓDIGO TRIAGEM</span><span class="val">${corTriagem}</span></div>
+          <div class="cell"><span class="lbl">DATA</span><span class="val">${formatarDataBR(v(f.data))}</span></div>
+          <div class="cell"><span class="lbl">MOTIVO ACIONAMENTO</span><span class="val">${v(f.motivo_acionamento)}</span></div>
         </div>
         <div class="grid-box" style="grid-template-columns: 1fr 1fr 1fr;">
-          <div class="cell"><span class="lbl">MÉDICO REGULADOR INICIAL</span><span class="val">${g(f, 'medico_regulador', 'medico_regulador_inicial', 'medico')}</span></div>
-          <div class="cell"><span class="lbl">TÉC. DE ENFERMAGEM</span><span class="val">${g(f, 'tec_enfermagem', 'tecnico_enfermagem', 'tecnico_nome', 'tecnico')}</span></div>
-          <div class="cell"><span class="lbl">SOCORRISTA (CONDUTOR)</span><span class="val">${g(f, 'condutor_nome', 'socorrista_nome', 'condutor', 'socorrista')}</span></div>
+          <div class="cell"><span class="lbl">MÉDICO REGULADOR INICIAL</span><span class="val">${v(f.regulador)}</span></div>
+          <div class="cell"><span class="lbl">TÉC. DE ENFERMAGEM</span><span class="val">${v(f.tec_enfermeiro)}</span></div>
+          <div class="cell"><span class="lbl">SOCORRISTA (CONDUTOR)</span><span class="val">${v(f.socorrista)}</span></div>
         </div>
-        <div class="grid-box" style="grid-template-columns: repeat(6, 1fr);">
-          <div class="cell"><span class="lbl">SAÍDA BASE</span><span class="val">${g(f, 'hora_saida_base', 'saida_base') !== '—' ? g(f, 'hora_saida_base', 'saida_base') : dtHora}</span></div>
-          <div class="cell"><span class="lbl">CHEG. LOCAL</span><span class="val">${g(f, 'hora_cheg_local', 'chegada_local')}</span></div>
-          <div class="cell"><span class="lbl">SAÍDA LOCAL</span><span class="val">${g(f, 'hora_saida_local', 'saida_local')}</span></div>
-          <div class="cell"><span class="lbl">DESTINO</span><span class="val">${g(f, 'hora_destino', 'chegada_destino')}</span></div>
-          <div class="cell"><span class="lbl">DISPONÍVEL</span><span class="val">${g(f, 'hora_disponivel', 'disponivel')}</span></div>
-          <div class="cell"><span class="lbl">NA BASE</span><span class="val">${g(f, 'hora_na_base', 'retorno_base')}</span></div>
+        <div class="grid-box" style="grid-template-columns: repeat(7, 1fr);">
+          <div class="cell"><span class="lbl">SAÍDA BASE</span><span class="val">${v(f.hora_j9)}</span></div>
+          <div class="cell"><span class="lbl">CHEG. LOCAL</span><span class="val">${v(f.hora_j10)}</span></div>
+          <div class="cell"><span class="lbl">SAÍDA LOCAL</span><span class="val">${v(f.hora_j9_int)}</span></div>
+          <div class="cell"><span class="lbl">DESTINO</span><span class="val">${v(f.hora_j10_int)}</span></div>
+          <div class="cell"><span class="lbl">DISPONÍVEL</span><span class="val">${v(f.hora_j11)}</span></div>
+          <div class="cell"><span class="lbl">NA BASE</span><span class="val">${v(f.hora_j12)}</span></div>
+          <div class="cell"><span class="lbl">QTA</span><span class="val">${v(f.hora_qta)}</span></div>
         </div>
 
         <div class="sec-title">2. IDENTIFICAÇÃO DO PACIENTE & LOCAL</div>
         <div class="grid-box" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
-          <div class="cell"><span class="lbl">NOME COMPLETO DO PACIENTE</span><span class="val">${g(f, 'nome_paciente', 'paciente_nome', 'paciente', 'nome_completo')}</span></div>
-          <div class="cell"><span class="lbl">CPF / RG</span><span class="val">${g(f, 'cpf', 'documento', 'rg')}</span></div>
-          <div class="cell"><span class="lbl">DATA NASC.</span><span class="val">${g(f, 'data_nasc', 'data_nascimento', 'dt_nasc')}</span></div>
-          <div class="cell"><span class="lbl">IDADE / SEXO</span><span class="val">${g(f, 'idade')} | ${g(f, 'sexo')}</span></div>
+          <div class="cell"><span class="lbl">NOME COMPLETO DO PACIENTE</span><span class="val">${v(f.paciente)}</span></div>
+          <div class="cell"><span class="lbl">CPF PACIENTE</span><span class="val">${v(f.cpf_paciente)}</span></div>
+          <div class="cell"><span class="lbl">DATA NASC.</span><span class="val">${formatarDataBR(v(f.data_nascimento))}</span></div>
+          <div class="cell"><span class="lbl">IDADE / SEXO</span><span class="val">${v(f.idade)} anos | ${sexoFmt}</span></div>
         </div>
-        <div class="grid-box" style="grid-template-columns: 2fr 1fr 1fr;">
-          <div class="cell"><span class="lbl">RUA / LOGRADOURO</span><span class="val">${g(f, 'rua', 'logradouro', 'endereco')}</span></div>
-          <div class="cell"><span class="lbl">BAIRRO</span><span class="val">${g(f, 'bairro')}</span></div>
-          <div class="cell"><span class="lbl">MUNICÍPIO / UF</span><span class="val">${g(f, 'municipio', 'cidade')} / ${g(f, 'uf', 'estado')}</span></div>
+        <div class="grid-box" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
+          <div class="cell"><span class="lbl">RUA / LOGRADOURO</span><span class="val">${v(f.rua)}</span></div>
+          <div class="cell"><span class="lbl">Nº / APTO</span><span class="val">${v(f.numero)}</span></div>
+          <div class="cell"><span class="lbl">BAIRRO</span><span class="val">${v(f.bairro)}</span></div>
+          <div class="cell"><span class="lbl">MUNICÍPIO / UF</span><span class="val">${v(f.municipio, 'ORLEANS')} / ${v(f.estado, 'SC')}</span></div>
         </div>
 
         <div class="sec-title">3. TIPO OCORRÊNCIA</div>
         <div class="grid-box" style="grid-template-columns: 1fr;">
-          <div class="cell"><span class="lbl">NATUREZA DO ATENDIMENTO</span><span class="val">${g(f, 'tipo_ocorrencia', 'natureza_ocorrencia', 'natureza')}</span></div>
+          <div class="cell"><span class="lbl">NATUREZA DO ATENDIMENTO</span><span class="val">${v(f.tipo_ocorrencia)}</span></div>
         </div>
 
         <div class="sec-title">4. AVALIAÇÃO TÁTICA & EXAME FÍSICO (ABCDE)</div>
         <div class="grid-box" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
-          <div class="cell"><span class="lbl">A - VIAS AÉREAS</span><span class="val">${g(f, 'vias_aereas', 'a_vias_aereas')}</span></div>
-          <div class="cell"><span class="lbl">B - RESPIRAÇÃO</span><span class="val">${g(f, 'respiracao', 'b_respiracao')}</span></div>
-          <div class="cell"><span class="lbl">C - PULSO / PELE</span><span class="val">${g(f, 'pulso_pele', 'c_circulacao')}</span></div>
-          <div class="cell"><span class="lbl">D - GLASGOW TOTAL</span><span class="val">${g(f, 'glasgow', 'escala_glasgow')}</span></div>
+          <div class="cell"><span class="lbl">A - VIAS AÉREAS</span><span class="val">${v(f.vias_aereas)}</span></div>
+          <div class="cell"><span class="lbl">B - RESPIRAÇÃO</span><span class="val">${v(f.respiracao)}</span></div>
+          <div class="cell"><span class="lbl">C - PULSO / PELE</span><span class="val">${v(f.circulacao)}</span></div>
+          <div class="cell"><span class="lbl">D - GLASGOW TOTAL</span><span class="val">${gTot !== '—' ? gTot + '/15' : '—'} (O:${gOc} V:${gVerb} M:${gMot})</span></div>
         </div>
 
         <div class="sec-title">5. SINAIS VITAIS (MEDIÇÕES APH)</div>
@@ -286,47 +329,52 @@
           </thead>
           <tbody>
             <tr>
-              <td>${dtHora}</td>
-              <td>${g(f, 'pa', 'pressao_arterial', 'pressao')}</td>
-              <td>${g(f, 'fc', 'frequencia_cardiaca', 'frequencia')}</td>
-              <td>${g(f, 'fr', 'frequencia_respiratoria')}</td>
-              <td>${g(f, 'spo2', 'saturacao', 'sat')}%</td>
-              <td>${g(f, 'temperatura', 'temp')}</td>
-              <td>${g(f, 'glicemia', 'hgt')}</td>
-              <td>${g(f, 'pupilas')}</td>
+              <td>${v(svRow.hora, v(f.hora_j10))}</td>
+              <td>${v(svRow.pa)}</td>
+              <td>${v(svRow.fc)}</td>
+              <td>${v(svRow.fr)}</td>
+              <td>${v(svRow.spo2) !== '—' ? v(svRow.spo2) + '%' : '—'}</td>
+              <td>${v(svRow.temp)}</td>
+              <td>${v(svRow.hgt)}</td>
+              <td>${v(f.pupilas)}</td>
             </tr>
           </tbody>
         </table>
 
         <div class="sec-title">6. MEDICAÇÕES & INSUMOS UTILIZADOS</div>
         <div class="grid-box" style="grid-template-columns: 1fr;">
-          <div class="cell"><span class="val">${g(f, 'insumos_utilizados', 'insumos', 'medicacoes')}</span></div>
+          <div class="cell"><span class="val" style="font-weight: normal; font-size: 9.5px;">${insumosHtml}</span></div>
         </div>
 
         <div class="sec-title">7. ANAMNESE, EVOLUÇÃO E CONDUTA</div>
+        <div class="grid-box" style="grid-template-columns: 1fr 1fr;">
+          <div class="cell"><span class="lbl">ALERGIAS?</span><span class="val">${v(f.alergia_select)} ${v(f.alergia_desc) !== '—' ? '(' + f.alergia_desc + ')' : ''}</span></div>
+          <div class="cell"><span class="lbl">MEDICAÇÃO CONTÍNUA?</span><span class="val">${v(f.med_continua_select)} ${v(f.med_continua_desc) !== '—' ? '(' + f.med_continua_desc + ')' : ''}</span></div>
+        </div>
         <div class="grid-box" style="grid-template-columns: 1fr;">
-          <div class="cell" style="min-height: 50px;">
+          <div class="cell" style="min-height: 45px;">
             <span class="lbl">EVOLUÇÃO E CONDUTA</span>
-            <span class="val" style="font-weight: normal; font-size: 10px;">${g(f, 'relato_ocorrencia', 'observacoes', 'procedimentos', 'relato', 'conduta', 'anamnese')}</span>
+            <span class="val" style="font-weight: normal; font-size: 9.5px; white-space: pre-wrap;">${v(f.evolucao_texto)}</span>
           </div>
         </div>
 
         <div class="sec-title">8. DESFECHO DO ATENDIMENTO & ASSINATURA</div>
-        <div class="grid-box" style="grid-template-columns: 1fr 1fr;">
-          <div class="cell"><span class="lbl">DESFECHO / DESTINO</span><span class="val">${g(f, 'desfecho', 'desfecho_atendimento')}</span></div>
-          <div class="cell"><span class="lbl">HOSPITAL RECEPTOR</span><span class="val">${g(f, 'hospital_destino', 'destino', 'hospital')}</span></div>
+        <div class="grid-box" style="grid-template-columns: 1fr 1fr 1fr;">
+          <div class="cell"><span class="lbl">DESFECHO DA VÍTIMA</span><span class="val">${v(f.desfecho_vitima)}</span></div>
+          <div class="cell"><span class="lbl">HOSPITAL RECEPTOR</span><span class="val">${v(f.hospital_destino)}</span></div>
+          <div class="cell"><span class="lbl">HOUVE RECUSA?</span><span class="val">${v(f.houve_recusa)}</span></div>
         </div>
 
-        <div style="margin-top: 35px; display: flex; justify-content: space-around; text-align: center;">
+        <div style="margin-top: 30px; display: flex; justify-content: space-around; text-align: center;">
           <div>
             _______________________________________<br>
-            <b>${g(f, 'condutor_nome', 'socorrista_nome', 'condutor')}</b><br>
-            <span style="font-size: 9px;">Assinatura do Socorrista</span>
+            <b>${v(f.socorrista, 'SOCORRISTA (CONDUTOR)')}</b><br>
+            <span style="font-size: 8.5px;">Assinatura e Carimbo</span>
           </div>
           <div>
             _______________________________________<br>
-            <b>${g(f, 'tec_enfermagem', 'tecnico_nome', 'tecnico')}</b><br>
-            <span style="font-size: 9px;">Assinatura / COREN / CRM</span>
+            <b>${v(f.tec_enfermeiro, 'TÉCNICO DE ENFERMAGEM')}</b><br>
+            <span style="font-size: 8.5px;">Assinatura e Carimbo / COREN</span>
           </div>
         </div>
       `;
