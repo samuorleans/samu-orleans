@@ -371,35 +371,193 @@
       text-transform: uppercase;
     }
 
-    @media print {
-      @page { size: A4 portrait; margin: 3mm; }
-      html, body { width: 100%; height: 100%; background: #fff !important; padding: 0 !important; margin: 0 !important; color: #000000 !important; font-size: 6pt !important; line-height: 1.1; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; text-rendering: optimizeLegibility !important; }
-      .btn-submit, .btn-search, .btn-reabrir-historico, .btn-add-med, .btn-add-sv, .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .modal-med-overlay, .modal-auth-overlay, .modal-alergia-overlay, .vitima-selector-bar, .status-sync-bar, .form-locked-overlay, button, script { display: none !important; }
-      select, input[type="time"], input[type="date"] { -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; background: transparent !important; background-image: none !important; }
-      input[type="time"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-inner-spin-button, input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; -webkit-appearance: none !important; }
-      header { background: #fff !important; color: #000000 !important; border-bottom: 1.5pt solid #000000; padding: 1px 0 !important; margin-bottom: 2px !important; border-left: none !important; display: flex !important; justify-content: space-between !important; align-items: center !important; }
-      header img { height: 28px !important; }
+   @media print {
+      @page { 
+        size: A4 portrait; 
+        margin: 4mm 4mm 4mm 4mm; 
+      }
+      
+      html, body { 
+        width: 100% !important; 
+        height: auto !important; 
+        background: #ffffff !important; 
+        padding: 0 !important; 
+        margin: 0 !important; 
+        color: #000000 !important; 
+        font-size: 5.8pt !important; 
+        line-height: 1.1; 
+        -webkit-print-color-adjust: exact !important; 
+        print-color-adjust: exact !important; 
+        text-rendering: optimizeLegibility !important; 
+      }
+
+      /* Ocultar elementos de controle web na impressão */
+      .btn-submit, .btn-search, .btn-reabrir-historico, .btn-add-med, .btn-add-sv, 
+      .btn-del-med, .btn-time-sv, .btn-mic, .icon-toggle, .modal-med-overlay, 
+      .modal-auth-overlay, .modal-alergia-overlay, .vitima-selector-bar, .status-sync-bar, 
+      .form-locked-overlay, button, script { 
+        display: none !important; 
+      }
+
+      /* Tirar estilo de controles padrão do navegador */
+      select, input[type="time"], input[type="date"] { 
+        -webkit-appearance: none !important; 
+        -moz-appearance: none !important; 
+        appearance: none !important; 
+        background: transparent !important; 
+        background-image: none !important; 
+      }
+      
+      input[type="time"]::-webkit-calendar-picker-indicator, 
+      input[type="time"]::-webkit-inner-spin-button, 
+      input[type="date"]::-webkit-calendar-picker-indicator { 
+        display: none !important; 
+        -webkit-appearance: none !important; 
+      }
+
+      /* Cabeçalho Compacto */
+      header { 
+        background: #ffffff !important; 
+        color: #000000 !important; 
+        border-bottom: 1.5pt solid #000000; 
+        padding: 1px 0 !important; 
+        margin-bottom: 2px !important; 
+        border-left: none !important; 
+        display: flex !important; 
+        justify-content: space-between !important; 
+        align-items: center !important; 
+      }
+      header img { height: 24px !important; }
       header .header-info { text-align: right !important; }
-      header h1 { font-size: 8.5pt !important; margin: 0; color: #000000 !important; font-weight: 900 !important; letter-spacing: 0.5px; }
-      header p { font-size: 5pt !important; margin: 0; font-weight: 900; color: #000000 !important; }
-      .card { box-shadow: none !important; border: 0.6pt solid #000000 !important; margin-bottom: 2px !important; padding: 0 !important; border-radius: 0 !important; page-break-inside: avoid !important; }
-      .card-header { background: #f1f5f9 !important; color: #000000 !important; border-bottom: 0.6pt solid #000000 !important; padding: 1px 3px !important; font-size: 5.5pt !important; font-weight: 900 !important; text-transform: uppercase; }
-      .card-body { display: block !important; padding: 2px 3px !important; }
-      label { font-size: 4.5pt !important; color: #000000 !important; margin-bottom: 0px !important; font-weight: 900 !important; }
-      input[type="text"], input[type="password"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], select, textarea { border: none !important; border-bottom: 0.4pt solid #000000 !important; background: transparent !important; padding: 0px !important; font-weight: 900 !important; font-size: 5.8pt !important; margin-bottom: 0px !important; height: auto !important; color: #000000 !important; }
-      textarea { height: auto !important; resize: none; }
+      header h1 { font-size: 8pt !important; margin: 0; color: #000000 !important; font-weight: 900 !important; letter-spacing: 0.3px; }
+      header p { font-size: 4.8pt !important; margin: 0; font-weight: 900; color: #000000 !important; }
+
+      /* Estrutura dos Cards */
+      .card { 
+        box-shadow: none !important; 
+        border: 0.5pt solid #000000 !important; 
+        margin-bottom: 2px !important; 
+        padding: 0 !important; 
+        border-radius: 0 !important; 
+        page-break-inside: avoid !important; 
+      }
+      
+      .card-header { 
+        background: #f1f5f9 !important; 
+        color: #000000 !important; 
+        border-bottom: 0.5pt solid #000000 !important; 
+        padding: 1px 3px !important; 
+        font-size: 5.2pt !important; 
+        font-weight: 900 !important; 
+        text-transform: uppercase; 
+      }
+      
+      .card-body { 
+        display: block !important; 
+        padding: 1px 3px !important; 
+      }
+
+      /* Campos de Entrada e Labels */
+      label { 
+        font-size: 4.2pt !important; 
+        color: #000000 !important; 
+        margin-bottom: 0px !important; 
+        font-weight: 900 !important; 
+      }
+      
+      input[type="text"], input[type="password"], input[type="number"], 
+      input[type="tel"], input[type="date"], input[type="time"], select, textarea { 
+        border: none !important; 
+        border-bottom: 0.4pt solid #000000 !important; 
+        background: transparent !important; 
+        padding: 0px !important; 
+        font-weight: 900 !important; 
+        font-size: 5.5pt !important; 
+        margin-bottom: 0px !important; 
+        height: auto !important; 
+        color: #000000 !important; 
+      }
+      
+      textarea { 
+        height: auto !important; 
+        resize: none; 
+      }
+
+      /* Seção de Códigos e Reclassificação */
       .codigo-group { display: none !important; }
-      .print-triagem-text { display: block !important; font-size: 6pt !important; font-weight: 900 !important; border: 0.6pt solid #000000 !important; padding: 1px 3px !important; text-align: center !important; background: #f1f5f9 !important; color: #000000 !important; }
+      .print-triagem-text { 
+        display: block !important; 
+        font-size: 5.5pt !important; 
+        font-weight: 900 !important; 
+        border: 0.5pt solid #000000 !important; 
+        padding: 1px 3px !important; 
+        text-align: center !important; 
+        background: #f1f5f9 !important; 
+        color: #000000 !important; 
+      }
+      
       #box_reclassificacao_wrapper.sem-reclassificacao { display: none !important; }
       .radio-grid-ocorrencia { display: none !important; }
-      .print-tipo-ocorrencia-text { display: block !important; font-size: 6.5pt !important; font-weight: 900 !important; color: #000000 !important; padding: 2px 0 !important; text-transform: uppercase; }
+      .print-tipo-ocorrencia-text { 
+        display: block !important; 
+        font-size: 6pt !important; 
+        font-weight: 900 !important; 
+        color: #000000 !important; 
+        padding: 1px 0 !important; 
+        text-transform: uppercase; 
+      }
+      
       #printReclassificacaoBox:empty, .print-ocultar-vazio { display: none !important; }
-      .j-block-container { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 2px !important; }
-      .j-row-tactical { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; text-align: center !important; border: 0.4pt solid #000000 !important; background: transparent !important; padding: 1px !important; }
+
+      /* Bloco de Horários J */
+      .j-block-container { 
+        display: grid !important; 
+        grid-template-columns: repeat(7, 1fr) !important; 
+        gap: 2px !important; 
+      }
+      
+      .j-row-tactical { 
+        display: flex !important; 
+        flex-direction: column !important; 
+        align-items: center !important; 
+        justify-content: center !important; 
+        text-align: center !important; 
+        border: 0.4pt solid #000000 !important; 
+        background: transparent !important; 
+        padding: 1px !important; 
+      }
+      
       .btn-j-badge { display: none !important; }
-      .j-print-label { display: block !important; font-size: 4.2pt !important; font-weight: 900 !important; text-transform: uppercase; text-align: center !important; color: #000000 !important; width: 100% !important; }
-      .j-time-input { height: 11px !important; font-size: 5.5pt !important; font-weight: 900 !important; border: none !important; text-align: center !important; width: 100% !important; color: #000000 !important; }
-      .sv-table th, .sv-table td, .table-expo th, .table-expo td, .med-table th, .med-table td { font-size: 5.2pt !important; padding: 1px !important; border: 0.4pt solid #000000 !important; color: #000000 !important; font-weight: 900 !important; }
+      
+      .j-print-label { 
+        display: block !important; 
+        font-size: 4pt !important; 
+        font-weight: 900 !important; 
+        text-transform: uppercase; 
+        text-align: center !important; 
+        color: #000000 !important; 
+        width: 100% !important; 
+      }
+      
+      .j-time-input { 
+        height: 10px !important; 
+        font-size: 5.2pt !important; 
+        font-weight: 900 !important; 
+        border: none !important; 
+        text-align: center !important; 
+        width: 100% !important; 
+        color: #000000 !important; 
+      }
+
+      /* Tabelas e Escalas */
+      .sv-table th, .sv-table td, .table-expo th, .table-expo td, .med-table th, .med-table td { 
+        font-size: 5pt !important; 
+        padding: 1px 2px !important; 
+        border: 0.4pt solid #000000 !important; 
+        color: #000000 !important; 
+        font-weight: 900 !important; 
+      }
+      
       .sv-table td, .table-expo td { text-align: center !important; }
       .med-table td { text-align: left !important; }
       .med-table td.td-center { text-align: center !important; }
@@ -409,13 +567,61 @@
       .col-excluir-print { display: none !important; }
       #box_nenhum_insumo_wrapper.ocultar-aviso-print { display: none !important; }
       .med-row-insumo-comum { display: none !important; }
-      canvas { height: 26px !important; border: 0.4pt solid #000000 !important; }
-      .print-signatures-block { display: grid !important; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 3px; padding-top: 1px; page-break-inside: avoid; }
-      .print-signatures-block.tres-colunas { grid-template-columns: 1fr 1fr 1fr !important; }
-      .sig-box { border: 0.4pt solid #000000; padding: 2px; text-align: center; min-height: 40px; display: flex; flex-direction: column; justify-content: space-between; }
-      .sig-line { border-top: 0.4pt solid #000000; margin-top: 18px; font-size: 4.5pt; font-weight: 900; text-transform: uppercase; color: #000000; }
-      .sig-title { font-size: 4.5pt; font-weight: bold; color: #000000; text-align: center; }
-      .glasgow-total-box { font-size: 7pt !important; padding: 1px !important; border: 0.4pt solid #000000 !important; background: transparent !important; box-shadow: none !important; color: #000000 !important; }
+
+      /* Assinatura Canvas & Quadro de Assinaturas */
+      canvas { 
+        height: 24px !important; 
+        border: 0.4pt solid #000000 !important; 
+      }
+      
+      .print-signatures-block { 
+        display: grid !important; 
+        grid-template-columns: 1fr 1fr; 
+        gap: 4px; 
+        margin-top: 2px; 
+        padding-top: 1px; 
+        page-break-inside: avoid; 
+      }
+      
+      .print-signatures-block.tres-colunas { 
+        grid-template-columns: 1fr 1fr 1fr !important; 
+      }
+      
+      .sig-box { 
+        border: 0.4pt solid #000000; 
+        padding: 1px; 
+        text-align: center; 
+        min-height: 35px; 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: space-between; 
+      }
+      
+      .sig-line { 
+        border-top: 0.4pt solid #000000; 
+        margin-top: 14px; 
+        font-size: 4.2pt; 
+        font-weight: 900; 
+        text-transform: uppercase; 
+        color: #000000; 
+      }
+      
+      .sig-title { 
+        font-size: 4.2pt; 
+        font-weight: bold; 
+        color: #000000; 
+        text-align: center; 
+      }
+      
+      .glasgow-total-box { 
+        font-size: 6.5pt !important; 
+        padding: 1px !important; 
+        border: 0.4pt solid #000000 !important; 
+        background: transparent !important; 
+        box-shadow: none !important; 
+        color: #000000 !important; 
+      }
+    }
     }
   </style>
 </head>
