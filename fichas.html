@@ -22,11 +22,16 @@
     .header-app { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #cbd5e1; padding-bottom: 12px; }
     .header-app h1 { color: var(--navy); font-size: 1.2rem; font-weight: 800; text-transform: uppercase; }
 
-    #boxAuth { max-width: 350px; margin: 40px auto; text-align: center; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1.5px solid #cbd5e1; }
-    #boxAuth input { width: 100%; padding: 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; margin: 10px 0; text-align: center; font-size: 1.1rem; font-weight: 700; outline: none; }
-    #boxAuth button { width: 100%; padding: 10px; background: var(--navy); color: white; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; }
+    #boxAuth { max-width: 380px; margin: 40px auto; text-align: center; background: #f8fafc; padding: 25px; border-radius: 12px; border: 1.5px solid #cbd5e1; }
+    #boxAuth input { width: 100%; padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; margin: 12px 0; text-align: center; font-size: 1.1rem; font-weight: 700; outline: none; }
+    #boxAuth button { width: 100%; padding: 12px; background: var(--navy); color: white; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.95rem; }
 
     #areaFichas { display: none; }
+
+    /* ESTILO DAS ABAS DE NAVEGAÇÃO */
+    .tab-container { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; }
+    .tab-btn { flex: 1; padding: 12px; background: #e2e8f0; color: var(--navy); border: none; font-weight: 800; font-size: 0.85rem; border-radius: 8px; cursor: pointer; transition: 0.2s; text-transform: uppercase; }
+    .tab-btn.active { background: var(--navy); color: white; }
     
     .busca-box { display: flex; gap: 10px; margin-bottom: 15px; }
     .busca-box input { flex: 1; padding: 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; }
@@ -37,7 +42,15 @@
 
     .btn-print { background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
 
-    /* ESTILO EXATO DA FICHA APH OFICIAL DE ALTO CONTRASTE */
+    /* UPLOAD E NUVEM DE PDF EXTERNO */
+    .upload-pdf-box { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px; }
+    .upload-pdf-box input[type="file"] { display: none; }
+    .btn-upload-label { display: inline-block; padding: 10px 18px; background: var(--blue); color: white; border-radius: 8px; font-weight: 800; cursor: pointer; margin-top: 8px; font-size: 0.85rem; }
+
+    /* VISUALIZADOR DE PDF */
+    #pdfViewerFrame { width: 100%; height: 75vh; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 15px; }
+
+    /* ESTILO FICHA APH OFICIAL */
     .ficha-oficial { display: none; background: #fff; padding: 5px; color: #000; font-size: 10px; }
     .ficha-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 6px; }
 
@@ -82,6 +95,8 @@
       .no-print { display: none !important; }
       .container { box-shadow: none; border: none; padding: 0; max-width: 100%; }
       .ficha-oficial { display: block !important; border: none; padding: 0; }
+      #areaPdfExterno { display: block !important; }
+      #pdfViewerFrame { height: 100vh; border: none; }
       @page { size: A4; margin: 6mm; }
     }
   </style>
@@ -90,42 +105,96 @@
 
   <div class="container">
     
+    <!-- AUTH AUTENTICAÇÃO ANTES DE EXIBIR QUALQUER FICHA -->
     <div id="boxAuth" class="no-print">
-      <h2 style="font-size: 1rem; color: var(--navy); margin-bottom: 8px;">🔑 Acesso Restrito Hospital</h2>
-      <p style="font-size: 0.75rem; color: #64748b;">Digite a senha única para visualizar e imprimir as fichas APH do plantão.</p>
+      <h2 style="font-size: 1rem; color: var(--navy); margin-bottom: 8px;">🔑 Acesso Restrito Hospital & APH</h2>
+      <p style="font-size: 0.75rem; color: #64748b;">Digite sua Senha Única para liberar o painel de consulta e impressão de fichas.</p>
       <input type="password" id="inputSenhaAcesso" placeholder="Digite a Senha..." onkeypress="tratarTecla(event)">
-      <button type="button" onclick="validarAcesso()">Acessar Fichas</button>
+      <button type="button" onclick="validarAcesso()">Acessar Central de Fichas</button>
     </div>
 
+    <!-- ÁREA PRINCIPAL PROTEGIDA -->
     <div id="areaFichas">
       
       <div class="header-app no-print">
         <h1>🏥 SAMU CONNECT — CONSULTA & IMPRESSÃO DE FICHAS APH</h1>
-        <p style="font-size: 0.8rem; color: #555;">USB 11 ORLEANS — Emissão oficial de Ficha APH em formato padrão</p>
+        <p style="font-size: 0.8rem; color: #555;">USB 11 ORLEANS — Emissão oficial de Ficha APH e Sincronização de PDFs Externos</p>
       </div>
 
-      <div class="busca-box no-print">
-        <input type="text" id="inputBusca" placeholder="🔍 Buscar por Nome do Paciente, Ocorrência ou Viatura..." onkeyup="filtrarTabela()">
-        <button type="button" onclick="carregarFichasAPH()" style="padding: 10px 15px; background: var(--blue); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">🔄 Atualizar</button>
+      <!-- BOTÕES DAS ABAS -->
+      <div class="tab-container no-print">
+        <button class="tab-btn active" id="btnTabSistema" onclick="alternarModo('sistema')">📂 Fichas do Sistema (Supabase)</button>
+        <button class="tab-btn" id="btnTabExterno" onclick="alternarModo('externo')">📄 Fichas PDF Externas (Tablet / Nuvem)</button>
       </div>
 
-      <div class="no-print" style="overflow-x: auto;">
-        <table class="tbl-lista">
-          <thead>
-            <tr>
-              <th>Data / Hora</th>
-              <th>Paciente</th>
-              <th>Viatura</th>
-              <th>Ocorrência</th>
-              <th style="text-align: center;">Ação</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyFichas">
-            <tr><td colspan="5" style="text-align: center; padding: 15px;">Carregando fichas...</td></tr>
-          </tbody>
-        </table>
+      <!-- SEÇÃO 1: FICHAS DO SISTEMA SUPABASE -->
+      <div id="areaSistema">
+        <div class="busca-box no-print">
+          <input type="text" id="inputBusca" placeholder="🔍 Buscar por Nome do Paciente, Ocorrência ou Viatura..." onkeyup="filtrarTabela()">
+          <button type="button" onclick="carregarFichasAPH()" style="padding: 10px 15px; background: var(--blue); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">🔄 Atualizar</button>
+        </div>
+
+        <div class="no-print" style="overflow-x: auto;">
+          <table class="tbl-lista">
+            <thead>
+              <tr>
+                <th>Data / Hora</th>
+                <th>Paciente</th>
+                <th>Viatura</th>
+                <th>Ocorrência</th>
+                <th style="text-align: center;">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyFichas">
+              <tr><td colspan="5" style="text-align: center; padding: 15px;">Carregando fichas...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
+      <!-- SEÇÃO 2: PDFS EXTERNOS VIA TABLET / NUVEM -->
+      <div id="areaPdfExterno" style="display: none;">
+        
+        <!-- UPLOAD VIA TABLET -->
+        <div class="upload-pdf-box no-print">
+          <h3 style="color: var(--navy); font-size: 0.95rem; margin-bottom: 4px;">📱 Enviar Ficha PDF do Tablet para o Hospital</h3>
+          <p style="font-size: 0.78rem; color: #64748b;">Selecione a ficha gerada em PDF no tablet para salvar na nuvem e disponibilizar no computador do hospital.</p>
+          
+          <label for="inputPdfFile" class="btn-upload-label">📤 Enviar Novo PDF para Nuvem</label>
+          <input type="file" id="inputPdfFile" accept="application/pdf" onchange="enviarPdfParaNouvem(event)">
+          <div id="statusUploadPdf" style="font-size: 0.75rem; color: var(--blue); font-weight: bold; margin-top: 6px;"></div>
+        </div>
+
+        <!-- LISTA DE PDFS ENVIADOS RECENTEMENTE -->
+        <div class="no-print" style="margin-bottom: 15px;">
+          <h4 style="font-size: 0.85rem; color: var(--navy); margin-bottom: 8px;">📋 Fichas Externas Disponíveis na Nuvem:</h4>
+          <table class="tbl-lista">
+            <thead>
+              <tr>
+                <th>Data / Hora Envio</th>
+                <th>Nome do Arquivo PDF</th>
+                <th>Origem</th>
+                <th style="text-align: center;">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyPdfsExternos">
+              <tr><td colspan="4" style="text-align: center; padding: 12px;">Carregando arquivos da nuvem...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- VISUALIZADOR DE PDF SELECIONADO -->
+        <div id="boxContainerPdf" style="display: none;">
+          <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span id="lblNomeArquivoPdf" style="font-weight: bold; font-size: 0.85rem; color: var(--navy);"></span>
+            <button onclick="imprimirPdfIframe()" style="padding: 10px 20px; background: #16a34a; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; font-size: 0.9rem;">🖨️ Imprimir PDF Selecionado</button>
+          </div>
+          
+          <iframe id="pdfViewerFrame"></iframe>
+        </div>
+      </div>
+
+      <!-- ÁREA DE IMPRESSÃO DA FICHA INTERNA DO SISTEMA -->
       <div id="areaFichaImpressao" class="ficha-oficial">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;" class="no-print">
           <button onclick="fecharFichaImpressao()" style="padding: 6px 12px; background: #64748b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">⬅️ Voltar à Lista</button>
@@ -152,13 +221,164 @@
 
     async function validarAcesso() {
       const senha = document.getElementById('inputSenhaAcesso').value.trim();
-      if (senha === '192' || senha === 'samu192' || senha === '123456') {
+      
+      let senhaOk = false;
+
+      try {
+        const client = window.dbNuvem || window.supabaseClient;
+        const { data: colabs } = await client.from('colaboradores').select('senha, senha_unica');
+        if (colabs) {
+          senhaOk = colabs.some(c => (c.senha === senha || c.senha_unica === senha));
+        }
+      } catch (e) {}
+
+      if (senhaOk || senha === '192' || senha === 'samu192' || senha === '123456') {
         document.getElementById('boxAuth').style.display = 'none';
         document.getElementById('areaFichas').style.display = 'block';
         await carregarColaboradores();
         carregarFichasAPH();
+        carregarListaPdfsExternos();
       } else {
         alert("❌ Senha incorreta.");
+      }
+    }
+
+    function alternarModo(modo) {
+      const btnSis = document.getElementById('btnTabSistema');
+      const btnExt = document.getElementById('btnTabExterno');
+      const areaSis = document.getElementById('areaSistema');
+      const areaExt = document.getElementById('areaPdfExterno');
+      const areaImp = document.getElementById('areaFichaImpressao');
+
+      areaImp.style.display = 'none';
+
+      if (modo === 'sistema') {
+        btnSis.classList.add('active');
+        btnExt.classList.remove('active');
+        areaSis.style.display = 'block';
+        areaExt.style.display = 'none';
+      } else {
+        btnExt.classList.add('active');
+        btnSis.classList.remove('active');
+        areaExt.style.display = 'block';
+        areaSis.style.display = 'none';
+        carregarListaPdfsExternos();
+      }
+    }
+
+    /* UPLOAD DO TABLET PARA O SUPABASE STORAGE COM TRATAMENTO DE ERRO ISOLADO */
+    async function enviarPdfParaNouvem(e) {
+      const file = e.target.files[0];
+      const statusDiv = document.getElementById('statusUploadPdf');
+
+      if (!file) return;
+
+      if (file.type !== 'application/pdf') {
+        alert("⚠️ Por favor, selecione apenas arquivos no formato PDF.");
+        return;
+      }
+
+      statusDiv.innerText = "🔄 Efetuando upload do PDF para a nuvem...";
+
+      try {
+        const client = window.dbNuvem || window.supabaseClient;
+        const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+        const filePath = `fichas/${fileName}`;
+
+        // 1. Upload do Arquivo para o Storage Bucket 'fichas_pdf'
+        const { data: storageData, error: storageErr } = await client.storage
+          .from('fichas_pdf')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true
+          });
+
+        if (storageErr) {
+          console.error("Erro no Storage:", storageErr);
+          throw new Error(`Erro no Storage: ${storageErr.message}`);
+        }
+
+        // 2. Obter URL Pública
+        const { data: publicUrlData } = client.storage
+          .from('fichas_pdf')
+          .getPublicUrl(filePath);
+
+        const urlFinal = publicUrlData.publicUrl;
+
+        // 3. Registrar na tabela public.fichas_pdf_externas
+        try {
+          await client.from('fichas_pdf_externas').insert([{
+            nome_arquivo: file.name,
+            url_pdf: urlFinal,
+            enviado_por: 'Tablet APH'
+          }]);
+        } catch (dbErr) {
+          console.warn("Aviso: Falha ao salvar índice na tabela, mas arquivo foi enviado ao Storage:", dbErr);
+        }
+
+        statusDiv.innerText = "✅ PDF enviado com sucesso para a nuvem!";
+        alert("✅ Ficha PDF salva na nuvem com sucesso! O hospital já pode visualizar e imprimir.");
+        
+        document.getElementById('inputPdfFile').value = '';
+        carregarListaPdfsExternos();
+
+      } catch (err) {
+        console.error("Erro geral no upload:", err);
+        statusDiv.innerText = "❌ Falha no envio do PDF.";
+        alert(`❌ Falha no upload: ${err.message || 'Verifique o bucket fichas_pdf'}`);
+      }
+    }
+
+    /* CARREGA A LISTA DE PDFS SALVOS NA NUVEM */
+    async function carregarListaPdfsExternos() {
+      const tbody = document.getElementById('tbodyPdfsExternos');
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 12px;">Consultando nuvem...</td></tr>';
+
+      try {
+        const client = window.dbNuvem || window.supabaseClient;
+        const { data, error } = await client
+          .from('fichas_pdf_externas')
+          .select('*')
+          .order('id', { ascending: false })
+          .limit(20);
+
+        if (!error && data && data.length > 0) {
+          tbody.innerHTML = '';
+          data.forEach(p => {
+            const dataFmt = new Date(p.created_at || new Date()).toLocaleString('pt-BR');
+            tbody.innerHTML += `
+              <tr>
+                <td><b>${dataFmt}</b></td>
+                <td>${p.nome_arquivo}</td>
+                <td>${p.enviado_por || 'Tablet APH'}</td>
+                <td style="text-align: center;">
+                  <button class="btn-print" onclick="visualizarPdfExterno('${p.url_pdf}', '${p.nome_arquivo}')">👁️ Visualizar / Imprimir</button>
+                </td>
+              </tr>
+            `;
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 12px;">Nenhum PDF externo enviado recentemente.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 12px; color: var(--red);">Erro ao consultar nuvem.</td></tr>';
+      }
+    }
+
+    function visualizarPdfExterno(urlPdf, nomeArquivo) {
+      const frame = document.getElementById('pdfViewerFrame');
+      frame.src = urlPdf;
+      document.getElementById('lblNomeArquivoPdf').innerText = `📄 Arquivo Selecionado: ${nomeArquivo}`;
+      document.getElementById('boxContainerPdf').style.display = 'block';
+    }
+
+    function imprimirPdfIframe() {
+      const frame = document.getElementById('pdfViewerFrame');
+      if (frame && frame.contentWindow) {
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+      } else {
+        window.print();
       }
     }
 
@@ -268,7 +488,6 @@
       const f = listaFichasCache[index];
       if (!f) return;
 
-      // Parse Sinais Vitais (JSON)
       let sv = [];
       try {
         if (f.sinais_vitais) {
@@ -277,7 +496,6 @@
       } catch(e){}
       let svRow = sv.length > 0 ? sv[0] : {};
 
-      // Parse Insumos (JSON ou Texto)
       let insumosHtml = '';
       try {
         if (f.insumos_utilizados) {
@@ -285,14 +503,8 @@
           let insList = null;
 
           if (typeof rawInsumos === 'string') {
-            try {
-              insList = JSON.parse(rawInsumos);
-            } catch (errJson) {
-              insumosHtml = `<div style="margin-bottom: 2px;">• <b>${rawInsumos}</b></div>`;
-            }
-          } else {
-            insList = rawInsumos;
-          }
+            try { insList = JSON.parse(rawInsumos); } catch (errJson) { insumosHtml = `<div style="margin-bottom: 2px;">• <b>${rawInsumos}</b></div>`; }
+          } else { insList = rawInsumos; }
 
           if (Array.isArray(insList) && insList.length > 0) {
             insList.forEach(i => {
@@ -308,15 +520,12 @@
             });
           }
         }
-      } catch(e) {
-        console.error("Erro ao processar insumos:", e);
-      }
+      } catch(e) {}
 
       if (!insumosHtml || insumosHtml.trim() === '') {
         insumosHtml = 'NENHUM INSUMO OU MEDICAÇÃO REGISTRADO';
       }
 
-      // Lesões por Região (Exposição / Trauma)
       let lesoesObj = null;
       let temLesao = false;
       try {
@@ -381,7 +590,6 @@
       const tipoOcorr = v(f.tipo_ocorrencia).toLowerCase();
       const exibeLesoes = tipoOcorr.includes('trauma') || tipoOcorr.includes('sinistro') || tipoOcorr.includes('trânsito') || temLesao;
 
-      // Biossegurança
       let bioHtml = '';
       if (v(f.bio_suspeita) === 'SIM') {
         bioHtml = `
@@ -393,7 +601,6 @@
         `;
       }
 
-      // Reclassificação de Código
       let reclassHtml = '';
       if (v(f.reclassificacao_codigo) !== '—') {
         reclassHtml = `
@@ -403,34 +610,28 @@
         `;
       }
 
-      // Glasgow
       const gTot = v(f.glasgow_total);
       const gOc = v(f.glasgow_ocular);
       const gVerb = v(f.glasgow_verbal);
       const gMot = v(f.glasgow_motor);
 
-      // Triagem
       let corTriagem = v(f.cor_ocorrencia);
       if (corTriagem === 'AM') corTriagem = 'AMARELO (AM)';
       else if (corTriagem === 'VM') corTriagem = 'VERMELHO (VM)';
       else if (corTriagem === 'VD') corTriagem = 'VERDE (VD)';
       else if (corTriagem === 'AZ') corTriagem = 'AZUL (AZ)';
 
-      // Sexo
       let sexoFmt = v(f.sexo);
       if (sexoFmt === 'M') sexoFmt = 'Masculino (M)';
       else if (sexoFmt === 'F') sexoFmt = 'Feminino (F)';
 
-      // COREN e Nome do Técnico de Enfermagem
       const tecNomeBruto = v(f.tec_enfermeiro).trim().toUpperCase();
       const corenEncontrado = obterCorenTecnico(tecNomeBruto);
       const tecComCoren1 = corenEncontrado ? `${tecNomeBruto} (COREN ${corenEncontrado})` : tecNomeBruto;
       
-      // Técnico Responsável no Campo 7
       const tecRespCampo7 = v(f.tec_resp, tecComCoren1);
       const corenLabelBox = corenEncontrado ? `COREN ${corenEncontrado}` : 'COREN: ____________';
 
-      // Regras de Exibição do Bloco de Assinaturas
       const desfecho = v(f.desfecho_vitima);
       const recusa = v(f.houve_recusa);
       const nomeAssinante = v(f.nome_assinante, v(f.paciente, 'DECLARANTE'));
@@ -602,15 +803,13 @@
       `;
 
       document.getElementById('conteudoFichaDetalhada').innerHTML = htmlOficial;
-      document.querySelector('.tbl-lista').style.display = 'none';
-      document.querySelector('.busca-box').style.display = 'none';
+      document.getElementById('areaSistema').style.display = 'none';
       document.getElementById('areaFichaImpressao').style.display = 'block';
     }
 
     function fecharFichaImpressao() {
       document.getElementById('areaFichaImpressao').style.display = 'none';
-      document.querySelector('.tbl-lista').style.display = 'table';
-      document.querySelector('.busca-box').style.display = 'flex';
+      document.getElementById('areaSistema').style.display = 'block';
     }
   </script>
 </body>
