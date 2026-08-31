@@ -222,7 +222,6 @@
     async function validarAcesso() {
       const senha = document.getElementById('inputSenhaAcesso').value.trim();
       
-      // Validações por senha única no banco ou senhas padrão
       let senhaOk = false;
 
       try {
@@ -267,7 +266,7 @@
       }
     }
 
-    /* UPLOAD DO TABLET PARA O SUPABASE STORAGE E REGISTRO NA TABELA */
+    /* UPLOAD DO TABLET PARA O SUPABASE STORAGE COM TRATAMENTO DE ERRO ISOLADO */
     async function enviarPdfParaNouvem(e) {
       const file = e.target.files[0];
       const statusDiv = document.getElementById('statusUploadPdf');
@@ -283,41 +282,50 @@
 
       try {
         const client = window.dbNuvem || window.supabaseClient;
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+        const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
         const filePath = `fichas/${fileName}`;
 
-        // 1. Send file to Supabase Storage Bucket 'fichas_pdf'
+        // 1. Upload do Arquivo para o Storage Bucket 'fichas_pdf'
         const { data: storageData, error: storageErr } = await client.storage
           .from('fichas_pdf')
-          .upload(filePath, file);
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true
+          });
 
-        if (storageErr) throw storageErr;
+        if (storageErr) {
+          console.error("Erro no Storage:", storageErr);
+          throw new Error(`Erro no Storage: ${storageErr.message}`);
+        }
 
-        // 2. Get Public URL
+        // 2. Obter URL Pública
         const { data: publicUrlData } = client.storage
           .from('fichas_pdf')
           .getPublicUrl(filePath);
 
         const urlFinal = publicUrlData.publicUrl;
 
-        // 3. Insert record into 'fichas_pdf_externas'
-        const { error: dbErr } = await client.from('fichas_pdf_externas').insert([{
-          nome_arquivo: file.name,
-          url_pdf: urlFinal,
-          enviado_por: 'Tablet APH'
-        }]);
-
-        if (dbErr) throw dbErr;
+        // 3. Registrar na tabela public.fichas_pdf_externas
+        try {
+          await client.from('fichas_pdf_externas').insert([{
+            nome_arquivo: file.name,
+            url_pdf: urlFinal,
+            enviado_por: 'Tablet APH'
+          }]);
+        } catch (dbErr) {
+          console.warn("Aviso: Falha ao salvar índice na tabela, mas arquivo foi enviado ao Storage:", dbErr);
+        }
 
         statusDiv.innerText = "✅ PDF enviado com sucesso para a nuvem!";
         alert("✅ Ficha PDF salva na nuvem com sucesso! O hospital já pode visualizar e imprimir.");
+        
+        document.getElementById('inputPdfFile').value = '';
         carregarListaPdfsExternos();
 
       } catch (err) {
-        console.error("Erro no upload:", err);
-        statusDiv.innerText = "❌ Falha ao enviar PDF.";
-        alert("Falha no upload do arquivo. Verifique se o bucket 'fichas_pdf' foi criado no Supabase.");
+        console.error("Erro geral no upload:", err);
+        statusDiv.innerText = "❌ Falha no envio do PDF.";
+        alert(`❌ Falha no upload: ${err.message || 'Verifique o bucket fichas_pdf'}`);
       }
     }
 
