@@ -40,7 +40,8 @@
     table.tbl-lista th { background: var(--navy); color: white; padding: 10px; text-align: left; }
     table.tbl-lista td { padding: 10px; border-bottom: 1px solid #cbd5e1; }
 
-    .btn-print { background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
+    .btn-print { background: #16a34a; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; margin-right: 4px; }
+    .btn-delete { background: var(--red); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
 
     /* UPLOAD E NUVEM DE PDF EXTERNO */
     .upload-pdf-box { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px; }
@@ -142,7 +143,7 @@
                 <th>Paciente</th>
                 <th>Viatura</th>
                 <th>Ocorrência</th>
-                <th style="text-align: center;">Ação</th>
+                <th style="text-align: center;">Ações</th>
               </tr>
             </thead>
             <tbody id="tbodyFichas">
@@ -174,7 +175,7 @@
                 <th>Data / Hora Envio</th>
                 <th>Nome do Arquivo PDF</th>
                 <th>Origem</th>
-                <th style="text-align: center;">Ação</th>
+                <th style="text-align: center;">Ações</th>
               </tr>
             </thead>
             <tbody id="tbodyPdfsExternos">
@@ -266,7 +267,59 @@
       }
     }
 
-    /* UPLOAD DO TABLET PARA O SUPABASE STORAGE COM TRATAMENTO DE ERRO ISOLADO */
+    /* EXCLUIR FICHA DO SISTEMA (TABELA 'ocorrencias_aph') */
+    async function excluirFichaSistema(id, paciente) {
+      const confirma = confirm(`⚠️ Tem certeza que deseja excluir a ficha do paciente:\n"${paciente || 'Não identificado'}"?\n\nEsta ação removerá o registro permanentemente do banco de dados.`);
+      if (!confirma) return;
+
+      try {
+        const client = window.dbNuvem || window.supabaseClient;
+        const { error } = await client.from('ocorrencias_aph').delete().eq('id', id);
+
+        if (error) throw error;
+
+        alert("🗑️ Ficha excluída do Supabase com sucesso!");
+        carregarFichasAPH();
+      } catch (err) {
+        console.error("Erro ao excluir ficha:", err);
+        alert(`❌ Falha ao excluir ficha: ${err.message}`);
+      }
+    }
+
+    /* EXCLUIR PDF EXTERNO (DO BANCO 'fichas_pdf_externas' E DO STORAGE 'fichas_pdf') */
+    async function excluirPdfExterno(id, urlPdf, nomeArquivo) {
+      const confirma = confirm(`⚠️ Tem certeza que deseja excluir o arquivo PDF:\n"${nomeArquivo}"?\n\nO arquivo será apagado do armazenamento do Supabase.`);
+      if (!confirma) return;
+
+      try {
+        const client = window.dbNuvem || window.supabaseClient;
+
+        // 1. Tenta apagar do Storage se houver URL válida
+        if (urlPdf && urlPdf.includes('fichas_pdf')) {
+          const partesPath = urlPdf.split('fichas_pdf/');
+          if (partesPath.length > 1) {
+            const filePathStorage = partesPath[1];
+            await client.storage.from('fichas_pdf').remove([filePathStorage]);
+          }
+        }
+
+        // 2. Apaga da tabela de índice 'fichas_pdf_externas'
+        const { error } = await client.from('fichas_pdf_externas').delete().eq('id', id);
+        if (error) throw error;
+
+        // Ocultar o iframe se o PDF aberto for o excluído
+        document.getElementById('boxContainerPdf').style.display = 'none';
+
+        alert("🗑️ PDF externo excluído com sucesso do Supabase!");
+        carregarListaPdfsExternos();
+
+      } catch (err) {
+        console.error("Erro ao excluir PDF:", err);
+        alert(`❌ Falha ao excluir PDF: ${err.message}`);
+      }
+    }
+
+    /* UPLOAD DO TABLET PARA O SUPABASE STORAGE */
     async function enviarPdfParaNouvem(e) {
       const file = e.target.files[0];
       const statusDiv = document.getElementById('statusUploadPdf');
@@ -346,13 +399,16 @@
           tbody.innerHTML = '';
           data.forEach(p => {
             const dataFmt = new Date(p.created_at || new Date()).toLocaleString('pt-BR');
+            const nomeSanitizado = (p.nome_arquivo || '').replace(/'/g, "\\'");
+            
             tbody.innerHTML += `
               <tr>
                 <td><b>${dataFmt}</b></td>
                 <td>${p.nome_arquivo}</td>
                 <td>${p.enviado_por || 'Tablet APH'}</td>
                 <td style="text-align: center;">
-                  <button class="btn-print" onclick="visualizarPdfExterno('${p.url_pdf}', '${p.nome_arquivo}')">👁️ Visualizar / Imprimir</button>
+                  <button class="btn-print" onclick="visualizarPdfExterno('${p.url_pdf}', '${nomeSanitizado}')">👁️ Visualizar</button>
+                  <button class="btn-delete" onclick="excluirPdfExterno(${p.id}, '${p.url_pdf}', '${nomeSanitizado}')">🗑️ Excluir</button>
                 </td>
               </tr>
             `;
@@ -443,6 +499,7 @@
         const paciente = v(f.paciente, 'Paciente Não Identificado');
         const viatura = 'USB 11';
         const ocorr = v(f.codigo_ocorrencia);
+        const pacienteSanitizado = paciente.replace(/'/g, "\\'");
 
         tbody.innerHTML += `
           <tr>
@@ -452,6 +509,7 @@
             <td>${ocorr}</td>
             <td style="text-align: center;">
               <button class="btn-print" onclick="abrirFichaParaImpressao(${idx})">🖨️ Imprimir</button>
+              <button class="btn-delete" onclick="excluirFichaSistema(${f.id}, '${pacienteSanitizado}')">🗑️ Excluir</button>
             </td>
           </tr>
         `;
